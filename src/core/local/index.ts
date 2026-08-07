@@ -10,6 +10,13 @@ export {
   type AnonymousName,
 } from './anonymous'
 export {
+  formatDiceTerms,
+  resolveDice,
+  type DiceOutcome,
+  type DiceSeed,
+  type DiceTerm,
+} from './dice'
+export {
   PLAIN_TITLE_STYLE,
   decodeTitleStyle,
   parseTopicMisc,
@@ -19,3 +26,13 @@ export {
   type TitleStyleSource,
   type TopicMisc,
 } from './title-style'
+export {
+  isVoteClosed,
+  parseVote,
+  voteSharePercent,
+  type ParseVoteOptions,
+  type Vote,
+  type VoteGroup,
+  type VoteKind,
+  type VoteOption,
+} from './vote'

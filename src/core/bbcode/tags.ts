@@ -85,11 +85,11 @@ export const CONTAINER_BUILDERS: Readonly<Record<string, ContainerBuilder>> = {
   },
   '@': (_open, children) => ({ type: 'mention', username: plainText(normalize(children)) }),
 
-  lessernuke: (_open, children) => ({
-    type: 'box',
-    variant: 'lessernuke',
-    children: normalize(children),
-  }),
+  lessernuke: nukeBox('post'),
+  // 官方把处罚种类写在标签名末尾那一位数字上,`[lessernuke]` 与 `[lessernuke1]` 等价
+  lessernuke1: nukeBox('post'),
+  lessernuke2: nukeBox('topic'),
+  lessernuke3: nukeBox('locked'),
   hip: (_open, children) => ({ type: 'box', variant: 'hip', children: normalize(children) }),
   item: (_open, children) => ({ type: 'box', variant: 'item', children: normalize(children) }),
   stripbr: (_open, children) => ({
@@ -140,6 +140,15 @@ export function isRawTag(open: OpenTag): boolean {
  * 缺闭标签属于 NGA 常态,不该像普通标签那样降级成文本。
  */
 export const SELF_CLOSING_TAGS: ReadonlySet<string> = new Set(['*', 'tr', 'td'])
+
+function nukeBox(punishment: 'post' | 'topic' | 'locked'): ContainerBuilder {
+  return (_open, children) => ({
+    type: 'box',
+    variant: 'lessernuke',
+    punishment,
+    children: normalize(children),
+  })
+}
 
 function toAlign(value: string | undefined): 'left' | 'center' | 'right' {
   return value === 'center' || value === 'right' ? value : 'left'

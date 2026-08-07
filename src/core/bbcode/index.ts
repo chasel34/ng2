@@ -1,5 +1,6 @@
 export { unescapeNgaText } from './entities'
 export { parseBBCode } from './parse'
+export { childNodeLists } from './walk'
 export type {
   AlbumNode,
   AlignNode,

@@ -129,6 +129,12 @@ describe('匿名楼层', () => {
     expect(floorAt(detail, 1).authorKey).toBe('66313282')
   })
 
+  it('authorId 留的是服务端原值——骰子种子要它，匿名楼层就是页内序号', () => {
+    const detail = parseFixture('readAnonymousHotReply', 'req-1')
+    expect(floorAt(detail, 0).authorId).toBe(-1)
+    expect(floorAt(detail, 1).authorId).toBe(66313282)
+  })
+
   it('每个楼层的 authorKey 都能在用户表里查到', () => {
     const detail = parseFixture('readAnonymousHotReply')
     for (const floor of [...detail.floors, ...detail.hotReplies]) {

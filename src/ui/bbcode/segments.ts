@@ -1,4 +1,4 @@
-import type { BBCodeNode } from '@/core/bbcode';
+import { childNodeLists, type BBCodeNode } from '@/core/bbcode';
 
 /**
  * 排版分段:把一串 AST 节点切成「行内段」与「块级节点」交替的序列。
@@ -9,8 +9,28 @@ import type { BBCodeNode } from '@/core/bbcode';
  * 纯函数、不碰组件,这样这套判断能单测——本仓库跑不了组件渲染测试。
  */
 
-/** 会自己占一行、塞不进 `<Text>` 的节点。 */
-const BLOCK_TYPES = new Set<BBCodeNode['type']>(['quote', 'image', 'divider', 'heading']);
+/**
+ * 会自己占一行、塞不进 `<Text>` 的节点。
+ *
+ * 判据是「渲染成什么」而不是「BBCode 里是块还是行内」:`[align]`、`[collapse]`、
+ * `[list]`、`[table]`、`[lessernuke]` 这几个要么带自己的框、要么要横向滚动,
+ * 都得落到 `<View>` 上;`[dice]`、`[flash]`、`[attach]`、`[album]` 画的是卡片,同理。
+ */
+const BLOCK_TYPES = new Set<BBCodeNode['type']>([
+  'quote',
+  'image',
+  'divider',
+  'heading',
+  'align',
+  'collapse',
+  'list',
+  'table',
+  'box',
+  'dice',
+  'flash',
+  'attach',
+  'album',
+]);
 
 export const isBlockNode = (node: BBCodeNode): boolean => BLOCK_TYPES.has(node.type);
 
@@ -22,12 +42,7 @@ export const isBlockNode = (node: BBCodeNode): boolean => BLOCK_TYPES.has(node.t
  */
 export function containsBlock(node: BBCodeNode): boolean {
   if (isBlockNode(node)) return true;
-  if ('children' in node) return node.children.some(containsBlock);
-  if (node.type === 'list') return node.items.some((item) => item.some(containsBlock));
-  if (node.type === 'table') {
-    return node.rows.some((row) => row.cells.some((cell) => cell.children.some(containsBlock)));
-  }
-  return false;
+  return childNodeLists(node).some((list) => list.some(containsBlock));
 }
 
 export type Segment =

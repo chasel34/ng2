@@ -149,6 +149,11 @@ export interface Floor {
   readonly pid: number
   /** 楼层号，0 是主楼 */
   readonly lou: number
+  /**
+   * 服务端原始的 `authorid`。骰子种子要的就是这个数（CONTEXT.md「骰子」），
+   * 匿名楼层这里是 `-1`、`-2` 这种页内序号而不是 uid——查人得走 `authorKey`。
+   */
+  readonly authorId: number
   /** 到 `TopicDetail.users` 里查作者 */
   readonly authorKey: string
   readonly isStarter: boolean

@@ -14,6 +14,7 @@ import {
 import type { Floor } from '@/core/api';
 import { useTopicDetail } from '@/store/topic-detail';
 import { FloorCard, type FloorContext } from '@/ui/floor-card';
+import { isHorizontalDragActive } from '@/ui/horizontal-drag';
 import { Icon } from '@/ui/icon';
 import { InputDialog } from '@/ui/input-dialog';
 import { PageBar } from '@/ui/page-bar';
@@ -107,6 +108,7 @@ export default function TopicScreen() {
     }
 
     const floorContext: FloorContext = {
+      tid: topicId,
       users: data.users,
       attachBase: data.attachBase,
       // 大图查看器是 25 票
@@ -290,7 +292,9 @@ function useSwipePaging({ page, totalPages, onChange }: SwipePagingOptions) {
         // 用 capture:responder 的捕获阶段从根往下走,不这么做的话
         // FlashList 里的 ScrollView 会先把手势抢走,横滑就再也认领不到了。
         // 条件卡得很死(横向位移明显压过纵向),所以不会误伤上下滚动。
+        // 捕获阶段祖先先手,楼层里横向滚的表格抢不回来,所以它按下时会先打招呼(ui/horizontal-drag)。
         onMoveShouldSetPanResponderCapture: (_event, gesture) =>
+          !isHorizontalDragActive() &&
           Math.abs(gesture.dx) >= SWIPE_ACTIVATE &&
           Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.3,
         onPanResponderMove: (_event, gesture) => {

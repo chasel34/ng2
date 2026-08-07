@@ -201,6 +201,12 @@ export interface DiceNode {
 export interface BoxNode {
   readonly type: 'box'
   readonly variant: 'lessernuke' | 'hip' | 'item'
+  /**
+   * 只有 `lessernuke` 有:被处罚的是哪一种。标签写成 `[lessernuke2]` 这样带一位数字,
+   * 官方 `ubbcode.lesserNuke` 按它换提示语(本帖发言 / 主题中被处罚 / 账号被锁定),
+   * 不带数字等同 `post`。
+   */
+  readonly punishment?: 'post' | 'topic' | 'locked'
   readonly children: readonly BBCodeNode[]
 }
 

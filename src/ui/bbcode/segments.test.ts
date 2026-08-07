@@ -49,9 +49,32 @@ describe('裹在行内标签里的块级内容', () => {
   });
 
   it('没裹块级内容的行内标签仍然留在行内', () => {
-    for (const source of ['[b]粗[/b]', '[color=red]红[/color]', '[align=center]居中字[/align]']) {
+    for (const source of ['[b]粗[/b]', '[color=red]红[/color]', '[size=120%]大字[/size]']) {
       expect(segmentsOf(source).every((segment) => segment.kind === 'inline')).toBe(true);
     }
+  });
+});
+
+describe('自带框或需要交互的进阶标签', () => {
+  /**
+   * 这些标签哪怕里面只有一行字也得占一块:对齐要作用在容器上、折叠块要有开关、
+   * 表格要能横向滚、骰子和媒体是卡片——留在 `<Text>` 里这些都做不到。
+   */
+  it.each([
+    ['居中的一行字', '[align=center]居中字[/align]'],
+    ['折叠块', '[collapse=提要]内容[/collapse]'],
+    ['列表', '[list][*]甲[*]乙[/list]'],
+    ['表格', '[table][tr][td]甲[/td][td]乙[/td][/tr][/table]'],
+    ['版规警告块', '[lessernuke]内容[/lessernuke]'],
+    ['骰子', '[dice]1d100[/dice]'],
+    ['视频', '[flash=video]./a.mp4[/flash]'],
+    ['附件', '[attach]./a.zip[/attach]'],
+    ['相册', '[album=相册][img]./a.jpg[/img][img]./b.jpg[/img][/album]'],
+    ['标题', '[h]小标题[/h]'],
+  ])('%s 单独占一块', (_name, source) => {
+    const segments = segmentsOf(source);
+    expect(segments).toHaveLength(1);
+    expect(segments[0]?.kind).toBe('block');
   });
 });
 

@@ -4,12 +4,14 @@ import { Linking, Pressable, Text, View } from 'react-native';
 
 import type { Floor, FloorAttachment, FloorClient, FloorUser } from '@/core/api';
 import { parseBBCode } from '@/core/bbcode';
+import { parseVote, resolveDice } from '@/core/local';
 
 import { Avatar } from './avatar';
 import { BBCodeBody } from './bbcode';
 import { Icon, type IconName } from './icon';
 import { createThemedStyles, useTheme } from './theme';
 import { showNotAvailable } from './toast';
+import { VoteBlock } from './vote';
 
 /** 设计稿:附件宫格三列、格间距 6、方格圆角 10。 */
 const ATTACH_COLUMNS = 3;
@@ -30,6 +32,8 @@ const formatReputation = (value: number): string => value.toFixed(1);
  * (`TopicDetail`),所以打包一起传:楼层卡片、贴条区、热门回复区都要同一份。
  */
 export interface FloorContext {
+  /** 所在主题的 tid。骰子种子与投票的分组语法都要用到(CONTEXT.md「骰子」) */
+  tid: number;
   /** 整页的用户表,按 `floor.authorKey` 查 */
   users: Readonly<Record<string, FloorUser>>;
   /** 附件图片基址,来自本页响应的 `__GLOBAL._ATTACH_BASE_VIEW` */
@@ -53,10 +57,22 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
   const nodes = useMemo(() => parseBBCode(floor.content), [floor.content]);
   const user = context.users[floor.authorKey];
 
+  // 骰子的点数是「整楼一条数列」算出来的,所以按楼层算一次,渲染器只负责查表
+  const dice = useMemo(
+    () => resolveDice(nodes, { authorId: floor.authorId, tid: context.tid, pid: floor.pid }),
+    [nodes, floor.authorId, context.tid, floor.pid],
+  );
+
+  const vote = useMemo(
+    () => (floor.vote === undefined ? undefined : parseVote(floor.vote, { tid: context.tid })),
+    [floor.vote, context.tid],
+  );
+
   const renderOptions = {
     attachBase: context.attachBase,
     // 发帖时间是 [noimg] 相对路径补 mon_YYYYMM/DD/ 的依据,所以按楼层给
     postedAt: floor.postedAt,
+    dice,
     ...(context.onOpenImage === undefined ? {} : { onOpenImage: context.onOpenImage }),
   };
 
@@ -98,6 +114,9 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
       <View style={styles.body}>
         <BBCodeBody nodes={nodes} options={renderOptions} />
       </View>
+
+      {/* 投票是楼层字段不是 BBCode(API 文档 §3),所以画在正文之后而不是渲染器里 */}
+      {vote !== undefined && <VoteBlock vote={vote} />}
 
       {floor.attachments.length > 0 && (
         <AttachmentGrid

@@ -18,7 +18,7 @@ describe('parseBBCode 骰子', () => {
 })
 
 describe('parseBBCode 特殊容器', () => {
-  it.each(['lessernuke', 'hip', 'item'])('[%s] 解析成同名 box 节点', (variant) => {
+  it.each(['hip', 'item'])('[%s] 解析成同名 box 节点', (variant) => {
     expect(parseBBCode(`[${variant}]内容[/${variant}]`)).toEqual([
       { type: 'box', variant, children: [{ type: 'text', value: '内容' }] },
     ])
@@ -29,8 +29,25 @@ describe('parseBBCode 特殊容器', () => {
       {
         type: 'box',
         variant: 'lessernuke',
+        punishment: 'post',
         children: [{ type: 'bold', children: [{ type: 'text', value: '警告' }] }],
       },
+    ])
+  })
+
+  /**
+   * 处罚种类写在标签名末尾那一位数字上（官方 `ubbcode.lesserNuke`）。
+   * 不认这几个的话 `[lessernuke2]…[/lessernuke2]` 会整段当未知标签透传，
+   * 处罚说明和被处罚的正文一起变成一串裸标签。
+   */
+  it.each([
+    ['[lessernuke]内容[/lessernuke]', 'post'],
+    ['[lessernuke1]内容[/lessernuke1]', 'post'],
+    ['[lessernuke2]内容[/lessernuke2]', 'topic'],
+    ['[lessernuke3]内容[/lessernuke3]', 'locked'],
+  ])('%s 认出处罚种类 %s', (source, punishment) => {
+    expect(parseBBCode(source)).toEqual([
+      { type: 'box', variant: 'lessernuke', punishment, children: [{ type: 'text', value: '内容' }] },
     ])
   })
 })

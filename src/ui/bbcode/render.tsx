@@ -5,50 +5,27 @@ import { attachmentUrl } from '@/core/api';
 import type { BBCodeNode } from '@/core/bbcode';
 
 import { createThemedStyles, useTheme, type Theme } from '../theme';
+import { alignStyles, BoxBlock, CollapseBlock, ListBlock, TableBlock } from './blocks';
 import { resolveBBColor, resolveBBSizeScale } from './colors';
 import { ContentImage } from './content-image';
+import { AlbumCard, AttachCard, DiceCard, MediaCard } from './media';
+import { attachOptions, type BBCodeRenderOptions } from './options';
 import { splitIntoSegments } from './segments';
 import { Smiley } from './smiley';
 
 /**
- * AST → 组件。本票只画 03 票节点清单里的**基础标签**:
- * 文字样式、颜色、字号、quote、url、img、表情。
- * collapse / table / list / dice / vote 这些进阶标签归 08 票,
- * 这里先按「不丢内容」的原则降级:有 children 的照常渲染 children,
- * 叶子节点渲染成一句灰色占位文本。
+ * AST → 组件。03 票节点清单里的每一种 `type` 在这里都有落点,不再有占位文本。
  *
  * 排版分两层:
  * - **行内**(`renderInline`)——能塞进同一个 `<Text>` 的东西,靠 RN 的 Text 嵌套继承样式;
- * - **块级**(`BlockNode`)——引用块、图片、分割线这类必须自己占一个 `<View>` 的。
+ * - **块级**(`BlockNode`)——引用块、图片、折叠块、表格这类必须自己占一个 `<View>` 的。
  *
  * 块级节点不能嵌在 `<Text>` 里(Android 上会直接不显示),所以渲染前先用
  * `./segments` 把节点序列切成「行内段 / 块级节点」交替的序列,每个行内段包一个 `<Text>`。
+ * 哪些算块级也归 `./segments` 定,那张表和这里的 `BlockNode` 分支一一对应。
  */
 
-export interface BBCodeRenderOptions {
-  /** 附件图片基址,来自 `read.php` 的 `__GLOBAL._ATTACH_BASE_VIEW`(每页都可能变) */
-  readonly attachBase: string;
-  /** 所在楼层的发帖时间,`[noimg]` 的相对路径要靠它补 `mon_YYYYMM/DD/` */
-  readonly postedAt?: number;
-  /** 点图片(25 票的大图查看器接进来) */
-  readonly onOpenImage?: (uri: string) => void;
-}
-
-/** 进阶标签的占位文案(08 票接管后这张表就空了)。 */
-function placeholderLabel(node: BBCodeNode): string | undefined {
-  switch (node.type) {
-    case 'dice':
-      return `[骰子 ${node.expression}]`;
-    case 'album':
-      return '[相册]';
-    case 'attach':
-      return '[附件]';
-    case 'flash':
-      return node.media === 'audio' ? '[音频]' : '[视频]';
-    default:
-      return undefined;
-  }
-}
+export type { BBCodeRenderOptions } from './options';
 
 interface InlineProps {
   nodes: readonly BBCodeNode[];
@@ -144,47 +121,10 @@ function renderInline({ nodes, options, styles, theme }: InlineProps): ReactNode
             {node.value}
           </Text>
         );
-      // 下面这些是 08 票的进阶标签。有 children 的一律照常渲染内容,
-      // 只是暂时没有专属样式——宁可少一层框,也不能把用户写的字吞掉。
-      case 'collapse':
-      case 'align':
-      case 'box':
-        return <Fragment key={key}>{children(node.children)}</Fragment>;
-      case 'list':
-        return (
-          <Fragment key={key}>
-            {node.items.map((item, itemIndex) => (
-              <Fragment key={itemIndex}>
-                {'\n· '}
-                {children(item)}
-              </Fragment>
-            ))}
-          </Fragment>
-        );
-      case 'table':
-        return (
-          <Fragment key={key}>
-            {node.rows.map((row, rowIndex) => (
-              <Fragment key={rowIndex}>
-                {rowIndex === 0 ? null : '\n'}
-                {row.cells.map((cell, cellIndex) => (
-                  <Fragment key={cellIndex}>
-                    {cellIndex === 0 ? null : ' | '}
-                    {children(cell.children)}
-                  </Fragment>
-                ))}
-              </Fragment>
-            ))}
-          </Fragment>
-        );
-      default: {
-        const label = placeholderLabel(node);
-        return label === undefined ? null : (
-          <Text key={key} style={styles.placeholder}>
-            {label}
-          </Text>
-        );
-      }
+      default:
+        // 剩下的全是块级类型(`./segments` 的 BLOCK_TYPES),按理走不到这里——
+        // 真走到了说明两张表不同步,那也宁可把内容原样吐出来,不能吞字。
+        return 'children' in node ? <Fragment key={key}>{children(node.children)}</Fragment> : null;
     }
   });
 }
@@ -234,6 +174,9 @@ function BlockNode({
   style?: StyleProp<TextStyle>;
 }) {
   const styles = useStyles();
+  const body = (nodes: readonly BBCodeNode[], extra?: StyleProp<TextStyle>) => (
+    <BBCodeBody nodes={nodes} options={options} style={extra === undefined ? style : [style, extra]} />
+  );
 
   switch (node.type) {
     case 'quote':
@@ -241,14 +184,11 @@ function BlockNode({
         <View style={styles.quote}>
           {/* 引用块里那句「Post by 谁 (时间)」是服务端塞在 BBCode 里的,
               原样渲染就够,不另外合成一行标题——合成的话作者名会重复出现两遍 */}
-          <BBCodeBody nodes={node.children} options={options} style={styles.quoteText} />
+          {body(node.children, styles.quoteText)}
         </View>
       );
     case 'image': {
-      const uri = attachmentUrl(node, {
-        base: options.attachBase,
-        ...(options.postedAt === undefined ? {} : { postedAt: options.postedAt }),
-      });
+      const uri = attachmentUrl(node, attachOptions(options));
       return (
         <View style={styles.imageWrap}>
           <ContentImage
@@ -261,72 +201,48 @@ function BlockNode({
     case 'divider':
       return <View style={styles.divider} />;
     case 'heading':
-      return <BBCodeBody nodes={node.children} options={options} style={[style, styles.heading]} />;
+      return <View style={styles.heading}>{body(node.children, styles.headingText)}</View>;
+    case 'align': {
+      const align = alignStyles(node.align);
+      return <View style={align.container}>{body(node.children, align.text)}</View>;
+    }
+    case 'collapse':
+      return <CollapseBlock node={node}>{() => body(node.children)}</CollapseBlock>;
+    case 'box':
+      return <BoxBlock node={node}>{() => body(node.children)}</BoxBlock>;
+    case 'list':
+      return <ListBlock node={node} renderItem={(index) => body(node.items[index] ?? [])} />;
+    case 'table':
+      return (
+        <TableBlock
+          node={node}
+          renderCell={(rowIndex, cellIndex) =>
+            body(node.rows[rowIndex]?.cells[cellIndex]?.children ?? [], styles.tableText)
+          }
+        />
+      );
+    case 'dice': {
+      const outcome = options.dice?.get(node);
+      // 点数要靠楼层的 authorId/tid/pid 才算得出来,调用方没给就退回显示表达式
+      return outcome === undefined ? (
+        <Text style={[styles.body, style, styles.placeholder]}>[骰子 {node.expression}]</Text>
+      ) : (
+        <DiceCard outcome={outcome} />
+      );
+    }
+    case 'flash':
+      return <MediaCard node={node} options={options} />;
+    case 'attach':
+      return <AttachCard node={node} options={options} />;
+    case 'album':
+      return <AlbumCard value={node.value} options={options} />;
     default:
       // 剩下的都是「裹着块级内容的行内标签」(见 splitIntoSegments):
       // 递归展开内容,并把这一层的文字样式往下带,行内部分的粗体/颜色/字号不丢。
-      return <ContainerNode node={node} options={options} style={style} />;
+      return 'children' in node ? (
+        <View>{body(node.children, inlineStyleOf(node, styles))}</View>
+      ) : null;
   }
-}
-
-/**
- * 行内标签里裹了块级内容时的展开。
- *
- * `align` 还能保住对齐,`list`/`table` 这类进阶标签只保内容——它们的正式排版是 08 票的活。
- */
-function ContainerNode({
-  node,
-  options,
-  style,
-}: {
-  node: BBCodeNode;
-  options: BBCodeRenderOptions;
-  style?: StyleProp<TextStyle>;
-}) {
-  const styles = useStyles();
-  const inherited: StyleProp<TextStyle> = [style, inlineStyleOf(node, styles)];
-
-  if ('children' in node) {
-    const align =
-      node.type === 'align'
-        ? node.align === 'center'
-          ? styles.alignCenter
-          : node.align === 'right'
-            ? styles.alignRight
-            : undefined
-        : undefined;
-    return (
-      <View style={align}>
-        <BBCodeBody nodes={node.children} options={options} style={inherited} />
-      </View>
-    );
-  }
-  if (node.type === 'list') {
-    return (
-      <View>
-        {node.items.map((item, index) => (
-          <BBCodeBody key={index} nodes={item} options={options} style={inherited} />
-        ))}
-      </View>
-    );
-  }
-  if (node.type === 'table') {
-    return (
-      <View>
-        {node.rows.map((row, rowIndex) =>
-          row.cells.map((cell, cellIndex) => (
-            <BBCodeBody
-              key={`${rowIndex}-${cellIndex}`}
-              nodes={cell.children}
-              options={options}
-              style={inherited}
-            />
-          )),
-        )}
-      </View>
-    );
-  }
-  return null;
 }
 
 /** 一个行内容器节点自己贡献的文字样式(往块级内容里递的那份)。 */
@@ -380,14 +296,22 @@ const useStyles = createThemedStyles((theme) => ({
   placeholder: {
     color: theme.colors.meta,
   },
+  /** `[h]` 与 `===标题===`:网页版是一条带下划线的小标题 */
   heading: {
+    marginTop: 11,
+    paddingBottom: theme.spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  headingText: {
+    ...theme.typography.section,
     fontWeight: '700',
+    color: theme.colors.fg,
   },
-  alignCenter: {
-    alignItems: 'center',
-  },
-  alignRight: {
-    alignItems: 'flex-end',
+  /** 表格里的字比正文小一档,不然固定列宽装不下几个字 */
+  tableText: {
+    ...theme.typography.quoteBody,
+    color: theme.colors.fg,
   },
   /** 设计稿:引用块 11/13 内距、圆角 12、底色 quote、左侧 3 的 track 竖条 */
   quote: {

@@ -171,7 +171,8 @@ function parseFloor(raw: unknown, ctx: FloorContext, depth = 0): Floor | undefin
   if (!isRecord(raw)) return undefined
   if (typeof raw.content !== 'string') return undefined
 
-  const authorKey = userKey(String(int(raw, 'authorid') ?? 0), ctx.context)
+  const authorId = int(raw, 'authorid') ?? 0
+  const authorKey = userKey(String(authorId), ctx.context)
   const attachs = raw.attachs
   const attachments = isRecord(attachs)
     ? orderedValues(attachs)
@@ -190,6 +191,7 @@ function parseFloor(raw: unknown, ctx: FloorContext, depth = 0): Floor | undefin
   return {
     pid: int(raw, 'pid') ?? 0,
     lou: int(raw, 'lou') ?? 0,
+    authorId,
     authorKey,
     isStarter: isStarterFloor(ctx.users.get(authorKey), ctx.starter),
     content: raw.content,

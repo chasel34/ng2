@@ -6,11 +6,12 @@
  * <BBCodeBody nodes={nodes} options={{ attachBase: detail.attachBase, postedAt: floor.postedAt }} />
  * ```
  *
- * 本票只覆盖基础标签;进阶标签(collapse/table/dice/vote…)是 08 票的事,
- * 现在按「不丢内容」降级渲染。
+ * 03 票节点清单里的每一种标签都有落点:进阶标签(collapse/list/table/dice/album…)
+ * 归 08 票补齐,`[dice]` 的点数由调用方用 `resolveDice` 算好后从 `options.dice` 传进来。
  */
 
 export { resolveBBColor, resolveBBSizeScale } from './colors';
 export { ContentImage } from './content-image';
-export { BBCodeBody, type BBCodeRenderOptions } from './render';
+export type { BBCodeRenderOptions } from './options';
+export { BBCodeBody } from './render';
 export { Smiley } from './smiley';
