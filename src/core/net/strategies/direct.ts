@@ -1,0 +1,132 @@
+import { buildAuthAttachment } from '../auth'
+import {
+  JSON_FORMATS,
+  RESPONSE_FORMATS,
+  X_USER_AGENT,
+  type ResponseFormat,
+} from '../constants'
+import { decodeResponseBody } from '../encoding/decode-body'
+import { parseNgaJson } from '../envelope'
+import { NgaError } from '../errors'
+import { buildFormBody, buildQueryString, type QueryParams } from '../query'
+import type { FetchContext, FetchStrategy, NgaRequest, StrategyOutcome } from '../types'
+
+export const DIRECT_STRATEGY_NAME = 'direct'
+
+function buildUrl(request: NgaRequest, host: string, format: ResponseFormat): string {
+  const query: QueryParams = {
+    // 声明输入/输出用 UTF-8（MNGA 全局带），配合响应端的 GB18030 回落
+    __inchst: 'UTF8',
+    ...Object.fromEntries(RESPONSE_FORMATS[format]),
+    ...request.query,
+  }
+  const queryString = buildQueryString(query)
+  return queryString === '' ? `${host}/${request.path}` : `${host}/${request.path}?${queryString}`
+}
+
+/**
+ * 反封锁链的第一档：直连官方域名发一次请求。
+ *
+ * 失败分类决定链要不要往下走：解析失败/HTTP 状态错误 ≈ 被封（可重试），
+ * 服务端明确的语义错误（帖子不存在之类）不重试，直接抛给调用方。
+ */
+export function createDirectStrategy(): FetchStrategy {
+  return {
+    name: DIRECT_STRATEGY_NAME,
+    async run(request: NgaRequest, context: FetchContext): Promise<StrategyOutcome> {
+      const via = DIRECT_STRATEGY_NAME
+      const format = request.format ?? 'json'
+      if (!JSON_FORMATS.includes(format)) {
+        // XML / HTML 两条解析路线归 ticket 18、19（Web 反解与网页兜底），
+        // 到时按 FetchStrategy 接口另加策略，不改这里。
+        // 标成可重试，链上真有能处理这个格式的策略时才轮得到它。
+        return {
+          ok: false,
+          error: new NgaError({
+            kind: 'unavailable',
+            message: `direct 策略只解析 JSON 家族格式，收到 ${format}`,
+            via,
+          }),
+        }
+      }
+      const host = (request.host ?? context.host).replace(/\/+$/, '')
+      const method = request.method ?? 'POST'
+      const auth = buildAuthAttachment(
+        request.auth ?? context.authMode,
+        request.credentials === undefined ? context.credentials : request.credentials,
+      )
+      const userAgent = context.userAgents[request.userAgent ?? 'webview']
+
+      const headers: Record<string, string> = {
+        'User-Agent': userAgent,
+        // 客户端身份放辅助头（Android v4 的现行做法，API 文档 §0.3）
+        'X-User-Agent': X_USER_AGENT,
+        Referer: request.referer ?? `${host}/`,
+        ...auth.headers,
+      }
+
+      const formParams: QueryParams = { ...request.form, ...auth.form }
+      const body = method === 'POST' ? buildFormBody(formParams) : undefined
+      if (body !== undefined) {
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+      }
+
+      let status: number
+      let text: string
+      try {
+        const response = await context.transport({
+          url: buildUrl(request, host, format),
+          method,
+          headers,
+          body,
+          signal: request.signal,
+        })
+        status = response.status
+        text = decodeResponseBody(response.body, response.contentType)
+      } catch (cause) {
+        // 调用方主动取消不是「被封」，别让链继续往下试
+        const aborted =
+          request.signal?.aborted === true ||
+          (cause instanceof Error && cause.name === 'AbortError')
+        return {
+          ok: false,
+          error: new NgaError({
+            kind: 'network',
+            message: cause instanceof Error ? cause.message : '网络请求失败',
+            via,
+            cause,
+            retryable: !aborted,
+          }),
+        }
+      }
+
+      // HTTP 非 2xx 时 body 仍可能带有效错误信息，所以先解析 body（API 文档 §0.7）
+      try {
+        return { ok: true, result: { ...parseNgaJson(text, via), via } }
+      } catch (cause) {
+        if (cause instanceof NgaError && cause.kind === 'server') {
+          return { ok: false, error: cause }
+        }
+        if (status < 200 || status >= 300) {
+          return {
+            ok: false,
+            error: new NgaError({
+              kind: 'http',
+              status,
+              message: `HTTP ${status}`,
+              via,
+              cause,
+            }),
+          }
+        }
+        return {
+          ok: false,
+          error:
+            cause instanceof NgaError
+              ? cause
+              : new NgaError({ kind: 'parse', message: '响应解析失败', via, cause }),
+        }
+      }
+    },
+  }
+}

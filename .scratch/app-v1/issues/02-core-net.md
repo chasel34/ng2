@@ -4,10 +4,36 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] 用真实抓包样本作 fixture 的单测通过:清洗 8 步、GBK 解码、两种认证方式、假错误白名单(完毕/没找到/没有符合条件的结果/今天已经签到/找不到用户)
-- [ ] HTTP 非 2xx 时仍先解析 body 再报错
-- [ ] `.env.local` 的测试 cookie 能真实请求通知接口拿到合法 data(集成冒烟,可跳过)
+- [x] 用真实抓包样本作 fixture 的单测通过:清洗 8 步、GBK 解码、两种认证方式、假错误白名单(完毕/没找到/没有符合条件的结果/今天已经签到/找不到用户)
+- [x] HTTP 非 2xx 时仍先解析 body 再报错
+- [x] `.env.local` 的测试 cookie 能真实请求通知接口拿到合法 data(集成冒烟,可跳过)
 
 ## Comments
+
+### 实现摘要(2026-08-07)
+
+全部落在 `src/core/net/**`,纯 TS、零 RN 依赖,HTTP 传输层由外部注入。
+
+- `fetcher.ts` — 策略链框架(ADR-0002)。`runStrategyChain` 按序跑 `FetchStrategy[]`:先成功者返回;失败且 `retryable`(网络/HTTP 状态/解析失败 ≈ 被封)落到下一档;失败且不可重试(服务端语义错误、调用方取消)立刻抛出。本票只塞了 `direct` 一档,后续「格式参数交替 / 换账号 / Web 反解 / 帖子缓存 / 网页兜底」按同一接口追加即可,调用方无感。
+- `strategies/direct.ts` — 直连策略。默认 POST、业务参数进 query、认证进 body/头。
+- `encoding/gb18030.ts` + `gb18030-index.ts` — 纯 JS GB18030 编解码。Hermes 的 TextDecoder 只认 utf-8,所以自带 WHATWG 索引表(23940 项双字节表 + 210 段四字节游程,由 Node 的 TextDecoder 生成)。单测逐个对拍全部双字节序列、全部 BMP 四字节 pointer 和 2000 条随机字节流。附带 `gbkEncodeURIComponent`(`thread.php` 的 `author`、`forum.php` 的 `key` 要用)。
+- `encoding/decode-body.ts` — 响应解码。优先信 `Content-Type` 的 charset;未声明时先试 UTF-8,出现替换字符再比较两种解码谁的 U+FFFD 少(实测 `thread.php` 就是不声明 charset 的 GBK)。
+- `sanitize.ts` — API 文档 §0.6 全部步骤。整数 key 加引号与控制字符转义合成一次带字符串状态的扫描,不用上游那条裸正则,免得把正文里的 `{12:` 改坏。
+- `errors.ts` / `envelope.ts` — 错误模型与信封解析。真错误抛 `kind:'server'`(不重试),假错误白名单命中时当成功返回并保留 `fakeError` 供调用方判空。HTTP 非 2xx 一律先解析 body,body 解不出东西才用状态码报错。
+- `auth.ts` — 两种等价认证方式(form 的 `access_uid`/`access_token`、Cookie 头的 `ngaPassportUid`/`ngaPassportCid`)。
+- `query.ts` — 公共参数拼装与空值参数剔除(`null`/`undefined`/空串/`false` 一律丢);`gbk()` 标记逐参数切字符集。
+- `transport.ts` — **fetcher 禁止 clone response**(expo/expo#47762),只调一次 `arrayBuffer()`,注释里注明。
+
+fixture 在 `src/core/net/__fixtures__/`,是 2026-08-07 用 `.env.local` 测试账号 curl 到的**原始响应字节**(GBK),抓包账号 uid 已脱敏成 10000001,cookie/cid 不在响应体里。
+
+测试:`pnpm typecheck` 通过;core/net 98 个用例通过 + 3 个联网冒烟默认跳过。联网冒烟 `NGA_INTEGRATION=1 pnpm test` 实跑通过——通知接口拿到合法 data、form 与 cookie 两种认证都通、`thread.php?fid=650` 的 GBK 中文解码正确。
+
+### 遗留问题
+
+1. **ADR-0002 说「一律一次性 `.text()` 读取」,实现里用的是一次性 `arrayBuffer()`**:响应可能是 GBK,交给运行时按 UTF-8 转字符串就没救了。禁止 clone/tee 的纪律本身完全遵守(只读一次、之后不碰 response.body)。
+2. `NgaRequest.cacheKey` 是给「成功组合按 key 缓存」预留的字段,本票没有消费方,等 ticket 18 接上。
+3. XML(`lite=xml` / `__output=10`)与网页 HTML 两条解析路线没做:`RESPONSE_FORMATS` 里已有对应的格式参数,但 `direct` 遇到非 JSON 格式会返回 `kind:'unavailable'` 且标记可重试,留给 ticket 18/19 加解析策略。
+4. 清洗第 5 步(删坏 `alterinfo`)的字符类比上游宽:Java 的 `\w` 不匹配中文,上游那条对中文站等于没生效;这里保留「方括号 + 结尾空白」的特征以免误删正常 alterinfo。真实抓包里没有出现该字段,没能拿真样本验证。
+5. 附件域名 `_ATTACH_BASE_VIEW` 已在 fixture 里确认存在(`img.nga.cn/attachments`),但提取逻辑属于 core/api,不在本票。
