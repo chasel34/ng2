@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0..1,0" />
+<style>
+:root{
+--primary:#14796B;--primary-d:#0F5D53;--primary-c:#D8EAE5;--on-primary:#FFFFFF;
+--bg:#FCF4E1;--surface:#FFFBF0;--surface-2:#F5F0E0;--menu:#F7F4EE;
+--fg:#1E1C19;--fg-2:#57534A;--meta:#A39D8E;--link:#3A5A7A;--tag:#B7B0A0;
+--accent:#E09A2A;--danger:#DE3B2C;--divider:#EBE3CE;--scrim:rgba(30,26,16,.42);
+--topbar:#14796B;--on-topbar:#FFFFFF;--fab:#14796B;--on-fab:#FFFFFF;
+--shadow:0 2px 12px rgba(70,58,24,.13);--shadow-2:0 8px 28px rgba(70,58,24,.20);
+--quote:#F1EBD6;--track:#DCD4BE;
+}
+.omdark{
+--primary:#1E9384;--primary-d:#17766A;--primary-c:#1E3A35;--on-primary:#FFFFFF;
+--bg:#1C1C1B;--surface:#232322;--surface-2:#292928;--menu:#2E2E2C;
+--fg:#E9E7E2;--fg-2:#B0ACA3;--meta:#6F6C65;--link:#8AA6C8;--tag:#5F5C55;
+--accent:#D6942E;--danger:#E2574C;--divider:#333330;--scrim:rgba(0,0,0,.62);
+--topbar:#1C1C1B;--on-topbar:#F2F0EB;--fab:#1B8377;--on-fab:#FFFFFF;
+--shadow:0 2px 12px rgba(0,0,0,.45);--shadow-2:0 8px 28px rgba(0,0,0,.6);
+--quote:#262625;--track:#3A3A36;
+}
+body{margin:0;background:#26261F;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--primary)}
+.ms{font-family:'Material Symbols Outlined';font-weight:400;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased}
+.sc{scrollbar-width:none}
+.sc::-webkit-scrollbar{display:none}
+@keyframes omup{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes omfade{from{opacity:0}to{opacity:1}}
+@keyframes ompop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#26261F;color:#EDEAE0;font-family:-apple-system,'PingFang SC','HarmonyOS Sans SC','Microsoft YaHei',sans-serif;padding:26px 30px 60px;box-sizing:border-box">
+
+  <div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:22px">
+    <div>
+      <div style="font-size:20px;font-weight:650;letter-spacing:.2px">NGA 论坛客户端 · 交互原型</div>
+      <div style="font-size:13px;color:#918B79;margin-top:5px">墨绿 / 奶油配色 · Material 3 轻度翻新 · 390×844pt · 全部页面可点击</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+      <div onClick="{{ toggleTheme }}" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 15px;border-radius:18px;background:#33332B;cursor:pointer;font-size:13px;font-weight:600;user-select:none">
+        <span class="ms" style="font-size:18px">{{ themeIcon }}</span>{{ themeLabel }}
+      </div>
+      <div onClick="{{ toggleSpec }}" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 15px;border-radius:18px;background:#33332B;cursor:pointer;font-size:13px;font-weight:600;user-select:none">
+        <span class="ms" style="font-size:18px">tune</span>Design Token 表
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:28px;align-items:flex-start">
+
+    <div style="flex:none;position:sticky;top:26px">
+      <div class="{{ themeClass }}" style="width:390px;height:844px;border-radius:42px;background:var(--bg);box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 10px #111,0 0 0 11px #3A3A33;overflow:hidden;position:relative;color:var(--fg)">
+
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+          <div style="flex:none;height:38px;background:var(--topbar);color:var(--on-topbar);display:flex;align-items:center;padding:0 22px 0 26px;font-size:13px;font-weight:600;letter-spacing:.3px">
+            <span>{{ clock }}</span>
+            <span style="margin-left:auto;display:flex;align-items:center;gap:5px">
+              <span class="ms" style="font-size:15px">signal_cellular_alt</span>
+              <span class="ms" style="font-size:15px">wifi</span>
+              <span class="ms" style="font-size:16px">battery_full</span>
+            </span>
+          </div>
+
+          <div style="flex:1;min-height:0;position:relative">
+
+            <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;background:var(--topbar);color:var(--on-topbar)">
+                  <div style="display:flex;align-items:center;height:54px;padding:0 6px">
+                    <div onClick="{{ openDrawer }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">menu</span></div>
+                    <div style="font-size:18px;font-weight:600;margin-left:6px;letter-spacing:.2px">NGA 阅读器</div>
+                    <div onClick="{{ goSearch }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:23px">search</span></div>
+                    <div onClick="{{ openHomeMenu }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:23px">more_vert</span></div>
+                  </div>
+                  <div class="sc" style="display:flex;overflow-x:auto;padding:0 6px">
+                    <sc-for list="{{ homeTabs }}" as="t" hint-placeholder-count="4">
+                      <div onClick="{{ t.pick }}" style="flex:none;padding:0 16px;height:44px;display:flex;align-items:center;font-size:15px;font-weight:600;opacity:{{ t.op }};box-shadow:{{ t.ind }};cursor:pointer;white-space:nowrap">{{ t.name }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div style="display:flex;gap:10px;align-items:flex-start;padding:14px 18px;background:var(--surface-2);border-bottom:1px solid var(--divider)">
+                    <span class="ms" style="font-size:19px;color:var(--accent);margin-top:1px">campaign</span>
+                    <div style="font-size:13.5px;line-height:1.5;color:var(--fg-2);flex:1">建议登录多个账号，可有效改善跳转系统浏览器的问题</div>
+                    <span class="ms" style="font-size:17px;color:var(--meta);cursor:pointer">close</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;padding:16px 18px 4px">
+                    <div style="flex:none;width:17px;height:17px;border-radius:9px;border:1px solid var(--accent);display:grid;place-items:center;color:var(--accent);font-size:9px;font-weight:700;line-height:1">{{ groupIni }}</div>
+                    <div style="font-size:17px;color:var(--fg)">{{ groupName }}</div>
+                  </div>
+                  <div style="padding:10px 8px 90px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px 0">
+                    <sc-for list="{{ boards }}" as="b" hint-placeholder-count="9">
+                      <div onClick="{{ b.open }}" style="padding:8px 6px 10px;cursor:pointer;text-align:center">
+                        <div style="width:32px;height:32px;margin:0 auto 8px;border-radius:16px;border:1px solid var(--accent);background:repeating-linear-gradient(135deg,var(--surface-2) 0 5px,var(--surface) 5px 6px);display:grid;place-items:center;color:var(--fg-2);font-size:12px;font-weight:700">{{ b.ini }}</div>
+                        <div style="font-size:14.5px;line-height:1.35;color:var(--fg);word-break:break-word">{{ b.name }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px">{{ boardName }}</div>
+                  <div onClick="{{ toggleStar }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:23px;font-variation-settings:'FILL' {{ starFill }}">star</span></div>
+                  <div onClick="{{ goSearch }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer"><span class="ms" style="font-size:22px">search</span></div>
+                  <div onClick="{{ openListMenu }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer"><span class="ms" style="font-size:22px">more_vert</span></div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div class="sc" style="display:flex;gap:8px;overflow-x:auto;padding:12px 14px;border-bottom:1px solid var(--divider)">
+                    <sc-for list="{{ subTags }}" as="s" hint-placeholder-count="4">
+                      <div style="flex:none;padding:6px 13px;border-radius:9px;background:var(--surface-2);border:1px solid var(--divider);font-size:12.5px;color:var(--fg-2);cursor:pointer;white-space:nowrap">{{ s }}</div>
+                    </sc-for>
+                  </div>
+                  <sc-for list="{{ topics }}" as="t" hint-placeholder-count="8">
+                    <div onClick="{{ t.open }}" style="padding:14px 16px 12px;border-bottom:1px solid var(--divider);cursor:pointer">
+                      <div style="font-size:17px;line-height:1.45;text-wrap:pretty">
+                        <span style="color:{{ t.color }};font-weight:{{ t.weight }}">{{ t.title }}</span>
+                        <span style="color:var(--danger);font-weight:600;display:{{ t.lockD }}">&nbsp;[锁定]</span>
+                        <span style="color:var(--accent);font-weight:700;display:{{ t.plusD }}">&nbsp;+</span>
+                        <span style="color:var(--tag);display:{{ t.tagD }}">&nbsp;[{{ t.tag }}]</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12.5px;color:var(--link)">
+                        <span class="ms" style="font-size:15px;color:var(--meta)">person</span>
+                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px">{{ t.author }}</span>
+                        <span style="margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">{{ t.last }}</span>
+                        <span class="ms" style="font-size:14px;color:var(--meta)">chat_bubble</span>
+                        <span style="min-width:22px;text-align:right">{{ t.replies }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="padding:20px;text-align:center;font-size:12.5px;color:var(--meta)">正在载入第 2 页…</div>
+                  <div style="height:70px"></div>
+                </div>
+                <div onClick="{{ goEditorNew }}" style="position:absolute;right:20px;bottom:24px;width:50px;height:50px;border-radius:25px;background:var(--fab);color:var(--on-fab);display:grid;place-items:center;box-shadow:var(--shadow-2);cursor:pointer"><span class="ms" style="font-size:27px">add</span></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isArticle }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;background:var(--topbar);color:var(--on-topbar)">
+                  <div style="display:flex;align-items:center;height:54px;padding:0 4px">
+                    <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                    <div style="font-size:16.5px;font-weight:600;margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px">{{ threadTitle }}</div>
+                    <div onClick="{{ goWebview }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:22px">public</span></div>
+                    <div onClick="{{ openArticleMenu }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer"><span class="ms" style="font-size:22px">more_vert</span></div>
+                  </div>
+                  <div class="sc" style="display:flex;gap:6px;overflow-x:auto;padding:0 10px 8px;align-items:center">
+                    <sc-for list="{{ pages }}" as="p" hint-placeholder-count="4">
+                      <div onClick="{{ p.pick }}" style="flex:none;min-width:30px;height:28px;padding:0 9px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:600;background:{{ p.bg }};opacity:{{ p.op }};cursor:pointer">{{ p.n }}</div>
+                    </sc-for>
+                    <div onClick="{{ openJump }}" style="flex:none;height:28px;padding:0 10px;border-radius:8px;display:flex;align-items:center;gap:4px;font-size:12.5px;opacity:.8;cursor:pointer"><span class="ms" style="font-size:15px">low_priority</span>跳页</div>
+                  </div>
+                </div>
+
+                <div class="sc" onPointerDown="{{ swipeDown }}" onPointerMove="{{ swipeMove }}" onPointerUp="{{ swipeUp }}" onPointerCancel="{{ swipeUp }}" style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);touch-action:pan-y;position:relative;transform:translateX({{ swipeX }});transition:{{ swipeTrans }}">
+                  <sc-if value="{{ progressTip }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin:10px 12px 2px;padding:11px 12px 11px 14px;border-radius:12px;background:var(--primary-c);display:flex;align-items:center;gap:10px;animation:omup .28s ease">
+                      <span class="ms" style="font-size:19px;color:var(--primary)">bookmark</span>
+                      <div style="font-size:13px;color:var(--fg);flex:1;line-height:1.4">上次读到 <b>第 18 楼</b></div>
+                      <div onClick="{{ jumpToLast }}" style="font-size:13px;font-weight:700;color:var(--primary);padding:4px 6px;cursor:pointer">回到那里</div>
+                      <span onClick="{{ hideProgress }}" class="ms" style="font-size:17px;color:var(--meta);cursor:pointer">close</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ onlyUser }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin:10px 12px 2px;padding:10px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--divider);display:flex;align-items:center;gap:8px">
+                      <span class="ms" style="font-size:17px;color:var(--primary)">filter_alt</span>
+                      <div style="font-size:12.5px;color:var(--fg-2);flex:1">只看 <b style="color:var(--fg)">阴阳师妄想</b> 的发言</div>
+                      <div onClick="{{ clearOnlyUser }}" style="font-size:12.5px;font-weight:700;color:var(--primary);cursor:pointer">退出</div>
+                    </div>
+                  </sc-if>
+
+                  <sc-for list="{{ floors }}" as="f" hint-placeholder-count="4">
+                    <div style="padding:14px 16px 6px;border-bottom:1px solid var(--divider);background:{{ f.bg }}">
+                      <div style="display:flex;gap:11px">
+                        <div onClick="{{ f.profile }}" style="flex:none;width:42px;height:42px;border-radius:21px;background:{{ f.av }};display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700;cursor:pointer">{{ f.ini }}</div>
+                        <div style="flex:1;min-width:0">
+                          <div style="display:flex;align-items:baseline;gap:8px">
+                            <div onClick="{{ f.profile }}" style="font-size:15px;font-weight:650;color:var(--primary);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</div>
+                            <div style="margin-left:auto;font-size:12px;color:var(--meta);white-space:nowrap">{{ f.time }}</div>
+                          </div>
+                          <div style="display:flex;align-items:center;gap:10px;margin-top:4px;font-size:11.5px;color:var(--meta);white-space:nowrap">
+                            <span>级别: {{ f.lv }}</span><span>威望: {{ f.rep }}</span><span>发帖: {{ f.posts }}</span>
+                            <span style="margin-left:auto;display:flex;align-items:center;gap:4px"><span class="ms" style="font-size:13px">{{ f.plat }}</span>[{{ f.no }} 楼]</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div style="margin-top:11px;font-size:15.5px;line-height:1.68;color:var(--fg);text-wrap:pretty;white-space:pre-line">{{ f.body }}</div>
+
+                      <sc-if value="{{ f.quote }}" hint-placeholder-val="{{ false }}">
+                        <div style="margin-top:11px;padding:11px 13px;border-radius:12px;background:var(--quote);border-left:3px solid var(--track)">
+                          <div style="font-size:12px;color:var(--meta);margin-bottom:5px">引用 {{ f.quoteWho }} 的发言：</div>
+                          <div style="font-size:14px;line-height:1.6;color:var(--fg-2)">{{ f.quoteBody }}</div>
+                          <div onClick="{{ openChain }}" style="margin-top:8px;font-size:12.5px;font-weight:650;color:var(--primary);display:flex;align-items:center;gap:4px;cursor:pointer"><span class="ms" style="font-size:15px">account_tree</span>查看对话链（4 层）</div>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ f.hasAttach }}" hint-placeholder-val="{{ false }}">
+                        <div style="margin-top:12px">
+                          <sc-if value="{{ f.attachClosed }}" hint-placeholder-val="{{ true }}">
+                            <div onClick="{{ f.toggleAttach }}" style="display:flex;align-items:center;justify-content:center;gap:7px;height:42px;border-radius:12px;background:var(--surface-2);border:1px dashed var(--track);font-size:13.5px;font-weight:600;color:var(--fg-2);cursor:pointer"><span class="ms" style="font-size:18px">image</span>点击显示附件（3）</div>
+                          </sc-if>
+                          <sc-if value="{{ f.attachOpen }}" hint-placeholder-val="{{ false }}">
+                            <div>
+                              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                                <sc-for list="{{ f.attachList }}" as="a" hint-placeholder-count="3">
+                                  <div onClick="{{ openViewer }}" style="aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;background:repeating-linear-gradient(135deg,var(--surface-2) 0 7px,var(--track) 7px 8px);display:grid;place-items:end center;padding-bottom:6px">
+                                    <div style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:var(--fg-2);background:var(--surface);padding:2px 5px;border-radius:5px">{{ a }}</div>
+                                  </div>
+                                </sc-for>
+                              </div>
+                              <div onClick="{{ f.toggleAttach }}" style="margin-top:7px;font-size:12.5px;color:var(--meta);text-align:center;cursor:pointer">收起附件</div>
+                            </div>
+                          </sc-if>
+                        </div>
+                      </sc-if>
+
+                      <div style="display:flex;align-items:center;gap:2px;margin-top:8px;justify-content:flex-end;color:var(--meta)">
+                        <div onClick="{{ f.like }}" style="height:40px;padding:0 8px;display:flex;align-items:center;gap:6px;border-radius:10px;cursor:pointer"><span class="ms" style="font-size:19px;color:{{ f.likeColor }};font-variation-settings:'FILL' {{ f.likeFill }}">thumb_up</span><span style="font-size:13px;color:{{ f.likeColor }}">{{ f.likes }}</span></div>
+                        <div style="width:38px;height:40px;display:grid;place-items:center;border-radius:10px;cursor:pointer"><span class="ms" style="font-size:19px">thumb_down</span></div>
+                        <div onClick="{{ f.reply }}" style="width:38px;height:40px;display:grid;place-items:center;border-radius:10px;cursor:pointer"><span class="ms" style="font-size:20px">reply</span></div>
+                        <div onClick="{{ f.menu }}" style="width:34px;height:40px;display:grid;place-items:center;border-radius:10px;cursor:pointer"><span class="ms" style="font-size:19px">more_vert</span></div>
+                      </div>
+
+                      <sc-if value="{{ f.hasNotes }}" hint-placeholder-val="{{ false }}">
+                        <div style="margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--surface-2)">
+                          <sc-for list="{{ f.notes }}" as="n" hint-placeholder-count="2">
+                            <div style="font-size:12.5px;line-height:1.65;color:var(--fg-2);padding:2px 0"><b style="color:var(--link)">{{ n.who }}</b>：{{ n.text }}</div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                  <div style="height:90px"></div>
+                </div>
+
+                <sc-if value="{{ swipeHint }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:9px 16px;border-radius:14px;background:var(--scrim);color:#fff;font-size:14px;font-weight:650;pointer-events:none">{{ swipeHintText }}</div>
+                </sc-if>
+                <sc-if value="{{ fabOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;right:22px;bottom:96px;display:flex;flex-direction:column;gap:10px;align-items:flex-end;animation:omup .18s ease">
+                    <div onClick="{{ goEditorReply }}" style="display:flex;align-items:center;gap:9px;height:44px;padding:0 16px;border-radius:14px;background:var(--menu);color:var(--fg);box-shadow:var(--shadow-2);font-size:14px;font-weight:600;cursor:pointer"><span class="ms" style="font-size:19px;color:var(--primary)">reply</span>回复</div>
+                    <div onClick="{{ doRefresh }}" style="display:flex;align-items:center;gap:9px;height:44px;padding:0 16px;border-radius:14px;background:var(--menu);color:var(--fg);box-shadow:var(--shadow-2);font-size:14px;font-weight:600;cursor:pointer"><span class="ms" style="font-size:19px;color:var(--primary)">refresh</span>刷新</div>
+                  </div>
+                </sc-if>
+                <div onClick="{{ toggleFab }}" style="position:absolute;right:20px;bottom:24px;width:50px;height:50px;border-radius:25px;background:var(--fab);color:var(--on-fab);display:grid;place-items:center;box-shadow:var(--shadow-2);cursor:pointer"><span class="ms" style="font-size:27px;transform:rotate({{ fabRot }});transition:transform .2s">add</span></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isSimpleList }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">{{ listTitle }}</div>
+                  <div onClick="{{ listAction }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto;display:{{ listTrailD }}"><span class="ms" style="font-size:22px">{{ listTrailIcon }}</span></div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div style="padding:11px 16px;font-size:12px;color:var(--meta);background:var(--surface-2);border-bottom:1px solid var(--divider)">{{ listSub }}</div>
+                  <sc-for list="{{ listRows }}" as="r" hint-placeholder-count="8">
+                    <div onClick="{{ r.open }}" style="padding:14px 16px 12px;border-bottom:1px solid var(--divider);cursor:pointer">
+                      <div style="font-size:16px;line-height:1.45;color:var(--fg);text-wrap:pretty">
+                        {{ r.title }}
+                        <span style="color:var(--accent);font-weight:700;display:{{ r.plusD }}">&nbsp;+</span>
+                        <span style="color:var(--tag);display:{{ r.tagD }}">&nbsp;[{{ r.tag }}]</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12.5px;color:var(--link)">
+                        <span class="ms" style="font-size:15px;color:var(--meta)">person</span>
+                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:118px">{{ r.who }}</span>
+                        <span style="margin-left:auto;color:var(--meta);white-space:nowrap">{{ r.when }}</span>
+                        <span class="ms" style="font-size:14px;color:var(--meta);display:{{ r.cntIconD }}">chat_bubble</span>
+                        <span style="white-space:nowrap">{{ r.right }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="height:26px"></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isSubboards }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">子板块 · 网事杂谈</div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <sc-for list="{{ subRows }}" as="r" hint-placeholder-count="6">
+                    <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--divider)">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:15px;color:var(--fg)">{{ r.name }}</div>
+                        <div style="font-size:12px;color:var(--meta);margin-top:3px">{{ r.sub }}</div>
+                      </div>
+                      <div onClick="{{ r.sub1 }}" style="height:32px;padding:0 13px;border-radius:16px;border:1px solid {{ r.bd }};background:{{ r.bg }};color:{{ r.fg }};font-size:12.5px;font-weight:650;display:grid;place-items:center;cursor:pointer">{{ r.label }}</div>
+                      <span onClick="{{ r.block }}" class="ms" style="font-size:20px;color:{{ r.blockColor }};cursor:pointer">block</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isFolders }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">收藏夹管理</div>
+                  <div onClick="{{ newFolder }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:23px">create_new_folder</span></div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg);padding:12px 12px 24px">
+                  <sc-for list="{{ folderRows }}" as="f" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:13px;padding:14px;margin-bottom:10px;border-radius:14px;background:var(--surface);border:1px solid var(--divider)">
+                      <span class="ms" style="font-size:24px;color:var(--accent)">folder</span>
+                      <div style="flex:1;min-width:0">
+                        <div style="display:flex;align-items:center;gap:7px">
+                          <div style="font-size:15px;font-weight:600;color:var(--fg)">{{ f.name }}</div>
+                          <div style="display:{{ f.defD }};font-size:10.5px;font-weight:700;color:var(--primary);background:var(--primary-c);padding:2px 7px;border-radius:6px">默认</div>
+                        </div>
+                        <div style="font-size:12px;color:var(--meta);margin-top:4px">{{ f.count }} 个主题 · 最近 {{ f.when }}</div>
+                      </div>
+                      <span onClick="{{ f.rename }}" class="ms" style="font-size:20px;color:var(--meta);cursor:pointer">edit</span>
+                      <span onClick="{{ f.setDefault }}" class="ms" style="font-size:20px;color:var(--meta);cursor:pointer">push_pin</span>
+                      <span onClick="{{ f.del }}" class="ms" style="font-size:20px;color:var(--danger);cursor:pointer">delete</span>
+                    </div>
+                  </sc-for>
+                  <div style="font-size:12px;color:var(--meta);line-height:1.6;padding:6px 4px">收藏帖子时会弹出此列表，可多选归档；长按收藏夹可拖动排序。</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;background:var(--topbar);color:var(--on-topbar)">
+                  <div style="display:flex;align-items:center;height:54px;padding:0 4px">
+                    <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                    <div style="flex:1;display:flex;align-items:center;gap:9px;height:40px;padding:0 14px;margin:0 12px 0 4px;border-radius:6px;background:var(--surface);color:var(--fg)">
+                      <div style="font-size:15px">显卡 涨价<span style="color:var(--primary)">|</span></div>
+                      <span class="ms" style="font-size:18px;color:var(--meta);margin-left:auto;cursor:pointer">close</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div style="display:flex;border-bottom:1px solid var(--divider)">
+                    <sc-for list="{{ searchTabs }}" as="t" hint-placeholder-count="3">
+                      <div onClick="{{ t.pick }}" style="flex:1;height:48px;display:grid;place-items:center;font-size:15.5px;color:{{ t.fg }};box-shadow:{{ t.ind }};cursor:pointer">{{ t.name }}</div>
+                    </sc-for>
+                  </div>
+                  <div style="padding:16px 16px 10px;font-size:16px;font-weight:600;color:var(--fg)">搜索选项</div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:0 16px 16px">
+                    <sc-for list="{{ searchOpts }}" as="o" hint-placeholder-count="3">
+                      <div onClick="{{ o.pick }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;padding-right:8px">
+                        <span class="ms" style="font-size:23px;color:{{ o.color }};font-variation-settings:'FILL' {{ o.fill }}">{{ o.icon }}</span>
+                        <span style="font-size:14.5px;color:var(--fg-2);white-space:nowrap">{{ o.label }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="height:1px;background:var(--divider)"></div>
+                  <div style="display:flex;align-items:center;padding:16px 16px 8px">
+                    <div style="font-size:16px;font-weight:600;color:var(--fg);flex:1">搜索历史</div>
+                    <div onClick="{{ clearHistory }}" style="font-size:12.5px;color:var(--meta);cursor:pointer">清空</div>
+                  </div>
+                  <sc-for list="{{ searchHistory }}" as="h" hint-placeholder-count="6">
+                    <div onClick="{{ h.go }}" style="display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--divider);cursor:pointer">
+                      <span class="ms" style="font-size:19px;color:var(--meta)">history</span>
+                      <div style="flex:1;font-size:14.5px;color:var(--fg)">{{ h.q }}</div>
+                      <div style="font-size:11.5px;color:var(--meta)">{{ h.scope }}</div>
+                      <span class="ms" style="font-size:18px;color:var(--meta)">close</span>
+                    </div>
+                  </sc-for>
+                  <div style="height:26px"></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">用户资料</div>
+                  <div onClick="{{ goNewMsg }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:22px">sms</span></div>
+                  <div onClick="{{ openProfileMenu }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer"><span class="ms" style="font-size:22px">more_vert</span></div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div style="position:relative;height:118px;background:repeating-linear-gradient(135deg,var(--primary-d) 0 12px,var(--primary) 12px 24px);display:flex;align-items:flex-end;gap:14px;padding:0 18px 14px;box-sizing:border-box">
+                    <div style="position:absolute;left:16px;bottom:56px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:rgba(255,255,255,.55)">banner 占位</div>
+                    <div style="flex:none;width:62px;height:62px;border-radius:31px;background:#1F3B44;border:2px solid rgba(255,255,255,.75);display:grid;place-items:center;color:#fff;font-size:20px;font-weight:700">阴</div>
+                    <div style="flex:1;min-width:0;padding-bottom:4px">
+                      <div style="font-size:20px;font-weight:600;color:#fff">阴阳师妄想</div>
+                      <div style="font-size:13px;color:rgba(255,255,255,.85);margin-top:4px">用户 ID：62544191</div>
+                    </div>
+                  </div>
+                  <div style="padding:12px 12px 24px">
+                    <div style="background:var(--surface);border-radius:14px;padding:16px 16px 14px;margin-bottom:12px;box-shadow:var(--shadow)">
+                      <div style="font-size:15.5px;font-weight:600;color:var(--accent);margin-bottom:12px">:: 基础信息 ::</div>
+                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px 12px">
+                        <sc-for list="{{ profileBasic }}" as="p" hint-placeholder-count="8">
+                          <div style="font-size:13px;color:var(--fg-2);text-align:{{ p.align }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.k }}：<span style="color:{{ p.color }}">{{ p.v }}</span></div>
+                        </sc-for>
+                      </div>
+                    </div>
+                    <div style="background:var(--surface);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)">
+                      <div style="font-size:15.5px;font-weight:600;color:var(--accent);margin-bottom:12px">:: 签名 ::</div>
+                      <div style="border:1.5px solid var(--track);border-radius:8px;padding:11px 12px;font-size:13.5px;line-height:1.7;color:var(--fg-2);white-space:pre-line">—— 我从来不喝隔夜的茶，也不看隔夜的帖。
+[NGA @ 网事杂谈] 2019.03 至今</div>
+                    </div>
+                    <div style="background:var(--surface);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)">
+                      <div style="font-size:15.5px;font-weight:600;color:var(--accent);margin-bottom:8px">:: 管理权限 ::</div>
+                      <div style="font-size:12.5px;color:var(--meta);margin-bottom:10px">在以下版面担任版主</div>
+                      <div style="display:flex;flex-wrap:wrap;gap:7px">
+                        <sc-for list="{{ profileRoles }}" as="r" hint-placeholder-count="2">
+                          <div style="padding:6px 11px;border-radius:8px;background:var(--primary-c);color:var(--primary);font-size:12.5px;font-weight:600">{{ r }}</div>
+                        </sc-for>
+                      </div>
+                    </div>
+                    <div style="background:var(--surface);border-radius:14px;padding:16px;box-shadow:var(--shadow)">
+                      <div style="font-size:15.5px;font-weight:600;color:var(--accent);margin-bottom:8px">:: 声望 ::</div>
+                      <div style="font-size:12.5px;color:var(--meta);margin-bottom:12px">表示与 论坛/某版面/某用户 的关系</div>
+                      <sc-for list="{{ profileRep }}" as="r" hint-placeholder-count="5">
+                        <div style="display:flex;align-items:center;gap:11px;padding:8px 0">
+                          <div style="flex:1;font-size:13.5px;color:var(--fg)">{{ r.board }}</div>
+                          <div style="width:96px;height:6px;border-radius:3px;background:var(--track);overflow:hidden"><div style="height:100%;width:{{ r.pct }};background:var(--primary)"></div></div>
+                          <div style="font-size:13px;font-weight:650;color:var(--primary);min-width:34px;text-align:right">{{ r.value }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isEditor }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">{{ editorTitle }}</div>
+                  <div style="display:flex;align-items:center;gap:3px;margin-left:14px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.14);cursor:pointer">
+                    <span style="font-size:13.5px">chasel43</span><span class="ms" style="font-size:18px">expand_more</span>
+                  </div>
+                  <div onClick="{{ doSend }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:24px">send</span></div>
+                </div>
+                <div style="flex:none;display:flex;align-items:center;gap:14px;padding:14px 16px 12px">
+                  <div style="flex:1;border-bottom:1.5px solid var(--track);padding-bottom:8px;font-size:15px;color:var(--meta)">{{ editorPlaceholder }}</div>
+                  <div onClick="{{ toggleAnon }}" style="display:flex;align-items:center;gap:7px;cursor:pointer">
+                    <span class="ms" style="font-size:21px;color:{{ anonColor }};font-variation-settings:'FILL' {{ anonFill }}">{{ anonIcon }}</span>
+                    <span style="font-size:14px;color:var(--fg-2)">匿名</span>
+                  </div>
+                </div>
+                <div style="flex:none;display:flex;gap:7px;padding:0 16px 10px;flex-wrap:wrap;display:{{ editorTagD }}">
+                  <sc-for list="{{ editorPicked }}" as="t" hint-placeholder-count="1">
+                    <div style="display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:9px;background:var(--primary-c);color:var(--primary);font-size:12.5px;font-weight:650">{{ t }}<span class="ms" style="font-size:15px;cursor:pointer">close</span></div>
+                  </sc-for>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;padding:2px 16px 16px;font-size:15.5px;line-height:1.7;color:var(--fg);white-space:pre-line">{{ editorBody }}<span style="color:var(--primary);font-weight:300">|</span></div>
+                <div style="flex:none;display:flex;background:var(--primary);color:#fff">
+                  <sc-for list="{{ editorTools }}" as="t" hint-placeholder-count="5">
+                    <div onClick="{{ t.pick }}" style="flex:1;height:52px;display:grid;place-items:center;cursor:pointer;background:{{ t.bg }}"><span class="ms" style="font-size:23px">{{ t.icon }}</span></div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ panelEmoji }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:none;height:262px;background:var(--bg);display:flex;flex-direction:column">
+                    <div class="sc" style="flex:1;min-height:0;overflow-y:auto;padding:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-content:start">
+                      <sc-for list="{{ emoji }}" as="m" hint-placeholder-count="12">
+                        <div onClick="{{ m.pick }}" style="aspect-ratio:1;border-radius:8px;background:repeating-linear-gradient(135deg,var(--surface) 0 6px,var(--surface-2) 6px 7px);display:grid;place-items:center;font-size:10.5px;color:var(--fg-2);cursor:pointer;text-align:center;line-height:1.25;padding:3px">{{ m.name }}</div>
+                      </sc-for>
+                    </div>
+                    <div class="sc" style="flex:none;display:flex;overflow-x:auto;border-top:1px solid var(--divider)">
+                      <sc-for list="{{ emoSets }}" as="e" hint-placeholder-count="5">
+                        <div onClick="{{ e.pick }}" style="flex:1;padding:0 10px;height:44px;display:flex;align-items:center;justify-content:center;font-size:13.5px;color:{{ e.fg }};box-shadow:{{ e.ind }};cursor:pointer;white-space:nowrap">{{ e.name }}</div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ panelFormat }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:none;height:262px;background:var(--surface-2);border-top:1px solid var(--divider);padding:12px;overflow-y:auto" class="sc">
+                    <div style="font-size:12px;color:var(--meta);margin-bottom:10px">点击插入 BBCode 标签到光标处</div>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+                      <sc-for list="{{ formatTools }}" as="f" hint-placeholder-count="12">
+                        <div onClick="{{ f.pick }}" style="height:62px;border-radius:12px;background:var(--surface);border:1px solid var(--divider);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer">
+                          <span class="ms" style="font-size:21px;color:var(--primary)">{{ f.icon }}</span>
+                          <span style="font-size:11px;color:var(--fg-2)">{{ f.label }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ panelCategory }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:none;height:262px;background:var(--surface-2);border-top:1px solid var(--divider);padding:14px;overflow-y:auto" class="sc">
+                    <div style="font-size:12px;color:var(--meta);margin-bottom:12px">主题分类标签 · 单选，发布后显示在标题后</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px">
+                      <sc-for list="{{ categories }}" as="c" hint-placeholder-count="10">
+                        <div onClick="{{ c.pick }}" style="padding:9px 14px;border-radius:10px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};font-size:13.5px;font-weight:600;cursor:pointer">{{ c.name }}</div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isMessages }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">短消息</div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <sc-for list="{{ convos }}" as="c" hint-placeholder-count="6">
+                    <div onClick="{{ goChat }}" style="display:flex;gap:13px;padding:14px 16px;border-bottom:1px solid var(--divider);cursor:pointer">
+                      <div style="flex:none;width:44px;height:44px;border-radius:15px;background:{{ c.av }};display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700">{{ c.ini }}</div>
+                      <div style="flex:1;min-width:0">
+                        <div style="display:flex;align-items:baseline;gap:8px">
+                          <div style="font-size:15px;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.name }}</div>
+                          <div style="margin-left:auto;font-size:11.5px;color:var(--meta);white-space:nowrap">{{ c.when }}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:5px">
+                          <div style="flex:1;font-size:13px;color:var(--fg-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.preview }}</div>
+                          <div style="min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--danger);color:#fff;font-size:11px;font-weight:700;place-items:center;display:{{ c.unreadD }}">{{ c.unread }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div onClick="{{ goNewMsg }}" style="position:absolute;right:20px;bottom:24px;width:50px;height:50px;border-radius:25px;background:var(--fab);color:var(--on-fab);display:grid;place-items:center;box-shadow:var(--shadow-2);cursor:pointer"><span class="ms" style="font-size:26px">edit</span></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">留白，嗯</div>
+                  <div onClick="{{ goProfile }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:22px">person</span></div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg);padding:16px 14px">
+                  <sc-for list="{{ chatMsgs }}" as="m" hint-placeholder-count="5">
+                    <div style="display:flex;justify-content:{{ m.align }};margin-bottom:14px">
+                      <div style="max-width:76%">
+                        <div style="font-size:11px;color:var(--meta);margin-bottom:5px;text-align:{{ m.textAlign }}">{{ m.when }}</div>
+                        <div style="padding:11px 14px;border-radius:{{ m.radius }};background:{{ m.bg }};color:{{ m.fg }};font-size:14.5px;line-height:1.6">{{ m.text }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="flex:none;display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--divider);background:var(--surface)">
+                  <span class="ms" style="font-size:23px;color:var(--fg-2)">sentiment_satisfied</span>
+                  <div style="flex:1;height:38px;border-radius:19px;background:var(--surface-2);border:1px solid var(--divider);display:flex;align-items:center;padding:0 14px;font-size:14px;color:var(--meta)">发送短消息…</div>
+                  <div style="width:38px;height:38px;border-radius:19px;background:var(--primary);display:grid;place-items:center;color:#fff;cursor:pointer"><span class="ms" style="font-size:20px">send</span></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isNewMsg }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">close</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">新建短消息</div>
+                  <div onClick="{{ doSend }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:24px">send</span></div>
+                </div>
+                <div style="padding:16px 16px 0">
+                  <div style="font-size:11.5px;color:var(--primary);font-weight:700;margin-bottom:8px">收件人</div>
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1.5px solid var(--track);padding-bottom:10px">
+                    <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:16px;background:var(--primary-c);color:var(--primary);font-size:13px;font-weight:600">留白，嗯<span class="ms" style="font-size:15px;cursor:pointer">close</span></div>
+                    <div style="font-size:14px;color:var(--meta)">输入用户名…</div>
+                  </div>
+                  <div style="font-size:11.5px;color:var(--primary);font-weight:700;margin:20px 0 8px">标题</div>
+                  <div style="border-bottom:1.5px solid var(--track);padding-bottom:10px;font-size:15px;color:var(--meta)">（可留空）</div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;padding:18px 16px;font-size:15.5px;line-height:1.7;color:var(--meta)">写点什么…</div>
+                <div style="flex:none;display:flex;background:var(--primary);color:#fff">
+                  <div style="flex:1;height:52px;display:grid;place-items:center"><span class="ms" style="font-size:23px">sentiment_satisfied</span></div>
+                  <div style="flex:1;height:52px;display:grid;place-items:center"><span class="ms" style="font-size:23px">text_fields</span></div>
+                  <div style="flex:1;height:52px;display:grid;place-items:center"><span class="ms" style="font-size:23px">image</span></div>
+                  <div style="flex:1;height:52px;display:grid;place-items:center"><span class="ms" style="font-size:23px">keyboard</span></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isNotify }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">我的被喷</div>
+                  <div onClick="{{ clearNotify }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:23px">delete</span></div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <sc-for list="{{ notifyGroups }}" as="g" hint-placeholder-count="3">
+                    <div>
+                      <div style="display:flex;align-items:center;gap:8px;padding:15px 16px 9px;background:var(--surface-2);border-bottom:1px solid var(--divider)">
+                        <span class="ms" style="font-size:18px;color:var(--primary)">{{ g.icon }}</span>
+                        <div style="font-size:12.5px;font-weight:700;color:var(--primary);flex:1">{{ g.name }}</div>
+                        <div style="font-size:11.5px;color:var(--meta)">{{ g.count }} 条</div>
+                      </div>
+                      <sc-for list="{{ g.items }}" as="n" hint-placeholder-count="2">
+                        <div onClick="{{ n.open }}" style="display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--divider);cursor:pointer">
+                          <div style="flex:none;width:36px;height:36px;border-radius:12px;background:{{ n.av }};display:grid;place-items:center;color:#fff;font-size:13px;font-weight:700">{{ n.ini }}</div>
+                          <div style="flex:1;min-width:0">
+                            <div style="font-size:13.5px;color:var(--fg);line-height:1.5"><b style="color:var(--link)">{{ n.who }}</b> {{ n.verb }}</div>
+                            <div style="font-size:12.5px;color:var(--fg-2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.text }}</div>
+                            <div style="font-size:11px;color:var(--meta);margin-top:5px">{{ n.where }} · {{ n.when }}</div>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                  <div style="height:26px"></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">close</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">登录 NGA 账号</div>
+                  <div style="width:44px;height:44px;display:grid;place-items:center;margin-left:auto"><span class="ms" style="font-size:22px">refresh</span></div>
+                </div>
+                <div style="flex:none;display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--surface-2);border-bottom:1px solid var(--divider)">
+                  <span class="ms" style="font-size:16px;color:var(--primary)">lock</span>
+                  <div style="font-size:11.5px;color:var(--fg-2);font-family:ui-monospace,Menlo,monospace">bbs.nga.cn/nuke.php?__lib=login</div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:#fff;padding:26px 20px">
+                  <div style="font-size:15px;font-weight:700;color:#333;margin-bottom:4px">NGA 玩家社区</div>
+                  <div style="font-size:12px;color:#999;margin-bottom:22px">网页登录 · 登录成功后自动回到客户端</div>
+                  <div style="font-size:12px;color:#666;margin-bottom:6px">用户名 / 邮箱</div>
+                  <div style="height:38px;border:1px solid #CFCFCF;border-radius:4px;background:#FAFAFA;margin-bottom:16px"></div>
+                  <div style="font-size:12px;color:#666;margin-bottom:6px">密码</div>
+                  <div style="height:38px;border:1px solid #CFCFCF;border-radius:4px;background:#FAFAFA;margin-bottom:16px"></div>
+                  <div style="display:flex;gap:10px;margin-bottom:20px">
+                    <div style="flex:1;height:38px;border:1px solid #CFCFCF;border-radius:4px;background:#FAFAFA"></div>
+                    <div style="width:96px;height:38px;border-radius:4px;background:repeating-linear-gradient(135deg,#EDEDED 0 6px,#DDD 6px 7px);display:grid;place-items:center;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#888">验证码</div>
+                  </div>
+                  <div style="height:40px;border-radius:4px;background:#2C7A5B;color:#fff;display:grid;place-items:center;font-size:14px;font-weight:600;cursor:pointer">登  录</div>
+                  <div style="margin-top:26px;padding:12px;border-radius:8px;background:#FFF8E6;border:1px solid #F0E0B0;font-size:11.5px;line-height:1.6;color:#8A6D1F">客户端仅托管官方登录页，不接触你的密码；cookie 保存在本地，可在「账号管理」中随时删除。</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">{{ setTitle }}</div>
+                  <div style="margin-left:auto;font-size:12px;color:rgba(255,255,255,.7);padding-right:14px">{{ setPage }}</div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <sc-for list="{{ setRows }}" as="r" hint-placeholder-count="10">
+                    <div>
+                      <div style="padding:18px 18px 8px;font-size:12.5px;font-weight:700;color:var(--primary);display:{{ r.sectionD }}">{{ r.label }}</div>
+                      <div onClick="{{ r.tap }}" style="display:{{ r.rowD }};align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--divider);cursor:pointer">
+                        <div style="flex:1;min-width:0">
+                          <div style="font-size:15px;color:var(--fg)">{{ r.label }}</div>
+                          <div style="font-size:12.5px;color:var(--meta);margin-top:4px;display:{{ r.subD }}">{{ r.sub }}</div>
+                        </div>
+                        <div style="display:{{ r.switchD }};width:46px;height:26px;border-radius:13px;background:{{ r.trackBg }};padding:3px;box-sizing:border-box;transition:background .18s">
+                          <div style="width:20px;height:20px;border-radius:10px;background:{{ r.knobBg }};transform:translateX({{ r.knobX }});transition:transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+                        </div>
+                        <span class="ms" style="font-size:20px;color:var(--meta);display:{{ r.chevD }}">chevron_right</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="display:flex;gap:10px;padding:20px 18px 30px">
+                    <div onClick="{{ setPrev }}" style="flex:1;height:44px;border-radius:14px;border:1px solid var(--divider);display:grid;place-items:center;font-size:14px;font-weight:600;color:var(--fg-2);cursor:pointer">{{ setPrevLabel }}</div>
+                    <div onClick="{{ setNext }}" style="flex:1;height:44px;border-radius:14px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:600;cursor:pointer">{{ setNextLabel }}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isAccounts }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">账号管理</div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg);padding:14px 12px 24px">
+                  <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="2">
+                    <div onClick="{{ a.pick }}" style="display:flex;align-items:center;gap:13px;padding:14px;margin-bottom:10px;border-radius:14px;background:var(--surface);border:1.5px solid {{ a.bd }};cursor:pointer">
+                      <div style="flex:none;width:46px;height:46px;border-radius:15px;background:{{ a.av }};display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700">{{ a.ini }}</div>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:15px;font-weight:650;color:var(--fg)">{{ a.name }}</div>
+                        <div style="font-size:12px;color:var(--meta);margin-top:4px">UID {{ a.uid }} · cookie {{ a.expire }}</div>
+                      </div>
+                      <span class="ms" style="font-size:22px;color:{{ a.checkColor }}">{{ a.check }}</span>
+                      <span onClick="{{ a.del }}" class="ms" style="font-size:20px;color:var(--danger);cursor:pointer">logout</span>
+                    </div>
+                  </sc-for>
+                  <div onClick="{{ goLogin }}" style="display:flex;align-items:center;justify-content:center;gap:9px;height:48px;border-radius:14px;border:1.5px dashed var(--track);color:var(--primary);font-size:14.5px;font-weight:650;cursor:pointer"><span class="ms" style="font-size:21px">person_add</span>添加账号</div>
+                  <div style="font-size:12px;color:var(--meta);line-height:1.65;margin-top:16px;padding:0 4px">登录多个账号可减少跳转系统浏览器的概率；抽屉头部左右滑动即可快速切换当前账号。</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isFontSize }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">字体和头像大小</div>
+                  <div onClick="{{ resetFont }}" style="margin-left:auto;font-size:13.5px;font-weight:600;padding:0 14px;cursor:pointer">重置</div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div style="padding:16px 18px 6px;font-size:12.5px;font-weight:700;color:var(--primary)">实时预览</div>
+                  <div style="margin:0 12px;padding:14px;border-radius:14px;background:var(--surface);border:1px solid var(--divider)">
+                    <div style="display:flex;gap:11px">
+                      <div style="flex:none;width:{{ avSize }};height:{{ avSize }};border-radius:14px;background:#3E6B7E;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px">阴</div>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:15px;font-weight:650;color:var(--primary)">阴阳师妄想(楼主)</div>
+                        <div style="font-size:11.5px;color:var(--meta);margin-top:4px">级别 学徒　威望 1.0　发帖 5075　[0 楼]</div>
+                      </div>
+                    </div>
+                    <div style="margin-top:11px;font-size:{{ bodySize }};line-height:{{ bodyLh }};color:var(--fg)">体感消费不一直这样吗？楼主 22 年大学毕业直接进厂了，没怎么在社会上摸爬滚打。从哪个时间段开始的？</div>
+                  </div>
+                  <sc-for list="{{ fontSliders }}" as="f" hint-placeholder-count="5">
+                    <div style="padding:16px 16px 4px;border-bottom:1px solid var(--divider)">
+                      <div style="font-size:16px;color:var(--fg)">{{ f.label }}</div>
+                      <div style="position:relative;height:66px;margin-top:2px">
+                        <div style="position:absolute;left:{{ f.pct }};top:4px;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:14px;font-weight:600;padding:6px 14px;border-radius:3px;white-space:nowrap">{{ f.value }}</div>
+                        <div onClick="{{ f.jump }}" style="position:absolute;left:0;right:0;bottom:20px;height:3px;border-radius:2px;background:var(--track);cursor:pointer">
+                          <div style="position:absolute;left:0;top:0;bottom:0;width:{{ f.pct }};background:var(--primary);border-radius:2px"></div>
+                          <div style="position:absolute;top:-7.5px;left:{{ f.pct }};width:18px;height:18px;margin-left:-9px;border-radius:9px;background:var(--primary)"></div>
+                        </div>
+                        <span onClick="{{ f.dec }}" class="ms" style="position:absolute;left:-2px;bottom:-6px;font-size:20px;color:var(--meta);cursor:pointer">remove</span>
+                        <span onClick="{{ f.inc }}" class="ms" style="position:absolute;right:-2px;bottom:-6px;font-size:20px;color:var(--meta);cursor:pointer">add</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="height:20px"></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isFilters }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;background:var(--topbar);color:var(--on-topbar)">
+                  <div style="display:flex;align-items:center;height:54px;padding:0 4px">
+                    <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                    <div style="font-size:17px;font-weight:600;margin-left:4px">屏蔽规则</div>
+                  </div>
+                  <div style="display:flex;padding:0 6px">
+                    <sc-for list="{{ filterTabs }}" as="t" hint-placeholder-count="3">
+                      <div onClick="{{ t.pick }}" style="padding:0 15px;height:42px;display:flex;align-items:center;font-size:14px;font-weight:600;opacity:{{ t.op }};box-shadow:{{ t.ind }};cursor:pointer;white-space:nowrap">{{ t.name }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div style="padding:12px 16px;font-size:12px;color:var(--meta);background:var(--surface-2);border-bottom:1px solid var(--divider)">{{ filterHint }}</div>
+                  <sc-for list="{{ filterRows }}" as="r" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--divider)">
+                      <span class="ms" style="font-size:20px;color:var(--fg-2)">{{ r.icon }}</span>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:14.5px;color:var(--fg)">{{ r.text }}</div>
+                        <div style="font-size:11.5px;color:var(--meta);margin-top:4px">{{ r.sub }}</div>
+                      </div>
+                      <span onClick="{{ r.del }}" class="ms" style="font-size:19px;color:var(--danger);cursor:pointer">close</span>
+                    </div>
+                  </sc-for>
+                  <div style="height:80px"></div>
+                </div>
+                <div onClick="{{ addFilter }}" style="position:absolute;right:20px;bottom:24px;height:50px;padding:0 20px;border-radius:16px;background:var(--fab);color:#fff;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-2);cursor:pointer;font-size:14.5px;font-weight:650"><span class="ms" style="font-size:22px">add</span>新增规则</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">关于</div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div style="padding:34px 20px 26px;text-align:center">
+                    <div style="width:76px;height:76px;margin:0 auto 14px;border-radius:24px;background:var(--primary);display:grid;place-items:center;color:#fff;font-size:26px;font-weight:700">NG</div>
+                    <div style="font-size:18px;font-weight:650;color:var(--fg)">NGA 阅读器</div>
+                    <div style="font-size:12.5px;color:var(--meta);margin-top:6px">v1.0.0 (build 1) · 第三方客户端</div>
+                  </div>
+                  <sc-for list="{{ aboutRows }}" as="r" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--divider);cursor:pointer">
+                      <span class="ms" style="font-size:21px;color:var(--fg-2)">{{ r.icon }}</span>
+                      <div style="flex:1">
+                        <div style="font-size:15px;color:var(--fg)">{{ r.label }}</div>
+                        <div style="font-size:12px;color:var(--meta);margin-top:3px;display:{{ r.subD }}">{{ r.sub }}</div>
+                      </div>
+                      <span class="ms" style="font-size:20px;color:var(--meta)">chevron_right</span>
+                    </div>
+                  </sc-for>
+                  <div style="padding:20px;font-size:11.5px;line-height:1.7;color:var(--meta);text-align:center">本客户端与 NGA 官方无关，所有内容版权归原作者所有。</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;background:var(--topbar);color:var(--on-topbar)">
+                  <div style="display:flex;align-items:center;height:54px;padding:0 4px">
+                    <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                    <div style="font-size:16.5px;font-weight:600;margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px">疯狂星期四，v 我沙拉…</div>
+                    <div style="width:44px;height:44px;display:grid;place-items:center;margin-left:auto"><span class="ms" style="font-size:22px">public</span></div>
+                    <div style="width:44px;height:44px;display:grid;place-items:center"><span class="ms" style="font-size:22px">more_vert</span></div>
+                  </div>
+                  <div style="display:flex;justify-content:center;padding:0 0 8px;font-size:13px;opacity:.8">1</div>
+                </div>
+                <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:30px 26px">
+                  <div style="width:72px;height:72px;border-radius:24px;background:var(--surface-2);display:grid;place-items:center;margin-bottom:20px"><span class="ms" style="font-size:34px;color:var(--meta)">cloud_off</span></div>
+                  <div style="font-size:17px;font-weight:650;color:var(--fg)">这一页没能加载出来</div>
+                  <div style="font-size:13.5px;line-height:1.65;color:var(--fg-2);text-align:center;margin-top:10px">服务端返回 <b style="font-family:ui-monospace,Menlo,monospace">HTTP 403 Forbidden</b><br />通常是客户端 UA 被拒或需要重新登录</div>
+                  <div style="display:flex;flex-direction:column;gap:10px;align-self:stretch;margin-top:26px">
+                    <div onClick="{{ doRetry }}" style="height:48px;border-radius:15px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:650;cursor:pointer"><span class="ms" style="font-size:20px">refresh</span>重试</div>
+                    <div onClick="{{ goWebview }}" style="height:48px;border-radius:15px;border:1.5px solid var(--primary);color:var(--primary);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:650;cursor:pointer"><span class="ms" style="font-size:20px">public</span>用网页版打开</div>
+                    <div onClick="{{ goLogin }}" style="height:44px;display:grid;place-items:center;font-size:13.5px;color:var(--fg-2);cursor:pointer">重新登录账号</div>
+                  </div>
+                  <div style="margin-top:22px;padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:11.5px;line-height:1.6;color:var(--meta)">诊断信息已保存到本地日志：<span style="font-family:ui-monospace,Menlo,monospace">tid=42800000 · page=1 · ua=app/1.0.0</span></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isWebview }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="min-width:0;margin-left:4px">
+                    <div style="font-size:15.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">疯狂星期四，v 我沙拉…</div>
+                    <div style="font-size:10.5px;opacity:.75;font-family:ui-monospace,Menlo,monospace">bbs.nga.cn/read.php?tid=42800000</div>
+                  </div>
+                  <div onClick="{{ openWebMenu }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:22px">more_vert</span></div>
+                </div>
+                <sc-if value="{{ fallbackBar }}" hint-placeholder-val="{{ true }}">
+                  <div style="flex:none;display:flex;align-items:center;gap:10px;padding:11px 12px 11px 14px;background:var(--primary-c);border-bottom:1px solid var(--divider)">
+                    <span class="ms" style="font-size:19px;color:var(--primary)">info</span>
+                    <div style="flex:1;font-size:12.5px;line-height:1.45;color:var(--fg)">原生解析失败，已切换为<b>网页数据源</b>显示</div>
+                    <div onClick="{{ doRetry }}" style="font-size:12.5px;font-weight:700;color:var(--primary);padding:4px 6px;cursor:pointer">重试原生</div>
+                    <span onClick="{{ hideBar }}" class="ms" style="font-size:17px;color:var(--meta);cursor:pointer">close</span>
+                  </div>
+                </sc-if>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:#F2EFE6">
+                  <div style="background:#2C7A5B;color:#fff;padding:8px 12px;font-size:12px;display:flex;gap:14px">
+                    <span>首页</span><span>版面</span><span style="opacity:.75">收藏</span><span style="opacity:.75">短信</span><span style="margin-left:auto;opacity:.75">登录</span>
+                  </div>
+                  <div style="padding:10px 12px;background:#E8E3D4;font-size:11.5px;color:#5A5344">网事杂谈 &gt; 疯狂星期四，v 我沙拉…</div>
+                  <div style="padding:12px">
+                    <sc-for list="{{ webFloors }}" as="w" hint-placeholder-count="3">
+                      <div style="background:#fff;border:1px solid #DCD6C6;border-radius:6px;margin-bottom:10px;overflow:hidden">
+                        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#F6F2E6;border-bottom:1px solid #E4DECD;font-size:11.5px;color:#5A5344">
+                          <b style="color:#2C6A8F;font-size:12.5px">{{ w.name }}</b><span>{{ w.time }}</span><span style="margin-left:auto">[{{ w.no }} 楼]</span>
+                        </div>
+                        <div style="padding:11px 10px;font-size:13.5px;line-height:1.7;color:#2B2A26">{{ w.body }}</div>
+                      </div>
+                    </sc-for>
+                    <div style="display:flex;justify-content:center;gap:6px;margin:16px 0 10px">
+                      <sc-for list="{{ webPages }}" as="p" hint-placeholder-count="5">
+                        <div style="min-width:26px;height:26px;padding:0 7px;border:1px solid #C8C0AC;border-radius:4px;background:{{ p.bg }};color:{{ p.fg }};font-size:12px;display:grid;place-items:center;cursor:pointer">{{ p.n }}</div>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="height:70px"></div>
+                </div>
+                <div onClick="{{ doRetry }}" style="position:absolute;left:16px;right:16px;bottom:20px;height:48px;border-radius:15px;background:var(--fab);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:650;box-shadow:var(--shadow-2);cursor:pointer"><span class="ms" style="font-size:21px">smartphone</span>用 APP 阅读这一页</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isChain }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">回复链 · 4 层</div>
+                  <div onClick="{{ goEditorReply }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:22px">reply</span></div>
+                </div>
+                <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg);padding:14px 12px 24px">
+                  <div style="font-size:12px;color:var(--meta);padding:0 4px 12px">从第 2 楼展开：上游是它引用的楼层，下游是引用它的楼层。</div>
+                  <sc-for list="{{ chainCards }}" as="c" hint-placeholder-count="4">
+                    <div style="margin-left:{{ c.indent }};margin-bottom:10px;padding:13px 14px;border-radius:14px;background:{{ c.bg }};border:1.5px solid {{ c.bd }};box-shadow:{{ c.shadow }}">
+                      <div style="display:flex;align-items:center;gap:9px">
+                        <div style="flex:none;width:30px;height:30px;border-radius:10px;background:{{ c.av }};display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700">{{ c.ini }}</div>
+                        <div style="font-size:13.5px;font-weight:650;color:var(--primary)">{{ c.name }}</div>
+                        <div style="margin-left:auto;font-size:11px;color:var(--meta)">[{{ c.no }} 楼] {{ c.time }}</div>
+                      </div>
+                      <div style="margin-top:9px;font-size:14px;line-height:1.65;color:var(--fg)">{{ c.body }}</div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:9px;font-size:11.5px;color:var(--meta)">
+                        <span style="display:{{ c.badgeD }};padding:2px 8px;border-radius:6px;background:var(--primary-c);color:var(--primary);font-weight:700">当前楼层</span>
+                        <span style="margin-left:auto;display:flex;align-items:center;gap:4px"><span class="ms" style="font-size:14px">thumb_up</span>{{ c.likes }}</span>
+                        <span onClick="{{ c.goFloor }}" style="color:var(--primary);font-weight:650;cursor:pointer">在原帖中查看</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isViewer }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
+                  <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
+                  <div style="font-size:18px;font-weight:500;margin-left:8px;letter-spacing:.5px">2 / 3</div>
+                  <div onClick="{{ doDownload }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:23px;font-variation-settings:'FILL' 1">save</span></div>
+                  <div onClick="{{ doShare }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:23px">share</span></div>
+                  <div onClick="{{ openViewerMenu }}" style="width:44px;height:46px;display:grid;place-items:center;border-radius:22px;cursor:pointer"><span class="ms" style="font-size:22px">more_vert</span></div>
+                </div>
+                <div style="flex:1;min-height:0;background:var(--bg);display:grid;place-items:center;padding:16px">
+                  <div style="width:100%;aspect-ratio:3/4;background:repeating-linear-gradient(135deg,var(--surface-2) 0 9px,var(--track) 9px 10px);display:grid;place-items:center">
+                    <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--fg-2);background:var(--surface);padding:6px 10px;border-radius:6px">仓库照片 02 · 1440×1920</div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ drawer }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;z-index:40">
+                <div onClick="{{ closeAll }}" style="position:absolute;inset:0;background:var(--scrim);animation:omfade .2s ease"></div>
+                <div class="sc" style="position:absolute;left:0;top:0;bottom:0;width:300px;background:var(--surface);overflow-y:auto;box-shadow:var(--shadow-2);animation:omup .22s ease">
+                  <div style="background:var(--primary);color:#fff;padding:22px 20px 18px">
+                    <div style="display:flex;align-items:center;gap:14px">
+                      <span class="ms" style="font-size:18px;opacity:.55;cursor:pointer">chevron_left</span>
+                      <div style="width:64px;height:64px;border-radius:22px;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:22px;font-weight:700">chas</div>
+                      <span class="ms" style="font-size:18px;opacity:.55;cursor:pointer">chevron_right</span>
+                    </div>
+                    <div style="font-size:12.5px;opacity:.8;margin-top:14px">已登录 2 个账号 · 左右滑动切换</div>
+                    <div style="font-size:15px;font-weight:650;margin-top:3px">当前：chasel43(62122561)</div>
+                  </div>
+                  <div style="padding:16px 20px 6px;font-size:12.5px;font-weight:700;color:var(--primary);letter-spacing:.4px">论坛功能</div>
+                  <sc-for list="{{ drawerItems }}" as="d" hint-placeholder-count="6">
+                    <div onClick="{{ d.go }}" style="display:flex;align-items:center;gap:18px;height:52px;padding:0 20px;cursor:pointer;font-size:15px;color:var(--fg)">
+                      <span class="ms" style="font-size:21px;color:var(--fg-2)">{{ d.icon }}</span>{{ d.label }}
+                    </div>
+                  </sc-for>
+                  <div style="height:20px"></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;z-index:45">
+                <div onClick="{{ closeAll }}" style="position:absolute;inset:0"></div>
+                <div class="sc" style="position:absolute;right:8px;top:{{ menuTop }};min-width:186px;max-height:520px;overflow-y:auto;background:var(--menu);border-radius:14px;box-shadow:var(--shadow-2);padding:6px 0;animation:ompop .16s ease;transform-origin:top right">
+                  <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="6">
+                    <div onClick="{{ m.go }}" style="display:flex;align-items:center;height:50px;padding:0 22px;font-size:15.5px;color:var(--fg);cursor:pointer;white-space:nowrap;margin-top:{{ m.gap }}">{{ m.label }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;z-index:60;display:grid;place-items:center;padding:24px">
+                <div onClick="{{ closeAll }}" style="position:absolute;inset:0;background:var(--scrim);animation:omfade .18s ease"></div>
+                <div style="position:relative;width:100%;background:var(--menu);border-radius:24px;padding:22px 22px 14px;box-shadow:var(--shadow-2);animation:ompop .2s ease">
+                  <div style="font-size:18px;font-weight:650;color:var(--fg)">{{ dlgTitle }}</div>
+                  <div style="font-size:13.5px;line-height:1.6;color:var(--fg-2);margin-top:9px;display:{{ dlgBodyD }};white-space:pre-line">{{ dlgBody }}</div>
+
+                  <div style="display:{{ dlgInputD }};margin-top:16px">
+                    <div style="border-bottom:2px solid var(--primary);padding:0 2px 7px;font-size:15px;color:var(--fg)">{{ dlgInputVal }}<span style="color:var(--primary)">|</span></div>
+                    <div style="font-size:11.5px;color:var(--meta);margin-top:7px">{{ dlgHint }}</div>
+                  </div>
+
+                  <div style="display:{{ dlgListD }};margin-top:12px">
+                    <sc-for list="{{ dlgList }}" as="o" hint-placeholder-count="3">
+                      <div onClick="{{ o.pick }}" style="display:flex;align-items:center;gap:13px;height:48px;font-size:14.5px;color:var(--fg);cursor:pointer">
+                        <span class="ms" style="font-size:21px;color:{{ o.color }}">{{ o.icon }}</span>
+                        <div style="flex:1">{{ o.label }}<div style="font-size:11.5px;color:var(--meta);display:{{ o.subD }}">{{ o.sub }}</div></div>
+                        <span class="ms" style="font-size:19px;color:var(--meta);display:{{ o.trailD }};cursor:pointer">{{ o.trail }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+
+                  <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:14px">
+                    <div onClick="{{ closeAll }}" style="height:40px;padding:0 16px;display:grid;place-items:center;border-radius:20px;font-size:14px;font-weight:650;color:var(--fg-2);cursor:pointer">取消</div>
+                    <div onClick="{{ dlgConfirm }}" style="height:40px;padding:0 20px;display:grid;place-items:center;border-radius:20px;background:var(--primary);color:#fff;font-size:14px;font-weight:650;cursor:pointer">{{ dlgOk }}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ snack }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:16px;right:16px;bottom:92px;z-index:70;background:{{ snackBg }};color:{{ snackFg }};border-radius:14px;padding:14px 16px;font-size:13.5px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-2);animation:omup .22s ease">
+                <div style="flex:1;line-height:1.4">{{ snack }}</div>
+                <div onClick="{{ hideSnack }}" style="font-size:13px;font-weight:700;color:{{ snackAction }};cursor:pointer">{{ snackBtn }}</div>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:12px;color:#8A8474">{{ screenLabel }}</div>
+    </div>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:22px">
+      <sc-if value="{{ showSpec }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#F7F5EC;color:#26261F;border-radius:20px;padding:26px 28px">
+          <div style="font-size:17px;font-weight:700;margin-bottom:4px">Design Tokens</div>
+          <div style="font-size:12.5px;color:#7A7568;margin-bottom:20px">变量名即代码中的 CSS 自定义属性；深色值为 <code>.omdark</code> 下的覆盖值。</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">
+            <sc-for list="{{ tokenColors }}" as="c" hint-placeholder-count="12">
+              <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E4E0D2;border-radius:12px;padding:9px 11px">
+                <div style="flex:none;width:34px;height:34px;border-radius:9px;background:{{ c.light }};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)"></div>
+                <div style="flex:none;width:34px;height:34px;border-radius:9px;background:{{ c.dark }};box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)"></div>
+                <div style="min-width:0">
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;font-weight:600">{{ c.name }}</div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#8A8474;white-space:nowrap">{{ c.light }} · {{ c.dark }}</div>
+                  <div style="font-size:11px;color:#7A7568;margin-top:1px">{{ c.use }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;margin-top:26px">
+            <div>
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px">字号 / 行高</div>
+              <sc-for list="{{ tokenType }}" as="t" hint-placeholder-count="6">
+                <div style="display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid #E9E5D8">
+                  <div style="font-size:{{ t.size }};font-weight:{{ t.weight }};line-height:1.2;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.sample }}</div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#8A8474;white-space:nowrap">{{ t.spec }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px">间距 · 圆角 · 阴影</div>
+              <sc-for list="{{ tokenBox }}" as="b" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #E9E5D8">
+                  <div style="flex:none;width:52px;height:26px;border-radius:{{ b.radius }};background:#DCEAE6;box-shadow:{{ b.shadow }}"></div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:600;min-width:96px">{{ b.name }}</div>
+                  <div style="font-size:11.5px;color:#7A7568">{{ b.use }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="background:#2F2F28;border-radius:20px;padding:22px 24px">
+        <div style="font-size:13px;font-weight:700;letter-spacing:.4px;color:#B9B2A0;margin-bottom:14px">页面索引 · 点任意一项直达</div>
+        <sc-for list="{{ nav }}" as="g" hint-placeholder-count="5">
+          <div style="margin-bottom:16px">
+            <div style="font-size:11.5px;color:#8A8474;margin-bottom:8px;letter-spacing:.3px">{{ g.group }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="5">
+                <div onClick="{{ i.go }}" style="padding:8px 13px;border-radius:11px;background:{{ i.bg }};color:{{ i.fg }};font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid {{ i.bd }}">{{ i.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:1000}}">
+const AV = ['#3E6B7E','#7E5A3E','#5A6E3E','#6E3E5A','#3E5A7E','#7E6B3E','#4A4A6E'];
+
+class Component extends DCLogic {
+  state = {
+    theme: 'light', screen: 'home', stack: [], showSpec: false,
+    homeTab: 0, drawer: false, menu: null, dialog: null, fab: false,
+    star: true, page: 1, onlyUser: false, progressTip: true,
+    swiping: false, swipeDX: 0,
+    attach: {}, likes: {}, snack: null, notes: true
+  };
+
+  set(p){ this.setState(p); }
+  go = (s) => this.setState(st => ({ screen: s, stack: [...st.stack, st.screen], drawer:false, menu:null, dialog:null, fab:false }));
+  back = () => this.setState(st => ({ screen: st.stack.length ? st.stack[st.stack.length-1] : 'home', stack: st.stack.slice(0,-1), drawer:false, menu:null, dialog:null, fab:false }));
+  closeAll = () => this.set({ drawer:false, menu:null, dialog:null, fab:false });
+  toast = (msg, btn) => { this.set({ snack:{ text:msg, btn: btn||'好', tone:'dark' } }); };
+
+  renderVals(){
+    const s = this.state, D = s.theme === 'dark';
+    const T = {
+      theme: s.theme, themeClass: D ? 'omdark' : '', clock: '22:48',
+      themeIcon: D ? 'light_mode' : 'dark_mode', themeLabel: D ? '浅色模式' : '深色模式',
+      toggleTheme: () => this.set({ theme: D ? 'light' : 'dark' }),
+      showSpec: s.showSpec, toggleSpec: () => this.set({ showSpec: !s.showSpec }),
+      back: this.back, closeAll: this.closeAll,
+      drawer: s.drawer, openDrawer: () => this.set({ drawer:true }),
+      goSearch: () => this.go('search'), goWebview: () => this.go('webview'),
+      goEditorNew: () => this.go('editorNew'), goEditorReply: () => this.go('editor'),
+      doRefresh: () => { this.closeAll(); this.toast('已刷新到最新 1 页', '知道了'); },
+      starFill: s.star ? 1 : 0, toggleStar: () => { this.set({ star: !s.star }); this.toast(s.star ? '已取消收藏该版面' : '已收藏到「我的收藏」', '撤销'); },
+      onlyUser: s.onlyUser, clearOnlyUser: () => this.set({ onlyUser:false }),
+      progressTip: s.progressTip && s.screen === 'article',
+      hideProgress: () => this.set({ progressTip:false }),
+      jumpToLast: () => { this.set({ progressTip:false }); this.toast('已跳转到第 18 楼'); },
+      fabOpen: s.fab, fabRot: s.fab ? '45deg' : '0deg', toggleFab: () => this.set({ fab: !s.fab }),
+      openChain: () => this.go('chain'), openViewer: () => this.go('viewer'),
+      snack: s.snack ? s.snack.text : null, snackBtn: s.snack ? s.snack.btn : '',
+      snackBg: D ? '#3A3A36' : '#33322C', snackFg: '#F4F1E8', snackAction: '#8FD8C9',
+      hideSnack: () => this.set({ snack:null }),
+      threadTitle: '体感消费不一直这样吗',
+      boardName: s.screen === 'list' ? '网事杂谈' : '网事杂谈'
+    };
+
+    // screen flags
+    T.isHome = s.screen === 'home'; T.isList = s.screen === 'list'; T.isArticle = s.screen === 'article';
+    T.screenLabel = ({ home:'主页 · 我的收藏', list:'主题列表 · 网事杂谈', article:'帖子详情' })[s.screen] || s.screen;
+
+    // home
+    T.homeTabs = ['我的收藏','魔兽世界','网事杂谈','暴雪游戏'].map((name,i) => ({
+      name, op: i === s.homeTab ? 1 : .62,
+      ind: i === s.homeTab ? 'inset 0 -3px 0 0 currentColor' : 'none',
+      pick: () => this.set({ homeTab:i })
+    }));
+    const BSET = [
+      [['技术分析','技'],['网事杂谈','网'],['游戏综合','游'],['二次元国家地理','二'],['魔兽世界','魔'],['手机游戏','手'],['大漩涡','漩'],['影音讨论','影']],
+      [['正式服讨论','正'],['怀旧服','怀'],['副本攻略','副'],['职业讨论','职'],['战网交易','战'],['插件宏','插']],
+      [['网事杂谈','网'],['晴风村','晴'],['影音讨论区','影'],['视频与主播','视'],['国际新闻','国']],
+      [['暗黑破坏神','暗'],['炉石传说','炉'],['守望先锋','守'],['风暴英雄','风']]
+    ];
+    T.boards = BSET[s.homeTab].map(([name,ini]) => ({ name, ini, open: () => this.go('list') }));
+    T.groupName = ['我的收藏','魔兽世界','网事杂谈','暴雪游戏'][s.homeTab];
+    T.groupIni = ['收','魔','网','暴'][s.homeTab];
+
+    // topic list
+    T.subTags = ['全部','影音讨论区','晴风村','视频与主播讨论','深水区'];
+    const TOPICS = [
+      { title:'[置顶] 版规重申：讨论请勿转时事，违者直接删除', lock:true, tag:'网事杂谈', author:'zeg', last:'#ANONYMOUS#', replies:0, weight:600 },
+      { title:'iOS 客户端闪退问题，请重新下载社区 app 客户端', color:'danger', tag:'', author:'gerraerd', last:'xtl150ok', replies:528 },
+      { title:'老爸走了，但似乎不认为这是件坏事', tag:'', author:'s1886719', last:'s1886719', replies:36 },
+      { title:'两轮车企的利润真高，感觉真闷声发大财', plus:true, tag:'', author:'bunsion', last:'留白，嗯', replies:52 },
+      { title:'[合集] 深夜食堂第 41 期 · 你家楼下那家开了十年的店', tag:'晴风村', author:'优只猪', last:'深水区的郭敬明', replies:246, weight:600 },
+      { title:'真心求助成都本地老炮～有没有靠谱的搬家师傅', plus:true, tag:'晴风村', author:'卯邱潘', last:'chris3940', replies:6 },
+      { title:'[版面镜像] 韩国推进司法改革 进一步削减检察官权力', tag:'国际新闻', author:'独角丘比猫', last:'呜哇哇哇哇', replies:3, mirror:true },
+      { title:'这一部，蜘蛛侠终于开始展现魅力了', tag:'影音讨论区', author:'杨二侠', last:'Apprivorisor', replies:15 },
+      { title:'被老婆扇了一耳光，想离婚，兄弟们评评理', tag:'', author:'乙秦郝己', last:'隋唐元不向九州征税', replies:118 },
+      { title:'技师请我吃饭（续）后续来了，谢谢各位兄弟支招', tag:'晴风村', author:'留白，嗯', last:'我不是猫奴', replies:54 }
+    ];
+    T.topics = TOPICS.map(t => ({
+      title: t.title,
+      color: t.color === 'danger' ? 'var(--danger)' : 'var(--fg)',
+      weight: t.weight || 400,
+      lockD: t.lock ? 'inline' : 'none',
+      plusD: t.plus ? 'inline' : 'none',
+      tagD: t.tag ? 'inline' : 'none', tag: t.tag,
+      author: t.author, last: t.last, replies: t.replies,
+      open: () => this.go('article')
+    }));
+
+    // article
+    T.pages = [1,2,3,4,5,6,7].map(n => ({
+      n, pick: () => this.set({ page:n }),
+      bg: n === s.page ? 'rgba(255,255,255,.22)' : 'transparent',
+      op: n === s.page ? 1 : .62
+    }));
+    T.openJump = () => this.set({ dialog:'jump', menu:null });
+
+    // 帖子详情：左右滑动翻页
+    const MAXP = 7, swg = this._swg || (this._swg = {});
+    T.swipeX = (s.swipeDX || 0) + 'px';
+    T.swipeTrans = s.swiping ? 'none' : 'transform .22s cubic-bezier(.2,.8,.3,1)';
+    T.swipeHint = !!s.swiping && Math.abs(s.swipeDX || 0) > 40;
+    const dir = (s.swipeDX || 0) < 0 ? 1 : -1, tgt = s.page + dir;
+    T.swipeHintText = tgt < 1 ? '已是第一页' : tgt > MAXP ? '已是最后一页' : '第 ' + tgt + ' 页';
+    T.swipeDown = (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      swg.x = e.clientX; swg.y = e.clientY; swg.on = false; swg.id = e.pointerId;
+    };
+    T.swipeMove = (e) => {
+      if (swg.id !== e.pointerId || swg.x == null) return;
+      const dx = e.clientX - swg.x, dy = e.clientY - swg.y;
+      if (!swg.on) {
+        if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+        swg.on = true;
+        if (e.currentTarget.setPointerCapture) try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+      const edge = (dx > 0 && s.page === 1) || (dx < 0 && s.page === MAXP);
+      this.set({ swiping:true, swipeDX: edge ? dx * 0.25 : dx * 0.7 });
+    };
+    T.swipeUp = () => {
+      if (!swg.on) { swg.x = null; return; }
+      const dx = s.swipeDX || 0;
+      swg.on = false; swg.x = null;
+      const next = dx < -60 ? s.page + 1 : dx > 60 ? s.page - 1 : s.page;
+      if (next !== s.page && next >= 1 && next <= MAXP) {
+        this.set({ swiping:false, swipeDX:0, page:next });
+        this.toast('已切换到第 ' + next + ' 页');
+      } else {
+        this.set({ swiping:false, swipeDX:0 });
+      }
+    };
+
+    const FLOORS = [
+      { name:'阴阳师妄想(楼主)', ini:'阴', lv:'学徒', rep:'1.0', posts:5075, no:0, plat:'android', time:'2026-08-06 22:20', likes:12,
+        body:'体感消费不一直这样吗？楼主 22 年大学毕业直接进厂了，没怎么在社会上摸爬滚打。\n\n从哪个时间段开始的？' },
+      { name:'Invisibl', ini:'In', lv:'学徒', rep:'1.1', posts:6686, no:1, plat:'phone_iphone', time:'2026-08-06 22:25', likes:7,
+        body:'有功夫天天发帖说明不是什么卖苦力的厂。\n短期来看通缩对于高收入人群的消费是有利的，苦的是赚你钱的那些人。',
+        notes:[{ who:'无知器', text:'贴条 · 说得好，但我还是要吐槽物价' },{ who:'阴阳师妄想', text:'贴条 · 懂了，谢谢' }] },
+      { name:'无知器', ini:'无', lv:'学徒', rep:'1.0', posts:419, no:2, plat:'android', time:'2026-08-06 22:31', likes:3,
+        body:'最简单的就是看商圈客流，三年前排队一小时的店现在随便进。',
+        quote:true, quoteWho:'Invisibl', quoteBody:'短期来看通缩对于高收入人群的消费是有利的，苦的是赚你钱的那些人。' },
+      { name:'留白，嗯', ini:'留', lv:'精英', rep:'12.4', posts:20881, no:3, plat:'devices', time:'2026-08-06 22:40', likes:41,
+        body:'去年年底我还在做外贸，今年整个行业订单腰斩，这就是体感。附几张我们仓库现在的照片。', attach:true }
+    ];
+    T.floors = FLOORS.map((f,i) => {
+      const open = !!s.attach[i];
+      return {
+        name:f.name, ini:f.ini, lv:f.lv, rep:f.rep, posts:f.posts, no:f.no, plat:f.plat, time:f.time, body:f.body,
+        av: AV[i % AV.length], bg: 'transparent',
+        likes: (f.likes || 0) + (s.likes[i] ? 1 : 0),
+        likeColor: s.likes[i] ? 'var(--primary)' : 'var(--meta)', likeFill: s.likes[i] ? 1 : 0,
+        like: () => this.setState(st => ({ likes: { ...st.likes, [i]: !st.likes[i] } })),
+        reply: () => this.go('editor'), profile: () => this.go('profile'),
+        menu: () => this.set({ menu:'floor' }),
+        quote: !!f.quote, quoteWho: f.quoteWho, quoteBody: f.quoteBody,
+        hasAttach: !!f.attach, attachClosed: !!f.attach && !open, attachOpen: !!f.attach && open,
+        attachList: ['仓库照片 01','仓库照片 02','出货单'],
+        toggleAttach: () => this.setState(st => ({ attach: { ...st.attach, [i]: !st.attach[i] } })),
+        hasNotes: !!f.notes, notes: f.notes || []
+      };
+    });
+
+    // drawer
+    T.drawerItems = [
+      { icon:'person_add', label:'登录账号', go:() => this.go('login') },
+      { icon:'library_add', label:'添加版面 ID', go:() => this.set({ dialog:'addBoard', drawer:false }) },
+      { icon:'arrow_forward', label:'由 URL 读取', go:() => this.set({ dialog:'url', drawer:false }) },
+      { icon:'folder_special', label:'收藏夹管理', go:() => this.go('folders') },
+      { icon:'warning', label:'清空我的收藏', go:() => { this.closeAll(); this.toast('已清空我的收藏', '撤销'); } },
+      { icon:'notifications_active', label:'最近被喷', go:() => this.go('notify') },
+      { icon:'settings', label:'设置', go:() => this.go('settings') },
+      { icon:'info', label:'关于', go:() => this.go('about') }
+    ];
+
+    // menus
+    const MENUS = {
+      home: [
+        { icon:'article', label:'我的主题', go:() => this.go('myTopics') },
+        { icon:'reply', label:'我的回复', go:() => this.go('myReplies') },
+        { icon:'cached', label:'我的缓存', go:() => this.go('cache') },
+        { icon:'sms', label:'短消息', go:() => this.go('messages') },
+        { icon:'star', label:'收藏夹', go:() => this.go('favorites') },
+        { icon:'settings', label:'设置', go:() => this.go('settings') }
+      ],
+      list: [
+        { icon:'local_fire_department', label:'24 小时热帖', go:() => this.go('hot') },
+        { icon:'history', label:'浏览历史', go:() => this.go('history') },
+        { icon:'workspace_premium', label:'精华区', go:() => this.go('recommended') },
+        { icon:'account_tree', label:'子板块', go:() => this.go('subboards') },
+        { icon:'star', label:'收藏夹', go:() => this.go('favorites') }
+      ],
+      article: [
+        { icon:'low_priority', label:'跳页', go:() => this.set({ dialog:'jump', menu:null }) },
+        { icon:'content_copy', label:'复制链接', go:() => { this.closeAll(); this.toast('链接已复制到剪贴板'); } },
+        { icon:'star', label:'收藏本帖', go:() => this.set({ dialog:'folder', menu:null }) },
+        { icon:'download', label:'缓存本页', go:() => { this.closeAll(); this.toast('本页已缓存，可离线阅读', '查看'); } },
+        { icon:'share', label:'分享', go:() => { this.closeAll(); this.toast('已调起系统分享'); } },
+        { icon:'dark_mode', label:'夜间模式', go:() => this.set({ theme: D ? 'light' : 'dark', menu:null }) }
+      ],
+      viewer: [
+        { icon:'', label:'保存到相册', go:() => { this.closeAll(); this.toast('已保存到 相册/NGA'); } },
+        { icon:'', label:'复制图片地址', go:() => { this.closeAll(); this.toast('图片地址已复制'); } },
+        { icon:'', label:'查看原图（2.4 MB）', go:() => { this.closeAll(); this.toast('正在加载原图…'); } },
+        { icon:'', label:'在浏览器中打开', go:() => { this.closeAll(); this.toast('已跳转系统浏览器'); } }
+      ],
+      web: [
+        { icon:'refresh', label:'刷新页面', go:() => { this.closeAll(); this.toast('已刷新网页'); } },
+        { icon:'smartphone', label:'用 APP 阅读', go:() => { this.closeAll(); this.go('article'); } },
+        { icon:'content_copy', label:'复制网址', go:() => { this.closeAll(); this.toast('网址已复制'); } },
+        { icon:'open_in_browser', label:'在系统浏览器打开', go:() => { this.closeAll(); this.toast('已跳转系统浏览器'); } },
+        { icon:'text_fields', label:'网页字号', go:() => { this.closeAll(); this.toast('网页字号 110%'); } }
+      ],
+      floor: [
+        { icon:'sticky_note_2', label:'贴条', go:() => this.set({ dialog:'note', menu:null }) },
+        { icon:'thumb_up', label:'支持', go:() => { this.closeAll(); this.toast('已支持 +1'); } },
+        { icon:'thumb_down', label:'反对', go:() => { this.closeAll(); this.toast('已反对 -1'); } },
+        { icon:'flag', label:'举报', go:() => this.set({ dialog:'report', menu:null }) },
+        { icon:'draw', label:'查看签名', go:() => this.set({ dialog:'sign', menu:null }) },
+        { icon:'star', label:'收藏', go:() => this.set({ dialog:'folder', menu:null }) },
+        { icon:'filter_alt', label:'只看此人', go:() => this.set({ onlyUser:true, menu:null }) },
+        { icon:'block', label:'屏蔽此人', go:() => { this.closeAll(); this.toast('已屏蔽该用户，其发言将折叠', '撤销'); } }
+      ]
+    };
+    T.menuOpen = !!s.menu;
+    const GAPS = { home:{ 3:'10px' }, article:{ 5:'10px' }, floor:{ 6:'10px' } };
+    T.menuItems = (MENUS[s.menu] || []).map((m,i) => ({ ...m, gap: (GAPS[s.menu] || {})[i] || '0px' }));
+    T.menuTop = s.menu === 'floor' ? '300px' : '6px';
+    T.openHomeMenu = () => this.set({ menu:'home' });
+    T.openListMenu = () => this.set({ menu:'list' });
+    T.openArticleMenu = () => this.set({ menu:'article' });
+
+    // dialogs
+    const DLG = {
+      jump: { title:'跳转到页码', input:'3', hint:'共 7 页 · 输入 1 – 7', ok:'跳转' },
+      addBoard: { title:'添加版面 ID', input:'459', hint:'例如 -7bcf72 或 459', ok:'添加' },
+      url: { title:'由 URL 读取', input:'https://bbs.nga.cn/read.php?tid=', hint:'支持 read.php / thread.php 链接', ok:'打开' },
+      report: { title:'举报该楼层', input:'刷屏、无意义回复', hint:'请填写举报理由，管理员会收到通知', ok:'提交举报' },
+      note: { title:'给该楼贴条', input:'说得好，但物价确实涨了', hint:'贴条会显示在该楼层下方', ok:'贴上' },
+      sign: { title:'查看签名', body:'—— 我从来不喝隔夜的茶，也不看隔夜的帖。\n\n[NGA @ 网事杂谈] 2019.03 至今', ok:'知道了' },
+      folder: { title:'收藏到…', list:true, ok:'完成' },
+      addFolder: { title:'新建收藏夹', input:'装机 / 硬件', hint:'最多 20 个收藏夹', ok:'创建' },
+      addFilter: { title:'新增屏蔽规则', input:'关键词：内部消息', hint:'支持 用户 / 关键词 / 分类，可用正则', ok:'保存' },
+      theme: { title:'主题风格', list:true, ok:'应用' }
+    };
+    const d = DLG[s.dialog] || {};
+    T.dialogOpen = !!s.dialog;
+    T.dlgTitle = d.title || ''; T.dlgOk = d.ok || '确定';
+    T.dlgBody = d.body || ''; T.dlgBodyD = d.body ? 'block' : 'none';
+    T.dlgInputD = d.input ? 'block' : 'none'; T.dlgInputVal = d.input || ''; T.dlgHint = d.hint || '';
+    T.dlgListD = d.list ? 'block' : 'none';
+    T.dlgList = s.dialog === 'theme' ? [
+      { label:'墨绿（NGA 经典）', sub:'顶栏墨绿 + 奶油背景', icon:'radio_button_checked', color:'var(--primary)', trail:'' },
+      { label:'纯白', sub:'白底 + 深绿强调', icon:'radio_button_unchecked', color:'var(--meta)', trail:'' },
+      { label:'夜间近黑', sub:'跟随夜间模式开关', icon:'radio_button_unchecked', color:'var(--meta)', trail:'' }
+    ].map(o => ({ ...o, subD:'block', trailD:'none', pick: () => {} })) : d.list ? [
+      { label:'默认收藏夹', sub:'126 个主题', icon:'check_box', color:'var(--primary)', trail:'more_horiz' },
+      { label:'装机 / 硬件', sub:'34 个主题', icon:'check_box_outline_blank', color:'var(--meta)', trail:'more_horiz' },
+      { label:'以后再看', sub:'8 个主题', icon:'check_box_outline_blank', color:'var(--meta)', trail:'more_horiz' },
+      { label:'新建收藏夹…', sub:'', icon:'add', color:'var(--accent)', trail:'' }
+    ].map(o => ({ ...o, subD: o.sub ? 'block' : 'none', trailD: o.trail ? 'block' : 'none', pick: () => {} })) : [];
+    T.dlgConfirm = () => {
+      const map = { jump:'已跳转到第 3 页', addBoard:'已添加版面到我的收藏', url:'正在解析链接…', report:'举报已提交，感谢反馈', note:'贴条成功', folder:'已收藏到「默认收藏夹」' };
+      const msg = map[s.dialog];
+      this.closeAll();
+      if (msg) this.toast(msg, '好');
+    };
+
+    // token spec
+    T.tokenColors = [
+      ['--primary','#14796B','#1E9384','顶栏 / Tab / FAB / 强调文字'],
+      ['--primary-c','#D8EAE5','#1E3A35','版面图标底 / 提示条底'],
+      ['--bg','#FCF4E1','#1C1C1B','页面背景（奶油 / 近黑）'],
+      ['--surface','#FFFBF0','#232322','楼主楼层 / 抽屉 / 卡片'],
+      ['--surface-2','#F5F0E0','#292928','公告条 / 折叠按钮 / 贴条区'],
+      ['--menu','#F7F4EE','#2E2E2C','弹出菜单 / 对话框'],
+      ['--fg','#1E1C19','#E9E7E2','标题 / 正文'],
+      ['--fg-2','#57534A','#B0ACA3','次级正文 / 抽屉图标'],
+      ['--meta','#A39D8E','#6F6C65','时间 / 级别 / 威望'],
+      ['--link','#3A5A7A','#8AA6C8','作者名 / 最后回复人 / 链接'],
+      ['--tag','#B7B0A0','#5F5C55','标题后的方括号分类'],
+      ['--accent','#E09A2A','#D6942E','标签 + 号 / 公告图标'],
+      ['--danger','#DE3B2C','#E2574C','[锁定] / 红色标题 / 删除'],
+      ['--divider','#EBE3CE','#333330','列表分隔线'],
+      ['--quote','#F1EBD6','#262625','引用块底色'],
+      ['--scrim','rgba(30,26,16,.42)','rgba(0,0,0,.62)','抽屉 / 对话框遮罩']
+    ].map(([name,light,dark,use]) => ({ name, light, dark, use }));
+
+    T.tokenType = [
+      { sample:'NGA 阅读器', spec:'title/18 · 600', size:'18px', weight:600 },
+      { sample:'老爸走了，但似乎不认为这是件坏事', spec:'listTitle/16 · 1.45', size:'16px', weight:400 },
+      { sample:'体感消费不一直这样吗？楼主 22 年毕业', spec:'body/15.5 · 1.68', size:'15.5px', weight:400 },
+      { sample:'我的收藏', spec:'tab/15 · 600', size:'15px', weight:600 },
+      { sample:'贴条 · 说得好，但我还是要吐槽物价', spec:'note/12.5 · 1.65', size:'12.5px', weight:400 },
+      { sample:'级别 学徒　威望 1.0　发帖 5075', spec:'meta/11.5', size:'11.5px', weight:400 }
+    ];
+    T.tokenBox = [
+      { name:'radius/sm 8–9', use:'分类标签 / 页码格', radius:'9px', shadow:'none' },
+      { name:'radius/md 12', use:'提示条 / 引用块 / 折叠按钮', radius:'12px', shadow:'none' },
+      { name:'radius/lg 14', use:'菜单 / 卡片 / Snackbar', radius:'14px', shadow:'var(--shadow)' },
+      { name:'radius/xl 19–24', use:'FAB(19) / 对话框(24)', radius:'19px', shadow:'none' },
+      { name:'space 4·8·12·16·20', use:'列表行 14/16、区块 20', radius:'4px', shadow:'none' },
+      { name:'elevation/1', use:'0 2px 12px rgba(70,58,24,.13)', radius:'12px', shadow:'0 2px 12px rgba(70,58,24,.13)' },
+      { name:'elevation/2', use:'FAB · 菜单 · 抽屉', radius:'12px', shadow:'0 8px 28px rgba(70,58,24,.20)' }
+    ];
+
+    // nav index
+    const mk = (id,label) => ({ id, label, go: () => this.go(id) });
+    T.nav = [
+      { group:'主线（可点击串联）', items:[mk('home','主页'),mk('list','主题列表'),mk('article','帖子详情'),mk('editor','回帖编辑器'),mk('editorNew','发新帖')] },
+      { group:'发现 / 列表', items:[mk('search','搜索'),mk('hot','24 小时热帖'),mk('recommended','精华区'),mk('subboards','子板块'),mk('history','浏览历史'),mk('favorites','我的收藏帖'),mk('folders','多收藏夹'),mk('myTopics','我的主题'),mk('myReplies','我的回复'),mk('cache','我的缓存')] },
+      { group:'账号 / 消息', items:[mk('profile','用户资料'),mk('messages','短消息列表'),mk('chat','会话详情'),mk('newMsg','新建短信'),mk('notify','最近被喷'),mk('login','登录页')] },
+      { group:'设置', items:[mk('settings','设置 1'),mk('settings2','设置 2'),mk('settings3','设置 3'),mk('accounts','账号管理'),mk('fontSize','字号调节'),mk('filters','屏蔽规则'),mk('about','关于')] },
+      { group:'增补 / 兜底', items:[mk('error','加载失败'),mk('webview','网页版兜底'),mk('chain','回复链视图'),mk('viewer','大图查看器')] }
+    ].map(g => ({ group:g.group, items:g.items.map(i => ({
+      label:i.label, go:i.go,
+      bg: s.screen === i.id ? '#14796B' : '#3A3A32',
+      fg: s.screen === i.id ? '#fff' : '#D6D1C2',
+      bd: s.screen === i.id ? '#14796B' : '#46463C'
+    })) }));
+
+    // ---------- 列表类页面（共用一套行） ----------
+    const LISTS = {
+      hot: { title:'24 小时热帖', sub:'按热度排序 · 每 10 分钟刷新', rows:[
+        ['显卡又开始涨价了，这波是矿还是内存？','海豚音一号','12 分钟前','842','硬件'],
+        ['两轮车企的利润真高，感觉真闷声发大财','bunsion','28 分钟前','526','网事杂谈'],
+        ['公司要求周报写到 800 字，我裂开了','打工人小陈','1 小时前','431','职场'],
+        ['这一部，蜘蛛侠终于开始展现魅力了','杨二侠','2 小时前','388','影音讨论区'],
+        ['老爸走了，但似乎不认为这是件坏事','s1886719','3 小时前','336','晴风村'],
+        ['新版本奶萨手法讨论，求高手指点','奶到你哭','4 小时前','291','魔兽世界'],
+        ['被老婆扇了一耳光，想离婚，兄弟们评评理','乙秦郝己','5 小时前','118','']
+      ]},
+      recommended: { title:'精华区', sub:'版面推荐 · 共 148 篇', rows:[
+        ['[整理] 网事杂谈十年经典楼层合集（2015–2025）','版务组','2026-07-20','1204','合集'],
+        ['[科普] 一篇看懂个人所得税专项附加扣除','会计小王','2026-06-11','863','科普'],
+        ['[攻略] 从零开始搭建家庭 NAS 的十个坑','存储控','2026-05-28','692','硬件'],
+        ['[纪实] 我在县城开了三年小面馆','面条哥','2026-04-02','1587','晴风村'],
+        ['[整理] 影音讨论区年度片单','放映员','2026-03-15','512','影音讨论区'],
+        ['[科普] 二手显卡避坑指北','矿难倒霉蛋','2026-02-08','744','硬件'],
+        ['[纪实] 陪护父亲的 47 天','留白，嗯','2026-01-19','2011','晴风村']
+      ]},
+      history: { title:'浏览历史', sub:'本机记录 · 保留最近 200 条', rows:[
+        ['体感消费不一直这样吗？','阴阳师妄想','刚刚','读到 18 楼','网事杂谈'],
+        ['显卡又开始涨价了，这波是矿还是内存？','海豚音一号','12 分钟前','读到 3 楼','硬件'],
+        ['[合集] 深夜食堂第 41 期','优只猪','今天 20:14','读到 96 楼','晴风村'],
+        ['新版本奶萨手法讨论','奶到你哭','今天 18:02','读完','魔兽世界'],
+        ['技师请我吃饭（续）','留白，嗯','昨天 23:41','读到 54 楼','晴风村'],
+        ['两轮车企的利润真高','bunsion','昨天 21:07','读到 12 楼',''],
+        ['公司要求周报写到 800 字','打工人小陈','前天','读完','职场']
+      ]},
+      favorites: { title:'已收藏的主题', sub:'默认收藏夹 · 126 个主题', rows:[
+        ['[整理] 网事杂谈十年经典楼层合集','版务组','2026-07-20','默认','合集'],
+        ['[攻略] 从零开始搭建家庭 NAS 的十个坑','存储控','2026-05-28','装机','硬件'],
+        ['显卡又开始涨价了，这波是矿还是内存？','海豚音一号','12 分钟前','装机','硬件'],
+        ['[纪实] 我在县城开了三年小面馆','面条哥','2026-04-02','以后再看','晴风村'],
+        ['体感消费不一直这样吗？','阴阳师妄想','今天 22:20','默认','网事杂谈'],
+        ['新版本奶萨手法讨论，求高手指点','奶到你哭','今天 18:02','默认','魔兽世界'],
+        ['[科普] 二手显卡避坑指北','矿难倒霉蛋','2026-02-08','装机','硬件']
+      ]},
+      myTopics: { title:'我的主题', sub:'共 37 篇 · 按最后回复排序', rows:[
+        ['体感消费不一直这样吗？','最后回复 留白，嗯','今天 22:40','41','网事杂谈'],
+        ['求推荐 3000 元档的显示器','最后回复 海豚音一号','昨天 19:22','28','硬件'],
+        ['记录一下今年的减肥进度','最后回复 我不是猫奴','07-30','156','晴风村'],
+        ['关于新版本奶萨的一点看法','最后回复 奶到你哭','07-11','63','魔兽世界'],
+        ['帮女儿挑第一台电子琴','最后回复 音乐老师','06-28','19',''],
+        ['出个闲置机械键盘（已出）','最后回复 键圈萌新','06-02','7','交易'],
+        ['第一次带父母出国，求建议','最后回复 旅行社老李','05-14','88','晴风村']
+      ]},
+      myReplies: { title:'我的回复', sub:'共 1,284 条 · 点击跳到对应楼层', rows:[
+        ['显卡又开始涨价了，这波是矿还是内存？','我在 26 楼','12 分钟前','跳转','硬件'],
+        ['[合集] 深夜食堂第 41 期','我在 96 楼','今天 20:15','跳转','晴风村'],
+        ['老爸走了，但似乎不认为这是件坏事','我在 8 楼','今天 15:40','跳转',''],
+        ['公司要求周报写到 800 字','我在 44 楼','昨天','跳转','职场'],
+        ['这一部，蜘蛛侠终于开始展现魅力了','我在 12 楼','昨天','跳转','影音讨论区'],
+        ['新版本奶萨手法讨论','我在 3 楼','前天','跳转','魔兽世界'],
+        ['[科普] 二手显卡避坑指北','我在 71 楼','07-28','跳转','硬件']
+      ]},
+      cache: { title:'我的缓存', sub:'离线可读 · 已占用 42.6 MB', rows:[
+        ['体感消费不一直这样吗？','第 1 页 · 40 楼','今天 22:48','1.2 MB','网事杂谈'],
+        ['[整理] 网事杂谈十年经典楼层合集','第 1–3 页','今天 21:10','8.4 MB','合集'],
+        ['[攻略] 从零开始搭建家庭 NAS 的十个坑','第 1–2 页','昨天','6.1 MB','硬件'],
+        ['[纪实] 我在县城开了三年小面馆','第 1–5 页','07-30','15.7 MB','晴风村'],
+        ['新版本奶萨手法讨论','第 1 页','07-11','0.9 MB','魔兽世界'],
+        ['[科普] 二手显卡避坑指北','第 1–2 页','07-02','5.3 MB','硬件'],
+        ['第一次带父母出国，求建议','第 1–2 页','05-14','5.0 MB','晴风村']
+      ]}
+    };
+    const LMETA = {
+      hot: { badge:(i)=>String(i+1), trail:'refresh', icon:'', act:() => this.toast('已刷新热帖榜') },
+      recommended: { badge:()=>'精', trail:'filter_alt', icon:'', act:() => this.toast('已按板块筛选') },
+      history: { badge:()=>'史', trail:'delete_sweep', icon:'', act:() => this.toast('已清空浏览历史','撤销') },
+      favorites: { badge:()=>'收', trail:'folder_open', icon:'', act:() => this.go('folders') },
+      myTopics: { badge:()=>'帖', trail:'', icon:'' },
+      myReplies: { badge:()=>'回', trail:'', icon:'north_east' },
+      cache: { badge:()=>'离', trail:'delete_sweep', icon:'delete', act:() => this.toast('已清空全部缓存','撤销') }
+    };
+    T.isSimpleList = !!LISTS[s.screen];
+    const L = LISTS[s.screen], LM = LMETA[s.screen] || {};
+    T.listTitle = L ? L.title : ''; T.listSub = L ? L.sub : '';
+    T.listTrailD = LM.trail ? 'grid' : 'none'; T.listTrailIcon = LM.trail || '';
+    T.listAction = LM.act || (() => {});
+    T.listRows = L ? L.rows.map((r,i) => ({
+      title:r[0], who:r[1], when:r[2], right:r[3], tag:r[4], tagD: r[4] ? 'inline' : 'none',
+      plusD: i % 3 === 1 ? 'inline' : 'none',
+      cntIconD: /^\d+$/.test(String(r[3])) ? 'inline-block' : 'none',
+      open: () => this.go('article')
+    })) : [];
+
+    // 子板块
+    T.isSubboards = s.screen === 'subboards';
+    T.subRows = [
+      ['影音讨论区','日更 1.2k 帖 · 已订阅',true],
+      ['晴风村','日更 860 帖 · 已订阅',true],
+      ['视频与主播讨论','日更 430 帖',false],
+      ['深水区','需 30 天注册时长',false],
+      ['国际新闻','镜像板块',false],
+      ['职场生存','日更 210 帖',false]
+    ].map(([name,sub,on]) => ({
+      name, sub, label: on ? '已订阅' : '订阅',
+      bg: on ? 'var(--primary)' : 'transparent', fg: on ? '#fff' : 'var(--primary)',
+      bd: 'var(--primary)', blockColor:'var(--meta)',
+      sub1: () => this.toast(on ? '已取消订阅 ' + name : '已订阅 ' + name),
+      block: () => this.toast('已屏蔽 ' + name + ' 的主题','撤销')
+    }));
+
+    // 多收藏夹管理
+    T.isFolders = s.screen === 'folders';
+    T.newFolder = () => this.set({ dialog:'addFolder' });
+    T.folderRows = [
+      ['默认收藏夹',126,'今天',true],
+      ['装机 / 硬件',34,'昨天',false],
+      ['以后再看',8,'07-28',false],
+      ['做饭菜谱',15,'06-14',false]
+    ].map(([name,count,when,def]) => ({
+      name, count, when, defD: def ? 'block' : 'none',
+      rename: () => this.toast('重命名「' + name + '」'),
+      setDefault: () => this.toast('已把「' + name + '」设为默认收藏夹'),
+      del: () => this.toast('已删除「' + name + '」','撤销')
+    }));
+
+    // 搜索
+    T.isSearch = s.screen === 'search';
+    T.searchTabs = ['搜主题','搜板块','搜用户'].map((name,i) => ({
+      name, fg: i === (s.searchTab || 0) ? 'var(--fg)' : 'var(--meta)',
+      ind: i === (s.searchTab || 0) ? 'inset 0 -3px 0 0 var(--fg)' : 'none',
+      pick: () => this.set({ searchTab:i })
+    }));
+    T.searchOpts = [
+      ['当前板块', s.searchScope !== 'all', 'radio'],
+      ['全部板块', s.searchScope === 'all', 'radio'],
+      ['包括正文', !!s.searchBody, 'check']
+    ].map(([label,on,kind],i) => ({
+      label,
+      icon: kind === 'radio' ? (on ? 'radio_button_checked' : 'radio_button_unchecked') : (on ? 'check_box' : 'check_box_outline_blank'),
+      color: on ? 'var(--primary)' : 'var(--fg-2)', fill: on ? 1 : 0,
+      pick: () => this.set(i === 2 ? { searchBody: !s.searchBody } : { searchScope: i === 1 ? 'all' : 'cur' })
+    }));
+    T.clearHistory = () => this.toast('已清空搜索历史','撤销');
+    T.searchHistory = [
+      ['显卡 涨价','当前板块'],['NAS 折腾','全部板块'],['留白，嗯','用户'],
+      ['深夜食堂','当前板块'],['奶萨 手法','魔兽世界'],['周报 800 字','包括正文']
+    ].map(([q,scope]) => ({ q, scope, go: () => this.toast('搜索「' + q + '」') }));
+
+    // 用户资料
+    T.isProfile = s.screen === 'profile';
+    T.goProfile = () => this.go('profile');
+    T.goNewMsg = () => this.go('newMsg');
+    T.openProfileMenu = () => this.set({ menu:'floor' });
+    T.profileBasic = [
+      ['邮箱','N/A','left'],['Tel','N/A','right'],
+      ['用户组','学徒','left'],['发帖数','5075','right'],
+      ['金钱','0.0.0','left'],['状态','已激活','right','#2E9E5B'],
+      ['注册日期','2020-10-03','left'],['属地','河北省','right']
+    ].map(([k,v,align,color]) => ({ k, v, align, color: color || 'var(--fg)' }));
+    T.profileRoles = ['网事杂谈 · 版面观察员','硬件区 · 荣誉会员'];
+    T.profileRep = [
+      { board:'网事杂谈', value:'+42', pct:'86%' },
+      { board:'硬件区', value:'+18', pct:'46%' },
+      { board:'晴风村', value:'+11', pct:'32%' },
+      { board:'魔兽世界', value:'+6', pct:'19%' },
+      { board:'影音讨论区', value:'−3', pct:'9%' }
+    ];
+
+    // 编辑器
+    T.isEditor = s.screen === 'editor' || s.screen === 'editorNew';
+    const isNew = s.screen === 'editorNew';
+    T.editorTitle = isNew ? '发新帖' : '回帖';
+    T.editorPlaceholder = isNew ? '标题（必填）' : '（这里可以不填标题）';
+    T.editorBody = isNew ? '' : '[quote][pid=0,42800000,1]Reply[/pid] [b]Post by 留白，嗯 (2026-08-06 22:40)[/b]\n去年年底我还在做外贸，今年整个行业订单腰斩，这就是体感。[/quote]\n\n同行，我们这边今年砍了两条线。';
+    T.toggleAnon = () => this.set({ anon: !s.anon });
+    T.anonIcon = s.anon ? 'check_box' : 'check_box_outline_blank';
+    T.anonColor = s.anon ? 'var(--primary)' : 'var(--meta)';
+    T.anonFill = s.anon ? 1 : 0;
+    T.editorPicked = s.category ? [s.category] : [];
+    T.editorTagD = s.category ? 'flex' : 'none';
+    T.doSend = () => { this.back(); this.toast(isNew ? '发布成功，正在跳转到新帖' : '回复成功', '查看'); };
+    T.editorTools = [
+      ['sentiment_satisfied','emoji'],['text_fields','format'],['image','img'],['label','cat'],['keyboard','none']
+    ].map(([icon,p]) => ({
+      icon, bg: s.panel === p ? 'var(--primary-d)' : 'transparent',
+      pick: () => { if (p === 'img') { this.toast('已插入图片占位 [img]'); return; } this.set({ panel: s.panel === p ? null : p }); }
+    }));
+    T.panelEmoji = s.panel === 'emoji';
+    T.panelFormat = s.panel === 'format';
+    T.panelCategory = s.panel === 'cat';
+    const EMOSETS = ['AC娘','新版 AC娘','NG娘','企鹅','潘斯特'];
+    T.emoSets = EMOSETS.map((name,i) => ({
+      name, fg: i === (s.emoSet || 0) ? 'var(--fg)' : 'var(--meta)',
+      ind: i === (s.emoSet || 0) ? 'inset 0 -3px 0 0 var(--primary)' : 'none',
+      pick: () => this.set({ emoSet:i })
+    }));
+    const EMONAMES = [['流汗','偷笑','哭','怒','喷','沉默','汗','惊','睡','666','doge','思考'],['w笑','w哭','w怒','w羞','w吐','w汗','w闲','w累','w病','w馋','w绝','w懵'],['ng笑','ng哭','ng怒','ng问','ng喜','ng恼','ng囧','ng萌','ng呆','ng嘘','ng赞','ng踩'],['企鹅笑','企鹅哭','企鹅怒','企鹅问','企鹅吃','企鹅睡','企鹅跑','企鹅晃','企鹅摊','企鹅指','企鹅摸','企鹅飞'],['潘1','潘2','潘3','潘4','潘5','潘6','潘7','潘8','潘9','潘10','潘11','潘12']];
+    T.emoji = (EMONAMES[s.emoSet || 0] || []).concat(EMONAMES[s.emoSet || 0] || []).map(name => ({
+      name, pick: () => this.toast('已插入表情 [s:' + name + ']')
+    }));
+    T.formatTools = [
+      ['format_bold','粗体'],['format_italic','斜体'],['format_underlined','下划线'],['strikethrough_s','删除线'],
+      ['palette','颜色'],['format_size','字号'],['unfold_less','折叠'],['format_quote','引用'],
+      ['alternate_email','@某人'],['insert_link','链接'],['format_list_bulleted','列表'],['table_chart','表格']
+    ].map(([icon,label]) => ({ icon, label, pick: () => this.toast('已插入 [' + label + '] 标签') }));
+    T.categories = ['无分类','讨论','求助','新闻','吐槽','转帖','影音','装机','原创','长文','晴风村','深水区'].map(name => ({
+      name, bg: s.category === name ? 'var(--primary)' : 'var(--surface)',
+      fg: s.category === name ? '#fff' : 'var(--fg-2)',
+      bd: s.category === name ? 'var(--primary)' : 'var(--divider)',
+      pick: () => this.set({ category: name === '无分类' ? null : name })
+    }));
+
+    // 短消息
+    T.isMessages = s.screen === 'messages';
+    T.isChat = s.screen === 'chat';
+    T.isNewMsg = s.screen === 'newMsg';
+    T.goChat = () => this.go('chat');
+    T.convos = [
+      ['留白，嗯','留','外贸那段我们私下聊聊，方便加个联系方式吗？','22:41',2],
+      ['海豚音一号','海','显卡的事我帮你问了下渠道，先别急着买','21:03',0],
+      ['版务组','版','你举报的楼层已处理，感谢反馈','昨天',0],
+      ['存储控','存','NAS 那个坑我补了篇后续，可以看看','昨天',1],
+      ['面条哥','面','来县城玩记得说一声，请你吃面','07-30',0],
+      ['奶到你哭','奶','下周固定队还差一个奶，来不来？','07-28',0]
+    ].map(([name,ini,preview,when,unread],i) => ({
+      name, ini, preview, when, unread, unreadD: unread ? 'grid' : 'none', av: AV[i % AV.length]
+    }));
+    T.chatMsgs = [
+      ['them','外贸那段我们私下聊聊，方便加个联系方式吗？','22:41'],
+      ['me','可以，不过我这边只是普通业务员，能说的不多。','22:43'],
+      ['them','够了，我就想知道今年砍线是普遍现象还是个别。','22:44'],
+      ['me','至少我们这个园区里，三家都在砍。','22:46'],
+      ['them','明白了，谢谢。等我整理完发个帖，到时候 @ 你。','22:47']
+    ].map(([who,text,when]) => ({
+      text, when, align: who === 'me' ? 'flex-end' : 'flex-start',
+      textAlign: who === 'me' ? 'right' : 'left',
+      bg: who === 'me' ? 'var(--primary)' : 'var(--surface)',
+      fg: who === 'me' ? '#fff' : 'var(--fg)',
+      radius: who === 'me' ? '16px 16px 5px 16px' : '16px 16px 16px 5px'
+    }));
+
+    // 最近被喷
+    T.isNotify = s.screen === 'notify';
+    T.clearNotify = () => { this.toast('已清空全部通知','撤销'); };
+    T.notifyGroups = [
+      { name:'回复我的', icon:'reply', items:[
+        ['留白，嗯','回复了你的主题','同行，我们这边今年砍了两条线。','体感消费不一直这样吗？','3 分钟前'],
+        ['Invisibl','回复了你的楼层','有功夫天天发帖说明不是什么卖苦力的厂。','体感消费不一直这样吗？','23 分钟前']
+      ]},
+      { name:'@ 我的', icon:'alternate_email', items:[
+        ['海豚音一号','在帖子里 @ 了你','@阴阳师妄想 你之前说的那家店我去了','显卡又开始涨价了','1 小时前'],
+        ['存储控','在帖子里 @ 了你','@阴阳师妄想 后续我补在 71 楼','从零开始搭建家庭 NAS','昨天']
+      ]},
+      { name:'给我贴条的', icon:'sticky_note_2', items:[
+        ['无知器','给你的 8 楼贴条','说得好，但我还是要吐槽物价','老爸走了，但似乎…','昨天'],
+        ['我不是猫奴','给你的 26 楼贴条','这个价我上周刚踩坑','显卡又开始涨价了','前天']
+      ]}
+    ].map(g => ({
+      name:g.name, icon:g.icon, count:g.items.length,
+      items: g.items.map(([who,verb,text,where,when],i) => ({
+        who, verb, text, where, when, ini: who.slice(0,1), av: AV[i % AV.length],
+        open: () => this.go('article')
+      }))
+    }));
+
+    T.isLogin = s.screen === 'login';
+    T.goLogin = () => this.go('login');
+    T.doRetry = () => { this.go('article'); this.toast('已用原生解析重新加载','好'); };
+    T.hideBar = () => this.set({ fallbackBar:false });
+    T.openWebMenu = () => this.set({ menu:'web' });
+
+    // ---------- 设置三屏 ----------
+    const SW = (k) => s['sw_' + k] !== undefined ? s['sw_' + k] : SWDEF[k];
+    const SWDEF = { night: D, followSys: false, lefty: false, solid: true, spray: true, sound: true, autoLoad: true, wifiImg: true, bottomTab: false, sign: true, rainbow: false, lab: false, preload: true, gesture: true, keepScreen: false };
+    const sw = (k) => {
+      const on = s['sw_' + k] !== undefined ? s['sw_' + k] : SWDEF[k];
+      return { on, tap: () => { if (k === 'night') { this.set({ theme: on ? 'light' : 'dark', ['sw_night']: !on }); } else { this.set({ ['sw_' + k]: !on }); } } };
+    };
+    const SETS = {
+      settings: { title:'设置', page:'1 / 3', rows:[
+        ['section','通用设置'],
+        ['nav','NGA 域名','https://bbs.nga.cn', () => this.toast('可切换 nga.178.com / ngabbs.com')],
+        ['nav','账号管理','已登录 2 个账号', () => this.go('accounts')],
+        ['switch','夜间模式','', 'night'],
+        ['switch','夜间模式跟随系统','', 'followSys'],
+        ['switch','左手模式','FAB 与菜单移到左侧', 'lefty'],
+        ['switch','使用纯色背景','主题列表和详情页使用纯色背景', 'solid'],
+        ['switch','启用被喷提示','', 'spray'],
+        ['switch','提示声音','', 'sound'],
+        ['nav','主题风格','墨绿（NGA 经典）', () => this.set({ dialog:'theme' })],
+        ['nav','调整字体和头像大小','列表字体 18 · 头像 104 · 表情 150', () => this.go('fontSize')],
+        ['nav','屏蔽规则','本地 6 条 · 官方同步开启', () => this.go('filters')]
+      ]},
+      settings2: { title:'设置', page:'2 / 3', rows:[
+        ['section','主题详情设置'],
+        ['switch','自动加载下一页','滚动到底部时自动翻页', 'autoLoad'],
+        ['switch','仅 Wi-Fi 下加载图片','移动网络显示「点击显示附件」', 'wifiImg'],
+        ['switch','显示签名档','', 'sign'],
+        ['switch','底部标签页','把页码条移到屏幕底部', 'bottomTab'],
+        ['nav','图片加载策略','智能（Wi-Fi 原图 / 流量缩略图）', () => this.toast('已切换图片加载策略')],
+        ['nav','阅读进度记录','记录最近 50 个帖子', () => this.toast('已清空阅读进度')],
+        ['section','发帖设置'],
+        ['switch','彩虹模式','随机给自己的发言上色', 'rainbow'],
+        ['nav','默认签名','—— 我从来不喝隔夜的茶…', () => this.toast('编辑默认签名')],
+        ['nav','水印','关闭', () => this.toast('已开启图片水印')],
+        ['nav','草稿箱','2 篇未发布', () => this.toast('打开草稿箱')]
+      ]},
+      settings3: { title:'设置', page:'3 / 3', rows:[
+        ['section','实验室'],
+        ['switch','网页数据源兜底','原生解析失败时自动切换', 'preload'],
+        ['switch','手势返回','从左边缘右滑返回上一页', 'gesture'],
+        ['switch','阅读时常亮','', 'keepScreen'],
+        ['switch','实验室功能','开启后可能不稳定', 'lab'],
+        ['section','存储与诊断'],
+        ['nav','清理缓存','已占用 42.6 MB', () => this.toast('已清理 42.6 MB 缓存')],
+        ['nav','导出诊断日志','最近 7 天', () => this.toast('日志已导出到 Download/')],
+        ['nav','恢复默认设置','', () => this.toast('已恢复默认设置','撤销')],
+        ['section','关于'],
+        ['nav','关于本客户端','v1.0.0 (build 1)', () => this.go('about')]
+      ]}
+    };
+    T.isSettings = !!SETS[s.screen];
+    const ST = SETS[s.screen];
+    T.setTitle = ST ? ST.title : ''; T.setPage = ST ? ST.page : '';
+    T.setRows = ST ? ST.rows.map(r => {
+      if (r[0] === 'section') return { sectionD:'block', rowD:'none', label:r[1], sub:'', subD:'none', switchD:'none', chevD:'none', trackBg:'', knobBg:'', knobX:'0', tap:()=>{} };
+      if (r[0] === 'switch') {
+        const st = sw(r[3]);
+        return { sectionD:'none', rowD:'flex', label:r[1], sub:r[2], subD: r[2] ? 'block' : 'none',
+          switchD:'block', chevD:'none', tap: st.tap,
+          trackBg: st.on ? 'var(--primary)' : 'var(--track)',
+          knobBg: st.on ? '#fff' : 'var(--surface)',
+          knobX: st.on ? '20px' : '0px' };
+      }
+      return { sectionD:'none', rowD:'flex', label:r[1], sub:r[2], subD: r[2] ? 'block' : 'none',
+        switchD:'none', chevD:'block', trackBg:'', knobBg:'', knobX:'0', tap: r[3] || (()=>{}) };
+    }) : [];
+    const order = ['settings','settings2','settings3'];
+    const idx = order.indexOf(s.screen);
+    T.setPrevLabel = idx > 0 ? '上一屏' : '返回';
+    T.setNextLabel = idx < 2 ? '下一屏 · ' + (idx + 2) + ' / 3' : '完成';
+    T.setPrev = () => idx > 0 ? this.go(order[idx-1]) : this.back();
+    T.setNext = () => idx < 2 ? this.go(order[idx+1]) : this.back();
+
+    // 账号管理
+    T.isAccounts = s.screen === 'accounts';
+    T.accounts = [
+      ['chasel43','ch','62122561','30 天后过期',true],
+      ['阴阳师妄想','阴','62122561','12 天后过期',false]
+    ].map(([name,ini,uid,expire,cur],i) => ({
+      name, ini, uid, expire, av: AV[i % AV.length],
+      bd: cur ? 'var(--primary)' : 'var(--divider)',
+      check: cur ? 'radio_button_checked' : 'radio_button_unchecked',
+      checkColor: cur ? 'var(--primary)' : 'var(--meta)',
+      pick: () => this.toast('已切换到 ' + name),
+      del: () => this.toast('已退出 ' + name)
+    }));
+
+    // 字号调节
+    T.isFontSize = s.screen === 'fontSize';
+    const fs = s.fs === undefined ? 15.5 : s.fs;
+    const av = s.avs === undefined ? 42 : s.avs;
+    const lh = s.lh === undefined ? 1.68 : s.lh;
+    T.bodySize = fs + 'px'; T.bodyLh = lh;
+    T.resetFont = () => this.set({ fs:15.5, avPct:104, lh:1.68, listFs:18, emoS:150 });
+    const slider = (label, key, val, min, max, step) => ({
+      label, value: String(val), pct: Math.round((val - min) / (max - min) * 84 + 8) + '%',
+      dec: () => this.set({ [key]: Math.max(min, +(val - step).toFixed(2)) }),
+      inc: () => this.set({ [key]: Math.min(max, +(val + step).toFixed(2)) }),
+      jump: () => this.set({ [key]: +(((min + max) / 2)).toFixed(2) })
+    });
+    const listFs = s.listFs === undefined ? 18 : s.listFs;
+    const emoS = s.emoS === undefined ? 150 : s.emoS;
+    const avPct = s.avPct === undefined ? 104 : s.avPct;
+    T.avSize = Math.round(42 * avPct / 100) + 'px';
+    T.fontSliders = [
+      slider('帖子列表字体大小','listFs',listFs,12,26,1),
+      slider('头像大小','avPct',avPct,60,160,4),
+      slider('表情大小','emoS',emoS,80,220,10),
+      slider('帖子内字体大小','fs',fs,12,22,0.5),
+      slider('主题详情页行高','lh',lh,1.3,2.2,0.02)
+    ];
+
+    // 屏蔽规则
+    T.isFilters = s.screen === 'filters';
+    T.filterTabs = ['本地规则','官方用户屏蔽','官方关键词'].map((name,i) => ({
+      name, op: i === (s.filterTab || 0) ? 1 : .6,
+      ind: i === (s.filterTab || 0) ? 'inset 0 -3px 0 0 currentColor' : 'none',
+      pick: () => this.set({ filterTab:i })
+    }));
+    const FILTERS = [
+      { hint:'仅存在本机，卸载即丢失；命中后楼层折叠为一行灰字。', rows:[
+        ['person_off','用户：xtl150ok','2026-07-11 添加 · 已折叠 42 层'],
+        ['person_off','用户：呜哇哇哇哇','2026-06-02 添加 · 已折叠 8 层'],
+        ['text_fields','关键词：搬运工','命中标题与正文'],
+        ['text_fields','关键词：内部消息','仅命中标题'],
+        ['tag','分类：转帖','网事杂谈'],
+        ['tag','分类：广告','全部板块']
+      ]},
+      { hint:'与 NGA 账号云端同步，最多 200 人。', rows:[
+        ['person_off','用户：gerraerd','云端 · 2026-05-20'],
+        ['person_off','用户：Apprivorisor','云端 · 2026-04-02'],
+        ['person_off','用户：s18867719083','云端 · 2026-03-15']
+      ]},
+      { hint:'与 NGA 账号云端同步；支持正则，一行一条。', rows:[
+        ['text_fields','关键词：加密货币','云端 · 命中正文'],
+        ['text_fields','关键词：^\\[水\\]','云端 · 正则 · 命中标题'],
+        ['text_fields','关键词：私聊出','云端 · 命中正文']
+      ]}
+    ];
+    const FT = FILTERS[s.filterTab || 0];
+    T.filterHint = FT.hint;
+    T.filterRows = FT.rows.map(([icon,text,sub]) => ({ icon, text, sub, del: () => this.toast('已删除规则：' + text,'撤销') }));
+    T.addFilter = () => this.set({ dialog:'addFilter' });
+
+    // 关于
+    T.isAbout = s.screen === 'about';
+    T.aboutRows = [
+      ['update','检查更新','当前已是最新版本'],
+      ['code','开源地址','GitHub · MIT 许可'],
+      ['bug_report','反馈问题','提交 issue 或站内短信'],
+      ['description','开源许可','OkHttp · Jsoup · Coil'],
+      ['gavel','免责声明','']
+    ].map(([icon,label,sub]) => ({ icon, label, sub, subD: sub ? 'block' : 'none' }));
+
+    // 加载失败 / 网页兜底
+    T.isError = s.screen === 'error';
+    T.isWebview = s.screen === 'webview';
+    T.fallbackBar = s.fallbackBar !== false;
+    T.webFloors = [
+      { name:'疯狂星期四本人', time:'2026-08-06 20:12', no:0, body:'v 我 50，明天带你们看真正的沙拉刺客。楼下别急，先看图。' },
+      { name:'路过的骑士', time:'2026-08-06 20:31', no:1, body:'这个价位在我们这已经能吃两顿了，物价差异真的大。' },
+      { name:'留白，嗯', time:'2026-08-06 21:04', no:2, body:'客户端解析不出来是因为这楼里有投票模块，网页版才能正常显示。' }
+    ];
+    T.webPages = [1,2,3,4,5,'下一页'].map(n => ({ n, bg: n === 1 ? '#2C7A5B' : '#fff', fg: n === 1 ? '#fff' : '#4A4436' }));
+
+    // 回复链
+    T.isChain = s.screen === 'chain';
+    T.chainCards = [
+      ['阴阳师妄想','阴',0,'22:20','体感消费不一直这样吗？楼主 22 年大学毕业直接进厂了。',12,false,'0px'],
+      ['Invisibl','In',1,'22:25','有功夫天天发帖说明不是什么卖苦力的厂。短期来看通缩对高收入人群有利。',7,true,'14px'],
+      ['无知器','无',2,'22:31','最简单的就是看商圈客流，三年前排队一小时的店现在随便进。',3,false,'28px'],
+      ['留白，嗯','留',3,'22:40','去年年底我还在做外贸，今年整个行业订单腰斩，这就是体感。',41,false,'42px']
+    ].map(([name,ini,no,time,body,likes,current,indent],i) => ({
+      name, ini, no, time, body, likes, indent, av: AV[i % AV.length],
+      badgeD: current ? 'inline-block' : 'none',
+      bg: current ? 'var(--surface)' : 'var(--bg)',
+      bd: current ? 'var(--primary)' : 'var(--divider)',
+      shadow: current ? 'var(--shadow)' : 'none',
+      goFloor: () => this.go('article')
+    }));
+
+    // 大图查看器
+    T.isViewer = s.screen === 'viewer';
+    T.doDownload = () => this.toast('已保存到 相册/NGA');
+    T.doShare = () => this.toast('已调起系统分享');
+    T.openViewerMenu = () => this.set({ menu:'viewer' });
+
+    T.screenLabel = ({
+      home:'主页 · 我的收藏', list:'主题列表 · 网事杂谈', article:'帖子详情', editor:'回帖编辑器', editorNew:'发新帖',
+      search:'搜索', hot:'24 小时热帖', recommended:'精华区', subboards:'子板块', history:'浏览历史',
+      favorites:'收藏的主题', folders:'多收藏夹管理（新增）', myTopics:'我的主题', myReplies:'我的回复', cache:'我的缓存',
+      profile:'用户资料', messages:'短消息列表', chat:'会话详情', newMsg:'新建短消息', notify:'最近被喷', login:'WebView 登录',
+      settings:'设置 1 / 3', settings2:'设置 2 / 3', settings3:'设置 3 / 3', accounts:'账号管理', fontSize:'字号调节',
+      filters:'屏蔽规则', about:'关于', error:'加载失败兜底（新增）', webview:'网页版兜底（新增）',
+      chain:'回复链视图（新增）', viewer:'大图查看器'
+    })[s.screen] || s.screen;
+
+    return T;
+  }
+}
+</script>
+</body>
+</html>
