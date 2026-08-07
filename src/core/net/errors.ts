@@ -1,4 +1,5 @@
 import { FAKE_ERROR_MESSAGES } from './constants'
+import { isRecord } from './is-record'
 
 export type NgaErrorKind =
   /** 传输层失败：DNS、超时、连接断 */
@@ -26,11 +27,15 @@ export interface NgaErrorOptions {
 }
 
 /**
- * 只有解析错误与 HTTP 状态错误才值得换策略重试（MNGA 的判据：解析失败 ≈ 被封）。
- * 服务端明确说「帖子不存在」这类语义错误换几次策略也还是这个结果，直接抛给调用方。
+ * 除了服务端语义错误，其余失败都值得换下一档策略试试。
+ * 服务端明确说「找不到主题」这类语义错误换几次策略也还是这个结果，直接抛给调用方。
+ *
+ * 比 MNGA 的判据（只有解析失败/HTTP 状态错误才重试）多放了 `network`：
+ * 本项目的链末端是帖子缓存与网页兜底，断网时正该落到缓存那一档，
+ * 而不是在第一档就把错误抛给用户。调用方主动取消的请求会显式传 `retryable: false`。
  */
 function defaultRetryable(kind: NgaErrorKind): boolean {
-  return kind === 'network' || kind === 'http' || kind === 'parse' || kind === 'unavailable'
+  return kind !== 'server'
 }
 
 export class NgaError extends Error {
@@ -63,10 +68,6 @@ export interface NgaServerError {
  */
 export function isFakeError(message: string): boolean {
   return FAKE_ERROR_MESSAGES.some((fake) => message.includes(fake))
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 /**

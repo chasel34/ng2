@@ -55,14 +55,59 @@ describe('createNgaFetcher · 请求拼装', () => {
     expect(requests[0]!.url).not.toContain('__output=')
   })
 
-  it('GBK 参数按 GBK 编码进 query', async () => {
+  it('GBK 参数按 GBK 编码进 query，并撤掉 __inchst=UTF8', async () => {
     const { transport, requests } = fakeTransport(() => ({}))
     const fetchNga = createNgaFetcher({ transport })
 
-    await fetchNga({ path: 'thread.php', query: { author: gbk('原神'), key: '原神' } })
+    await fetchNga({ path: 'thread.php', query: { author: gbk('原神') } })
+    await fetchNga({ path: 'thread.php', query: { key: '原神' } })
 
+    // 同一个 thread.php，author 是 GBK 而 key 是 UTF-8（API 文档 §0.5）
     expect(requests[0]!.url).toContain('author=%D4%AD%C9%F1')
-    expect(requests[0]!.url).toContain('key=%E5%8E%9F%E7%A5%9E')
+    expect(requests[0]!.url).not.toContain('__inchst')
+    expect(requests[1]!.url).toContain('key=%E5%8E%9F%E7%A5%9E')
+    expect(requests[1]!.url).toContain('__inchst=UTF8')
+  })
+
+  it('表单里有 GBK 值时声明 charset=GBK', async () => {
+    const { transport, requests } = fakeTransport(() => ({}))
+    const fetchNga = createNgaFetcher({ transport })
+
+    await fetchNga({ path: 'nuke.php', form: { content: gbk('原神') } })
+
+    expect(requests[0]!.headers['Content-Type']).toBe(
+      'application/x-www-form-urlencoded;charset=GBK',
+    )
+    expect(requests[0]!.body).toBe('content=%D4%AD%C9%F1')
+  })
+
+  it('form 认证配 GET 会明确报错，不静默降级成游客', async () => {
+    const { transport, requests } = fakeTransport(() => ({}))
+    const fetchNga = createNgaFetcher({
+      transport,
+      authMode: 'form',
+      getCredentials: () => ({ uid: '10000001', token: 'fake-token' }),
+    })
+
+    await expect(
+      fetchNga({ path: 'thread.php', method: 'GET' }),
+    ).rejects.toMatchObject({ kind: 'unavailable' })
+    expect(requests).toHaveLength(0)
+  })
+
+  it('cookie 认证配 GET 正常', async () => {
+    const { transport, requests } = fakeTransport(() => ({}))
+    const fetchNga = createNgaFetcher({
+      transport,
+      authMode: 'cookie',
+      getCredentials: () => ({ uid: '10000001', token: 'fake-token' }),
+    })
+
+    await fetchNga({ path: 'thread.php', method: 'GET' })
+
+    expect(requests[0]!.method).toBe('GET')
+    expect(requests[0]!.body).toBeUndefined()
+    expect(requests[0]!.headers.Cookie).toContain('ngaPassportUid=10000001')
   })
 
   it('带 UA 身份头与 Referer', async () => {
@@ -177,10 +222,10 @@ describe('createNgaFetcher · 响应处理', () => {
     expect((result.data as Record<string, Record<string, unknown>>)['0']!.username).toBe('BugenZhao')
   })
 
-  it('HTTP 非 2xx 且 body 解析不出东西才用状态码报错', async () => {
+  it('HTTP 非 2xx 且 body 为空才用状态码报错', async () => {
     const { transport } = fakeTransport(() => ({
       status: 502,
-      body: utf8('<html>Bad Gateway</html>'),
+      body: utf8(''),
       contentType: 'text/html',
     }))
     const fetchNga = createNgaFetcher({ transport })
@@ -188,6 +233,21 @@ describe('createNgaFetcher · 响应处理', () => {
     await expect(fetchNga({ path: 'nuke.php' })).rejects.toMatchObject({
       kind: 'http',
       status: 502,
+      retryable: true,
+    })
+  })
+
+  it('非 2xx 但 body 有内容只是解析不了 → parse（被封的信号），状态码一并带上', async () => {
+    const { transport } = fakeTransport(() => ({
+      status: 403,
+      body: utf8('<html>Forbidden</html>'),
+      contentType: 'text/html',
+    }))
+    const fetchNga = createNgaFetcher({ transport })
+
+    await expect(fetchNga({ path: 'nuke.php' })).rejects.toMatchObject({
+      kind: 'parse',
+      status: 403,
       retryable: true,
     })
   })

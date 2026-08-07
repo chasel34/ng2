@@ -58,11 +58,13 @@ describe('decodeGb18030', () => {
   })
 
   it('解出常见汉字与全角标点', () => {
-    const bytes = new Uint8Array([0xcc, 0xfb, 0xd7, 0xd3, 0xb2, 0xbb, 0xb4, 0xe6, 0xd4, 0xda])
-    expect(decodeGb18030(bytes)).toBe('帖子不存在')
-    expect(decodeGb18030(new Uint8Array([0xd5, 0xd2, 0xb2, 0xbb, 0xb5, 0xbd, 0xd3, 0xc3, 0xbb, 0xa7]))).toBe(
-      '找不到用户',
-    )
+    // NGA 真实返回过的两条错误文案的 GBK 字节
+    expect(
+      decodeGb18030(new Uint8Array([0xd5, 0xd2, 0xb2, 0xbb, 0xb5, 0xbd, 0xd6, 0xf7, 0xcc, 0xe2])),
+    ).toBe('找不到主题')
+    expect(
+      decodeGb18030(new Uint8Array([0xd5, 0xd2, 0xb2, 0xbb, 0xb5, 0xbd, 0xd3, 0xc3, 0xbb, 0xa7])),
+    ).toBe('找不到用户')
   })
 
   it('非法序列的替换字符与 Node 逐个一致', () => {
@@ -141,8 +143,10 @@ describe('gbkEncodeURIComponent', () => {
     expect(mismatches).toEqual([])
   })
 
-  it('GBK 表外的字符退化成十进制实体', () => {
-    // emoji 不在 GBK 里，浏览器提交 GBK 表单时写成 &#128514;
-    expect(gbkEncodeURIComponent('😂')).toBe('%26%23128514%3B')
+  it('GBK 表外的字符退化成 UTF-16 码元的十进制实体', () => {
+    // API 文档 §0.5：码点 > 0xFFFF 拆成代理对两个实体，"😂" → &#55357;&#56834;
+    expect(gbkEncodeURIComponent('😂')).toBe('%26%2355357%3B%26%2356834%3B')
+    // BMP 内但 GBK 没有的字符只出一个实体
+    expect(gbkEncodeURIComponent('✅')).toBe('%26%239989%3B')
   })
 })

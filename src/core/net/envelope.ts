@@ -1,4 +1,5 @@
 import { NgaError, extractServerError, isFakeError, type NgaServerError } from './errors'
+import { isRecord } from './is-record'
 import { sanitizeNgaJson } from './sanitize'
 
 /**
@@ -16,10 +17,6 @@ export interface NgaEnvelope {
   readonly time?: number
   /** 命中假错误白名单时保留，调用方需自行判 data 是否为空 */
   readonly fakeError?: NgaServerError
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 /**

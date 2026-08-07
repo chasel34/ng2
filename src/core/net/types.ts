@@ -28,8 +28,6 @@ export interface NgaRequest {
   /** 覆盖 Referer；`nuke.php?__lib=ucp` 必须带且需以 base url 开头 */
   readonly referer?: string
   readonly signal?: AbortSignal
-  /** 成功组合的缓存 key（反封锁链用），默认取 path */
-  readonly cacheKey?: string
 }
 
 /** 一次成功的请求结果。`via` 是产出它的策略名，便于排障与埋点。 */

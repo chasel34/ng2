@@ -31,32 +31,40 @@ export const USER_AGENT_PROFILES = {
 
 export type UserAgentProfile = keyof typeof USER_AGENT_PROFILES
 
-/** 客户端身份辅助头的值 */
-export const X_USER_AGENT = 'Nga_Official'
+/** `X-User-Agent` 辅助头的值——客户端身份就靠它声明。 */
+export const X_USER_AGENT_VALUE = 'Nga_Official'
 
 /**
- * 返回格式参数（API 文档 §0.4）。被封时交替尝试不同格式可绕过，
- * 这是反封锁链（ADR-0002）「格式参数交替」那一档要遍历的集合。
+ * 返回格式（API 文档 §0.4）：`params` 是要拼进 query 的格式参数，
+ * `kind` 决定响应该由谁解析。
+ *
+ * 同一接口支持多种格式，**被封时交替尝试可绕过**——这就是反封锁链（ADR-0002）
+ * 「格式参数交替」那一档要遍历的集合。
  */
 export const RESPONSE_FORMATS = {
   /** 紧凑 JSON，nuke.php / app_api.php 通用 */
-  json: [['__output', '8']],
+  json: { kind: 'json', params: [['__output', '8']] },
   /** 详细 JSON */
-  jsonVerbose: [['__output', '11']],
+  jsonVerbose: { kind: 'json', params: [['__output', '11']] },
   /** JS 变量赋值包裹的 JSON，Android 常用 */
-  jsonLite: [['lite', 'js']],
+  jsonLite: { kind: 'json', params: [['lite', 'js']] },
   /** XML，MNGA 对 thread/read/post/forum.php 的首选 */
-  xml: [['lite', 'xml']],
+  xml: { kind: 'xml', params: [['lite', 'xml']] },
   /** 紧凑 XML，与 lite=xml 等价的备用格式 */
-  xmlCompact: [['__output', '10']],
+  xmlCompact: { kind: 'xml', params: [['__output', '10']] },
   /** 不带格式参数 = 网页 HTML，Web 反解与网页兜底走这条 */
-  html: [],
-} as const satisfies Record<string, readonly (readonly [string, string])[]>
+  html: { kind: 'html', params: [] },
+} as const satisfies Record<
+  string,
+  { kind: 'json' | 'xml' | 'html'; params: readonly (readonly [string, string])[] }
+>
 
 export type ResponseFormat = keyof typeof RESPONSE_FORMATS
 
-/** JSON 家族的格式，本层能直接清洗+解析 */
-export const JSON_FORMATS: readonly ResponseFormat[] = ['json', 'jsonVerbose', 'jsonLite']
+/** 该格式的响应能不能直接按 JSON 清洗+解析。 */
+export function isJsonFormat(format: ResponseFormat): boolean {
+  return RESPONSE_FORMATS[format].kind === 'json'
+}
 
 /**
  * 「假错误」白名单（API 文档 §0.7）：出现这些词的 error 视为成功。

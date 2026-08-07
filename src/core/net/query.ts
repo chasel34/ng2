@@ -18,8 +18,14 @@ export type QueryValue = string | number | boolean | GbkParam | null | undefined
 
 export type QueryParams = Readonly<Record<string, QueryValue>>
 
-function isGbkParam(value: QueryValue): value is GbkParam {
+export function isGbkParam(value: QueryValue): value is GbkParam {
   return typeof value === 'object' && value !== null && 'charset' in value
+}
+
+/** 参数里有没有按 GBK 编码的值——决定要不要声明 `charset=GBK`、要不要撤掉 `__inchst=UTF8`。 */
+export function hasGbkParam(params: QueryParams | undefined): boolean {
+  if (!params) return false
+  return Object.values(params).some((value) => isGbkParam(value) && value.value !== '')
 }
 
 /**
@@ -36,7 +42,10 @@ function normalize(value: QueryValue): string | null {
   return value === '' ? null : encodeURIComponent(value)
 }
 
-/** 拼 query string（已剔除空值参数，值已按各自字符集编码）；无参数时返回空串。 */
+/**
+ * 拼 `key=value&…`（已剔除空值参数，值已按各自字符集编码）；无参数时返回空串。
+ * URL query 与 POST 表单体是同一套规则，两处共用。
+ */
 export function buildQueryString(params: QueryParams): string {
   const pairs: string[] = []
   for (const [key, value] of Object.entries(params)) {
@@ -45,12 +54,4 @@ export function buildQueryString(params: QueryParams): string {
     pairs.push(`${encodeURIComponent(key)}=${encoded}`)
   }
   return pairs.join('&')
-}
-
-/**
- * 拼 POST 表单体。与 query 同规则（空值剔除），但整体按 UTF-8/GBK 逐值编码后
- * 用 `application/x-www-form-urlencoded` 提交。
- */
-export function buildFormBody(params: QueryParams): string {
-  return buildQueryString(params)
 }

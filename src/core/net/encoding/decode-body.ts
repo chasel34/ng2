@@ -1,9 +1,7 @@
-import { decodeGb18030 } from './gb18030'
+import { REPLACEMENT_CHAR, decodeGb18030 } from './gb18030'
 
 const GBK_CHARSETS = new Set(['gbk', 'gb18030', 'gb2312', 'x-gbk', 'csgb2312', 'gb_2312-80'])
 const UTF8_CHARSETS = new Set(['utf-8', 'utf8', 'unicode-1-1-utf-8'])
-
-const REPLACEMENT = '�'
 
 /** 从 `Content-Type` 里抠 charset，小写返回；没有则 null。 */
 export function parseCharset(contentType: string | null | undefined): string | null {
@@ -46,7 +44,7 @@ export function decodeResponseBody(
   if (charset && UTF8_CHARSETS.has(charset)) return stripBom(decodeUtf8(bytes))
 
   const utf8 = decodeUtf8(bytes)
-  if (!utf8.includes(REPLACEMENT)) return stripBom(utf8)
+  if (!utf8.includes(REPLACEMENT_CHAR)) return stripBom(utf8)
 
   const gbk = decodeGb18030(bytes)
   return stripBom(countReplacements(gbk) < countReplacements(utf8) ? gbk : utf8)

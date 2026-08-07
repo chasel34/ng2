@@ -1,5 +1,15 @@
-// 由 gb18030-index.test.ts 用 Node 的 TextDecoder('gb18030') 逐字节对拍校验，勿手改。
-// 见 encoding/gb18030.ts 的说明：Hermes 的 TextDecoder 只认 utf-8，GBK 解码必须自带索引表。
+// 生成产物，勿手改。见 encoding/gb18030.ts：Hermes 的 TextDecoder 只认 utf-8，
+// GBK 解码必须自带索引表。gb18030.test.ts 会用 Node 的 TextDecoder('gb18030')
+// 把这张表逐序列对拍一遍，表错了测试就红。
+//
+// 重新生成（表本身就来自 Node 的解码器，所以直接问它）：
+//   const dec = new TextDecoder('gb18030')
+//   双字节：pointer 0..23939 → lead = 0x81 + (p / 190 | 0)，i = p % 190，
+//           trail = i < 0x3F ? 0x40 + i : 0x41 + i；把 dec.decode([lead, trail])
+//           的那一个字符按 pointer 顺序拼成下面的字符串（每行 190 个 = 一个 lead）。
+//   四字节：pointer 0..39419 → [0x81+(p/12600|0), 0x30+(p/1260|0)%10,
+//           0x81+(p/10|0)%126, 0x30+p%10]，解出的码点按「连续 +1」切成游程，
+//           游程起点写进下面两个数组，无映射记 -1。
 
 /**
  * WHATWG「index gb18030」：双字节序列的 pointer → 码点。

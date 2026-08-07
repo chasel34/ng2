@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildFormBody, buildQueryString, gbk } from './query'
+import { buildQueryString, gbk, hasGbkParam } from './query'
 
 describe('buildQueryString', () => {
   it('拼常规参数', () => {
@@ -40,10 +40,22 @@ describe('buildQueryString', () => {
   })
 })
 
-describe('buildFormBody', () => {
-  it('与 query 同规则', () => {
-    expect(buildFormBody({ access_uid: '123', access_token: 'abc', extra: '' })).toBe(
+describe('buildQueryString · 也用来拼 POST 表单体', () => {
+  it('表单体与 query 同规则', () => {
+    expect(buildQueryString({ access_uid: '123', access_token: 'abc', extra: '' })).toBe(
       'access_uid=123&access_token=abc',
     )
+  })
+})
+
+describe('hasGbkParam', () => {
+  it('认出按 GBK 编码的参数', () => {
+    expect(hasGbkParam({ fid: 1, author: gbk('原神') })).toBe(true)
+    expect(hasGbkParam({ fid: 1, key: '原神' })).toBe(false)
+    expect(hasGbkParam(undefined)).toBe(false)
+  })
+
+  it('空的 GBK 值会被剔除，不算数', () => {
+    expect(hasGbkParam({ author: gbk('') })).toBe(false)
   })
 })

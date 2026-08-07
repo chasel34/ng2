@@ -20,15 +20,15 @@ export { buildAuthAttachment, type AuthAttachment, type AuthMode, type NgaCreden
 export {
   DEFAULT_NGA_HOST,
   FAKE_ERROR_MESSAGES,
-  JSON_FORMATS,
   NGA_HOSTS,
   RESPONSE_FORMATS,
   USER_AGENT_PROFILES,
-  X_USER_AGENT,
+  X_USER_AGENT_VALUE,
+  isJsonFormat,
   type ResponseFormat,
   type UserAgentProfile,
 } from './constants'
-export { decodeResponseBody, parseCharset } from './encoding/decode-body'
+export { decodeResponseBody } from './encoding/decode-body'
 export { decodeGb18030, gbkEncodeURIComponent } from './encoding/gb18030'
 export { parseNgaJson, type NgaEnvelope } from './envelope'
 export {
@@ -44,7 +44,13 @@ export {
   type NgaFetcher,
   type NgaFetcherOptions,
 } from './fetcher'
-export { buildFormBody, buildQueryString, gbk, type GbkParam, type QueryParams, type QueryValue } from './query'
+export {
+  buildQueryString,
+  gbk,
+  type GbkParam,
+  type QueryParams,
+  type QueryValue,
+} from './query'
 export { sanitizeNgaJson } from './sanitize'
 export { DIRECT_STRATEGY_NAME, createDirectStrategy } from './strategies/direct'
 export {

@@ -22,18 +22,22 @@
 - `encoding/decode-body.ts` — 响应解码。优先信 `Content-Type` 的 charset;未声明时先试 UTF-8,出现替换字符再比较两种解码谁的 U+FFFD 少(实测 `thread.php` 就是不声明 charset 的 GBK)。
 - `sanitize.ts` — API 文档 §0.6 全部步骤。整数 key 加引号与控制字符转义合成一次带字符串状态的扫描,不用上游那条裸正则,免得把正文里的 `{12:` 改坏。
 - `errors.ts` / `envelope.ts` — 错误模型与信封解析。真错误抛 `kind:'server'`(不重试),假错误白名单命中时当成功返回并保留 `fakeError` 供调用方判空。HTTP 非 2xx 一律先解析 body,body 解不出东西才用状态码报错。
-- `auth.ts` — 两种等价认证方式(form 的 `access_uid`/`access_token`、Cookie 头的 `ngaPassportUid`/`ngaPassportCid`)。
-- `query.ts` — 公共参数拼装与空值参数剔除(`null`/`undefined`/空串/`false` 一律丢);`gbk()` 标记逐参数切字符集。
+- `auth.ts` — 两种等价认证方式(form 的 `access_uid`/`access_token`、Cookie 头的 `ngaPassportUid`/`ngaPassportCid`)。form 方式配 GET 会明确报错,不静默降级成游客。
+- `query.ts` — 公共参数拼装与空值参数剔除(`null`/`undefined`/空串/`false` 一律丢);`gbk()` 标记逐参数切字符集。请求里出现 GBK 参数时自动撤掉 `__inchst=UTF8`、表单体自动声明 `charset=GBK`。
 - `transport.ts` — **fetcher 禁止 clone response**(expo/expo#47762),只调一次 `arrayBuffer()`,注释里注明。
 
 fixture 在 `src/core/net/__fixtures__/`,是 2026-08-07 用 `.env.local` 测试账号 curl 到的**原始响应字节**(GBK),抓包账号 uid 已脱敏成 10000001,cookie/cid 不在响应体里。
 
-测试:`pnpm typecheck` 通过;core/net 98 个用例通过 + 3 个联网冒烟默认跳过。联网冒烟 `NGA_INTEGRATION=1 pnpm test` 实跑通过——通知接口拿到合法 data、form 与 cookie 两种认证都通、`thread.php?fid=650` 的 GBK 中文解码正确。
+测试:`pnpm typecheck` 通过;core/net 104 个用例通过 + 4 个联网冒烟默认跳过。联网冒烟 `NGA_INTEGRATION=1 pnpm test` 实跑通过——通知接口拿到合法 data、form 与 cookie 两种认证都通、`thread.php?fid=650` 的 GBK 中文解码正确、GBK 编码的 `author` 参数能筛到人。
+
+收尾跑了一轮 code-review(标准 + spec 双轴),据此修掉:术语漂移(帖子→主题)、`isRecord` 重复、`buildFormBody` 纯转发、`JSON_FORMATS` 与 `RESPONSE_FORMATS` 双维护、`gbkEncodeURIComponent` 的表外字符实体没按 §0.5 的 UTF-16 码元拆代理对、非 2xx 时只要解析失败就报 HTTP 错(应当 body 为空才报)、清洗第 4 步的结尾边界过窄、生成表头注释指向了不存在的测试文件。
 
 ### 遗留问题
 
 1. **ADR-0002 说「一律一次性 `.text()` 读取」,实现里用的是一次性 `arrayBuffer()`**:响应可能是 GBK,交给运行时按 UTF-8 转字符串就没救了。禁止 clone/tee 的纪律本身完全遵守(只读一次、之后不碰 response.body)。
-2. `NgaRequest.cacheKey` 是给「成功组合按 key 缓存」预留的字段,本票没有消费方,等 ticket 18 接上。
-3. XML(`lite=xml` / `__output=10`)与网页 HTML 两条解析路线没做:`RESPONSE_FORMATS` 里已有对应的格式参数,但 `direct` 遇到非 JSON 格式会返回 `kind:'unavailable'` 且标记可重试,留给 ticket 18/19 加解析策略。
-4. 清洗第 5 步(删坏 `alterinfo`)的字符类比上游宽:Java 的 `\w` 不匹配中文,上游那条对中文站等于没生效;这里保留「方括号 + 结尾空白」的特征以免误删正常 alterinfo。真实抓包里没有出现该字段,没能拿真样本验证。
-5. 附件域名 `_ATTACH_BASE_VIEW` 已在 fixture 里确认存在(`img.nga.cn/attachments`),但提取逻辑属于 core/api,不在本票。
+2. **重试判据比 MNGA 宽一档**:MNGA 只在解析失败/HTTP 状态错误时重试,这里连 `network` 也标可重试——本项目链末端是帖子缓存与网页兜底,断网时正该落到缓存那一档。调用方主动取消的请求显式标成不可重试。ticket 18 接链时请确认这个取舍仍成立。
+3. XML(`lite=xml` / `__output=10`)与网页 HTML 两条解析路线没做:`RESPONSE_FORMATS` 里已有对应的格式参数与 `kind`,但 `direct` 遇到非 JSON 格式会返回 `kind:'unavailable'` 且标记可重试,留给 ticket 18/19 加解析策略。
+4. 「成功组合按 key 缓存」没有预留字段(先前的 `NgaRequest.cacheKey` 无消费方,已删),ticket 18 接反封锁链时随消费方一起加。
+5. 清洗第 5 步(删坏 `alterinfo`)的字符类比上游宽:Java 的 `\w` 不匹配中文,上游那条对中文站等于没生效;这里保留「方括号 + 结尾空白」的特征以免误删正常 alterinfo。真实抓包里没有出现该字段,没能拿真样本验证。
+6. `read.php` 强制切 Windows Phone UA 只提供了机制(`request.userAgent: 'windowsPhone'`),没在 net 层写死策略——该由 core/api 的 read 服务决定。
+7. 附件域名 `_ATTACH_BASE_VIEW` 已在 fixture 里确认存在(`img.nga.cn/attachments`),但提取逻辑属于 core/api,不在本票。

@@ -33,9 +33,9 @@ describe('extractServerError', () => {
   })
 
   it('取 error.code', () => {
-    expect(extractServerError({ error: { code: 403, '0': '帖子不存在' } })).toEqual({
+    expect(extractServerError({ error: { code: 403, '0': '找不到主题' } })).toEqual({
       code: 403,
-      message: '帖子不存在',
+      message: '找不到主题',
     })
   })
 

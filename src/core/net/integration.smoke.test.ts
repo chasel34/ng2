@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { createNgaFetcher } from './fetcher'
+import { gbk } from './query'
 import { createFetchTransport } from './transport'
 
 /**
@@ -66,6 +67,16 @@ describe.skipIf(!enabled)('联网冒烟（NGA_INTEGRATION=1 才跑）', () => {
 
     const user = (result.data as Record<string, Record<string, unknown>>)['0']
     expect(String(user?.uid)).toBe(credentials!.uid)
+  }, 20_000)
+
+  it('GBK 编码的 author 参数能筛到人（thread.php 的 author 走 GBK）', async () => {
+    const result = await fetchNga({
+      path: 'thread.php',
+      query: { author: gbk('春曰影') },
+    })
+    const topics = (result.data as Record<string, Record<string, Record<string, unknown>>>).__T
+
+    expect(topics?.['0']?.author).toBe('春曰影')
   }, 20_000)
 
   it('未声明 charset 的 GBK 主题列表能解出中文版块名', async () => {

@@ -13,7 +13,10 @@ import {
  * 全部四字节 pointer，保证行为与标准实现逐字节一致。
  */
 
-const REPLACEMENT = '�'
+/** 解码失败时产出的 U+FFFD。 */
+export const REPLACEMENT_CHAR = '�'
+
+const REPLACEMENT = REPLACEMENT_CHAR
 
 /** 四字节序列的 pointer → 码点；无映射返回 null。 */
 function rangesCodePoint(pointer: number): number | null {
@@ -165,21 +168,23 @@ function encodeAscii(char: string): string {
  * 按 GBK 编码后再 percent-encode，用于 NGA 那些吃 GBK 参数的接口
  * （`thread.php` 的 `author`、`forum.php` 的 `key`、`nuke.php` 的 `username` 等）。
  *
- * GBK 表里没有的字符（emoji 等）按浏览器提交 GBK 表单的行为写成十进制实体
- * `&#NNN;` 再 percent-encode，而不是丢字符。
+ * GBK 表里没有的字符（emoji 等）不丢弃，按 API 文档 §0.5 的转义约定写成
+ * **UTF-16 码元的十进制 HTML 实体**——码点 > 0xFFFF 要拆成代理对两个实体，
+ * 例：`"😂"` → `&#55357;&#56834;`。
  */
 export function gbkEncodeURIComponent(text: string): string {
   const index = getEncodeIndex()
   let out = ''
-  for (const char of text) {
-    const cp = char.codePointAt(0)!
-    if (cp <= 0x7f) {
-      out += encodeAscii(char)
+  // 按 UTF-16 码元遍历：表外字符本来就要按码元转实体
+  for (let i = 0; i < text.length; i++) {
+    const unit = text.charCodeAt(i)
+    if (unit <= 0x7f) {
+      out += encodeAscii(text[i]!)
       continue
     }
-    const pointer = cp <= 0xffff ? index.get(cp) : undefined
+    const pointer = index.get(unit)
     if (pointer === undefined) {
-      for (const entityChar of `&#${cp};`) out += encodeAscii(entityChar)
+      for (const entityChar of `&#${unit};`) out += encodeAscii(entityChar)
       continue
     }
     const lead = Math.floor(pointer / 190) + 0x81

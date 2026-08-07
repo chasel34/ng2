@@ -35,15 +35,19 @@ function stripJsComment(text: string): string {
 /**
  * 4. 修非法数字：`"content":+123` / `"content":0123` 都不是合法 JSON，转成字符串。
  * subject / author 同理。
+ *
+ * 结尾用「后面不是数字」的前瞻而不是硬要求逗号，免得漏掉 `]`、`}` 或空白收尾的写法。
  */
+const ILLEGAL_NUMBER_FIELDS = ['content', 'subject', 'author'] as const
+
 function fixIllegalNumbers(text: string): string {
-  return text
-    .replace(/"content":\+(\d+)([,}])/g, '"content":"+$1"$2')
-    .replace(/"subject":\+(\d+)([,}])/g, '"subject":"+$1"$2')
-    .replace(/"author":\+(\d+)([,}])/g, '"author":"+$1"$2')
-    .replace(/"content":(0\d+)([,}])/g, '"content":"$1"$2')
-    .replace(/"subject":(0\d+)([,}])/g, '"subject":"$1"$2')
-    .replace(/"author":(0\d+)([,}])/g, '"author":"$1"$2')
+  let result = text
+  for (const field of ILLEGAL_NUMBER_FIELDS) {
+    result = result
+      .replace(new RegExp(`"${field}":\\+(\\d+)(?!\\d)`, 'g'), `"${field}":"+$1"`)
+      .replace(new RegExp(`"${field}":(0\\d+)(?!\\d)`, 'g'), `"${field}":"$1"`)
+  }
+  return result
 }
 
 /**
@@ -131,7 +135,10 @@ function quoteIntegerKeysAndEscapeControls(text: string): string {
   return out
 }
 
-/** 8. 去掉 JS 赋值残留的外层括号与结尾分号。 */
+/**
+ * 收尾：去掉 JS 赋值残留的外层括号与结尾分号。
+ * §0.6 的清单里没有这一条，但 `lite=js` 实际会返回 `=({…});` 这种形态。
+ */
 function stripAssignmentWrapper(text: string): string {
   let result = text.trim()
   while (result.endsWith(';')) result = result.slice(0, -1).trimEnd()
