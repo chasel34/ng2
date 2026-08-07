@@ -1,0 +1,59 @@
+{
+  "source": "https://img4.nga.cn/common_res/js_bbscode_core.js",
+  "imgPath": "https://img4.nga.cn/ngabbs",
+  "smileBaseUrl": "https://img4.nga.cn/ngabbs/post/smile",
+  "note": "表情图为 NGA 素材,仅个人使用、不分发(见 .scratch/app-v1/spec.md §7)",
+  "totals": {
+    "categories": 7,
+    "entries": 265,
+    "files": 265,
+    "bundled": 265,
+    "missing": 0
+  },
+  "categories": [
+    {
+      "key": "0",
+      "label": "默认",
+      "count": 27,
+      "filePrefixSample": "smile.gif"
+    },
+    {
+      "key": "ac",
+      "label": "AC娘(v1)",
+      "count": 45,
+      "filePrefixSample": "ac0.png"
+    },
+    {
+      "key": "a2",
+      "label": "AC娘(v2)",
+      "count": 46,
+      "filePrefixSample": "a2_02.png"
+    },
+    {
+      "key": "ng",
+      "label": "NG娘",
+      "count": 34,
+      "filePrefixSample": "ng_1.png"
+    },
+    {
+      "key": "pst",
+      "label": "潘斯特",
+      "count": 65,
+      "filePrefixSample": "pt00.png"
+    },
+    {
+      "key": "dt",
+      "label": "外域三人组",
+      "count": 33,
+      "filePrefixSample": "dt01.png"
+    },
+    {
+      "key": "pg",
+      "label": "企鹅",
+      "count": 15,
+      "filePrefixSample": "pg01.png"
+    }
+  ],
+  "missing": [],
+  "stray": []
+}
