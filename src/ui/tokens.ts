@@ -139,6 +139,29 @@ const darkTitleColors: TitleColorTokens = {
   silver: darkColors.meta,
 };
 
+/**
+ * 头像占位底色(设计稿 `const AV`)。没有头像或加载失败时按用户 id 稳定取一档,
+ * 同一个人在同一屏里颜色不会跳。两套配色共用——这七色本身已经压得够暗,
+ * 白字在浅深两种底上都读得出。
+ */
+export const avatarColors = [
+  '#3E6B7E',
+  '#7E5A3E',
+  '#5A6E3E',
+  '#6E3E5A',
+  '#3E5A7E',
+  '#7E6B3E',
+  '#4A4A6E',
+] as const;
+
+/**
+ * 顶栏上「当前选中」那一格的底色(设计稿页码格与抽屉当前账号都用它)。
+ *
+ * 不进 ColorTokens:它不是 :root 里声明的一档色,而是压在顶栏上的一层半透明白,
+ * 浅深两套配色下都是同一个值——顶栏本身已经分别是墨绿和近黑了。
+ */
+export const topbarOverlay = 'rgba(255, 255, 255, 0.22)';
+
 export interface ShadowTokens {
   /** 卡片 / 提示条 */
   elevation1: string;
@@ -204,6 +227,22 @@ const designOnlyTypography = {
   initial: { fontSize: 12, fontWeight: '700' },
   /** 分组标题前的圆形角标 9 · 700 */
   badge: { fontSize: 9, fontWeight: '700' },
+  /** 楼层作者名 15 · 650(设计稿 isArticle 的楼层头) */
+  floorName: { fontSize: 15, fontWeight: '600' },
+  /** 楼层时间 12 */
+  floorTime: { fontSize: 12, fontWeight: '400' },
+  /** 引用块正文 14 · 1.6 */
+  quoteBody: { fontSize: 14, fontWeight: '400', lineHeight: 22.4 },
+  /** 顶栏页码格 13 · 600 */
+  pageChip: { fontSize: 13, fontWeight: '600' },
+  /** 头像占位的首字 15 · 700 */
+  avatarInitial: { fontSize: 15, fontWeight: '700' },
+  /** 楼层底部点赞数 13 */
+  floorLike: { fontSize: 13, fontWeight: '400' },
+  /** 对话框标题 18 · 650(与顶栏标题同字号但不带字间距) */
+  dialogTitle: { fontSize: 18, fontWeight: '600' },
+  /** 对话框按钮 14 · 650 */
+  dialogAction: { fontSize: 14, fontWeight: '600' },
 } as const;
 
 export const typography = { ...tokenTableTypography, ...designOnlyTypography } as const;

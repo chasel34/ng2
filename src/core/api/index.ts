@@ -16,7 +16,21 @@ export {
   type CachedBoardTree,
   type LoadBoardTreeOptions,
 } from './board-tree-cache'
+export {
+  ATTACH_BASE_FALLBACK,
+  attachmentUrl,
+  normalizeAttachBase,
+  stripThumbnailSuffix,
+  type AttachmentUrlOptions,
+} from './attachments'
 export { int, nonZero, orderedEntries, orderedValues, str } from './fields'
+export {
+  fetchTopicDetail,
+  parseAvatarUrl,
+  parseTopicDetail,
+  type FetchTopicDetailOptions,
+  type ParseTopicDetailOptions,
+} from './topic-detail'
 export {
   fetchTopicList,
   mergeTopicPages,
@@ -29,8 +43,13 @@ export type {
   BoardCategory,
   BoardGroup,
   BoardTree,
+  Floor,
+  FloorAttachment,
+  FloorClient,
+  FloorUser,
   HomeAnnouncement,
   Topic,
+  TopicDetail,
   TopicList,
   TopicParent,
   TopicShortcut,

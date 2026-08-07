@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  avatarColors,
   darkTheme,
   lightTheme,
   radius,
   spacing,
   themes,
+  topbarOverlay,
   typography,
 } from './tokens';
 
@@ -123,6 +125,15 @@ describe('字号 / 行高 token', () => {
       caption: { fontSize: 12.5, fontWeight: '700', letterSpacing: 0.4 },
       initial: { fontSize: 12, fontWeight: '700' },
       badge: { fontSize: 9, fontWeight: '700' },
+      // 07 补:帖子详情屏(isArticle)的楼层头、引用块、页码格与附件文件名
+      floorName: { fontSize: 15, fontWeight: '600' },
+      floorTime: { fontSize: 12, fontWeight: '400' },
+      quoteBody: { fontSize: 14, fontWeight: '400', lineHeight: 22.4 },
+      pageChip: { fontSize: 13, fontWeight: '600' },
+      avatarInitial: { fontSize: 15, fontWeight: '700' },
+      floorLike: { fontSize: 13, fontWeight: '400' },
+      dialogTitle: { fontSize: 18, fontWeight: '600' },
+      dialogAction: { fontSize: 14, fontWeight: '600' },
     });
   });
 
@@ -145,8 +156,36 @@ describe('字号 / 行高 token', () => {
         'badge',
         'topicTitle',
         'listMeta',
+        'floorName',
+        'floorTime',
+        'quoteBody',
+        'pageChip',
+        'avatarInitial',
+        'floorLike',
+        'dialogTitle',
+        'dialogAction',
       ].sort(),
     );
+  });
+});
+
+describe('头像占位底色', () => {
+  it('七色与设计稿的 AV 数组一致', () => {
+    expect(avatarColors).toEqual([
+      '#3E6B7E',
+      '#7E5A3E',
+      '#5A6E3E',
+      '#6E3E5A',
+      '#3E5A7E',
+      '#7E6B3E',
+      '#4A4A6E',
+    ]);
+  });
+});
+
+describe('顶栏选中态底色', () => {
+  it('与设计稿页码格/当前账号的半透明白一致', () => {
+    expect(topbarOverlay).toBe('rgba(255, 255, 255, 0.22)');
   });
 });
 

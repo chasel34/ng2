@@ -42,8 +42,15 @@ describe('sanitizeNgaJson · API 文档 §0.6 的清洗步骤', () => {
     })
   })
 
-  it('5. 删坏字段 alterinfo（部分页面打不开的原因）', () => {
-    expect(parse('{"pid":1,"alterinfo":"[已编辑 2 次] ","lou":3}')).toEqual({ pid: 1, lou: 3 })
+  it('5. alterinfo 不删——上游删它是因为没有第 7 步，我们有', () => {
+    // 真身是 `[E<时间戳> <编辑人 uid> <编辑人名>]<TAB>`，抓包里每一条都长这样；
+    // 唯一「坏」的地方是结尾那个裸 TAB，第 7 步转义掉就是合法 JSON。
+    // 删掉等于丢失「本楼被编辑过」，详情页认不出编辑标记（详见 sanitize.ts 第 5 步注释）。
+    expect(parse('{"pid":1,"alterinfo":"[E1748252294 0 0]\t","lou":3}')).toEqual({
+      pid: 1,
+      alterinfo: '[E1748252294 0 0]\t',
+      lou: 3,
+    })
   })
 
   it('6. 整数 key 加引号', () => {
@@ -68,10 +75,10 @@ describe('sanitizeNgaJson · API 文档 §0.6 的清洗步骤', () => {
 
   it('全部步骤叠一起也能洗成合法 JSON', () => {
     const raw =
-      'window.script_muti_get_var_store=({"data":{0:{"pid":9,"alterinfo":"[edited 2] ",' +
+      'window.script_muti_get_var_store=({"data":{0:{"pid":9,"alterinfo":"[E1 0 0]\t",' +
       '"content":+7,"subject":012,"note":"裸控制符"}}});/*error fill content xxx'
     expect(parse(raw)).toEqual({
-      data: { '0': { pid: 9, content: '+7', subject: '012', note: '裸控制符' } },
+      data: { '0': { pid: 9, alterinfo: '[E1 0 0]\t', content: '+7', subject: '012', note: '裸控制符' } },
     })
   })
 })

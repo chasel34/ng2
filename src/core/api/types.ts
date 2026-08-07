@@ -103,6 +103,91 @@ export interface Topic {
   readonly jumpUrl?: string
 }
 
+/** 发帖设备（楼层的 `from_client`），设计稿在楼号前放一枚小图标。 */
+export type FloorClient = 'android' | 'ios' | 'other'
+
+/** 楼层里的一个附件（`attachs` 的成员）。地址已拼好，UI 直接用。 */
+export interface FloorAttachment {
+  /** 原图 */
+  readonly url: string
+  /** 缩略图；服务端没生成时为 undefined，宫格退回原图 */
+  readonly thumbnailUrl?: string
+  /** 服务端给的 `type`，目前只见过 `img` */
+  readonly kind: string
+  readonly name?: string
+  /** 服务端给的 `size`，单位 KB */
+  readonly sizeKb?: number
+}
+
+/**
+ * 楼层作者。一次请求内 `key` 唯一——**匿名用户的 key 带请求级前缀**，
+ * 否则第 2 页的 `-1` 会和第 1 页的 `-1` 串成同一个人（API 文档 §3）。
+ */
+export interface FloorUser {
+  readonly key: string
+  /** 匿名用户没有 */
+  readonly uid?: number
+  /** 显示名，匿名已还原成六字假名（CONTEXT.md「匿名还原」） */
+  readonly name: string
+  /** 服务端原始用户名，匿名时是 `#anony_<hex>`；认楼主要用它 */
+  readonly rawName: string
+  readonly anonymous: boolean
+  readonly avatarUrl?: string
+  /** 用户组名（设计稿的「级别」） */
+  readonly level?: string
+  /** 威望，已按服务端 `rvrc ÷ 10` 换算 */
+  readonly reputation: number
+  readonly postCount: number
+  /** 禁言中（`buffs` 含 105/117） */
+  readonly muted: boolean
+  /** 被 nuke（`yz === -1`） */
+  readonly nuked: boolean
+}
+
+/** 主题里的一条发言（CONTEXT.md「楼层」）。贴条与热门回复是同一个结构。 */
+export interface Floor {
+  readonly pid: number
+  /** 楼层号，0 是主楼 */
+  readonly lou: number
+  /** 到 `TopicDetail.users` 里查作者 */
+  readonly authorKey: string
+  readonly isStarter: boolean
+  /** 正文 BBCode 原文，渲染前过 `parseBBCode` */
+  readonly content: string
+  readonly subject?: string
+  /** 秒级 unix 时间戳 */
+  readonly postedAt: number
+  /** 服务端排好的 `YYYY-MM-DD HH:mm`，省得客户端再格式化一遍 */
+  readonly postedAtText: string
+  /** 赞数 */
+  readonly score: number
+  readonly edited: boolean
+  readonly client: FloorClient
+  readonly attachments: readonly FloorAttachment[]
+  /** 贴条（CONTEXT.md「贴条」），只有一层 */
+  readonly notes: readonly Floor[]
+  /** 投票原始串，渲染归 ticket 08 */
+  readonly vote?: string
+}
+
+/** `read.php` 一页的结果。 */
+export interface TopicDetail {
+  readonly tid: number
+  readonly subject: string
+  readonly boardName?: string
+  readonly page: number
+  /** 楼层总数（含主楼），总页数按它算 */
+  readonly totalRows: number
+  readonly rowsPerPage: number
+  readonly totalPages: number
+  /** 附件图片基址，来自 `__GLOBAL._ATTACH_BASE_VIEW`，每页都可能变 */
+  readonly attachBase: string
+  readonly floors: readonly Floor[]
+  /** 热门回复（CONTEXT.md），服务端只在主楼里标，独立成一区展示 */
+  readonly hotReplies: readonly Floor[]
+  readonly users: Readonly<Record<string, FloorUser>>
+}
+
 /** `thread.php` 一页的结果。 */
 export interface TopicList {
   readonly topics: readonly Topic[]

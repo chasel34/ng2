@@ -1,6 +1,14 @@
 /**
  * NGA 返回的「JSON」不合法，`JSON.parse` 之前必须清洗（API 文档 §0.6）。
  * 步骤取自 Android `ArticleConvertFactory` 的 8 步与 MNGA 的 2 步的并集。
+ *
+ * **唯一一步没照做的是第 5 步「删坏字段 `"alterinfo":"[xxx] "`」**（2026-08-08，07 票）。
+ * 实测这个字段的真身是 `"[E<时间戳> <编辑人 uid> <编辑人名>]<TAB>"`，抓包里每一条都长这样
+ * （样本见 `core/api/__fixtures__/read-comment-noimg`）——所谓「坏」只是结尾那个**裸 TAB**
+ * 让 `JSON.parse` 挂掉，而本文件第 7 步本来就把字符串内的裸控制字符转义了，轮不到它坏；
+ * 上游没有第 7 步才只能整段删。何况上游那条特征（方括号 + 结尾空白）的括号内容不允许
+ * 出现引号，所以它**从来**命中不了真正解析不了的形态（未转义引号）。留着等于净亏：
+ * 把「本楼被编辑过」连同编辑人一起删掉，详情页就再也认不出编辑标记。
  */
 
 const JS_PREFIX = 'window.script_muti_get_var_store='
@@ -48,17 +56,6 @@ function fixIllegalNumbers(text: string): string {
       .replace(new RegExp(`"${field}":(0\\d+)(?!\\d)`, 'g'), `"${field}":"$1"`)
   }
   return result
-}
-
-/**
- * 5. 删坏字段：`"alterinfo":"[xxx] "` 整段删（部分页面打不开的原因）。
- *
- * 比上游的 `[(\w|\s)+]` 略宽——Java 的 `\w` 不匹配中文，而实际编辑记录是中文的，
- * 上游那条对中文站点等于没生效。仍然保留「方括号 + 结尾空白」这个特征，
- * 免得把正常的 alterinfo 也删掉。
- */
-function dropBrokenAlterinfo(text: string): string {
-  return text.replace(/"alterinfo":"\[[^"\\\]]*\]\s+",/g, '')
 }
 
 const CONTROL_ESCAPES: Record<number, string> = {
@@ -156,7 +153,6 @@ export function sanitizeNgaJson(raw: string): string {
   text = truncateErrorTail(text)
   text = stripJsComment(text)
   text = fixIllegalNumbers(text)
-  text = dropBrokenAlterinfo(text)
   text = quoteIntegerKeysAndEscapeControls(text)
   return stripAssignmentWrapper(text)
 }
