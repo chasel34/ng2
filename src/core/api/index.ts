@@ -17,4 +17,21 @@ export {
   type LoadBoardTreeOptions,
 } from './board-tree-cache'
 export { int, nonZero, orderedEntries, orderedValues, str } from './fields'
-export type { Board, BoardCategory, BoardGroup, BoardTree, HomeAnnouncement } from './types'
+export {
+  fetchTopicList,
+  mergeTopicPages,
+  parseTopicList,
+  type FetchTopicListOptions,
+  type TopicSort,
+} from './topic-list'
+export type {
+  Board,
+  BoardCategory,
+  BoardGroup,
+  BoardTree,
+  HomeAnnouncement,
+  Topic,
+  TopicList,
+  TopicParent,
+  TopicShortcut,
+} from './types'

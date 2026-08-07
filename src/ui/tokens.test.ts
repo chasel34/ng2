@@ -62,6 +62,26 @@ describe('颜色 token', () => {
   });
 });
 
+describe('彩色标题 token', () => {
+  // 掩码 1/2/4/8/16 各一档;绿是 token 表没有、05 按同明度补的
+  it('四档复用 token 表的颜色,只有绿是补的', () => {
+    expect(lightTheme.titleColors).toEqual({
+      red: lightTheme.colors.danger,
+      blue: lightTheme.colors.link,
+      green: '#3F8F5B',
+      orange: lightTheme.colors.accent,
+      silver: lightTheme.colors.meta,
+    });
+    expect(darkTheme.titleColors).toEqual({
+      red: darkTheme.colors.danger,
+      blue: darkTheme.colors.link,
+      green: '#5FB27C',
+      orange: darkTheme.colors.accent,
+      silver: darkTheme.colors.meta,
+    });
+  });
+});
+
 describe('阴影 token', () => {
   it('elevation1 / elevation2 与 --shadow / --shadow-2 一致', () => {
     expect(lightTheme.shadows).toEqual({
@@ -92,6 +112,9 @@ describe('字号 / 行高 token', () => {
   // 这一组就是「缺档往这里加」的落点,加一档要在这里登记出处。
   it('补档与设计稿一致', () => {
     expect(typography).toMatchObject({
+      // 05 补:主题列表屏(isList)的标题 17/1.45 与信息行 12.5
+      topicTitle: { fontSize: 17, fontWeight: '400', lineHeight: 24.65 },
+      listMeta: { fontSize: 12.5, fontWeight: '400' },
       gridLabel: { fontSize: 14.5, fontWeight: '400', lineHeight: 19.58 },
       notice: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
       section: { fontSize: 17, fontWeight: '400' },
@@ -120,6 +143,8 @@ describe('字号 / 行高 token', () => {
         'caption',
         'initial',
         'badge',
+        'topicTitle',
+        'listMeta',
       ].sort(),
     );
   });

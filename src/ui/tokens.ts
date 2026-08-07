@@ -109,6 +109,36 @@ const darkColors: ColorTokens = {
   track: '#3A3A36',
 };
 
+/**
+ * 彩色标题(CONTEXT.md「彩色标题」)的五档颜色,对应掩码 1/2/4/8/16。
+ *
+ * 红/蓝/橙/银直接复用 danger/link/accent/meta——设计稿的 token 表里就是这几档;
+ * 只有绿在 token 表里没有对应色,按同明度补一档(浅底压深、深底提亮)。
+ */
+export interface TitleColorTokens {
+  red: string;
+  blue: string;
+  green: string;
+  orange: string;
+  silver: string;
+}
+
+const lightTitleColors: TitleColorTokens = {
+  red: lightColors.danger,
+  blue: lightColors.link,
+  green: '#3F8F5B',
+  orange: lightColors.accent,
+  silver: lightColors.meta,
+};
+
+const darkTitleColors: TitleColorTokens = {
+  red: darkColors.danger,
+  blue: darkColors.link,
+  green: '#5FB27C',
+  orange: darkColors.accent,
+  silver: darkColors.meta,
+};
+
 export interface ShadowTokens {
   /** 卡片 / 提示条 */
   elevation1: string;
@@ -152,6 +182,14 @@ const tokenTableTypography = {
 const designOnlyTypography = {
   /** 版块宫格里的版块名 14.5 · 1.35 */
   gridLabel: { fontSize: 14.5, fontWeight: '400', lineHeight: 19.58 },
+  /**
+   * 主题列表的标题 17 · 1.45。
+   * Design Token 表里「列表主题标题」标的是 16——那是我的主题/收藏夹那类二级列表的字号,
+   * 主题列表屏(design 稿 `isList`)实际用的是 17,这里按屏取值。
+   */
+  topicTitle: { fontSize: 17, fontWeight: '400', lineHeight: 24.65 },
+  /** 主题行信息行 / 子版块 tag / 底部载入提示 12.5 */
+  listMeta: { fontSize: 12.5, fontWeight: '400' },
   /** 公告条 / 对话框正文 13.5 · 1.5 */
   notice: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
   /** 分组标题 / 二级页顶栏标题 17 */
@@ -198,6 +236,7 @@ export const spacing = {
 export interface Theme {
   scheme: ColorScheme;
   colors: ColorTokens;
+  titleColors: TitleColorTokens;
   shadows: ShadowTokens;
   typography: typeof typography;
   radius: typeof radius;
@@ -207,6 +246,7 @@ export interface Theme {
 export const lightTheme: Theme = {
   scheme: 'light',
   colors: lightColors,
+  titleColors: lightTitleColors,
   shadows: lightShadows,
   typography,
   radius,
@@ -216,6 +256,7 @@ export const lightTheme: Theme = {
 export const darkTheme: Theme = {
   scheme: 'dark',
   colors: darkColors,
+  titleColors: darkTitleColors,
   shadows: darkShadows,
   typography,
   radius,

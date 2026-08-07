@@ -8,6 +8,8 @@ export interface MenuItem {
   label: string;
   /** 设计稿里菜单分组之间空 10pt */
   gapBefore?: boolean;
+  /** 一组互斥选项里当前生效的那条(排序切换),用主题色 + 加粗标出来 */
+  selected?: boolean;
   onPress: () => void;
 }
 
@@ -64,7 +66,9 @@ export function OverflowMenu({ open, onClose, items, top }: OverflowMenuProps) {
             android_ripple={{ color: theme.colors.divider }}
             style={[styles.item, item.gapBefore === true && styles.itemGap]}
           >
-            <Text style={styles.label}>{item.label}</Text>
+            <Text style={[styles.label, item.selected === true && styles.labelSelected]}>
+              {item.label}
+            </Text>
           </Pressable>
         ))}
       </Animated.View>
@@ -95,5 +99,9 @@ const useStyles = createThemedStyles((theme) => ({
   label: {
     ...theme.typography.menuItem,
     color: theme.colors.fg,
+  },
+  labelSelected: {
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
 }));

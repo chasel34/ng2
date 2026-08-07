@@ -1,9 +1,11 @@
 /**
- * 版块分类树的领域模型（术语见根目录 CONTEXT.md）。
+ * 各接口的领域模型（术语见根目录 CONTEXT.md）。
  *
- * 全部是可 JSON 序列化的普通对象——整棵树要原样写进本地缓存起底，
+ * 全部是可 JSON 序列化的普通对象——版块树要原样写进本地缓存起底，
  * 不能带函数或 undefined 以外的特殊值。
  */
+
+import type { TitleStyle } from '../local'
 
 /**
  * 版块，或作为特殊版块的合集。
@@ -54,4 +56,61 @@ export interface HomeAnnouncement {
 export interface BoardTree {
   readonly categories: readonly BoardCategory[]
   readonly announcements: readonly HomeAnnouncement[]
+}
+
+/** 主题的来源子版块（`__T[].parent`），列表里显示成标题后面那个灰色 `[…]`。 */
+export interface TopicParent {
+  readonly fid?: number
+  readonly stid?: number
+  readonly name: string
+}
+
+/**
+ * 快捷方式行：`type` 带 `0x8000`（合集）或 `0x200000`（版块镜像）的那种「主题」，
+ * 点开是另一个版块的主题列表，不是一条讨论串。
+ */
+export interface TopicShortcut {
+  readonly kind: 'board' | 'collection'
+  readonly id: number
+}
+
+/** 主题列表里的一行（CONTEXT.md「主题」）。 */
+export interface Topic {
+  /** 真实 tid：`quote_from` 非空时以它为准（API 文档 §2 解析要点 1） */
+  readonly tid: number
+  readonly fid?: number
+  readonly subject: string
+  readonly titleStyle: TitleStyle
+  /** 已做匿名还原（CONTEXT.md「匿名还原」）的作者名 */
+  readonly author: string
+  /** 匿名主题没有数字 uid */
+  readonly authorId?: number
+  readonly anonymous: boolean
+  readonly lastPoster?: string
+  readonly replies: number
+  /** 秒级 unix 时间戳 */
+  readonly postedAt: number
+  readonly lastPostAt: number
+  /** fav 码（CONTEXT.md「fav 码」），从 `tpcurl` 提取，进详情页要带上 */
+  readonly favCode?: string
+  readonly locked: boolean
+  readonly hasAttachment: boolean
+  readonly isCollection: boolean
+  readonly isBoardMirror: boolean
+  readonly shortcut?: TopicShortcut
+  readonly parent?: TopicParent
+  /** 非 read.php 的外链主题（活动页），点了应该走浏览器 */
+  readonly jumpUrl?: string
+}
+
+/** `thread.php` 一页的结果。 */
+export interface TopicList {
+  readonly topics: readonly Topic[]
+  /** 当前版块（`__F`），进来时只有名字是已知的，这里能补上真身 */
+  readonly board?: Board
+  /** 子版块横条 */
+  readonly subBoards: readonly Board[]
+  readonly totalRows: number
+  readonly rowsPerPage: number
+  readonly totalPages: number
 }
