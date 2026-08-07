@@ -77,8 +77,8 @@ describe('阴影 token', () => {
 
 describe('字号 / 行高 token', () => {
   // T.tokenType,行高为设计稿倍数 × 字号
-  it('六档字号与设计稿一致', () => {
-    expect(typography).toEqual({
+  it('token 表里的六档与设计稿一致', () => {
+    expect(typography).toMatchObject({
       title: { fontSize: 18, fontWeight: '600', letterSpacing: 0.2 },
       listTitle: { fontSize: 16, fontWeight: '400', lineHeight: 23.2 },
       body: { fontSize: 15.5, fontWeight: '400', lineHeight: 26.04 },
@@ -86,6 +86,42 @@ describe('字号 / 行高 token', () => {
       note: { fontSize: 12.5, fontWeight: '400', lineHeight: 20.63 },
       meta: { fontSize: 11.5, fontWeight: '400' },
     });
+  });
+
+  // token 表没列、但设计稿反复用到的档位(04 补)。页面里不许散写字号,
+  // 这一组就是「缺档往这里加」的落点,加一档要在这里登记出处。
+  it('补档与设计稿一致', () => {
+    expect(typography).toMatchObject({
+      gridLabel: { fontSize: 14.5, fontWeight: '400', lineHeight: 19.58 },
+      notice: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
+      section: { fontSize: 17, fontWeight: '400' },
+      menuItem: { fontSize: 15.5, fontWeight: '400' },
+      drawerItem: { fontSize: 15, fontWeight: '400' },
+      caption: { fontSize: 12.5, fontWeight: '700', letterSpacing: 0.4 },
+      initial: { fontSize: 12, fontWeight: '700' },
+      badge: { fontSize: 9, fontWeight: '700' },
+    });
+  });
+
+  it('没有别的自造档位', () => {
+    expect(Object.keys(typography).sort()).toEqual(
+      [
+        'title',
+        'listTitle',
+        'body',
+        'tab',
+        'note',
+        'meta',
+        'gridLabel',
+        'notice',
+        'section',
+        'menuItem',
+        'drawerItem',
+        'caption',
+        'initial',
+        'badge',
+      ].sort(),
+    );
   });
 });
 

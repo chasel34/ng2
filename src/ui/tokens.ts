@@ -127,10 +127,10 @@ const darkShadows: ShadowTokens = {
 };
 
 /**
- * 字号档位。行高按设计稿倍数换算成 RN 需要的绝对像素;
+ * Design Token 表列出的六档字号。行高按设计稿倍数换算成 RN 需要的绝对像素;
  * 设计稿未标行高的档位不给 lineHeight,交给系统默认。
  */
-export const typography = {
+const tokenTableTypography = {
   /** 顶栏标题 18 · 600 */
   title: { fontSize: 18, fontWeight: '600', letterSpacing: 0.2 },
   /** 列表主题标题 16 · 1.45 */
@@ -144,6 +144,31 @@ export const typography = {
   /** 级别 / 威望 / 时间 11.5 */
   meta: { fontSize: 11.5, fontWeight: '400' },
 } as const;
+
+/**
+ * Design Token 表没列、但设计稿反复用到的档位(04 首页铺真实页面时补,见 01 票遗留问题 3)。
+ * 页面里不许再散写字号,缺档就往这里加并注明设计稿出处。
+ */
+const designOnlyTypography = {
+  /** 版块宫格里的版块名 14.5 · 1.35 */
+  gridLabel: { fontSize: 14.5, fontWeight: '400', lineHeight: 19.58 },
+  /** 公告条 / 对话框正文 13.5 · 1.5 */
+  notice: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
+  /** 分组标题 / 二级页顶栏标题 17 */
+  section: { fontSize: 17, fontWeight: '400' },
+  /** 弹出菜单条目 15.5 */
+  menuItem: { fontSize: 15.5, fontWeight: '400' },
+  /** 抽屉条目 15 */
+  drawerItem: { fontSize: 15, fontWeight: '400' },
+  /** 抽屉分区小标题 12.5 · 700 */
+  caption: { fontSize: 12.5, fontWeight: '700', letterSpacing: 0.4 },
+  /** 版块图标的首字占位 12 · 700 */
+  initial: { fontSize: 12, fontWeight: '700' },
+  /** 分组标题前的圆形角标 9 · 700 */
+  badge: { fontSize: 9, fontWeight: '700' },
+} as const;
+
+export const typography = { ...tokenTableTypography, ...designOnlyTypography } as const;
 
 /** 圆角档位。sm 取设计稿 8–9 区间的上界(token 表色块用的就是 9)。 */
 export const radius = {

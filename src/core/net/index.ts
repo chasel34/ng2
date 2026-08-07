@@ -31,6 +31,7 @@ export {
 export { decodeResponseBody } from './encoding/decode-body'
 export { decodeGb18030, gbkEncodeURIComponent } from './encoding/gb18030'
 export { parseNgaJson, type NgaEnvelope } from './envelope'
+export { isRecord } from './is-record'
 export {
   NgaError,
   extractServerError,
