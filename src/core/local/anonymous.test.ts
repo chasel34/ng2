@@ -36,6 +36,20 @@ describe('decodeAnonymousName', () => {
     expect(decodeAnonymousName('#anony_ffffffffffffffffffffffffffffffff')?.name).toBe('巳巳')
   })
 
+  /**
+   * 另一路对拍:这串 hex 是 `thread.php?fid=-7` 真实响应里的匿名作者
+   * (见 core/api/__fixtures__/thread-list-fid-7.gbk.bin,主题「技师请我吃饭(续)」)。
+   *
+   * 设计稿 design/project/NGA客户端.dc.html:1124 的主题列表 mock 里,恰好有个作者叫「卯邱潘」——
+   * 那是设计师照着真机上同一个版块转录的,而且它在**本实现存在之前**就随初始提交进了仓库。
+   * 换句话说:一边是官方 JS 的算法,一边是官方 App 渲染出来、由第三方转录的结果,两边对上了。
+   */
+  it('真实 hex 的解码结果与设计稿从真机转录的假名对得上', () => {
+    const decoded = decodeAnonymousName('#anony_d43225f5a338ca2efea68a14773537e6')
+    expect(decoded?.name).toBe('卯邱潘巳邵卢')
+    expect(decoded?.name.slice(0, 3)).toBe('卯邱潘')
+  })
+
   it('不是匿名串就还不出来', () => {
     expect(decodeAnonymousName('春曰影')).toBeUndefined()
     expect(decodeAnonymousName('#anony_0123')).toBeUndefined()
