@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useIconFont } from '@/ui/icon';
+import { SnackbarHost } from '@/ui/snackbar';
 import { useTheme } from '@/ui/theme';
 
 function createQueryClient() {
@@ -43,6 +44,8 @@ export default function RootLayout() {
             }}
           />
         )}
+        {/* Snackbar 盖在所有页面上:发起它的页面退场后,「撤销」还能等得到 */}
+        <SnackbarHost />
         {/* 状态栏压在顶栏上:浅色下顶栏是墨绿、深色下是近黑,两种都需要浅色图标 */}
         <StatusBar style="light" />
       </SafeAreaProvider>

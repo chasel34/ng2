@@ -40,6 +40,8 @@ export interface TopBarButtonProps {
   size: number;
   onPress: () => void;
   accessibilityLabel: string;
+  /** 图标颜色,默认 onTopbar。带状态的按钮(列表页星标的已收藏态)用它点亮 */
+  color?: string;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -48,6 +50,7 @@ export function TopBarButton({
   size,
   onPress,
   accessibilityLabel,
+  color,
   style,
 }: TopBarButtonProps) {
   const styles = useStyles();
@@ -61,7 +64,7 @@ export function TopBarButton({
       android_ripple={{ color: theme.colors.onTopbar, borderless: true, radius: BUTTON_SIZE / 2 }}
       style={[styles.button, style]}
     >
-      <Icon name={icon} size={size} color={theme.colors.onTopbar} />
+      <Icon name={icon} size={size} color={color ?? theme.colors.onTopbar} />
     </Pressable>
   );
 }
