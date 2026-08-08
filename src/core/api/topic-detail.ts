@@ -22,7 +22,7 @@
  */
 
 import { REPUTATION_SCALE, resolveAuthorName } from '../local'
-import { NgaError, isRecord, type NgaFetcher } from '../net'
+import { NgaError, WEB_FALLBACK_STRATEGY_NAME, isRecord, type NgaFetcher } from '../net'
 import { normalizeAttachBase, THUMBNAIL_SUFFIX } from './attachments'
 import { int, orderedValues, str, text } from './fields'
 import type { Floor, FloorAttachment, FloorClient, FloorUser, TopicDetail } from './types'
@@ -215,6 +215,8 @@ export interface ParseTopicDetailOptions {
    * 会和第 1 页的 `-1` 串成同一个人。
    */
   readonly context: string
+  /** 数据来源（ADR-0002 的 Web 反解档要在详情页出提示条），默认 `native` */
+  readonly source?: TopicDetail['source']
 }
 
 /**
@@ -225,7 +227,7 @@ export interface ParseTopicDetailOptions {
  */
 export function parseTopicDetail(data: unknown, options: ParseTopicDetailOptions): TopicDetail {
   const root = isRecord(data) ? data : {}
-  const { context } = options
+  const { context, source = 'native' } = options
 
   const attachBase = normalizeAttachBase(
     isRecord(root.__GLOBAL) ? root.__GLOBAL._ATTACH_BASE_VIEW : undefined,
@@ -282,6 +284,7 @@ export function parseTopicDetail(data: unknown, options: ParseTopicDetailOptions
     floors,
     hotReplies,
     users: Object.fromEntries(users),
+    source,
   }
 }
 
@@ -345,5 +348,10 @@ export async function fetchTopicDetail(
   if (!isRecord(result.data)) {
     throw new NgaError({ kind: 'parse', message: '帖子详情响应里没有 data', via: result.via })
   }
-  return parseTopicDetail(result.data, { context: nextAnonymousContext() })
+  // 反封锁链哪一档出的结果只有 `via` 说得清（19 票的 Web 反解档会把网页 HTML
+  // 反解成同构信封，解析这一步感知不到差别）——提示条要显示的正是它
+  return parseTopicDetail(result.data, {
+    context: nextAnonymousContext(),
+    source: result.via === WEB_FALLBACK_STRATEGY_NAME ? 'web' : 'native',
+  })
 }

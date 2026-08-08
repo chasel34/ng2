@@ -2,7 +2,7 @@ import { buildAuthAttachment, type NgaCredentials } from '../auth'
 import type { FetchCombo } from '../combo'
 import { RESPONSE_FORMATS, X_USER_AGENT_VALUE, isJsonFormat, type UserAgentProfile } from '../constants'
 import { decodeResponseBody } from '../encoding/decode-body'
-import { parseNgaJson } from '../envelope'
+import { parseNgaJson, type NgaEnvelope } from '../envelope'
 import { NgaError } from '../errors'
 import { buildQueryString, hasGbkParam, type QueryParams } from '../query'
 import type { HttpTransport } from '../transport'
@@ -24,6 +24,12 @@ export interface AttemptOptions {
   readonly credentials?: NgaCredentials | null
   /** 覆盖传输层（每次重试前重建 HTTP client 用） */
   readonly transport?: HttpTransport
+  /**
+   * 覆盖响应解析（Web 反解档用：`html` 档要走 `core/net/web` 的反解器）。
+   * 契约同 `parseNgaJson`：解不出来抛 `kind: 'parse'`，服务端语义错误抛 `kind: 'server'`。
+   * 给了它就不再限制格式档位。
+   */
+  readonly parse?: (text: string) => NgaEnvelope
 }
 
 /**
@@ -66,9 +72,9 @@ export async function runAttempt(
   options: AttemptOptions,
 ): Promise<StrategyOutcome> {
   const { via, combo } = options
-  if (!isJsonFormat(combo.format)) {
-    // XML / HTML 两条解析路线归 19 号票（Web 反解与网页兜底）。
-    // 标成可重试，链上真有能处理这个格式的策略时才轮得到它。
+  if (options.parse === undefined && !isJsonFormat(combo.format)) {
+    // 没自带解析器就只会解 JSON 家族；HTML 档由 Web 反解那一档自带解析器进来（19 票），
+    // XML 档至今没有解析器。标成可重试，链上真有能处理这个格式的策略时才轮得到它。
     return unavailable(`${via} 只解析 JSON 家族格式，收到 ${combo.format}`, via)
   }
 
@@ -154,8 +160,9 @@ export async function runAttempt(
   // HTTP 非 2xx 时 body 仍可能带有效错误信息，所以先解析 body，
   // **body 为空**才退回状态码报错（API 文档 §0.7）——
   // 非 2xx 但 body 有内容只是解析不了，那更像被封，要留 parse 这个信号。
+  const parse = options.parse ?? ((body: string) => parseNgaJson(body, via))
   try {
-    return report({ ok: true, result: { ...parseNgaJson(text, via), via } })
+    return report({ ok: true, result: { ...parse(text), via } })
   } catch (cause) {
     if (cause instanceof NgaError && cause.kind === 'server') {
       return report({ ok: false, error: cause })

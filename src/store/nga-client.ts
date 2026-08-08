@@ -1,16 +1,18 @@
 import { fetch as expoFetch } from 'expo/fetch';
 
 import {
+  createComboCache,
   createFetchTransport,
   createFormatRotationStrategy,
   createNgaFetcher,
   createSwitchAccountStrategy,
+  createWebFallbackStrategy,
   type NgaFetcher,
 } from '@/core/net';
 
 import { allCredentials, currentCredentials } from './accounts';
 import { recordFetchDiagnostic } from './diagnostics';
-import { readPhpUserAgent } from './net-settings';
+import { readPhpUserAgent, webFallbackMode } from './net-settings';
 
 /**
  * 全 app 共用的 NGA 请求器——core/net 的策略链在这里接上设备侧的 HTTP 实现。
@@ -21,23 +23,44 @@ import { readPhpUserAgent } from './net-settings';
  * 凭证按请求现取(而不是建 fetcher 时定死):切换/退出账号后,
  * 下一个请求自动带新账号 cookie;游客态返回 null,请求不带凭证。
  *
- * 链的顺序即 ADR-0002 的顺序,现在落地了前两档:
+ * 链的顺序即 ADR-0002 的顺序,现在落地了前三档:
  *
  * 1. `format-rotation` 格式参数 × 域名的组合枚举,成功组合按接口 key 缓存
  * 2. `switch-account`  换下一个已登录账号的 cookie 试一次(仅多账号)
- * 3. Web 反解(19 号票)、4. 帖子缓存(20 号票)、5. 网页兜底(19 号票)按序追加即可
+ * 3. `web-fallback`    read.php 专用:拿网页版 HTML 反解出同构信封(19 票)
+ * 4. 帖子缓存(20 号票)、5. 网页兜底页(19 票,不在链上——是链失败后的一个路由)
+ *
+ * `web-fallback` 在链上出现两次是刻意的:档位(Disabled/Secondary/Primary/Only)是用户
+ * 设置,而链的顺序建 fetcher 时就定死了,只能两个位置各摆一条、各自按档位决定跑不跑。
  */
 const createTransport = () =>
   createFetchTransport(expoFetch as unknown as typeof globalThis.fetch);
 
+/**
+ * 成功组合缓存。建在外面(而不是让 fetcher 自己建)是为了让 UI 能清它:
+ * 详情页的「重试原生」要从头试探,不能又从上次那个已经不灵的组合开局。
+ */
+const comboCache = createComboCache();
+
+/**
+ * 忘掉某个接口上次试通的格式 × 域名组合(ADR-0002)。
+ * key 即接口 key(`read.php`、`nuke.php?__lib=…&__act=…`)。
+ */
+export function forgetSuccessfulCombo(interfaceKey: string): void {
+  comboCache.forget(interfaceKey);
+}
+
 export const fetchNga: NgaFetcher = createNgaFetcher({
   // 传工厂而不是实例:反封锁链每次重试前要重建 HTTP client(ADR-0002)
   createTransport,
+  comboCache,
   getCredentials: currentCredentials,
   getReadPhpUserAgent: readPhpUserAgent,
   strategies: [
+    createWebFallbackStrategy({ placement: 'primary', getMode: webFallbackMode }),
     createFormatRotationStrategy(),
     createSwitchAccountStrategy({ listCredentials: allCredentials }),
+    createWebFallbackStrategy({ placement: 'secondary', getMode: webFallbackMode }),
   ],
   onDiagnostic: recordFetchDiagnostic,
 });

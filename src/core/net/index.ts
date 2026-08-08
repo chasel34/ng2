@@ -89,6 +89,14 @@ export {
   type SwitchAccountOptions,
 } from './strategies/switch-account'
 export {
+  DEFAULT_WEB_FALLBACK_MODE,
+  WEB_FALLBACK_STRATEGY_NAME,
+  createWebFallbackStrategy,
+  type WebFallbackMode,
+  type WebFallbackOptions,
+} from './strategies/web-fallback'
+export { parseReadPageHtml } from './web/read-html'
+export {
   createFetchTransport,
   type HttpRequest,
   type HttpResponse,

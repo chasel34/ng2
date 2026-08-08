@@ -1,10 +1,18 @@
 import { create } from 'zustand';
 
-import type { UserAgentProfile } from '@/core/net';
+import { DEFAULT_WEB_FALLBACK_MODE, type UserAgentProfile, type WebFallbackMode } from '@/core/net';
 
 import { storage } from './storage';
 
-const STORE_KEY = 'net.readPhpWindowsPhoneUa.v1';
+const UA_KEY = 'net.readPhpWindowsPhoneUa.v1';
+const WEB_FALLBACK_KEY = 'net.webFallbackMode.v1';
+
+const WEB_FALLBACK_MODES: readonly WebFallbackMode[] = [
+  'disabled',
+  'secondary',
+  'primary',
+  'only',
+];
 
 interface NetSettingsState {
   /**
@@ -16,28 +24,54 @@ interface NetSettingsState {
    */
   readPhpWindowsPhoneUa: boolean;
   setReadPhpWindowsPhoneUa: (enabled: boolean) => void;
+  /**
+   * Web 反解档位(ADR-0002 / API 文档 §0.8 的四档,19 票)。
+   *
+   * 默认 `secondary`:排在换账号之后,原生接口全垮了才去反解网页版。
+   * `primary`/`only` 是排查用的档位(怀疑 read.php 被封时,让它先走或只走网页),
+   * `disabled` 则完全关掉。22 票把它接进设置页的「实验室 · 网页数据源兜底」。
+   */
+  webFallbackMode: WebFallbackMode;
+  setWebFallbackMode: (mode: WebFallbackMode) => void;
 }
 
-function load(): boolean {
+function loadUa(): boolean {
   try {
-    return storage.getBoolean(STORE_KEY) ?? true;
+    return storage.getBoolean(UA_KEY) ?? true;
   } catch {
     return true;
   }
 }
 
+function loadWebFallbackMode(): WebFallbackMode {
+  try {
+    const stored = storage.getString(WEB_FALLBACK_KEY);
+    return WEB_FALLBACK_MODES.find((mode) => mode === stored) ?? DEFAULT_WEB_FALLBACK_MODE;
+  } catch {
+    return DEFAULT_WEB_FALLBACK_MODE;
+  }
+}
+
 /**
- * 网络层的开关。现在只有一项,22 号票(设置三屏)的域名切换、网页兜底档位
- * 也归这里,所以先开成一个 store 而不是一个孤零零的布尔。
+ * 网络层的开关。22 号票(设置三屏)的域名切换也归这里。
  */
 export const useNetSettings = create<NetSettingsState>()((set) => ({
-  readPhpWindowsPhoneUa: load(),
+  readPhpWindowsPhoneUa: loadUa(),
   setReadPhpWindowsPhoneUa: (enabled) => {
     set({ readPhpWindowsPhoneUa: enabled });
     try {
-      storage.set(STORE_KEY, enabled);
+      storage.set(UA_KEY, enabled);
     } catch {
       // 写不进就只活在内存,重启回默认值
+    }
+  },
+  webFallbackMode: loadWebFallbackMode(),
+  setWebFallbackMode: (mode) => {
+    set({ webFallbackMode: mode });
+    try {
+      storage.set(WEB_FALLBACK_KEY, mode);
+    } catch {
+      // 同上
     }
   },
 }));
@@ -48,4 +82,9 @@ export const useNetSettings = create<NetSettingsState>()((set) => ({
  */
 export function readPhpUserAgent(): UserAgentProfile | null {
   return useNetSettings.getState().readPhpWindowsPhoneUa ? 'windowsPhone' : null;
+}
+
+/** 同上,Web 反解档位的读取口。 */
+export function webFallbackMode(): WebFallbackMode {
+  return useNetSettings.getState().webFallbackMode;
 }

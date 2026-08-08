@@ -1,7 +1,6 @@
 import { FlashList, type FlashListRef, type ViewToken } from '@shopify/flash-list';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -20,6 +19,7 @@ import { parseBBCode } from '@/core/bbcode';
 import { pageOfFloor } from '@/core/local';
 import { currentAccount } from '@/store/accounts';
 import { peekHistoryEntry, recordReadFloor, recordTopicVisit } from '@/store/history';
+import { forgetSuccessfulCombo } from '@/store/nga-client';
 import { useTopicDetail } from '@/store/topic-detail';
 import { recommendPidOf, useFloorRecommend } from '@/store/topic-recommend';
 import { BBCodeBody } from '@/ui/bbcode';
@@ -87,6 +87,9 @@ export default function TopicScreen() {
     const parsed = Number(fromPid);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
   });
+  // 「已切换为网页数据源」提示条被关掉了没(设计稿 fallbackBar 带关闭钮);
+  // 每次重试原生都放回来,不然重试失败了用户看不出还在兜底
+  const [webNoticeDismissed, setWebNoticeDismissed] = useState(false);
   const [jumpOpen, setJumpOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -121,6 +124,51 @@ export default function TopicScreen() {
   };
 
   const swipe = useSwipePaging({ page, totalPages, onChange: goToPage });
+
+  /**
+   * 「重试原生」(设计稿 fallbackBar 的动作):Web 反解出来的这一页是兜底,
+   * 用户想看原生渲染时再试一次。先忘掉 read.php 上次试通的组合——
+   * 不清的话下一次还是从那个已经不灵的组合开局,等于白点一下。
+   */
+  const retryNative = () => {
+    forgetSuccessfulCombo('read.php');
+    setWebNoticeDismissed(false);
+    void refetch();
+  };
+
+  /**
+   * 进网页兜底页(设计稿 isWebview)。18 票这个动作是开系统浏览器,
+   * 19 票换成站内页——开出去就没有回切入口了。
+   */
+  const openWebFallback = () => {
+    router.push({
+      pathname: '/web',
+      params: {
+        url: webUrlOf(topicId, page, fav),
+        ...(title === undefined ? {} : { title }),
+      },
+    });
+  };
+
+  /**
+   * 从网页兜底页退回来时再打一次原生接口:被封往往是一时的,
+   * 用户特地按了「用 APP 阅读这一页」,总不该还盯着上一次的失败。
+   *
+   * 回调终生不变(否则每次失败都会把自己重跑一遍),要读的最新值走 ref。
+   */
+  const focusRetry = useRef({ error, refetch, first: true });
+  focusRetry.current = { ...focusRetry.current, error, refetch };
+  useFocusEffect(
+    useCallback(() => {
+      // 进场那次不算「回来」,那时该有的请求 useQuery 已经发了
+      if (focusRetry.current.first) {
+        focusRetry.current.first = false;
+        return;
+      }
+      if (focusRetry.current.error !== null) void focusRetry.current.refetch();
+    }, []),
+  );
+
   // 只看某一楼时不记进度也不提示续读:屏上只有一楼,`totalRows` 是 1,
   // 照记会把这个主题的历史楼数覆盖成 0(ticket 16);
   // 只看此人期间楼号与总数同样是过滤后的口径,写进阅读进度会串档,一并暂停
@@ -252,7 +300,7 @@ export default function TopicScreen() {
         <LoadFailed
           error={error}
           onRetry={() => void refetch()}
-          onOpenWeb={() => void WebBrowser.openBrowserAsync(webUrlOf(topicId, page, fav))}
+          onOpenWeb={openWebFallback}
           onRelogin={() => router.push('/login')}
         />
       );
@@ -352,8 +400,8 @@ export default function TopicScreen() {
         <TopBarButton
           icon="public"
           size={22}
-          onPress={() => void WebBrowser.openBrowserAsync(webUrlOf(topicId, page, fav))}
-          accessibilityLabel="在浏览器里打开"
+          onPress={openWebFallback}
+          accessibilityLabel="用网页版打开"
           style={topBarSpacer}
         />
         <TopBarButton
@@ -363,6 +411,27 @@ export default function TopicScreen() {
           accessibilityLabel="更多"
         />
       </TopBar>
+
+      {/* 这一页是 Web 反解出来的(反封锁链的 web-fallback 档,ADR-0002)。
+          钉在页码条下面而不是跟着列表滚:它说的是「整页数据的来源」,不是某一楼的事 */}
+      {data?.source === 'web' && !webNoticeDismissed && (
+        <View style={styles.webNotice}>
+          <Icon name="info" size={19} color={theme.colors.primary} />
+          <Text style={styles.webNoticeText}>
+            原生解析失败,已切换为<Text style={styles.webNoticeStrong}>网页数据源</Text>显示
+          </Text>
+          <Pressable onPress={retryNative} accessibilityLabel="重试原生数据源" hitSlop={6}>
+            <Text style={styles.webNoticeAction}>重试原生</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setWebNoticeDismissed(true)}
+            accessibilityLabel="关闭提示"
+            hitSlop={8}
+          >
+            <Icon name="close" size={17} color={theme.colors.meta} />
+          </Pressable>
+        </View>
+      )}
 
       {onlyPid !== undefined && (
         <Pressable style={styles.onlyFloorBar} onPress={() => setOnlyPid(undefined)}>
@@ -945,6 +1014,33 @@ const useStyles = createThemedStyles((theme) => ({
   /** 设计稿在列表末尾留 90 给 FAB 让路 */
   footerSpacer: {
     height: 90,
+  },
+  /** 设计稿 fallbackBar:内距 11 12 11 14、primary-c 底、底边一条 divider */
+  webNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 11,
+    paddingLeft: 14,
+    paddingRight: theme.spacing.md,
+    backgroundColor: theme.colors.primaryContainer,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  webNoticeText: {
+    ...theme.typography.listMeta,
+    color: theme.colors.fg,
+    flex: 1,
+  },
+  webNoticeStrong: {
+    fontWeight: '700',
+  },
+  webNoticeAction: {
+    ...theme.typography.listMeta,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: 6,
   },
   onlyFloorBar: {
     flexDirection: 'row',

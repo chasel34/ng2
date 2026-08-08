@@ -3,11 +3,11 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
- * 真实抓包样本（2026-08-07，bbs.nga.cn，用 .env.local 的测试账号 curl 取得）。
+ * 真实抓包样本（2026-08-07 / 08-08，bbs.nga.cn，用 .env.local 的测试账号 curl 取得）。
  *
  * 文件存的是**原始响应字节**（多数是 GBK），不是 UTF-8 文本——解码本身就是被测对象。
- * 已脱敏：抓包账号的 uid（出现在 `__CU` 里）统一替换成 10000001；
- * cookie / cid 不在响应体里，抓包时也没有落盘。
+ * 已脱敏：抓包账号的 uid（出现在 `__CU` / 网页版的 `__CURRENT_UID` 里）统一替换成
+ * 10000001，用户名替换成 `nga_user`；cookie / cid 不在响应体里，抓包时也没有落盘。
  */
 
 const fixturesDir = dirname(fileURLToPath(import.meta.url))
@@ -55,6 +55,37 @@ export const NET_FIXTURES = {
     contentType: 'text/javascript; charset=GBK',
     file: 'read-thread-not-found.gbk.bin',
     note: 'read.php tid=1 → {"error":{"0":"2048:找不到主题",…}}，真错误',
+  },
+  /**
+   * Web 反解档的样本（2026-08-08 抓取）：`read.php` **不带格式参数**拿到的整页 HTML。
+   *
+   * 这四份与 `core/api/__fixtures__` 里同 tid 的 `__output=8` 样本是同一批主题，
+   * 反解结果可以直接跟 JSON 路线对拍。
+   *
+   * tid=46186286 第 1 页：匿名主楼（`authorid` 是 `-1`）、4 条热门回复、15 页分页。
+   */
+  readWebAnonymousHotReply: {
+    contentType: 'text/html; charset=GBK',
+    file: 'read-web-anonymous-hotreply.gbk.bin',
+    note: 'read.php tid=46186286 page=1 v2=1，无格式参数（网页 HTML），登录态',
+  },
+  /** tid=44191387 第 1 页：第 4 楼带一条贴条（网页版嵌在 `comment_for_<pid>` 里）。 */
+  readWebComment: {
+    contentType: 'text/html; charset=GBK',
+    file: 'read-web-comment.gbk.bin',
+    note: 'read.php tid=44191387 page=1 v2=1，无格式参数（网页 HTML），登录态',
+  },
+  /** tid=47328470 第 1 页：主楼带两个附件（`ubbcode.attach.load`）与编辑记录（`loadAlertInfo`）。 */
+  readWebAttachments: {
+    contentType: 'text/html; charset=GBK',
+    file: 'read-web-attachments.gbk.bin',
+    note: 'read.php tid=47328470 page=1 v2=1，无格式参数（网页 HTML），登录态',
+  },
+  /** tid=1：网页版的错误页，错误码/文案夹在 `<!--msgcodestart-->` 一类注释标记里。 */
+  readWebNotFound: {
+    contentType: 'text/html; charset=GB18030',
+    file: 'read-web-not-found.gbk.bin',
+    note: 'read.php tid=1，无格式参数 → msgcode 2048 找不到主题',
   },
 } as const satisfies Record<string, NetFixture>
 

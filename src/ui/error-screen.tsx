@@ -10,7 +10,7 @@ export interface LoadFailedProps {
   /** 反封锁链最后抛出来的那个错误(TanStack Query 给的是 `Error | null`) */
   error: unknown;
   onRetry: () => void;
-  /** 「用网页版打开」。19 号票会把它换成站内网页兜底页 */
+  /** 「用网页版打开」。19 票起指向站内的网页兜底页(`/web`),不再开系统浏览器 */
   onOpenWeb: () => void;
   onRelogin: () => void;
 }
@@ -18,7 +18,7 @@ export interface LoadFailedProps {
 /**
  * 「加载失败」页(设计稿 isError 屏)。
  *
- * 反封锁链(ADR-0002)把格式 × 域名的组合、换账号都试遍还是不行时落到这里:
+ * 反封锁链(ADR-0002)把格式 × 域名的组合、换账号、Web 反解都试遍还是不行时落到这里:
  * 说清楚服务端返回了什么 + 重试 / 用网页版打开 / 重新登录三个出路,
  * 底下那行是已经写进本地日志的诊断摘要(22 号票的「导出诊断日志」拿全量)。
  *

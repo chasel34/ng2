@@ -286,6 +286,12 @@ export interface TopicDetail {
   /** 热门回复（CONTEXT.md），服务端只在主楼里标，独立成一区展示 */
   readonly hotReplies: readonly Floor[]
   readonly users: Readonly<Record<string, FloorUser>>
+  /**
+   * 这一页是从哪条路拿到的（ADR-0002）。`web` = 反封锁链的 Web 反解档出的产物，
+   * 详情页要为它出一条「已切换为网页数据源」提示条（设计稿 fallbackBar）。
+   * 缺省视作 `native`——从缓存等别的来源拼出来的 TopicDetail 不必操心这个字段。
+   */
+  readonly source?: 'native' | 'web'
 }
 
 /** `thread.php` 一页的结果。 */
