@@ -136,6 +136,9 @@ describe('字号 / 行高 token', () => {
       dialogAction: { fontSize: 14, fontWeight: '600' },
       // 09 补:账号管理屏(isAccounts)的「添加账号」虚线按钮 14.5/650
       accountAction: { fontSize: 14.5, fontWeight: '600' },
+      // 16 补:详情页「上次读到」提示条(progressTip)与二级列表副标题条(listSub)
+      resumeTip: { fontSize: 13, fontWeight: '400', lineHeight: 18.2 },
+      listSubtitle: { fontSize: 12, fontWeight: '400' },
     });
   });
 
@@ -167,6 +170,8 @@ describe('字号 / 行高 token', () => {
         'dialogTitle',
         'dialogAction',
         'accountAction',
+        'resumeTip',
+        'listSubtitle',
       ].sort(),
     );
   });

@@ -59,15 +59,16 @@ async function download(url) {
 }
 
 /**
- * 设计稿里图标出现在两处:`<span class="ms">icon_name</span>` 与 JS 里的 `icon:'icon_name'`
- * (楼层平台图标写在 `plat:`)。扫出来的名字要拿码点表校验,过滤掉正则的误伤。
+ * 设计稿里图标出现在三处:`<span class="ms">icon_name</span>`、JS 里的 `icon:'icon_name'`
+ * (楼层平台图标写在 `plat:`),以及二级列表右上角按钮的 `trail:'icon_name'`
+ * (LMETA 表,渲染进 `{{ listTrailIcon }}`)。扫出来的名字要拿码点表校验,过滤掉正则的误伤。
  * @param {string} html
  * @returns {string[]}
  */
 function scanDesignIconNames(html) {
   const names = new Set()
   for (const [, name] of html.matchAll(/class="ms"[^>]*>([a-z0-9_]+)</g)) names.add(name)
-  for (const [, name] of html.matchAll(/\b(?:icon|plat):\s*'([a-z0-9_]+)'/g)) names.add(name)
+  for (const [, name] of html.matchAll(/\b(?:icon|plat|trail):\s*'([a-z0-9_]+)'/g)) names.add(name)
   return [...names].sort()
 }
 

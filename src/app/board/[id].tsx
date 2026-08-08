@@ -88,8 +88,9 @@ export default function BoardScreen() {
   };
 
   const menuItems: readonly MenuItem[] = useMemo(() => {
-    // 热帖与精华区(17 票)已通,复用本页的路由参数;还没做:浏览历史 16、子版块 23、收藏夹 11
-    // (设计稿这一条写的是「子板块」,CONTEXT.md 的词条是「子版块」,按术语表来)
+    // 热帖/精华区(17 票)与浏览历史(16 票)已通,复用本页的路由参数;还没做:子版块 23、收藏夹 11
+    // (设计稿这一条写的是「子板块」,CONTEXT.md 的词条是「子版块」,按术语表来;
+    // 顺序照设计稿 MENUS.list:浏览历史在热帖之后、精华区之前)
     const boardParams = {
       id: String(boardId),
       kind: boardKind,
@@ -97,7 +98,7 @@ export default function BoardScreen() {
     };
     const entries: readonly (readonly [string, (() => void)?])[] = [
       ['24 小时热帖', () => router.push({ pathname: '/board/hot', params: boardParams })],
-      ['浏览历史'],
+      ['浏览历史', () => router.push('/history')],
       ['精华区', () => router.push({ pathname: '/board/recommend', params: boardParams })],
       ['子版块'],
       ['收藏夹'],

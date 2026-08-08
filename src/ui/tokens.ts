@@ -245,6 +245,10 @@ const designOnlyTypography = {
   dialogTitle: { fontSize: 18, fontWeight: '600' },
   /** 对话框按钮 14 · 650 */
   dialogAction: { fontSize: 14, fontWeight: '600' },
+  /** 详情页「上次读到」提示条正文 13 · 1.4(设计稿 isArticle 的 progressTip) */
+  resumeTip: { fontSize: 13, fontWeight: '400', lineHeight: 18.2 },
+  /** 二级列表页副标题条 12(设计稿 isSimpleList 的 listSub) */
+  listSubtitle: { fontSize: 12, fontWeight: '400' },
 } as const;
 
 export const typography = { ...tokenTableTypography, ...designOnlyTypography } as const;
