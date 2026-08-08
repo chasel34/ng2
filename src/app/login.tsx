@@ -1,8 +1,9 @@
+import CookieManager from '@react-native-cookies/cookies';
 import { useRouter } from 'expo-router';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { WebView } from 'react-native-webview';
 
 import { decodeLoginUsername, extractLoginCookies } from '@/core/account';
 import { DEFAULT_NGA_HOST } from '@/core/net';
@@ -19,24 +20,13 @@ const LOGIN_URL = `${DEFAULT_NGA_HOST}/${LOGIN_PATH}`;
 const URL_HINT = `${DEFAULT_NGA_HOST.replace('https://', '')}/nuke.php?__lib=login`;
 
 /**
- * 抓 cookie 的两种时机之一:页面内每 0.5s 轮询 document.cookie(MNGA 的节奏)。
- * 登录动作是页内 AJAX,cookie 由 JS 落下、不触发导航,只有轮询能第一时间看到。
- * 另一种时机是加载回调(Android v4 的做法),见 onLoadEnd 里的 injectJavaScript。
+ * 抓 cookie 走原生 CookieManager 轮询(每 0.5s,MNGA 的节奏),而不是页内
+ * document.cookie:ngaPassportCid 是 HttpOnly,页面 JS 根本看不到(真机实测
+ * 2026-08-08,document.cookie 里只有 uid 和 uname)。MNGA(WKHTTPCookieStore)
+ * 与 NGA-CLIENT(android.webkit.CookieManager)读的都是原生 cookie 仓库,
+ * @react-native-cookies/cookies 在 Android 上包的正是后者。
  */
-const CAPTURE_COOKIES_JS = `
-(function () {
-  var post = function () {
-    if (window.ReactNativeWebView && document.cookie.indexOf('ngaPassportUid') !== -1) {
-      window.ReactNativeWebView.postMessage(document.cookie);
-    }
-  };
-  post();
-  if (!window.__ng2CookiePoll) {
-    window.__ng2CookiePoll = setInterval(post, 500);
-  }
-})();
-true;
-`;
+const COOKIE_POLL_MS = 500;
 
 export default function LoginScreen() {
   const styles = useStyles();
@@ -44,22 +34,51 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const webRef = useRef<WebView>(null);
-  // 轮询会连发好几条同样的 cookie,只处理第一条,免得重复落账号/重复退场
+  // 轮询会连着看到同一份 cookie,只处理第一次,免得重复落账号/重复退场
   const captured = useRef(false);
+  // 先清掉 WebView 里上一个账号的 cookie 再加载登录页,否则添加第二个账号时
+  // 轮询会立刻"捕获"到旧账号。清完才挂 WebView。
+  const [ready, setReady] = useState(false);
   const add = useAccounts((state) => state.add);
 
-  const onMessage = (event: WebViewMessageEvent) => {
-    if (captured.current) return;
-    const cookies = extractLoginCookies(event.nativeEvent.data);
-    if (cookies === null) return;
-    captured.current = true;
-    const name =
-      cookies.urlencodedUname === null ? null : decodeLoginUsername(cookies.urlencodedUname);
-    const shownName = name ?? `UID ${cookies.uid}`;
-    add({ uid: cookies.uid, cid: cookies.cid, name: shownName, loginAt: Date.now() });
-    showToast(`已登录 ${shownName}`);
-    router.back();
-  };
+  useEffect(() => {
+    let alive = true;
+    CookieManager.clearAll()
+      .catch(() => {})
+      .then(() => {
+        if (alive) setReady(true);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    const timer = setInterval(async () => {
+      if (captured.current) return;
+      let cookies: Awaited<ReturnType<typeof CookieManager.get>>;
+      try {
+        cookies = await CookieManager.get(DEFAULT_NGA_HOST);
+      } catch {
+        return;
+      }
+      if (captured.current) return;
+      const raw = Object.values(cookies)
+        .map((cookie) => `${cookie.name}=${cookie.value}`)
+        .join('; ');
+      const parsed = extractLoginCookies(raw);
+      if (parsed === null) return;
+      captured.current = true;
+      const name =
+        parsed.urlencodedUname === null ? null : decodeLoginUsername(parsed.urlencodedUname);
+      const shownName = name ?? `UID ${parsed.uid}`;
+      add({ uid: parsed.uid, cid: parsed.cid, name: shownName, loginAt: Date.now() });
+      showToast(`已登录 ${shownName}`);
+      router.back();
+    }, COOKIE_POLL_MS);
+    return () => clearInterval(timer);
+  }, [ready, add, router]);
 
   return (
     <View style={styles.root}>
@@ -82,20 +101,20 @@ export default function LoginScreen() {
         </Text>
       </View>
 
-      <WebView
-        ref={webRef}
-        source={{ uri: LOGIN_URL }}
-        style={styles.web}
-        // 独立无痕 cookie 罐:添加第二个账号时不会被上一个账号的登录态顶掉,
-        // 也避免刚打开就把旧 cookie 当成"登录成功"
-        incognito
-        domStorageEnabled
-        injectedJavaScript={CAPTURE_COOKIES_JS}
-        onMessage={onMessage}
-        // 抓 cookie 的另一种时机:每次页面加载完成再注入一次
-        // (登录成功若走整页跳转,新文档里的轮询定时器要重新装上)
-        onLoadEnd={() => webRef.current?.injectJavaScript(CAPTURE_COOKIES_JS)}
-      />
+      {ready ? (
+        <WebView
+          ref={webRef}
+          source={{ uri: LOGIN_URL }}
+          style={styles.web}
+          // 注意:不能用 incognito——Android 上 incognito 的 WebView 用独立的
+          // cookie 仓库,原生 CookieManager 读不到里面的登录 cookie(且 incognito
+          // 还会破坏 injectedJavaScript 通道,真机实测 2026-08-08)。
+          // 多账号隔离改为挂载前 clearAll(见上面的 useEffect)。
+          domStorageEnabled
+        />
+      ) : (
+        <View style={styles.web} />
+      )}
 
       <View style={[styles.noteWrap, { paddingBottom: insets.bottom + 12 }]}>
         <Text style={styles.note}>

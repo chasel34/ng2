@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@react-native-cookies/cookies':
+        specifier: ^6.2.1
+        version: 6.2.1(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))
       '@shopify/flash-list':
         specifier: 2.0.2
         version: 2.0.2(@babel/runtime@7.29.7)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)
@@ -961,6 +964,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@react-native-cookies/cookies@6.2.1':
+    resolution: {integrity: sha512-D17wCA0DXJkGJIxkL74Qs9sZ3sA+c+kCoGmXVknW7bVw/W+Vv1m/7mWTNi9DLBZSRddhzYw8SU0aJapIaM/g5w==}
+    peerDependencies:
+      react-native: '>= 0.60.2'
 
   '@react-native-masked-view/masked-view@0.3.2':
     resolution: {integrity: sha512-XwuQoW7/GEgWRMovOQtX3A4PrXhyaZm0lVUiY8qJDvdngjLms9Cpdck6SmGAUNqQwcj2EadHC1HwL0bEyoa/SQ==}
@@ -4415,6 +4423,11 @@ snapshots:
       react: 19.2.3
     optionalDependencies:
       '@types/react': 19.2.18
+
+  '@react-native-cookies/cookies@6.2.1(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))':
+    dependencies:
+      invariant: 2.2.4
+      react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)
 
   '@react-native-masked-view/masked-view@0.3.2(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)':
     dependencies:
