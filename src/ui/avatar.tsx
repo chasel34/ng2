@@ -14,8 +14,9 @@ const AVATAR_SIZE = 42;
 /**
  * 按用户 key 稳定取一档占位底色。要的只是「同一个人每次都同一个颜色」,
  * 所以一个逐字符累加的弱散列足够——不需要抗碰撞。
+ * 账号管理页的账号头像也用它(同一 uid 到处同色)。
  */
-function colorFor(key: string): string {
+export function avatarColorFor(key: string): string {
   let hash = 0;
   for (let i = 0; i < key.length; i += 1) {
     hash = (hash * 31 + key.charCodeAt(i)) % 0xffffff;
@@ -36,7 +37,7 @@ export function Avatar({ user }: { user: FloorUser | undefined }) {
 
   if (user?.avatarUrl === undefined || failed) {
     return (
-      <View style={[styles.avatar, styles.placeholder, { backgroundColor: colorFor(key) }]}>
+      <View style={[styles.avatar, styles.placeholder, { backgroundColor: avatarColorFor(key) }]}>
         <Text style={styles.initial} allowFontScaling={false}>
           {initialOf(name)}
         </Text>
