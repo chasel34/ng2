@@ -6,6 +6,7 @@ import {
   createFormatRotationStrategy,
   createNgaFetcher,
   createSwitchAccountStrategy,
+  createTopicCacheStrategy,
   createWebFallbackStrategy,
   type NgaFetcher,
 } from '@/core/net';
@@ -13,6 +14,7 @@ import {
 import { allCredentials, currentCredentials } from './accounts';
 import { recordFetchDiagnostic } from './diagnostics';
 import { readPhpUserAgent, webFallbackMode } from './net-settings';
+import { readCachedPage } from './topic-cache';
 
 /**
  * 全 app 共用的 NGA 请求器——core/net 的策略链在这里接上设备侧的 HTTP 实现。
@@ -28,7 +30,8 @@ import { readPhpUserAgent, webFallbackMode } from './net-settings';
  * 1. `format-rotation` 格式参数 × 域名的组合枚举,成功组合按接口 key 缓存
  * 2. `switch-account`  换下一个已登录账号的 cookie 试一次(仅多账号)
  * 3. `web-fallback`    read.php 专用:拿网页版 HTML 反解出同构信封(19 票)
- * 4. 帖子缓存(20 号票)、5. 网页兜底页(19 票,不在链上——是链失败后的一个路由)
+ * 4. `topic-cache`     read.php 专用:从本机 SQLite 还原上次存下的那一页(20 票)
+ * 5. 网页兜底页(19 票,不在链上——是链失败后的一个路由)
  *
  * `web-fallback` 在链上出现两次是刻意的:档位(Disabled/Secondary/Primary/Only)是用户
  * 设置,而链的顺序建 fetcher 时就定死了,只能两个位置各摆一条、各自按档位决定跑不跑。
@@ -61,6 +64,9 @@ export const fetchNga: NgaFetcher = createNgaFetcher({
     createFormatRotationStrategy(),
     createSwitchAccountStrategy({ listCredentials: allCredentials }),
     createWebFallbackStrategy({ placement: 'secondary', getMode: webFallbackMode }),
+    // 链的最后一档:网络这条路已经走完了,还剩本机存着的那一页(20 票)。
+    // 读是同步的 SQLite 查询,命中不了就报 unavailable 让错误页/网页兜底接手
+    createTopicCacheStrategy({ store: { read: readCachedPage } }),
   ],
   onDiagnostic: recordFetchDiagnostic,
 });

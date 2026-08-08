@@ -288,10 +288,10 @@ export interface TopicDetail {
   readonly users: Readonly<Record<string, FloorUser>>
   /**
    * 这一页是从哪条路拿到的（ADR-0002）。`web` = 反封锁链的 Web 反解档出的产物，
-   * 详情页要为它出一条「已切换为网页数据源」提示条（设计稿 fallbackBar）。
-   * 缺省视作 `native`——从缓存等别的来源拼出来的 TopicDetail 不必操心这个字段。
+   * `cache` = 帖子缓存档从本机还原的（断网/全档失败时的最后一道）。两者都要在
+   * 详情页出一条数据源提示条（设计稿 fallbackBar）。缺省视作 `native`。
    */
-  readonly source?: 'native' | 'web'
+  readonly source?: 'native' | 'web' | 'cache'
 }
 
 /** `thread.php` 一页的结果。 */

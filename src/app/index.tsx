@@ -235,7 +235,7 @@ export default function HomeScreen() {
 
   const menuItems: readonly MenuItem[] = useMemo(
     () =>
-      // 还没做:我的主题/我的回复 14、我的缓存 20、设置 22;短消息整块不做(spec §1)
+      // 还没做:我的主题/我的回复 14、设置 22;短消息整块不做(spec §1)
       ['我的主题', '我的回复', '我的缓存', '短消息', '收藏夹', '设置'].map((label, index) => ({
         key: label,
         label,
@@ -243,6 +243,7 @@ export default function HomeScreen() {
         onPress: () => {
           setMenuOpen(false);
           if (label === '收藏夹') router.push('/favorites');
+          else if (label === '我的缓存') router.push('/caches');
           else showNotAvailable();
         },
       })),

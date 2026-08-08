@@ -66,6 +66,9 @@ const ENTRIES: readonly DrawerEntry[] = [
   // 我的主题/我的回复是同一个屏,只差一个 kind(14 票)
   { key: 'my-topics', icon: 'article', label: '我的主题', mine: 'topics' },
   { key: 'my-replies', icon: 'reply', label: '我的回复', mine: 'replies' },
+  // 设计稿把「我的缓存」放在首页菜单里(MENUS.home),抽屉这条是顺手的第二入口——
+  // 抽屉在每一屏都拉得出来,不必先退回首页再开菜单
+  { key: 'caches', icon: 'cached', label: '我的缓存', href: '/caches' },
   {
     key: 'notifications',
     icon: 'notifications_active',

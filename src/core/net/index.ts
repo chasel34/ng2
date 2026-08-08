@@ -89,6 +89,15 @@ export {
   type SwitchAccountOptions,
 } from './strategies/switch-account'
 export {
+  TOPIC_CACHE_STRATEGY_NAME,
+  createTopicCacheStrategy,
+  serializeEnvelope,
+  topicCacheKeyOf,
+  type TopicCacheKey,
+  type TopicCacheReader,
+  type TopicCacheStrategyOptions,
+} from './strategies/topic-cache'
+export {
   DEFAULT_WEB_FALLBACK_MODE,
   WEB_FALLBACK_STRATEGY_NAME,
   createWebFallbackStrategy,

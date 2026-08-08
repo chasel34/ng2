@@ -357,7 +357,8 @@ export default function TopicScreen() {
 
   /**
    * 顶栏「更多」菜单,条目与顺序照设计稿 `MENUS.article`。
-   * 还没做的几项(复制链接、缓存本页 20 票、分享、夜间模式 22 票)先 toast「本版本未开放」,
+   * 「缓存整帖」是设计稿没画的一条(票面要求),挨着「缓存本页」放。
+   * 还没做的几项(复制链接、分享、夜间模式 22 票)先 toast「本版本未开放」,
    * 各票到时候换掉自己那一行即可。
    */
   const menuItems = (): readonly MenuItem[] => {

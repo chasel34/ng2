@@ -3,6 +3,7 @@ import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react
 import { fetchTopicDetail, type TopicDetail } from '@/core/api';
 
 import { fetchNga } from './nga-client';
+import { saveCachedPage } from './topic-cache';
 
 export interface TopicDetailParams {
   tid: number;
@@ -10,6 +11,12 @@ export interface TopicDetailParams {
   page: number;
   /** fav 码(CONTEXT.md「fav 码」),从主题列表带进来 */
   favCode?: string;
+  /**
+   * 只看某一楼(14 的「我的回复」、24 的 pid 深链):服务端把那一楼单独捞出来,
+   * 响应里只有这一条楼层。和 authorId 一样必须进 queryKey——
+   * 它与整帖第 1 页是两份完全不同的数据。
+   */
+  pid?: number;
   /** 只看某人(12 票):服务端按 uid 过滤楼层,分页随之重排 */
   authorId?: number;
 }
@@ -17,10 +24,10 @@ export interface TopicDetailParams {
 /**
  * fav 码进 key:带 fav 与不带 fav 请求的是**不同的东西**(隐藏/过期主题只有带码才拿得到),
  * 不区分的话两者会互相命中缓存,从收藏进来的隐藏帖会命中一份空数据。
- * authorId 同理:只看某人的第 N 页与全楼的第 N 页完全是两份数据。
+ * pid / authorId 同理:只看某一楼、只看某人的第 N 页与全楼的第 N 页完全是两份数据。
  */
-export const topicDetailQueryKey = ({ tid, page, favCode, authorId }: TopicDetailParams) =>
-  ['topic-detail', tid, page, favCode ?? null, authorId ?? null] as const;
+export const topicDetailQueryKey = ({ tid, page, favCode, pid, authorId }: TopicDetailParams) =>
+  ['topic-detail', tid, page, favCode ?? null, pid ?? null, authorId ?? null] as const;
 
 /**
  * 一页帖子详情。
@@ -31,9 +38,12 @@ export const topicDetailQueryKey = ({ tid, page, favCode, authorId }: TopicDetai
  *
  * `keepPreviousData` 是给滑动翻页用的:切页时先留着上一页的内容,
  * 免得手指一松整屏先白一下再填上。
+ *
+ * `onSnapshot` 是 20 票的自动缓存:浏览过的整帖页顺手写进 SQLite,
+ * 断网时反封锁链的缓存档就是从那儿把这一页还回来的(过滤视图 core 层会挡掉)。
  */
 export function useTopicDetail(params: TopicDetailParams): UseQueryResult<TopicDetail> {
-  const { tid, page, favCode, authorId } = params;
+  const { tid, page, favCode, pid, authorId } = params;
 
   return useQuery({
     queryKey: topicDetailQueryKey(params),
@@ -42,8 +52,10 @@ export function useTopicDetail(params: TopicDetailParams): UseQueryResult<TopicD
         tid,
         page,
         ...(favCode === undefined ? {} : { favCode }),
+        ...(pid === undefined ? {} : { pid }),
         ...(authorId === undefined ? {} : { authorId }),
         signal,
+        onSnapshot: saveCachedPage,
       }),
     placeholderData: keepPreviousData,
     enabled: Number.isFinite(tid) && tid > 0,

@@ -22,7 +22,16 @@
  */
 
 import { REPUTATION_SCALE, resolveAuthorName } from '../local'
-import { NgaError, WEB_FALLBACK_STRATEGY_NAME, isRecord, type NgaFetcher } from '../net'
+import {
+  NgaError,
+  TOPIC_CACHE_STRATEGY_NAME,
+  WEB_FALLBACK_STRATEGY_NAME,
+  isRecord,
+  serializeEnvelope,
+  topicCacheKeyOf,
+  type NgaFetcher,
+  type NgaRequest,
+} from '../net'
 import { normalizeAttachBase, THUMBNAIL_SUFFIX } from './attachments'
 import { int, orderedValues, str, text } from './fields'
 import type { Floor, FloorAttachment, FloorClient, FloorUser, TopicDetail } from './types'
@@ -315,6 +324,30 @@ export interface FetchTopicDetailOptions {
   /** 只看某人（API 文档 §3 的 `authorid`）：服务端只回这个 uid 的楼层，分页随之重排 */
   readonly authorId?: number
   readonly signal?: AbortSignal
+  /**
+   * 拿到一页可缓存的数据时回调一次（20 票的自动缓存）。设备侧把它写进 SQLite；
+   * 不传就是不缓存（单测与「缓存整帖」以外的调用方都不必关心）。
+   *
+   * 缓存写在这里而不是包一层 fetcher：要存的正文字节（信封）与要存的元数据
+   * （标题/版块名/楼数/总页数）分别只有请求侧和解析结果知道，这是唯一同时握着两者的地方。
+   */
+  readonly onSnapshot?: (snapshot: CachedPageSnapshot) => void
+}
+
+/** 一页缓存的全部内容：正文（序列化信封）+ 列表页要显示的元数据。 */
+export interface CachedPageSnapshot {
+  readonly tid: number
+  /** 从 1 起 */
+  readonly page: number
+  readonly subject: string
+  readonly boardName?: string
+  /** fav 码（CONTEXT.md「fav 码」），离线重开隐藏/过期主题时要带回去 */
+  readonly favCode?: string
+  /** 这一页有多少楼 */
+  readonly floors: number
+  readonly totalPages: number
+  /** 序列化后的信封，原样喂给缓存档即可还原 */
+  readonly payload: string
 }
 
 /**
@@ -331,7 +364,7 @@ export async function fetchTopicDetail(
 ): Promise<TopicDetail> {
   const { tid, page, favCode, pid, authorId, signal } = options
 
-  const result = await fetchNga({
+  const request: NgaRequest = {
     path: 'read.php',
     query: {
       tid,
@@ -343,15 +376,39 @@ export async function fetchTopicDetail(
       v2: 1,
     },
     ...(signal === undefined ? {} : { signal }),
-  })
+  }
+  const result = await fetchNga(request)
 
   if (!isRecord(result.data)) {
     throw new NgaError({ kind: 'parse', message: '帖子详情响应里没有 data', via: result.via })
   }
   // 反封锁链哪一档出的结果只有 `via` 说得清（19 票的 Web 反解档会把网页 HTML
-  // 反解成同构信封，解析这一步感知不到差别）——提示条要显示的正是它
-  return parseTopicDetail(result.data, {
+  // 反解成同构信封，20 票的缓存档会从本机还原同一个信封，解析这一步感知不到差别）
+  // ——提示条要显示的正是它
+  const detail = parseTopicDetail(result.data, {
     context: nextAnonymousContext(),
-    source: result.via === WEB_FALLBACK_STRATEGY_NAME ? 'web' : 'native',
+    source:
+      result.via === WEB_FALLBACK_STRATEGY_NAME
+        ? 'web'
+        : result.via === TOPIC_CACHE_STRATEGY_NAME
+          ? 'cache'
+          : 'native',
   })
+
+  // 缓存档自己吐出来的那份不必再存一次（内容一模一样）；
+  // 只看该楼/只看某人这类过滤视图 `topicCacheKeyOf` 会挡掉
+  const key = result.via === TOPIC_CACHE_STRATEGY_NAME ? undefined : topicCacheKeyOf(request)
+  if (options.onSnapshot !== undefined && key !== undefined) {
+    options.onSnapshot({
+      tid: key.tid,
+      page: key.page,
+      subject: detail.subject,
+      floors: detail.floors.length,
+      totalPages: detail.totalPages,
+      payload: serializeEnvelope(result),
+      ...(detail.boardName === undefined ? {} : { boardName: detail.boardName }),
+      ...(favCode === undefined ? {} : { favCode }),
+    })
+  }
+  return detail
 }
