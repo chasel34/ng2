@@ -38,6 +38,18 @@ export {
   type ParseTopicDetailOptions,
 } from './topic-detail'
 export {
+  addTopicFavorite,
+  createFavoriteFolder,
+  deleteFavoriteFolder,
+  fetchFavoriteFolders,
+  fetchFavoriteTopics,
+  modifyFavoriteFolder,
+  parseFavoriteFolders,
+  removeTopicFavorite,
+  type FavoriteFolder,
+  type FetchFavoriteTopicsOptions,
+} from './topic-favor'
+export {
   fetchTopicList,
   mergeTopicPages,
   parseTopicList,

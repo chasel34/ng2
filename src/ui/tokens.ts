@@ -245,6 +245,12 @@ const designOnlyTypography = {
   dialogTitle: { fontSize: 18, fontWeight: '600' },
   /** 对话框按钮 14 · 650 */
   dialogAction: { fontSize: 14, fontWeight: '600' },
+  /** 对话框列表条目 14.5(设计稿「收藏到…」多选夹那档) */
+  dialogListItem: { fontSize: 14.5, fontWeight: '400' },
+  /** 收藏夹「默认」徽标 10.5 · 700(设计稿 isFolders 屏) */
+  folderBadge: { fontSize: 10.5, fontWeight: '700' },
+  /** 卡片副行 / 二级列表副标题条 12(设计稿 isFolders 卡片与 listSub) */
+  cardMeta: { fontSize: 12, fontWeight: '400' },
 } as const;
 
 export const typography = { ...tokenTableTypography, ...designOnlyTypography } as const;

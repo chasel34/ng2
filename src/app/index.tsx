@@ -105,17 +105,18 @@ export default function HomeScreen() {
 
   const menuItems: readonly MenuItem[] = useMemo(
     () =>
-      // 都还没做:我的主题/我的回复 14、我的缓存 20、收藏夹 11、设置 22;短消息整块不做(spec §1)
+      // 还没做:我的主题/我的回复 14、我的缓存 20、设置 22;短消息整块不做(spec §1)
       ['我的主题', '我的回复', '我的缓存', '短消息', '收藏夹', '设置'].map((label, index) => ({
         key: label,
         label,
         gapBefore: index === 3,
         onPress: () => {
           setMenuOpen(false);
-          showNotAvailable();
+          if (label === '收藏夹') router.push('/favorites');
+          else showNotAvailable();
         },
       })),
-    [],
+    [router],
   );
 
   const openBoard = (board: Board) => {
