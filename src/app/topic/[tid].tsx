@@ -49,14 +49,19 @@ export default function TopicScreen() {
   const theme = useTheme();
   const router = useRouter();
 
-  const { tid, title, fav } = useLocalSearchParams<{
+  const { tid, title, fav, page: fromPage } = useLocalSearchParams<{
     tid: string;
     title?: string;
     fav?: string;
+    page?: string;
   }>();
   const topicId = Number(tid);
 
-  const [page, setPage] = useState(1);
+  // 通知(13)点进来时带着对方楼层所在页,直接开在那一页;没带就从第 1 页起
+  const [page, setPage] = useState(() => {
+    const parsed = Number(fromPage);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  });
   const [jumpOpen, setJumpOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
   const listRef = useRef<FlashListRef<Floor>>(null);

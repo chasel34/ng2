@@ -5,6 +5,7 @@ import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { useNotificationsPoller } from '@/store/notifications';
 import { useIconFont } from '@/ui/icon';
 import { useTheme } from '@/ui/theme';
 
@@ -26,6 +27,8 @@ export default function RootLayout() {
   // QueryClient 必须只建一次:放进 state 而不是模块顶层,Fast Refresh 时不会串到旧实例
   const [queryClient] = useState(createQueryClient);
   const iconFontLoaded = useIconFont();
+  // 通知的前台轮询(13):挂在根上,登录后自己转起来,登出/切号自己停(spec §4)
+  useNotificationsPoller();
 
   useEffect(() => {
     void SystemUI.setBackgroundColorAsync(theme.colors.bg);

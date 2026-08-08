@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { currentAccountOf, cycleAccountUid } from '@/core/account';
 import { useAccounts } from '@/store/accounts';
+import { useNotificationsUnread } from '@/store/notifications';
 
 import { Icon, type IconName } from './icon';
 import { nameAbbrev } from './initial';
@@ -37,12 +38,14 @@ interface DrawerEntry {
   label: string;
   /** 落在真实路由上的条目;没有就走 showNotAvailable */
   href?: Href;
+  /** 右侧未读角标(设计稿短消息屏那颗红底数字);目前只有通知入口有 */
+  badge?: 'notifications';
 }
 
 /**
  * 抽屉条目,顺序与图标照抄设计稿。
  *
- * 还没做的页面(收藏夹 11、通知 13、设置与关于 22、由 URL 读取 24)
+ * 还没做的页面(收藏夹 11、设置与关于 22、由 URL 读取 24)
  * 一律 toast「本版本未开放」——入口先立在这儿,后续票各自换掉自己那一行。
  */
 const ENTRIES: readonly DrawerEntry[] = [
@@ -51,7 +54,13 @@ const ENTRIES: readonly DrawerEntry[] = [
   { key: 'from-url', icon: 'arrow_forward', label: '由 URL 读取' },
   { key: 'folders', icon: 'folder_special', label: '收藏夹管理' },
   { key: 'clear-favor', icon: 'warning', label: '清空我的收藏' },
-  { key: 'notifications', icon: 'notifications_active', label: '最近被喷' },
+  {
+    key: 'notifications',
+    icon: 'notifications_active',
+    label: '最近被喷',
+    href: '/notifications',
+    badge: 'notifications',
+  },
   { key: 'settings', icon: 'settings', label: '设置' },
   { key: 'about', icon: 'info', label: '关于' },
 ];
@@ -73,6 +82,7 @@ export function AppDrawerContent({ onNavigate }: AppDrawerContentProps) {
   const accounts = useAccounts((state) => state.accounts);
   const currentUid = useAccounts((state) => state.currentUid);
   const current = currentAccountOf({ accounts, currentUid });
+  const unread = useNotificationsUnread();
 
   const go = (href: Href) => {
     onNavigate?.();
@@ -163,6 +173,13 @@ export function AppDrawerContent({ onNavigate }: AppDrawerContentProps) {
           <Text style={styles.entryLabel} numberOfLines={1}>
             {entry.label}
           </Text>
+          {entry.badge === 'notifications' && unread > 0 ? (
+            <View style={styles.entryBadge}>
+              <Text style={styles.entryBadgeText} allowFontScaling={false}>
+                {unread > 99 ? '99+' : unread}
+              </Text>
+            </View>
+          ) : null}
         </Pressable>
       ))}
       <View style={styles.tail} />
@@ -231,6 +248,21 @@ const useStyles = createThemedStyles((theme) => ({
   entryLabel: {
     ...theme.typography.drawerItem,
     color: theme.colors.fg,
+  },
+  /** 未读角标照设计稿短消息屏:18 高胶囊、红底白字,顶到行尾 */
+  entryBadge: {
+    marginLeft: 'auto',
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 5,
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  entryBadgeText: {
+    ...theme.typography.unreadBadge,
+    color: theme.colors.onPrimary,
   },
   tail: {
     height: theme.spacing.xl,

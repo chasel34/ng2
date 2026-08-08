@@ -136,6 +136,11 @@ describe('字号 / 行高 token', () => {
       dialogAction: { fontSize: 14, fontWeight: '600' },
       // 09 补:账号管理屏(isAccounts)的「添加账号」虚线按钮 14.5/650
       accountAction: { fontSize: 14.5, fontWeight: '600' },
+      // 13 补:被喷屏(isNotify)条目的第三行 11 与 36 见方头像首字 13/700,
+      // 未读角标 11/700 取自短消息屏(isMessages)的红底角标
+      notifyMeta: { fontSize: 11, fontWeight: '400' },
+      notifyInitial: { fontSize: 13, fontWeight: '700' },
+      unreadBadge: { fontSize: 11, fontWeight: '700' },
     });
   });
 
@@ -167,6 +172,9 @@ describe('字号 / 行高 token', () => {
         'dialogTitle',
         'dialogAction',
         'accountAction',
+        'notifyMeta',
+        'notifyInitial',
+        'unreadBadge',
       ].sort(),
     );
   });

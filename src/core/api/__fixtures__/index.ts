@@ -63,6 +63,17 @@ export const API_FIXTURES = {
     file: 'read-attachments.gbk.bin',
     note: 'read.php tid=47328470 page=1 __output=8 v2=1，登录态',
   },
+  /**
+   * nuke.php __lib=noti __act=get_all —— 没有任何通知的账号（2026-08-08 抓取）。
+   * 关键形状：`data["0"]` 不是对象而是**空串**，通知解析必须把它当空列表。
+   * 响应里没有任何账号信息，无需脱敏；有通知的形状见 API 文档 §9.1
+   * 与两份研报（测试账号抓不到带数据的样本，条目级用例用文档口径的向量）。
+   */
+  notiGetAllEmpty: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'noti-get-all-empty.gbk.bin',
+    note: 'nuke.php __lib=noti __act=get_all __output=8，登录态，空账号',
+  },
 } as const satisfies Record<string, ApiFixture>
 
 export type ApiFixtureName = keyof typeof API_FIXTURES
