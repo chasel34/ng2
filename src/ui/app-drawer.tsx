@@ -52,8 +52,8 @@ interface DrawerEntry {
 /**
  * 抽屉条目,顺序与图标照抄设计稿。
  *
- * 还没做的页面(设置与关于 22)
- * 一律 toast「本版本未开放」——入口先立在这儿,后续票各自换掉自己那一行。
+ * 还没做的页面(关于)一律 toast「本版本未开放」——入口先立在这儿,
+ * 后续票各自换掉自己那一行。
  */
 const ENTRIES: readonly DrawerEntry[] = [
   { key: 'login', icon: 'person_add', label: '登录账号', href: '/login' },
@@ -76,7 +76,7 @@ const ENTRIES: readonly DrawerEntry[] = [
     href: '/notifications',
     badge: 'notifications',
   },
-  { key: 'settings', icon: 'settings', label: '设置' },
+  { key: 'settings', icon: 'settings', label: '设置', href: '/settings' },
   { key: 'about', icon: 'info', label: '关于' },
 ];
 

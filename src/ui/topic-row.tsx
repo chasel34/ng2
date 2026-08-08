@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import type { Topic } from '@/core/api';
 import type { TitleStyle } from '@/core/local';
 
+import { useListTitleStyle } from './appearance';
 import { Icon } from './icon';
 import { createThemedStyles, useTheme, type Theme } from './theme';
 
@@ -41,6 +42,9 @@ export interface TopicRowProps {
 export function TopicRow({ topic, onPress, time }: TopicRowProps) {
   const styles = useStyles();
   const theme = useTheme();
+  // 「帖子列表字体大小」(22 票)。二级列表(simple-list)那一档不跟着改——
+  // 它是「我的收藏 / 我的主题」这类固定 16 的窄行,设置项管的是主题列表屏
+  const listTitle = useListTitleStyle();
 
   const titleStyle = titleTextStyle(topic.titleStyle, theme);
 
@@ -50,7 +54,7 @@ export function TopicRow({ topic, onPress, time }: TopicRowProps) {
       android_ripple={{ color: theme.colors.divider }}
       style={styles.row}
     >
-      <Text style={time === undefined ? styles.titleLine : styles.titleLineSimple}>
+      <Text style={time === undefined ? listTitle : styles.titleLineSimple}>
         <Text style={[titleStyle, topic.isCollection && styles.titleCollection]}>
           {topic.subject}
         </Text>
@@ -91,9 +95,6 @@ const useStyles = createThemedStyles((theme) => ({
     paddingBottom: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.divider,
-  },
-  titleLine: {
-    ...theme.typography.topicTitle,
   },
   // 二级列表(simple-list)的标题是 16 档,比主题列表页的 17 小一号
   titleLineSimple: {

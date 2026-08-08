@@ -4,6 +4,8 @@ import {
   avatarColors,
   darkTheme,
   lightTheme,
+  paletteOf,
+  plainTheme,
   radius,
   spacing,
   themes,
@@ -150,6 +152,9 @@ describe('字号 / 行高 token', () => {
       cardMeta: { fontSize: 12, fontWeight: '400' },
       // 15 补:搜索屏(isSearch)的「搜索选项 / 搜索历史」小节标题 16/600
       searchSection: { fontSize: 16, fontWeight: '600' },
+      // 22 补:字号调节屏(isFontSize)的滑杆标题 16 与取值气泡 14/600
+      sliderLabel: { fontSize: 16, fontWeight: '400' },
+      sliderValue: { fontSize: 14, fontWeight: '600' },
     });
   });
 
@@ -194,6 +199,8 @@ describe('字号 / 行高 token', () => {
         'errorBody',
         'errorAction',
         'diagnostic',
+        'sliderLabel',
+        'sliderValue',
       ].sort(),
     );
   });
@@ -241,5 +248,29 @@ describe('themes 索引', () => {
     expect(lightTheme.typography).toBe(darkTheme.typography);
     expect(lightTheme.radius).toBe(darkTheme.radius);
     expect(lightTheme.spacing).toBe(darkTheme.spacing);
+  });
+});
+
+// 22 补:「主题风格」对话框的白底那一档。设计稿只声明了两套配色,这一档是按
+// 「白底 + 深绿强调」那句副标题从浅色档改出来的,所以只准动底色系。
+describe('纯白风格', () => {
+  it('底色系换成白与近白灰', () => {
+    expect(plainTheme.colors.bg).toBe('#FFFFFF');
+    expect(plainTheme.colors.surface).toBe('#FFFFFF');
+    expect(plainTheme.scheme).toBe('light');
+    expect(plainTheme.palette).toBe('plain');
+  });
+
+  it('墨绿系的强调色一个不动', () => {
+    for (const name of ['primary', 'primaryDark', 'topbar', 'onTopbar', 'fab', 'accent'] as const) {
+      expect(plainTheme.colors[name]).toBe(lightTheme.colors[name]);
+    }
+  });
+
+  it('paletteOf:深色下没有风格之分,浅色下才分墨绿/纯白', () => {
+    expect(paletteOf('dark', 'ink')).toBe(darkTheme);
+    expect(paletteOf('dark', 'plain')).toBe(darkTheme);
+    expect(paletteOf('light', 'ink')).toBe(lightTheme);
+    expect(paletteOf('light', 'plain')).toBe(plainTheme);
   });
 });

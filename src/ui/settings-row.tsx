@@ -1,0 +1,187 @@
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Pressable, Text, View } from 'react-native';
+
+import { Icon } from './icon';
+import { createThemedStyles, useTheme } from './theme';
+
+/**
+ * 设置三屏的行(设计稿 `T.setRows` 的三种形态:分组标题 / 开关行 / 带箭头的跳转行)。
+ *
+ * 三屏长得完全一样,只有行的内容不同——所以行本身抽在这儿,屏里只写数据。
+ */
+
+/** 设计稿:轨道 46×26 圆角 13、内距 3,滑块 20 见方,开时右移 20。 */
+const TRACK_WIDTH = 46;
+const TRACK_HEIGHT = 26;
+const TRACK_PADDING = 3;
+const KNOB_SIZE = 20;
+const KNOB_TRAVEL = TRACK_WIDTH - TRACK_PADDING * 2 - KNOB_SIZE;
+
+/** 设计稿的 `transition:.18s`。 */
+const TOGGLE_MS = 180;
+
+/** 分组标题(设计稿:12.5/700 的主题色小标题)。 */
+export function SettingsSection({ children }: { children: string }) {
+  const styles = useStyles();
+  return <Text style={styles.section}>{children}</Text>;
+}
+
+export interface SettingsSwitchRowProps {
+  label: string;
+  /** 第二行灰字,设计稿里不是每行都有 */
+  sub?: string;
+  value: boolean;
+  onChange: (next: boolean) => void;
+}
+
+export function SettingsSwitchRow({ label, sub, value, onChange }: SettingsSwitchRowProps) {
+  const styles = useStyles();
+  return (
+    <Pressable
+      style={styles.row}
+      onPress={() => onChange(!value)}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      accessibilityLabel={label}
+    >
+      <RowText label={label} sub={sub} />
+      <SettingsSwitch value={value} />
+    </Pressable>
+  );
+}
+
+export interface SettingsNavRowProps {
+  label: string;
+  sub?: string;
+  onPress: () => void;
+}
+
+/** 点进二级页或弹对话框的行,右侧是 chevron。 */
+export function SettingsNavRow({ label, sub, onPress }: SettingsNavRowProps) {
+  const styles = useStyles();
+  const theme = useTheme();
+  return (
+    <Pressable
+      style={styles.row}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      android_ripple={{ color: theme.colors.divider }}
+    >
+      <RowText label={label} sub={sub} />
+      <Icon name="chevron_right" size={20} color={theme.colors.meta} />
+    </Pressable>
+  );
+}
+
+function RowText({ label, sub }: { label: string; sub?: string }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.rowText}>
+      <Text style={styles.label}>{label}</Text>
+      {sub !== undefined && sub !== '' && (
+        <Text style={styles.sub} numberOfLines={2}>
+          {sub}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+/**
+ * 开关本体。用自己画的而不是 RN 的 `Switch`:后者在 Android 上是平台控件,
+ * 尺寸与圆角都改不动,和设计稿差得远。
+ */
+export function SettingsSwitch({ value }: { value: boolean }) {
+  const styles = useStyles();
+  const theme = useTheme();
+  const progress = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  useEffect(() => {
+    const animation = Animated.timing(progress, {
+      toValue: value ? 1 : 0,
+      duration: TOGGLE_MS,
+      easing: Easing.out(Easing.quad),
+      // 轨道底色要动,颜色插值走不了原生驱动
+      useNativeDriver: false,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [value, progress]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.track,
+        {
+          backgroundColor: progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [theme.colors.track, theme.colors.primary],
+          }),
+        },
+      ]}
+    >
+      <Animated.View
+        style={[
+          styles.knob,
+          {
+            backgroundColor: value ? theme.colors.onPrimary : theme.colors.surface,
+            transform: [
+              {
+                translateX: progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, KNOB_TRAVEL],
+                }),
+              },
+            ],
+          },
+        ]}
+      />
+    </Animated.View>
+  );
+}
+
+const useStyles = createThemedStyles((theme) => ({
+  section: {
+    ...theme.typography.caption,
+    color: theme.colors.primary,
+    paddingTop: theme.spacing.page,
+    paddingHorizontal: theme.spacing.page,
+    paddingBottom: theme.spacing.sm,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.row,
+    paddingVertical: theme.spacing.row,
+    paddingHorizontal: theme.spacing.page,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  rowText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  // 设计稿行标题 15/400,与抽屉条目同一档
+  label: {
+    ...theme.typography.drawerItem,
+    color: theme.colors.fg,
+  },
+  sub: {
+    ...theme.typography.listMeta,
+    color: theme.colors.meta,
+    marginTop: theme.spacing.xs,
+  },
+  track: {
+    width: TRACK_WIDTH,
+    height: TRACK_HEIGHT,
+    borderRadius: TRACK_HEIGHT / 2,
+    padding: TRACK_PADDING,
+  },
+  knob: {
+    width: KNOB_SIZE,
+    height: KNOB_SIZE,
+    borderRadius: KNOB_SIZE / 2,
+    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.3)',
+  },
+}));

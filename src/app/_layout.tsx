@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useNotificationsPoller } from '@/store/notifications';
+import { useAppSettings } from '@/store/settings';
 import { useIconFont } from '@/ui/icon';
 import { SnackbarHost } from '@/ui/snackbar';
 import { useTheme } from '@/ui/theme';
@@ -34,6 +35,7 @@ export default function RootLayout() {
   // QueryClient 必须只建一次:放进 state 而不是模块顶层,Fast Refresh 时不会串到旧实例
   const [queryClient] = useState(createQueryClient);
   const iconFontLoaded = useIconFont();
+  const settings = useAppSettings();
   // 通知的前台轮询(13):挂在根上,登录后自己转起来,登出/切号自己停(spec §4)
   useNotificationsPoller();
 
@@ -50,6 +52,9 @@ export default function RootLayout() {
             screenOptions={{
               headerShown: false,
               contentStyle: { backgroundColor: theme.colors.bg },
+              // 「手势返回」(22 票)。Android 上这一档由 react-native-screens 转成
+              // predictive back 的开关,关掉后只能点顶栏返回箭头
+              gestureEnabled: settings.gestureBack,
             }}
           />
         )}

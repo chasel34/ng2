@@ -14,6 +14,7 @@ import {
 import { allCredentials, currentCredentials } from './accounts';
 import { recordFetchDiagnostic } from './diagnostics';
 import { readPhpUserAgent, webFallbackMode } from './net-settings';
+import { currentHost } from './settings';
 import { readCachedPage } from './topic-cache';
 
 /**
@@ -58,6 +59,9 @@ export const fetchNga: NgaFetcher = createNgaFetcher({
   createTransport,
   comboCache,
   getCredentials: currentCredentials,
+  // 域名同样按请求现取(22 票的设置项):设置页换完,下一个请求就发到新域名。
+  // 格式轮换那一档会把它排在官方域名表最前面,被封了照样往后换
+  getHost: currentHost,
   getReadPhpUserAgent: readPhpUserAgent,
   strategies: [
     createWebFallbackStrategy({ placement: 'primary', getMode: webFallbackMode }),

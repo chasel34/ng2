@@ -1,17 +1,19 @@
 import { StyleSheet, useColorScheme } from 'react-native';
 import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 
+import { useSettings } from '@/store/settings';
 import { resolveColorScheme, useThemeMode } from '@/store/theme';
 
-import { themes, type ColorScheme, type Theme } from './tokens';
+import { paletteOf, type PaletteName, type Theme } from './tokens';
 
 export type { Theme } from './tokens';
 
-/** 当前生效的主题:跟随系统,或被设置页手动覆盖。 */
+/** 当前生效的主题:深浅由夜间模式档位定,浅色下的配色再按「主题风格」分墨绿/纯白。 */
 export function useTheme(): Theme {
   const mode = useThemeMode((state) => state.mode);
+  const style = useSettings((state) => state.settings.themeStyle);
   const systemScheme = useColorScheme();
-  return themes[resolveColorScheme(mode, systemScheme)];
+  return paletteOf(resolveColorScheme(mode, systemScheme), style);
 }
 
 type NamedStyles = Record<string, ViewStyle | TextStyle | ImageStyle>;
@@ -21,21 +23,21 @@ type NamedStyles = Record<string, ViewStyle | TextStyle | ImageStyle>;
  *
  *     const useStyles = createThemedStyles((t) => ({ page: { backgroundColor: t.colors.bg } }));
  *
- * 每套配色只 StyleSheet.create 一次并缓存,切换深浅色时自动换表。
+ * 每套配色只 StyleSheet.create 一次并缓存,换配色时自动换表。
  */
 export function createThemedStyles<T extends NamedStyles>(
   factory: (theme: Theme) => T,
 ): () => T {
-  const cache = new Map<ColorScheme, T>();
+  const cache = new Map<PaletteName, T>();
 
   return function useThemedStyles(): T {
     const theme = useTheme();
-    const cached = cache.get(theme.scheme);
+    const cached = cache.get(theme.palette);
     if (cached) {
       return cached;
     }
     const created = StyleSheet.create(factory(theme));
-    cache.set(theme.scheme, created);
+    cache.set(theme.palette, created);
     return created;
   };
 }

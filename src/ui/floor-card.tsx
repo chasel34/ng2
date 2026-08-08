@@ -14,9 +14,13 @@ import type {
 import { parseBBCode } from '@/core/bbcode';
 import { formatReputation, parseVote, resolveDice } from '@/core/local';
 
+import { useSettings } from '@/store/settings';
+
+import { useBodyTextStyle } from './appearance';
 import { Avatar } from './avatar';
-import { BBCodeBody, plainTextOf } from './bbcode';
+import { BBCodeBody, plainTextOf, type BBCodeRenderOptions } from './bbcode';
 import { Icon, type IconName } from './icon';
+import { useImagesUnlocked } from './network';
 import { createThemedStyles, useTheme } from './theme';
 import { showNotAvailable } from './toast';
 import { VoteBlock } from './vote';
@@ -66,6 +70,8 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
   const styles = useStyles();
   const theme = useTheme();
   const router = useRouter();
+  const bodyStyle = useBodyTextStyle();
+  const showSignature = useSettings((state) => state.settings.showSignature);
   const nodes = useMemo(() => parseBBCode(floor.content), [floor.content]);
   const user = context.users[floor.authorKey];
 
@@ -101,6 +107,10 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
     // 发帖时间是 [noimg] 相对路径补 mon_YYYYMM/DD/ 的依据,所以按楼层给
     postedAt: floor.postedAt,
     dice,
+    // 「帖子内字体大小 / 行高」(22 票):正文本身靠 style 覆盖,
+    // 这两个值另外传一份是给 [size=] 当相对基准用的
+    bodyFontSize: bodyStyle.fontSize,
+    bodyLineHeight: bodyStyle.lineHeight,
     ...(context.onOpenImage === undefined ? {} : { onOpenImage: context.onOpenImage }),
   };
 
@@ -148,8 +158,14 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
       )}
 
       <View style={styles.body}>
-        <BBCodeBody nodes={nodes} options={renderOptions} />
+        <BBCodeBody nodes={nodes} options={renderOptions} style={bodyStyle} />
       </View>
+
+      {/* 签名档(22 票的「显示签名档」)。签名也是 BBCode,但它是「附在正文后面的一小块」,
+          所以压一档字号、上面加一条分隔线,不和正文混在一起 */}
+      {showSignature && user?.signature !== undefined && user.signature !== '' && (
+        <Signature signature={user.signature} options={renderOptions} />
+      )}
 
       {/* 投票是楼层字段不是 BBCode(API 文档 §3),所以画在正文之后而不是渲染器里 */}
       {vote !== undefined && <VoteBlock vote={vote} />}
@@ -228,6 +244,26 @@ function UserBadges({ user, isStarter }: { user: FloorUser | undefined; isStarte
   );
 }
 
+/**
+ * 签名档。用引用块那一档字号(14/1.6),颜色压到次级——签名再长也不该抢正文。
+ * 内容是 BBCode(常带图与折叠),所以还是走正文渲染器。
+ */
+function Signature({
+  signature,
+  options,
+}: {
+  signature: string;
+  options: BBCodeRenderOptions;
+}) {
+  const styles = useStyles();
+  const nodes = useMemo(() => parseBBCode(signature), [signature]);
+  return (
+    <View style={styles.signature}>
+      <BBCodeBody nodes={nodes} options={options} style={styles.signatureText} />
+    </View>
+  );
+}
+
 /** 贴条区(设计稿:surface2 底、圆角 12 的一块,每条一行「谁:内容」)。 */
 function NoteList({
   notes,
@@ -256,7 +292,8 @@ function NoteList({
  * 附件宫格。默认折叠成设计稿那条「点击显示附件(N)」,展开后是三列方格。
  *
  * 默认折叠不只是照设计稿:附件常常是几张几 MB 的原图,一进帖子全量拉图
- * 既费流量又慢(22 票还会加「仅 Wi-Fi 下加载图片」的设置)。
+ * 既费流量又慢。「仅 Wi-Fi 下加载图片」(22 票)关掉自动展开的那条路——
+ * 折叠条上多一句「移动网络」,点了照样能看。
  */
 function AttachmentGrid({
   attachments,
@@ -269,12 +306,17 @@ function AttachmentGrid({
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [gridWidth, setGridWidth] = useState(0);
+  const unlocked = useImagesUnlocked();
 
   if (!open) {
     return (
       <Pressable style={styles.attachToggle} onPress={() => setOpen(true)}>
-        <Icon name="image" size={18} color={theme.colors.fg2} />
-        <Text style={styles.attachToggleLabel}>点击显示附件({attachments.length})</Text>
+        <Icon name={unlocked ? 'image' : 'signal_cellular_alt'} size={18} color={theme.colors.fg2} />
+        <Text style={styles.attachToggleLabel}>
+          {unlocked
+            ? `点击显示附件(${attachments.length})`
+            : `移动网络 · 点击显示附件(${attachments.length})`}
+        </Text>
       </Pressable>
     );
   }
@@ -432,6 +474,16 @@ const useStyles = createThemedStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
+  },
+  signature: {
+    marginTop: 10,
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.divider,
+  },
+  signatureText: {
+    ...theme.typography.quoteBody,
+    color: theme.colors.meta,
   },
   notes: {
     marginBottom: theme.spacing.md,

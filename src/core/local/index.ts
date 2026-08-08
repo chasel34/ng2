@@ -104,6 +104,26 @@ export {
   type CachedTopic,
 } from './topic-cache'
 export {
+  APPEARANCE_SLIDERS,
+  AVATAR_BASE_SIZE,
+  DEFAULT_SETTINGS,
+  IMAGE_QUALITY_LABELS,
+  SMILEY_BASE_HEIGHT,
+  THEME_STYLE_LABELS,
+  avatarSizeOf,
+  clampSlider,
+  formatSliderValue,
+  parseSettings,
+  sliderRatio,
+  sliderValueAt,
+  smileyHeightOf,
+  type AppSettings,
+  type AppearanceSettings,
+  type ImageQuality,
+  type SliderSpec,
+  type ThemeStyle,
+} from './settings'
+export {
   PLAIN_TITLE_STYLE,
   decodeTitleStyle,
   parseTopicMisc,

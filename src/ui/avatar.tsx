@@ -4,12 +4,10 @@ import { Text, View } from 'react-native';
 
 import type { FloorUser } from '@/core/api';
 
+import { useAvatarSize } from './appearance';
 import { initialOf } from './initial';
 import { createThemedStyles } from './theme';
 import { avatarColors } from './tokens';
-
-/** 设计稿:楼层头像 42 见方的圆。 */
-const AVATAR_SIZE = 42;
 
 /**
  * 按用户 key 稳定取一档占位底色。要的只是「同一个人每次都同一个颜色」,
@@ -27,17 +25,21 @@ export function avatarColorFor(key: string): string {
 /**
  * 楼层头像。没设头像、或者图挂了,一律回落到「纯色圆底 + 名字首字」
  * (设计稿 isArticle 里画的就是这个占位,没有远程头像的 mock)。
+ *
+ * 边长由「字体和头像大小」设置定(22 票),所以只能写成内联样式。
  */
 export function Avatar({ user }: { user: FloorUser | undefined }) {
   const styles = useStyles();
   const [failed, setFailed] = useState(false);
+  const size = useAvatarSize();
+  const box = { width: size, height: size, borderRadius: size / 2 };
 
   const name = user?.name ?? '?';
   const key = user?.key ?? name;
 
   if (user?.avatarUrl === undefined || failed) {
     return (
-      <View style={[styles.avatar, styles.placeholder, { backgroundColor: avatarColorFor(key) }]}>
+      <View style={[box, styles.placeholder, { backgroundColor: avatarColorFor(key) }]}>
         <Text style={styles.initial} allowFontScaling={false}>
           {initialOf(name)}
         </Text>
@@ -48,7 +50,7 @@ export function Avatar({ user }: { user: FloorUser | undefined }) {
   return (
     <Image
       source={{ uri: user.avatarUrl }}
-      style={styles.avatar}
+      style={box}
       contentFit="cover"
       cachePolicy="disk"
       transition={120}
@@ -61,11 +63,6 @@ export function Avatar({ user }: { user: FloorUser | undefined }) {
 }
 
 const useStyles = createThemedStyles((theme) => ({
-  avatar: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-  },
   placeholder: {
     alignItems: 'center',
     justifyContent: 'center',

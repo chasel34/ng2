@@ -110,6 +110,26 @@ const darkColors: ColorTokens = {
 };
 
 /**
+ * 「纯白」主题风格(设计稿「主题风格」对话框第二项:「白底 + 深绿强调」)。
+ *
+ * 设计稿只声明了 `:root` 与 `.omdark` 两套配色,这一档在原型里没有对应的声明块,
+ * 所以按那句副标题从浅色档改:凡是奶油色的底(bg/surface/surface2/menu/quote)压成
+ * 白与近白灰、分隔线与轨道跟着去掉黄味,墨绿系的强调色(primary/topbar/fab)一个不动。
+ */
+const plainColors: ColorTokens = {
+  ...lightColors,
+  bg: '#FFFFFF',
+  surface: '#FFFFFF',
+  surface2: '#F2F2F0',
+  menu: '#FFFFFF',
+  quote: '#F4F4F2',
+  divider: '#E6E4DF',
+  track: '#DDDBD5',
+  tag: '#B4B2AC',
+  meta: '#9C9A93',
+};
+
+/**
  * 彩色标题(CONTEXT.md「彩色标题」)的五档颜色,对应掩码 1/2/4/8/16。
  *
  * 红/蓝/橙/银直接复用 danger/link/accent/meta——设计稿的 token 表里就是这几档;
@@ -282,6 +302,10 @@ const designOnlyTypography = {
   errorAction: { fontSize: 15, fontWeight: '600' },
   /** 诊断信息条 11.5 · 1.6(设计稿 isError 屏底部那块) */
   diagnostic: { fontSize: 11.5, fontWeight: '400', lineHeight: 18.4 },
+  /** 字号调节屏(设计稿 isFontSize)的滑杆标题 16 */
+  sliderLabel: { fontSize: 16, fontWeight: '400' },
+  /** 同屏滑杆上方的取值气泡 14 · 600 */
+  sliderValue: { fontSize: 14, fontWeight: '600' },
 } as const;
 
 /**
@@ -319,7 +343,14 @@ export const spacing = {
   page: 18,
 } as const;
 
+/**
+ * 一套配色的身份。`ink` / `dark` 是设计稿声明的两套,`plain` 是「主题风格」对话框
+ * 那一档白底。`scheme` 只说深浅(状态栏、系统色跟着它),配色本身按 palette 取。
+ */
+export type PaletteName = 'ink' | 'plain' | 'dark';
+
 export interface Theme {
+  palette: PaletteName;
   scheme: ColorScheme;
   colors: ColorTokens;
   titleColors: TitleColorTokens;
@@ -330,6 +361,7 @@ export interface Theme {
 }
 
 export const lightTheme: Theme = {
+  palette: 'ink',
   scheme: 'light',
   colors: lightColors,
   titleColors: lightTitleColors,
@@ -339,7 +371,15 @@ export const lightTheme: Theme = {
   spacing,
 };
 
+/** 「纯白」风格。深浅仍算浅色,只是把奶油底换成白底。 */
+export const plainTheme: Theme = {
+  ...lightTheme,
+  palette: 'plain',
+  colors: plainColors,
+};
+
 export const darkTheme: Theme = {
+  palette: 'dark',
   scheme: 'dark',
   colors: darkColors,
   titleColors: darkTitleColors,
@@ -353,3 +393,12 @@ export const themes: Record<ColorScheme, Theme> = {
   light: lightTheme,
   dark: darkTheme,
 };
+
+/**
+ * 按「深浅 + 主题风格」取配色。深色下没有风格之分——设计稿的第三档「夜间近黑」
+ * 就是夜间模式本身,所以 dark 一档到底。
+ */
+export function paletteOf(scheme: ColorScheme, style: 'ink' | 'plain'): Theme {
+  if (scheme === 'dark') return darkTheme;
+  return style === 'plain' ? plainTheme : lightTheme;
+}

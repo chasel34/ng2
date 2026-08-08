@@ -9,6 +9,7 @@ import { mergeTopicPages, type Board, type Topic } from '@/core/api';
 import { useAccounts } from '@/store/accounts';
 import { useBoardFavoriteMutations, useIsBoardFavored } from '@/store/board-favor';
 import { useTopicFilter } from '@/store/filters';
+import { useSettings } from '@/store/settings';
 import { useRefreshTopicList, useTopicList, useTopicSort } from '@/store/topic-list';
 import { Icon } from '@/ui/icon';
 import { showLoginPrompt } from '@/ui/login-prompt';
@@ -31,6 +32,7 @@ export default function BoardScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const solidBackground = useSettings((state) => state.settings.solidBackground);
 
   const { id, name, kind } = useLocalSearchParams<{
     id: string;
@@ -266,7 +268,7 @@ export default function BoardScreen() {
   };
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, solidBackground && styles.rootSolid]}>
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
@@ -352,6 +354,10 @@ const useStyles = createThemedStyles((theme) => ({
   root: {
     flex: 1,
     backgroundColor: theme.colors.bg,
+  },
+  /** 「使用纯色背景」(22 票):把奶油底换成卡片那一档纯色 */
+  rootSolid: {
+    backgroundColor: theme.colors.surface,
   },
   body: {
     flex: 1,

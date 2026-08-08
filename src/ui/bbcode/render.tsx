@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from 'react';
 import { Linking, Text, View, type StyleProp, type TextStyle } from 'react-native';
 
-import { attachmentUrl } from '@/core/api';
+import { attachmentUrl, thumbnailUrl } from '@/core/api';
 import type { BBCodeNode } from '@/core/bbcode';
 
 import { createThemedStyles, useTheme, type Theme } from '../theme';
@@ -66,13 +66,14 @@ function renderInline({ nodes, options, styles, theme }: InlineProps): ReactNode
       }
       case 'size': {
         const scale = resolveBBSizeScale(node.value);
-        // 行高跟着一起放大,不然大字会被上下行压住
+        // 行高跟着一起放大,不然大字会被上下行压住。基准是用户设的正文字号(22 票),
+        // 不是 token 默认值——否则把正文调大之后,`[size=150%]` 反而比正文小
         return wrap(
           scale === undefined
             ? undefined
             : {
-                fontSize: theme.typography.body.fontSize * scale,
-                lineHeight: theme.typography.body.lineHeight * scale,
+                fontSize: (options.bodyFontSize ?? theme.typography.body.fontSize) * scale,
+                lineHeight: (options.bodyLineHeight ?? theme.typography.body.lineHeight) * scale,
               },
           node.children,
         );
@@ -193,6 +194,7 @@ function BlockNode({
         <View style={styles.imageWrap}>
           <ContentImage
             uri={uri}
+            thumbnailUri={thumbnailUrl(uri, options.attachBase)}
             {...(options.onOpenImage === undefined ? {} : { onPress: options.onOpenImage })}
           />
         </View>

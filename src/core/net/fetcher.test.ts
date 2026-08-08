@@ -45,6 +45,20 @@ describe('createNgaFetcher · 请求拼装', () => {
     expect(url.searchParams.has('stid')).toBe(false)
   })
 
+  // 22 号票的「NGA 域名」设置项：每次请求现取，改完不用重建 fetcher
+  it('getHost 每次请求现取，且盖过建 fetcher 时定的 host', async () => {
+    const { transport, requests } = fakeTransport(() => ({}))
+    let host = 'https://ngabbs.com'
+    const fetchNga = createNgaFetcher({ transport, host: 'https://bbs.nga.cn', getHost: () => host })
+
+    await fetchNga({ path: 'thread.php', query: { fid: 650 } })
+    host = 'https://nga.178.com'
+    await fetchNga({ path: 'thread.php', query: { fid: 650 } })
+
+    expect(new URL(requests[0]!.url).origin).toBe('https://ngabbs.com')
+    expect(new URL(requests[1]!.url).origin).toBe('https://nga.178.com')
+  })
+
   it('按 format 换格式参数（反封锁链交替的就是这一维）', async () => {
     const { transport, requests } = fakeTransport(() => ({}))
     const fetchNga = createNgaFetcher({ transport })

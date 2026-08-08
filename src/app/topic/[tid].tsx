@@ -1,4 +1,5 @@
 import { FlashList, type FlashListRef, type ViewToken } from '@shopify/flash-list';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
@@ -28,6 +29,7 @@ import {
   useCacheDownloadProgress,
   type CacheDownloadOutcome,
 } from '@/store/topic-cache-download';
+import { useAppSettings } from '@/store/settings';
 import { useTopicDetail } from '@/store/topic-detail';
 import { recommendPidOf, useFloorRecommend } from '@/store/topic-recommend';
 import { BBCodeBody } from '@/ui/bbcode';
@@ -59,6 +61,25 @@ import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
  */
 const SWIPE_ACTIVATE = 12;
 
+/** 屏幕常亮锁的标签。只有详情页申请这把锁,退出这一屏就还回去。 */
+const KEEP_AWAKE_TAG = 'ng2-topic';
+
+/**
+ * 「阅读时常亮」(22 票)。`useKeepAwake` 是无条件的,而这里要跟着设置开关走,
+ * 所以自己按开关申请/归还锁。归还失败(Activity 已经没了)不该抛出去。
+ */
+function useKeepScreenOn(enabled: boolean): void {
+  useEffect(() => {
+    if (!enabled) return;
+    // 申请与归还都可能抛(Activity 已经没了、装的还是不带 expo-keep-awake 的旧 dev client),
+    // 常亮这种锦上添花的事不该把详情页搞崩
+    void activateKeepAwakeAsync(KEEP_AWAKE_TAG).catch(() => {});
+    return () => {
+      void deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => {});
+    };
+  }, [enabled]);
+}
+
 /**
  * 帖子详情(CONTEXT.md:主题里的楼层流)。
  *
@@ -72,6 +93,9 @@ export default function TopicScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const settings = useAppSettings();
+
+  useKeepScreenOn(settings.keepScreenOn);
 
   const { tid, title, fav, page: fromPage, pid: fromPid } = useLocalSearchParams<{
     tid: string;
@@ -155,7 +179,9 @@ export default function TopicScreen() {
     router.push({
       pathname: '/web',
       params: {
-        url: webUrlOf(topicId, page, fav),
+        // 网页兜底也走设置里选的域名(22 票):原生被封往往是整个域名被封,
+        // 换了域名再打开网页版才有意义
+        url: webUrlOf(topicId, page, fav, settings.host),
         ...(title === undefined ? {} : { title }),
       },
     });
@@ -472,6 +498,18 @@ export default function TopicScreen() {
             </>
           }
           ListFooterComponent={<View style={styles.footerSpacer} />}
+          // 「自动加载下一页」(22 票)。翻页中(isPlaceholderData)不再触发,
+          // 不然一口气能把好几页跳过去
+          onEndReachedThreshold={0.4}
+          onEndReached={
+            settings.autoLoadNextPage
+              ? () => {
+                  if (isFetching || isPlaceholderData) return;
+                  if (page >= totalPages) return;
+                  goToPage(page + 1);
+                }
+              : undefined
+          }
           // 阅读进度:哪些楼层在屏上由 FlashList 报,记「看到过的最高楼层」(ticket 16)
           viewabilityConfig={resume.viewabilityConfig}
           onViewableItemsChanged={resume.onViewableItemsChanged}
@@ -484,18 +522,21 @@ export default function TopicScreen() {
     );
   };
 
+  // 「底部标签页」(22 票):同一条页码条,只是挂在屏幕底部而不是顶栏下面
+  const pageBar = (
+    <PageBar
+      page={page}
+      totalPages={totalPages}
+      onPick={goToPage}
+      onJump={() => setJumpOpen(true)}
+    />
+  );
+
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, settings.solidBackground && styles.rootSolid]}>
       <TopBar
         paddingHorizontal={4}
-        below={
-          <PageBar
-            page={page}
-            totalPages={totalPages}
-            onPick={goToPage}
-            onJump={() => setJumpOpen(true)}
-          />
-        }
+        {...(settings.bottomPageBar ? {} : { below: pageBar })}
       >
         <TopBarButton
           icon="arrow_back"
@@ -578,6 +619,11 @@ export default function TopicScreen() {
       )}
 
       {body()}
+
+      {/* 「底部标签页」:页码条挪到屏幕底部,底色仍是顶栏那一档(格子是浅字) */}
+      {settings.bottomPageBar && (
+        <View style={[styles.bottomPageBar, { paddingBottom: insets.bottom }]}>{pageBar}</View>
+      )}
 
       {swipe.hint !== undefined && (
         <View style={styles.swipeHint} pointerEvents="none">
@@ -994,15 +1040,28 @@ function SignatureDialog({
 }
 
 /** 「在浏览器里打开」用的网页地址(19 票的网页兜底也会落到同一个 URL)。 */
-function webUrlOf(tid: number, page: number, favCode: string | undefined): string {
+function webUrlOf(
+  tid: number,
+  page: number,
+  favCode: string | undefined,
+  host: string,
+): string {
   const fav = favCode === undefined ? '' : `&fav=${favCode}`;
-  return `https://bbs.nga.cn/read.php?tid=${tid}&page=${page}${fav}`;
+  return `${host}/read.php?tid=${tid}&page=${page}${fav}`;
 }
 
 const useStyles = createThemedStyles((theme) => ({
   root: {
     flex: 1,
     backgroundColor: theme.colors.bg,
+  },
+  /** 「使用纯色背景」(22 票):把奶油底换成卡片那一档纯色 */
+  rootSolid: {
+    backgroundColor: theme.colors.surface,
+  },
+  bottomPageBar: {
+    backgroundColor: theme.colors.topbar,
+    paddingTop: theme.spacing.sm,
   },
   body: {
     flex: 1,

@@ -3,27 +3,22 @@ import { Image, Text } from 'react-native';
 
 import { resolveSmiley } from '@/core/smilies';
 
+import { useSmileyHeight } from '../appearance';
 import { SMILEY_ASSETS } from '../smilies.generated';
 import { createThemedStyles } from '../theme';
 
 /**
- * 表情的显示高度。NGA 的表情原图从 18 到 60 px 不等,统一按高度缩到跟一行正文
- * (15.5 · 1.68 ≈ 26)差不多,宽度按原图比例走,免得把宽表情压成方块。
- */
-const SMILEY_HEIGHT = 24;
-
-/** 远程兜底时拿不到原图尺寸,只能先按正方形占位。 */
-const FALLBACK_WIDTH = SMILEY_HEIGHT;
-
-/**
  * 按原图长宽比算出显示宽度。随包资源能同步拿到尺寸
- * (`Image.resolveAssetSource` 读的是打包期写进 bundle 的元数据)。
+ * (`Image.resolveAssetSource` 读的是打包期写进 bundle 的元数据);
+ * 远程兜底时拿不到尺寸,只能按正方形占位。
+ *
+ * 高度由「表情大小」设置定(22 票),默认 150% = 24,与一行正文(15.5 · 1.68 ≈ 26)相当。
  */
-function widthOf(asset: number | undefined): number {
-  if (asset === undefined) return FALLBACK_WIDTH;
+function widthOf(asset: number | undefined, height: number): number {
+  if (asset === undefined) return height;
   const source = Image.resolveAssetSource(asset);
-  if (source === undefined || source.height === 0) return FALLBACK_WIDTH;
-  return Math.round((source.width / source.height) * SMILEY_HEIGHT);
+  if (source === undefined || source.height === 0) return height;
+  return Math.round((source.width / source.height) * height);
 }
 
 /**
@@ -35,6 +30,7 @@ function widthOf(asset: number | undefined): number {
  */
 export const Smiley = memo(function Smiley({ code }: { code: string }) {
   const styles = useStyles();
+  const height = useSmileyHeight();
   const smiley = resolveSmiley(code);
 
   if (smiley.kind === 'unresolved') {
@@ -45,7 +41,7 @@ export const Smiley = memo(function Smiley({ code }: { code: string }) {
   return (
     <Image
       source={asset ?? { uri: smiley.remoteUrl }}
-      style={{ width: widthOf(asset), height: SMILEY_HEIGHT }}
+      style={{ width: widthOf(asset, height), height }}
       resizeMode="contain"
       accessibilityIgnoresInvertColors
     />

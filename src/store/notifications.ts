@@ -12,6 +12,7 @@ import { markRead, mergeNotifications, unreadCount } from '@/core/local';
 
 import { useAccounts } from './accounts';
 import { fetchNga } from './nga-client';
+import { useSettings } from './settings';
 
 /** 前台轮询间隔(spec §4:登录后前台每 60s 轮询,无系统通知/后台任务)。 */
 export const NOTIFICATION_POLL_MS = 60_000;
@@ -156,22 +157,27 @@ export const useNotifications = create<NotificationsStore>()((set, get) => ({
   },
 }));
 
-/** 抽屉角标用的未读数。游客态恒为 0。 */
+/** 抽屉角标用的未读数。游客态、以及关掉「被喷提示」时恒为 0。 */
 export function useNotificationsUnread(): number {
-  return useNotifications((state) => unreadCount(state.items, state.readIds));
+  const enabled = useSettings((state) => state.settings.sprayNotice);
+  const unread = useNotifications((state) => unreadCount(state.items, state.readIds));
+  return enabled ? unread : 0;
 }
 
 /**
  * 前台轮询(spec §4)。挂在根布局,登录后才转:
  * - 只在 app 前台(AppState active)起定时器,退后台立即停;
- * - 切号/登出由 activate 重置状态并停掉旧账号的轮询。
+ * - 切号/登出由 activate 重置状态并停掉旧账号的轮询;
+ * - 关掉「被喷提示」(22 票)就整个不转——那一档要的正是「别再来打扰」。
+ *   通知页自己进去还是会拉,那是用户主动看的。
  */
 export function useNotificationsPoller(): void {
   const uid = useAccounts((state) => state.currentUid);
+  const enabled = useSettings((state) => state.settings.sprayNotice);
 
   useEffect(() => {
     useNotifications.getState().activate(uid);
-    if (uid === null) return;
+    if (uid === null || !enabled) return;
 
     let timer: ReturnType<typeof setInterval> | null = null;
     const tick = () => void useNotifications.getState().refresh();
@@ -195,5 +201,5 @@ export function useNotificationsPoller(): void {
       stop();
       subscription.remove();
     };
-  }, [uid]);
+  }, [uid, enabled]);
 }

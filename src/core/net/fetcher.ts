@@ -18,6 +18,11 @@ export interface NgaFetcherOptions {
   readonly createTransport?: () => HttpTransport
   /** 默认域名，可被单条请求覆盖 */
   readonly host?: string
+  /**
+   * 每次请求时取默认域名（22 号票的「NGA 域名」设置项）。
+   * 给了它就盖过 `host`——设置页改完，下一个请求就发到新域名，不用重建 fetcher。
+   */
+  readonly getHost?: () => string
   /** 默认认证方式（API 文档 §0.2 的两种等价方式） */
   readonly authMode?: AuthMode
   /** 每次请求时取当前账号；返回 null 即游客 */
@@ -160,7 +165,7 @@ export function createNgaFetcher(options: NgaFetcherOptions = {}): NgaFetcher {
     const outer = options.onEvent
     return runStrategyChain(strategies, request, {
       transport,
-      host: options.host ?? DEFAULT_NGA_HOST,
+      host: options.getHost?.() ?? options.host ?? DEFAULT_NGA_HOST,
       authMode: options.authMode ?? 'cookie',
       credentials: options.getCredentials?.() ?? null,
       userAgents,

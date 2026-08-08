@@ -43,6 +43,7 @@ export {
   attachmentUrl,
   normalizeAttachBase,
   stripThumbnailSuffix,
+  thumbnailUrl,
   type AttachmentUrlOptions,
 } from './attachments'
 export { checkIn, type CheckInResult } from './check-in'

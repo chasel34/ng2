@@ -94,6 +94,17 @@ export function rehostLegacyAttachment(src: string, base: string): string {
   return `${base}/${match[2]!}`
 }
 
+/**
+ * 换成缩略图地址（22 号票的「图片加载策略」省流量那两档）。
+ *
+ * 只对挂在当前附件基址下的图动手：站外图床没有这套后缀约定，加上去就是 404。
+ * 先剥再加，所以对已经是缩略图的地址是幂等的。
+ */
+export function thumbnailUrl(url: string, base: string): string {
+  if (!url.startsWith(`${base}/`)) return url
+  return `${stripThumbnailSuffix(url)}${THUMBNAIL_SUFFIX}`
+}
+
 export interface AttachmentUrlOptions {
   /** `normalizeAttachBase` 的产物 */
   readonly base: string

@@ -1,6 +1,6 @@
 import { Linking, Pressable, Text, View } from 'react-native';
 
-import { attachmentUrl } from '@/core/api';
+import { attachmentUrl, thumbnailUrl } from '@/core/api';
 import type { AttachNode, FlashNode } from '@/core/bbcode';
 import { formatDiceTerms, type DiceOutcome } from '@/core/local';
 
@@ -128,6 +128,7 @@ export function AlbumCard({
             <ContentImage
               key={uri}
               uri={uri}
+              thumbnailUri={thumbnailUrl(uri, options.attachBase)}
               {...(options.onOpenImage === undefined ? {} : { onPress: options.onOpenImage })}
             />
           ))}

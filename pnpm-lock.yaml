@@ -29,9 +29,15 @@ importers:
       expo-image:
         specifier: ~57.0.2
         version: 57.0.2(expo@57.0.10)(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)
+      expo-keep-awake:
+        specifier: ~57.0.1
+        version: 57.0.1(expo@57.0.10)(react@19.2.3)
       expo-linking:
         specifier: ~57.0.5
         version: 57.0.5(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)(supports-color@8.0.0)
+      expo-network:
+        specifier: ~57.0.1
+        version: 57.0.1(expo@57.0.10)(react@19.2.3)
       expo-router:
         specifier: ~57.0.10
         version: 57.0.10(f492f1c8ff5b86ad8d8d46557cf42af9)
@@ -1797,6 +1803,12 @@ packages:
     resolution: {integrity: sha512-vt7FyqUqqFXiRVnBqYD7y+GSPTgeua5Ocoy0+SYt+RSHkZEA2Fyop7If3g1TYDzQObYybPRo7TG2Rle1XLaWFw==}
     peerDependencies:
       react-native: '*'
+
+  expo-network@57.0.1:
+    resolution: {integrity: sha512-ndg+FbDDlz6XTpQ6aVuVgyvrYQwMkpcUAvZIXbwrGBbLTSWNzYC/gawYu1BAeDN7O6JTGY98GBVJBov/JH7LgQ==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
 
   expo-router@57.0.10:
     resolution: {integrity: sha512-E6Cjudl4wQ86KdEHqLGhBmfOFRdtzXTtRzEEDmqOvqtkAc9C637u0us7CGKkkee9m+kwuHqfhn779ww85rn/Pg==}
@@ -5300,6 +5312,11 @@ snapshots:
   expo-modules-jsi@57.0.4(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)):
     dependencies:
       react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)
+
+  expo-network@57.0.1(expo@57.0.10)(react@19.2.3):
+    dependencies:
+      expo: 57.0.10(55cb73999f05b065b60e3ea8e6d62b63)
+      react: 19.2.3
 
   expo-router@57.0.10(f492f1c8ff5b86ad8d8d46557cf42af9):
     dependencies:

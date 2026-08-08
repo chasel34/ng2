@@ -20,6 +20,13 @@ export interface BBCodeRenderOptions {
   readonly dice?: ReadonlyMap<DiceNode, DiceOutcome>;
   /** 点图片(25 票的大图查看器接进来) */
   readonly onOpenImage?: (uri: string) => void;
+  /**
+   * 正文字号(22 票的「帖子内字体大小」)。`[size=150%]` 这类相对字号按它算,
+   * 不给就按 token 里的 `body` 那一档。
+   */
+  readonly bodyFontSize?: number;
+  /** 同上,正文行高的绝对像素值 */
+  readonly bodyLineHeight?: number;
 }
 
 /** 把渲染参数削成 `attachmentUrl` 要的那两项——正文图、附件、相册都走同一份。 */

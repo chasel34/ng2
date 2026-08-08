@@ -7,6 +7,7 @@ import {
   attachmentUrl,
   normalizeAttachBase,
   stripThumbnailSuffix,
+  thumbnailUrl,
 } from './attachments'
 import { fixtureContentType, readFixtureBytes } from './__fixtures__'
 import { parseTopicDetail } from './topic-detail'
@@ -140,6 +141,27 @@ function imageNodes(nodes: readonly BBCodeNode[]): ImageNode[] {
   }
   return found
 }
+
+describe('thumbnailUrl（22 票的图片加载策略）', () => {
+  const base = 'https://img.nga.cn/attachments'
+
+  it('挂在附件基址下的图换成 .thumb.jpg', () => {
+    expect(thumbnailUrl(`${base}/mon_202608/07/x.png`, base)).toBe(
+      `${base}/mon_202608/07/x.png.thumb.jpg`,
+    )
+  })
+
+  it('已经是缩略图时不重复加后缀', () => {
+    const thumb = `${base}/mon_202608/07/x.png.thumb.jpg`
+    expect(thumbnailUrl(thumb, base)).toBe(thumb)
+    expect(thumbnailUrl(`${base}/mon_202608/07/x.png.medium.jpg`, base)).toBe(thumb)
+  })
+
+  it('站外图床原样返回——那些地址没有这套后缀约定', () => {
+    const outside = 'https://i.imgur.com/abc.png'
+    expect(thumbnailUrl(outside, base)).toBe(outside)
+  })
+})
 
 describe('版头 0 楼那张图（真实样本，M2 遗留缺陷 2）', () => {
   const envelope = parseNgaJson(
