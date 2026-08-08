@@ -77,7 +77,7 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
   };
 
   return (
-    <View style={[styles.card, floor.lou === 0 && styles.mainPost]}>
+    <View style={styles.card}>
       <View style={styles.header}>
         <Pressable onPress={showNotAvailable} accessibilityLabel={`${user?.name ?? '用户'}的资料`}>
           <Avatar user={user} />
@@ -296,10 +296,6 @@ const useStyles = createThemedStyles((theme) => ({
     paddingBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.divider,
-  },
-  /** token 表把 surface 标成「楼主楼层」,这里给主楼一层底色把它和回复分开 */
-  mainPost: {
-    backgroundColor: theme.colors.surface,
   },
   header: {
     flexDirection: 'row',
