@@ -17,7 +17,7 @@
 
 import { NgaError, isRecord, type NgaFetcher } from '../net'
 import { decodeTitleStyle, isAnonymousAuthor, parseTopicMisc, resolveAuthorName } from '../local'
-import { int, nonZero, orderedValues, str } from './fields'
+import { int, nonZero, orderedValues, str, text } from './fields'
 import type {
   Board,
   Topic,
@@ -135,7 +135,7 @@ function parseTopic(raw: unknown): Topic | undefined {
   return {
     tid,
     ...(fid === undefined ? {} : { fid }),
-    subject: str(raw, 'subject') ?? UNTITLED,
+    subject: text(raw, 'subject') ?? UNTITLED,
     titleStyle: decodeTitleStyle({ titlefont: raw.titlefont, topicMisc: raw.topic_misc }),
     author: resolveAuthorName(rawAuthor),
     ...(authorId === undefined ? {} : { authorId }),

@@ -24,7 +24,7 @@
 import { REPUTATION_SCALE, resolveAuthorName } from '../local'
 import { NgaError, isRecord, type NgaFetcher } from '../net'
 import { normalizeAttachBase, THUMBNAIL_SUFFIX } from './attachments'
-import { int, orderedValues, str } from './fields'
+import { int, orderedValues, str, text } from './fields'
 import type { Floor, FloorAttachment, FloorClient, FloorUser, TopicDetail } from './types'
 
 /** `read.php` 固定每页 20 楼（API 文档 §3）。 */
@@ -185,7 +185,7 @@ function parseFloor(raw: unknown, ctx: FloorContext, depth = 0): Floor | undefin
           .map((item) => parseFloor(item, ctx, depth + 1))
           .filter((item): item is Floor => item !== undefined)
       : []
-  const subject = str(raw, 'subject')
+  const subject = text(raw, 'subject')
   const vote = str(raw, 'vote')
 
   return {
@@ -272,7 +272,7 @@ export function parseTopicDetail(data: unknown, options: ParseTopicDetailOptions
 
   return {
     tid: int(topic, 'tid') ?? 0,
-    subject: str(topic, 'subject') ?? UNTITLED,
+    subject: text(topic, 'subject') ?? UNTITLED,
     ...(boardName === undefined ? {} : { boardName }),
     page: int(root, '__PAGE') ?? 1,
     totalRows,

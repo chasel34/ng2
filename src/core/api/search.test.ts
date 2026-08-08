@@ -10,6 +10,7 @@ import {
   parseBoardSearch,
   parseUserSearchInput,
 } from './search'
+import { parseTopicList } from './topic-list'
 import { fetchUserProfileByName } from './user-profile'
 
 function fixtureTransport(name: ApiFixtureName) {
@@ -112,13 +113,41 @@ describe('主题搜索结果（真实样本：全站搜「炉石」）', () => {
       page: 1,
     })
 
-    expect(list.topics).toHaveLength(34)
+    // 服务端下发 34 条，其中 4 条是 denied 提示行（下一条用例专门管它）
+    expect(list.topics).toHaveLength(30)
     expect(list.totalRows).toBe(46020)
     expect(list.rowsPerPage).toBe(35)
     expect(list.topics[0]?.tid).toBe(47332920)
     expect(list.topics[0]?.subject).toContain('炉石')
     // content=1 实测也不带 __P：搜索结果统一是普通主题行
     expect(list.topics.every((topic) => topic.reply === undefined)).toBe(true)
+  })
+
+  it('标题反转义（真实样本：搜「第六感」，M2 遗留缺陷 1）', async () => {
+    const { transport } = fixtureTransport('threadSearchSixthSense')
+    const list = await fetchTopicSearch(createNgaFetcher({ transport }), { key: '第六感', page: 1 })
+
+    expect(list.topics[0]?.tid).toBe(47334898)
+    expect(list.topics[0]?.subject).toBe('<第六感>那个小孩能看到鬼魂，nga有人也能看到吗')
+  })
+
+  it('服务端提示行不进结果（真实样本：搜「第六感」，M2 遗留缺陷 3）', async () => {
+    const { transport } = fixtureTransport('threadSearchSixthSense')
+    const list = await fetchTopicSearch(createNgaFetcher({ transport }), { key: '第六感', page: 1 })
+
+    // 服务端下发 34 条，其中 10 条是 denied 提示行
+    expect(parseTopicList(fixtureData('threadSearchSixthSense')).topics).toHaveLength(34)
+    expect(list.topics).toHaveLength(24)
+    expect(list.topics.some((topic) => topic.denied)).toBe(false)
+    expect(list.topics.every((topic) => topic.author !== '')).toBe(true)
+    // 总条数是服务端给的命中数，不跟着过滤走——翻页判据要和它对齐
+    expect(list.totalRows).toBe(165)
+  })
+
+  it('过期占位只在搜索里滤掉：同样的行在「我的回复」里要留着', () => {
+    // thread-user-replies 末尾 8 条就是同款 denied 行，那条路径不经过搜索的过滤
+    const replies = parseTopicList(fixtureData('threadUserReplies'))
+    expect(replies.topics.filter((topic) => topic.denied).length).toBeGreaterThan(0)
   })
 
   it('没有结果 / 翻过头：假错误归一成空页，而不是抛错', async () => {

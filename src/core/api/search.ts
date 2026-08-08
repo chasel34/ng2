@@ -17,6 +17,27 @@ import { int, nonZero, orderedEntries, str } from './fields'
 import { parseTopicList } from './topic-list'
 import type { Board, TopicList } from './types'
 
+/**
+ * 搜索结果里混着的**服务端提示行**：拒绝理由被塞进 `subject` 当成一条主题下发，
+ * 实测有「帐号权限不足」「帐号声望不足」「帖子发布或回复时间超过限制」三种，
+ * 一次搜索里能占到三成（2026-08-08 对拍 `key=第六感`：34 条里 10 条）。
+ *
+ * 认它靠结构而不是文案（文案还会新增）：`denied` 标记 + 根本没有作者
+ * （`author` 空串、`authorid` 0）。真主题一定有作者，哪怕是匿名串。
+ *
+ * **只在搜索里滤**。同样的行在「我的回复」「收藏夹」里是有意义的——那是
+ * 你回过/收藏过的帖子过期了，列表要照常给出一行（`reply-row` 会画成灰色禁止图标）。
+ */
+function isServerNoticeRow(topic: TopicList['topics'][number]): boolean {
+  return topic.denied && topic.author === '' && topic.authorId === undefined
+}
+
+function withoutServerNotices(list: TopicList): TopicList {
+  const topics = list.topics.filter((topic) => !isServerNoticeRow(topic))
+  // `totalRows` 不动：那是服务端给的命中总数，翻页判据要跟它对齐
+  return topics.length === list.topics.length ? list : { ...list, topics }
+}
+
 export interface FetchTopicSearchOptions {
   /** 关键词（原文即可，UTF-8 编码由 query 层做） */
   readonly key: string
@@ -62,7 +83,7 @@ export async function fetchTopicSearch(
     if (result.fakeError !== undefined) return parseTopicList({})
     throw new NgaError({ kind: 'parse', message: '主题搜索响应里没有 data', via: result.via })
   }
-  return parseTopicList(result.data)
+  return withoutServerNotices(parseTopicList(result.data))
 }
 
 /** 版块搜索的一条结果：版块本身 + 它挂在哪个上级版块下（结果行的来源标注）。 */

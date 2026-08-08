@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
+import { childNodeLists, parseBBCode, type BBCodeNode, type ImageNode } from '../bbcode'
+import { decodeResponseBody, parseNgaJson } from '../net'
 import {
   ATTACH_BASE_FALLBACK,
   attachmentUrl,
   normalizeAttachBase,
   stripThumbnailSuffix,
 } from './attachments'
+import { fixtureContentType, readFixtureBytes } from './__fixtures__'
+import { parseTopicDetail } from './topic-detail'
 
 /** 2025-05-26 17:33 (UTC+8)，取自 read-comment-noimg fixture 的第 3 楼。 */
 const POSTED_AT = 1748252025
@@ -48,9 +52,30 @@ describe('stripThumbnailSuffix', () => {
 describe('attachmentUrl', () => {
   const base = 'https://img.nga.cn/attachments'
 
-  it('绝对地址原样返回', () => {
-    const src = 'https://img.nga.178.com/attachments/mon_201903/26/x.jpg'
+  it('站外的绝对地址原样返回', () => {
+    const src = 'https://i.imgur.example/attachments/x.jpg'
     expect(attachmentUrl({ src, needsAttachBase: false }, { base })).toBe(src)
+  })
+
+  it('老域名写死的附件地址重挂到响应给的基址', () => {
+    // 2026-08-08 抓的版头帖（fid=-7）正文里的原话：178 那个域名已经连不上了
+    expect(
+      attachmentUrl(
+        {
+          src: 'https://img.nga.178.com/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png',
+          needsAttachBase: false,
+        },
+        { base },
+      ),
+    ).toBe('https://img.nga.cn/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png')
+
+    // 目标域名仍然只从响应来：换个基址就跟着换
+    expect(
+      attachmentUrl(
+        { src: 'http://imgs.ngacn.cc/attachments/mon_201903/26/x.jpg', needsAttachBase: false },
+        { base: 'https://img.example.test/att' },
+      ),
+    ).toBe('https://img.example.test/att/mon_201903/26/x.jpg')
   })
 
   it('相对路径拼上响应给的基址，不硬编码域名', () => {
@@ -103,5 +128,40 @@ describe('attachmentUrl', () => {
     expect(attachmentUrl({ src: 'a.jpg', needsAttachBase: true }, { base })).toBe(
       'https://img.nga.cn/attachments/a.jpg',
     )
+  })
+})
+
+/** AST 里所有图片节点，按出现顺序。 */
+function imageNodes(nodes: readonly BBCodeNode[]): ImageNode[] {
+  const found: ImageNode[] = []
+  for (const node of nodes) {
+    if (node.type === 'image') found.push(node)
+    for (const children of childNodeLists(node)) found.push(...imageNodes(children))
+  }
+  return found
+}
+
+describe('版头 0 楼那张图（真实样本，M2 遗留缺陷 2）', () => {
+  const envelope = parseNgaJson(
+    decodeResponseBody(readFixtureBytes('readBoardHead'), fixtureContentType('readBoardHead')),
+  )
+  const detail = parseTopicDetail(envelope.data, { context: 'ctx' })
+
+  it('从响应到最终地址走一遍：老域名换成 _ATTACH_BASE_VIEW 给的那个', () => {
+    expect(detail.attachBase).toBe('https://img.nga.cn/attachments')
+
+    const main = detail.floors.find((floor) => floor.lou === 0)
+    expect(main).toBeDefined()
+    const images = imageNodes(parseBBCode(main!.content))
+    // 正文里唯一一张图，写的是绝对地址而不是 ./ 相对路径
+    expect(images).toHaveLength(1)
+    expect(images[0]?.needsAttachBase).toBe(false)
+    expect(images[0]?.src).toBe(
+      'https://img.nga.178.com/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png',
+    )
+
+    expect(
+      attachmentUrl(images[0]!, { base: detail.attachBase, postedAt: main!.postedAt }),
+    ).toBe('https://img.nga.cn/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png')
   })
 })

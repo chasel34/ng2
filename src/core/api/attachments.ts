@@ -8,6 +8,7 @@
  * 2. **相对路径的两种形态**。`[img]./mon_202608/07/x.jpg[/img]` 自带日期目录，
  *    而 `[noimg]./-7Qd36d-….jpg[/noimg]` 没有——后者要按发帖时间补 `mon_YYYYMM/DD/`
  *    才能取到图（实测缺前缀的地址是 404）。
+ * 3. **老帖正文里写死的绝对地址要重挂**，见 `rehostLegacyAttachment`。
  */
 
 import type { AttachmentRef } from '../bbcode'
@@ -64,6 +65,35 @@ function datedDirectory(postedAt: number): string {
   return `mon_${year}${month}/${day}`
 }
 
+/**
+ * 认「这是不是 NGA 自己的附件域名」。域名换过好几次，老域名的地址还留在老帖正文里。
+ * 这张表只用来**认**，不用来拼——真正的目标基址仍然只从 `_ATTACH_BASE_VIEW` 来（ADR-0002）。
+ */
+const NGA_ATTACH_HOST = /(?:^|\.)(?:nga\.cn|ngacn\.cc|nga\.178\.com)$/i
+
+/** 绝对地址里的 `<host>/attachments/<路径>`；协议相对（`//`）的写法也收。 */
+const ABSOLUTE_ATTACHMENT = /^(?:https?:)?\/\/([^/]+)\/attachments\/(.+)$/i
+
+/**
+ * 把老帖正文里写死的附件地址重挂到当前附件域名。
+ *
+ * 版头这类多年不动的帖子里，图片是绝对地址而不是 `./` 相对路径，例如
+ * `[img]https://img.nga.178.com/attachments/mon_202006/03/-914q0Q5-….png[/img]`。
+ * `img.nga.178.com` 已经停了（TLS 握手直接失败，2026-08-08 实测），而同一条
+ * `mon_202006/03/…` 路径挂在响应给的 `img.nga.cn/attachments` 下仍然是 200——
+ * 所以只要地址落在 NGA 的 `/attachments/` 目录里，就换成响应给的基址再拼。
+ *
+ * 站外图片（图床、外链）原样返回：那些地址跟附件域名没关系。
+ */
+export function rehostLegacyAttachment(src: string, base: string): string {
+  const match = ABSOLUTE_ATTACHMENT.exec(src)
+  if (match === null) return src
+  // 端口不影响判定，取主机名部分即可
+  const host = match[1]!.split(':')[0]!
+  if (!NGA_ATTACH_HOST.test(host)) return src
+  return `${base}/${match[2]!}`
+}
+
 export interface AttachmentUrlOptions {
   /** `normalizeAttachBase` 的产物 */
   readonly base: string
@@ -73,7 +103,7 @@ export interface AttachmentUrlOptions {
 
 /** 把 AST 里的资源引用拼成能直接喂给 `<Image>` 的地址。 */
 export function attachmentUrl(ref: AttachmentRef, options: AttachmentUrlOptions): string {
-  if (!ref.needsAttachBase) return ref.src
+  if (!ref.needsAttachBase) return rehostLegacyAttachment(ref.src, options.base)
 
   let path = stripThumbnailSuffix(ref.src).replace(/^\/+/, '')
   if (options.postedAt !== undefined && !DATED_PATH_PATTERN.test(path)) {

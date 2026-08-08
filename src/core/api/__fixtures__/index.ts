@@ -220,6 +220,29 @@ export const API_FIXTURES = {
     file: 'favor-topics.gbk.bin',
     note: 'thread.php favor=<夹id> page=1 __output=8，登录态',
   },
+  /**
+   * read.php tid=3593852 —— 网事杂谈（fid=-7）的版头帖，2010 年发的老帖。
+   * 正文顶部那张图写的是**绝对地址** `https://img.nga.178.com/attachments/mon_202006/03/…png`，
+   * 而 178 那个域名已经停了（TLS 握手失败），同一条路径挂在当前
+   * `_ATTACH_BASE_VIEW`（`img.nga.cn/attachments`）下仍然是 200——
+   * 「老域名重挂到响应给的基址」那条规则的样本（M2 遗留缺陷 2）。
+   */
+  readBoardHead: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'read-board-head.gbk.bin',
+    note: 'read.php tid=3593852 page=1 __output=8 v2=1，登录态',
+  },
+  /**
+   * thread.php key=第六感 —— 主题搜索。两个 M2 遗留缺陷的同一份样本：
+   * 首条标题是 `&lt;第六感&gt;那个小孩…`（`subject` 也被 HTML 转义了），
+   * 34 条里有 10 条是 `denied:"1"`、`author` 空串、`authorid` 0 的服务端提示行
+   * （`error` 写着「帖子发布或回复时间超过限制」）。`__CU.uid` 已脱敏成 10000001。
+   */
+  threadSearchSixthSense: {
+    contentType: 'text/html',
+    file: 'thread-search-sixth-sense.gbk.bin',
+    note: 'thread.php key=%E7%AC%AC%E5%85%AD%E6%84%9F(第六感 UTF-8) page=1 __output=8 __inchst=UTF8，登录态',
+  },
 } as const satisfies Record<string, ApiFixture>
 
 export type ApiFixtureName = keyof typeof API_FIXTURES

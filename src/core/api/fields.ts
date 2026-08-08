@@ -1,3 +1,4 @@
+import { unescapeNgaText } from '../bbcode'
 import { isRecord } from '../net'
 
 /**
@@ -33,6 +34,19 @@ export function str(record: Record<string, unknown>, key: string): string | unde
   if (typeof value !== 'string') return undefined
   const trimmed = value.trim()
   return trimmed === '' ? undefined : trimmed
+}
+
+/**
+ * 会被 HTML 转义的文本字段（标题这类要直接上屏的）。
+ *
+ * 服务端不只对正文做转义，`subject` 也一样：实测搜索结果里是
+ * `&lt;第六感&gt;那个小孩…`、精华区里是 `1周年&#39;魔力印度&#39;新版本上线`。
+ * 正文走 BBCode 解析时已经反转义过，标题不经过那条路径，所以在这里补上——
+ * 用的是同一个两轮解码（`core/bbcode/entities`），emoji 的代理对实体也一并还原。
+ */
+export function text(record: Record<string, unknown>, key: string): string | undefined {
+  const raw = str(record, key)
+  return raw === undefined ? undefined : unescapeNgaText(raw)
 }
 
 /** 整数字段。服务端偶尔把数字写成字符串，一并收下。 */

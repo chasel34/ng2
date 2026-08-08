@@ -182,6 +182,19 @@ describe('parseTopicList（字段容错）', () => {
     expect(parseOne({ subject: '' }).subject).toBe('无标题')
   })
 
+  it('标题按正文那套反转义——服务端连 subject 一起转义了（M2 遗留缺陷 1）', () => {
+    // 2026-08-08 搜「第六感」的首条结果
+    expect(
+      parseOne({ subject: '&lt;第六感&gt;那个小孩能看到鬼魂，nga有人也能看到吗' }).subject,
+    ).toBe('<第六感>那个小孩能看到鬼魂，nga有人也能看到吗')
+    // 同日 fid=-7 精华区第 3 条
+    expect(parseOne({ subject: '光荣正版《大航海时代：传说》1周年&#39;魔力印度&#39;新版本上线！' }).subject).toBe(
+      "光荣正版《大航海时代：传说》1周年'魔力印度'新版本上线！",
+    )
+    // 双重转义的也吃得下（emoji 就是这么下发的），与 core/bbcode 同一条两轮解码
+    expect(parseOne({ subject: '&amp;#55357;&amp;#56836; 笑' }).subject).toBe('😄 笑')
+  })
+
   it('整份响应烂掉时给空页而不是抛', () => {
     expect(parseTopicList(undefined).topics).toEqual([])
     expect(parseTopicList({ __T: '不是对象' }).topics).toEqual([])
