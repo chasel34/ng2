@@ -10,6 +10,12 @@ import { useIconFont } from '@/ui/icon';
 import { SnackbarHost } from '@/ui/snackbar';
 import { useTheme } from '@/ui/theme';
 
+/**
+ * 深链(24)冷启动时栈里只有落地页那一屏,顶栏返回箭头(各页都是 `router.back()`)
+ * 会点不动。声明首页为 anchor,expo-router 会在深链落地页下面垫一层 index。
+ */
+export const unstable_settings = { anchor: 'index' };
+
 function createQueryClient() {
   return new QueryClient({
     defaultOptions: {

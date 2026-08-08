@@ -22,6 +22,17 @@ export {
   type TopicVisit,
 } from './history'
 export {
+  APP_SCHEME,
+  NGA_LINK_FAILURE_MESSAGES,
+  ngaLinkPath,
+  parseNgaLink,
+  type NgaBoardLink,
+  type NgaLink,
+  type NgaLinkFailure,
+  type NgaLinkResult,
+  type NgaTopicLink,
+} from './deep-link'
+export {
   formatDiceTerms,
   resolveDice,
   type DiceOutcome,

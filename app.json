@@ -23,46 +23,15 @@
           "action": "VIEW",
           "autoVerify": false,
           "data": [
-            {
-              "scheme": "https",
-              "host": "bbs.nga.cn",
-              "pathPrefix": "/read.php"
-            },
-            {
-              "scheme": "https",
-              "host": "bbs.nga.cn",
-              "pathPrefix": "/thread.php"
-            },
-            {
-              "scheme": "https",
-              "host": "ngabbs.com",
-              "pathPrefix": "/read.php"
-            },
-            {
-              "scheme": "https",
-              "host": "ngabbs.com",
-              "pathPrefix": "/thread.php"
-            },
-            {
-              "scheme": "https",
-              "host": "bbs.ngacn.cc",
-              "pathPrefix": "/read.php"
-            },
-            {
-              "scheme": "https",
-              "host": "bbs.ngacn.cc",
-              "pathPrefix": "/thread.php"
-            },
-            {
-              "scheme": "https",
-              "host": "nga.178.com",
-              "pathPrefix": "/read.php"
-            },
-            {
-              "scheme": "https",
-              "host": "nga.178.com",
-              "pathPrefix": "/thread.php"
-            }
+            { "scheme": "https" },
+            { "scheme": "http" },
+            { "host": "bbs.nga.cn" },
+            { "host": "ngabbs.com" },
+            { "host": "bbs.ngacn.cc" },
+            { "host": "nga.178.com" },
+            { "host": "nga.donews.com" },
+            { "pathPrefix": "/read.php" },
+            { "pathPrefix": "/thread.php" }
           ],
           "category": [
             "BROWSABLE",

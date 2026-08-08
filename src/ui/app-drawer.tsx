@@ -49,7 +49,7 @@ interface DrawerEntry {
 /**
  * 抽屉条目,顺序与图标照抄设计稿。
  *
- * 还没做的页面(设置与关于 22、由 URL 读取 24)
+ * 还没做的页面(设置与关于 22)
  * 一律 toast「本版本未开放」——入口先立在这儿,后续票各自换掉自己那一行。
  */
 const ENTRIES: readonly DrawerEntry[] = [
@@ -79,6 +79,8 @@ export interface AppDrawerContentProps {
   onAddBoard?: () => void;
   /** 「清空我的收藏」(10 票):同上,宿主页面弹确认框 */
   onClearFavorites?: () => void;
+  /** 「由 URL 读取」(24 票):同上,宿主页面弹粘链接的输入框 */
+  onOpenUrl?: () => void;
 }
 
 /**
@@ -89,6 +91,7 @@ export function AppDrawerContent({
   onNavigate,
   onAddBoard,
   onClearFavorites,
+  onOpenUrl,
 }: AppDrawerContentProps) {
   const styles = useStyles();
   const theme = useTheme();
@@ -192,13 +195,16 @@ export function AppDrawerContent({
 
       <Text style={styles.sectionCaption}>论坛功能</Text>
       {ENTRIES.map((entry) => {
-        // 版块收藏(10 票)的两个入口由宿主页面接管;没接的条目维持「本版本未开放」
+        // 要弹对话框的条目(版块收藏 10、由 URL 读取 24)由宿主页面接管;
+        // 没接的条目维持「本版本未开放」
         const action =
           entry.key === 'add-board'
             ? onAddBoard
             : entry.key === 'clear-favor'
               ? onClearFavorites
-              : undefined;
+              : entry.key === 'from-url'
+                ? onOpenUrl
+                : undefined;
         const href = entry.href;
         const mine = entry.mine;
         const onPress =

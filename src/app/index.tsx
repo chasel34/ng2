@@ -1,5 +1,5 @@
 import { FlashList } from '@shopify/flash-list';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import {
   type BoardCategory,
   type HomeAnnouncement,
 } from '@/core/api';
+import { NGA_LINK_FAILURE_MESSAGES, ngaLinkPath, parseNgaLink } from '@/core/local';
 import { useAccounts } from '@/store/accounts';
 import {
   useAddBoardFavoriteById,
@@ -153,6 +154,9 @@ export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [addBoardOpen, setAddBoardOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
+  const [urlOpen, setUrlOpen] = useState(false);
+  // 「由 URL 读取」解不开时框里那行红字;undefined = 还没错过
+  const [urlError, setUrlError] = useState<string | undefined>(undefined);
   // tab 认分类 id 而不是下标:服务端加减分类时,选中的还是原来那个分类
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
 
@@ -298,6 +302,30 @@ export default function HomeScreen() {
       return;
     }
     setClearOpen(true);
+  };
+
+  /** 抽屉「由 URL 读取」(24)。同样是关抽屉再弹框。 */
+  const openFromUrl = () => {
+    setDrawerOpen(false);
+    setUrlError(undefined);
+    setUrlOpen(true);
+  };
+
+  /**
+   * 粘进来的链接就地解析:解得开才跳,解不开留在框里说明哪儿不对——
+   * 关掉框再弹 toast 的话,想改那一行还得重新粘一次。
+   */
+  const confirmFromUrl = (text: string) => {
+    const result = parseNgaLink(text);
+    if (!result.ok) {
+      setUrlError(NGA_LINK_FAILURE_MESSAGES[result.reason]);
+      return;
+    }
+    setUrlOpen(false);
+    setUrlError(undefined);
+    // 深链的落地路径由 core 那一份统一拼(与 `+native-intent` 同源),
+    // 拿到的是字符串,typedRoutes 认不出来,只能在这儿转一次
+    router.push(ngaLinkPath(result.link) as Href);
   };
 
   const confirmClearFavorites = () => {
@@ -456,6 +484,7 @@ export default function HomeScreen() {
           onNavigate={() => setDrawerOpen(false)}
           onAddBoard={openAddBoard}
           onClearFavorites={openClearFavorites}
+          onOpenUrl={openFromUrl}
         />
       </Drawer>
       <OverflowMenu
@@ -473,6 +502,16 @@ export default function HomeScreen() {
         keyboardType="numeric"
         onCancel={() => setAddBoardOpen(false)}
         onConfirm={confirmAddBoard}
+      />
+      <InputDialog
+        open={urlOpen}
+        title="由 URL 读取"
+        hint="支持 read.php / thread.php 链接"
+        error={urlError}
+        confirmLabel="打开"
+        keyboardType="url"
+        onCancel={() => setUrlOpen(false)}
+        onConfirm={confirmFromUrl}
       />
       <ConfirmDialog
         open={clearOpen}

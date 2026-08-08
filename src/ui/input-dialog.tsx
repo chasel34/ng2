@@ -18,6 +18,11 @@ export interface InputDialogProps {
   title: string;
   /** 输入框下面那行灰字,例如「共 7 页 · 输入 1 – 7」 */
   hint?: string;
+  /**
+   * 输入不合法时就地顶掉 hint 的红字(24 的「由 URL 读取」:链接解不开不跳转、不关框)。
+   * 位置与 hint 同一行,只换颜色,不动版式。
+   */
+  error?: string;
   /** 确定按钮的文案,设计稿各对话框不一样 */
   confirmLabel: string;
   initialValue?: string;
@@ -36,6 +41,7 @@ export function InputDialog({
   open,
   title,
   hint,
+  error,
   confirmLabel,
   initialValue = '',
   keyboardType,
@@ -99,7 +105,11 @@ export function InputDialog({
             cursorColor={theme.colors.primary}
             selectionColor={theme.colors.primary}
           />
-          {hint !== undefined && <Text style={styles.hint}>{hint}</Text>}
+          {error !== undefined ? (
+            <Text style={[styles.hint, styles.error]}>{error}</Text>
+          ) : (
+            hint !== undefined && <Text style={styles.hint}>{hint}</Text>
+          )}
         </View>
         <View style={styles.actions}>
           <Pressable style={styles.cancel} onPress={onCancel}>
@@ -156,6 +166,9 @@ const useStyles = createThemedStyles((theme) => ({
     ...theme.typography.meta,
     color: theme.colors.meta,
     marginTop: 7,
+  },
+  error: {
+    color: theme.colors.danger,
   },
   actions: {
     flexDirection: 'row',
