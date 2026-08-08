@@ -134,6 +134,8 @@ describe('字号 / 行高 token', () => {
       floorLike: { fontSize: 13, fontWeight: '400' },
       dialogTitle: { fontSize: 18, fontWeight: '600' },
       dialogAction: { fontSize: 14, fontWeight: '600' },
+      // 09 补:账号管理屏(isAccounts)的「添加账号」虚线按钮 14.5/650
+      accountAction: { fontSize: 14.5, fontWeight: '600' },
     });
   });
 
@@ -164,6 +166,7 @@ describe('字号 / 行高 token', () => {
         'floorLike',
         'dialogTitle',
         'dialogAction',
+        'accountAction',
       ].sort(),
     );
   });

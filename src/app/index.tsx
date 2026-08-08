@@ -249,7 +249,7 @@ export default function HomeScreen() {
 
       <DrawerEdgeHandle onOpen={() => setDrawerOpen(true)} />
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        <AppDrawerContent />
+        <AppDrawerContent onNavigate={() => setDrawerOpen(false)} />
       </Drawer>
       <OverflowMenu
         open={menuOpen}
