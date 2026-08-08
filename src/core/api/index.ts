@@ -17,6 +17,14 @@ export {
   type LoadBoardTreeOptions,
 } from './board-tree-cache'
 export {
+  addBoardFavorite,
+  clearBoardFavorites,
+  fetchBoardFavorites,
+  parseBoardFavorites,
+  parseBoardIdInput,
+  removeBoardFavorite,
+} from './board-favor'
+export {
   ATTACH_BASE_FALLBACK,
   attachmentUrl,
   normalizeAttachBase,

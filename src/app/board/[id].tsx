@@ -6,9 +6,13 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { mergeTopicPages, type Board, type Topic } from '@/core/api';
+import { useAccounts } from '@/store/accounts';
+import { useBoardFavoriteMutations, useIsBoardFavored } from '@/store/board-favor';
 import { useRefreshTopicList, useTopicList, useTopicSort } from '@/store/topic-list';
 import { Icon } from '@/ui/icon';
+import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
+import { showSnackbar } from '@/ui/snackbar';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showNotAvailable } from '@/ui/toast';
 import { TopicRow } from '@/ui/topic-row';
@@ -58,6 +62,39 @@ export default function BoardScreen() {
   const subBoards = data?.pages[0]?.subBoards ?? [];
   // 版头(CONTEXT.md):__F.topped_topic 带 tid 时在列表顶上给一条置顶入口,普通详情页打开
   const headTid = data?.pages[0]?.board?.head;
+
+  const boardTitle = name ?? data?.pages[0]?.board?.name ?? `版块 ${id}`;
+  const signedIn = useAccounts((state) => state.currentUid) !== null;
+  const favored = useIsBoardFavored(boardId);
+  const { add: addFavorite, remove: removeFavorite } = useBoardFavoriteMutations();
+
+  /** 顶栏星标(设计稿 toggleStar):点了立刻变色,再把结果 toast 出来并留一手撤销。 */
+  const toggleFavorite = () => {
+    if (!signedIn) {
+      showLoginPrompt(router, '登录后可把版块收藏到云端');
+      return;
+    }
+    const board: Board = {
+      id: boardId,
+      kind: boardKind,
+      ...(boardKind === 'collection' ? { stid: boardId } : { fid: boardId }),
+      name: boardTitle,
+    };
+    // 撤销就是反着做一次,失败一律回到「服务端怎么说就怎么显示」的话术
+    const run = (favor: boolean) =>
+      (favor ? addFavorite(board) : removeFavorite(board)).then(
+        () => {
+          showSnackbar(favor ? '已收藏到「我的收藏」' : '已取消收藏该版面', {
+            label: '撤销',
+            onPress: () => run(!favor),
+          });
+        },
+        (error: unknown) => {
+          showSnackbar(error instanceof Error ? error.message : '收藏没能同步到云端');
+        },
+      );
+    void run(!favored);
+  };
 
   const openBoard = (board: Board) => {
     router.push({
@@ -223,17 +260,17 @@ export default function BoardScreen() {
           onPress={() => router.back()}
           accessibilityLabel="返回"
         />
-        <TopBarTitle variant="sub">
-          {name ?? data?.pages[0]?.board?.name ?? `版块 ${id}`}
-        </TopBarTitle>
-        {/* 版块收藏是 10 票、搜索是 15 票 */}
+        <TopBarTitle variant="sub">{boardTitle}</TopBarTitle>
+        {/* 已收藏用 accent 点亮:图标字体是静态 Outlined 版,没有设计稿那根 FILL 轴 */}
         <TopBarButton
           icon="star"
           size={23}
-          onPress={showNotAvailable}
-          accessibilityLabel="收藏本版块"
+          onPress={toggleFavorite}
+          color={favored ? theme.colors.accent : undefined}
+          accessibilityLabel={favored ? '取消收藏本版块' : '收藏本版块'}
           style={topBarSpacer}
         />
+        {/* 搜索是 15 票 */}
         <TopBarButton
           icon="search"
           size={22}

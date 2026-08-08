@@ -1,0 +1,147 @@
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { createThemedStyles } from './theme';
+
+export interface ConfirmDialogProps {
+  open: boolean;
+  title: string;
+  /** 正文说明,例如「将取消收藏全部 5 个版块」 */
+  message: string;
+  /** 确定按钮文案 */
+  confirmLabel: string;
+  /** 危险操作(清空/删除)把确定钮染成 danger */
+  destructive?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+/**
+ * 「标题 + 一段正文 + 取消/确定」的确认对话框。
+ * 面板样式与 input-dialog.tsx 同一形状(设计稿 sign 对话框就是这种带正文的变体),
+ * 只是把输入行换成说明文字。
+ */
+export function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel,
+  destructive = false,
+  onCancel,
+  onConfirm,
+}: ConfirmDialogProps) {
+  const styles = useStyles();
+  const progress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!open) {
+      progress.setValue(0);
+      return;
+    }
+    const animation = Animated.timing(progress, {
+      toValue: 1,
+      duration: 200,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [open, progress]);
+
+  if (!open) return null;
+
+  return (
+    <View style={styles.root}>
+      <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} accessibilityLabel="关闭对话框" />
+      <Animated.View
+        style={[
+          styles.panel,
+          {
+            opacity: progress,
+            transform: [
+              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) },
+            ],
+          },
+        ]}
+      >
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.message}>{message}</Text>
+        <View style={styles.actions}>
+          <Pressable style={styles.cancel} onPress={onCancel}>
+            <Text style={styles.cancelLabel}>取消</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.confirm, destructive && styles.confirmDanger]}
+            onPress={onConfirm}
+          >
+            <Text style={styles.confirmLabel}>{confirmLabel}</Text>
+          </Pressable>
+        </View>
+      </Animated.View>
+    </View>
+  );
+}
+
+const useStyles = createThemedStyles((theme) => ({
+  root: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: theme.colors.scrim,
+  },
+  panel: {
+    width: '100%',
+    borderRadius: theme.radius.dialog,
+    backgroundColor: theme.colors.menu,
+    paddingTop: 22,
+    paddingHorizontal: 22,
+    paddingBottom: theme.spacing.row,
+    boxShadow: theme.shadows.elevation2,
+  },
+  title: {
+    ...theme.typography.dialogTitle,
+    color: theme.colors.fg,
+  },
+  message: {
+    ...theme.typography.notice,
+    color: theme.colors.fg2,
+    marginTop: theme.spacing.lg,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 6,
+    marginTop: theme.spacing.row,
+  },
+  cancel: {
+    height: 40,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelLabel: {
+    ...theme.typography.dialogAction,
+    color: theme.colors.fg2,
+  },
+  confirm: {
+    height: 40,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmDanger: {
+    backgroundColor: theme.colors.danger,
+  },
+  confirmLabel: {
+    ...theme.typography.dialogAction,
+    color: theme.colors.onPrimary,
+  },
+}));

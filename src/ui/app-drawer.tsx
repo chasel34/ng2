@@ -59,13 +59,21 @@ const ENTRIES: readonly DrawerEntry[] = [
 export interface AppDrawerContentProps {
   /** 点条目要跳页时先关抽屉(不关的话返回时抽屉还敞着) */
   onNavigate?: () => void;
+  /** 「添加版面 ID」(10 票):设计稿是关抽屉再由宿主页面弹输入框 */
+  onAddBoard?: () => void;
+  /** 「清空我的收藏」(10 票):同上,宿主页面弹确认框 */
+  onClearFavorites?: () => void;
 }
 
 /**
  * 抽屉正文。头部是账号区:游客态提示登录,登录后展示当前账号,
  * 左右滑动(或点两侧箭头)切换,点头像/账号名进账号管理页。
  */
-export function AppDrawerContent({ onNavigate }: AppDrawerContentProps) {
+export function AppDrawerContent({
+  onNavigate,
+  onAddBoard,
+  onClearFavorites,
+}: AppDrawerContentProps) {
   const styles = useStyles();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -152,19 +160,30 @@ export function AppDrawerContent({ onNavigate }: AppDrawerContentProps) {
       )}
 
       <Text style={styles.sectionCaption}>论坛功能</Text>
-      {ENTRIES.map((entry) => (
-        <Pressable
-          key={entry.key}
-          style={styles.entry}
-          onPress={entry.href === undefined ? showNotAvailable : () => go(entry.href!)}
-          android_ripple={{ color: theme.colors.divider }}
-        >
-          <Icon name={entry.icon} size={21} color={theme.colors.fg2} />
-          <Text style={styles.entryLabel} numberOfLines={1}>
-            {entry.label}
-          </Text>
-        </Pressable>
-      ))}
+      {ENTRIES.map((entry) => {
+        // 版块收藏(10 票)的两个入口由宿主页面接管;没接的条目维持「本版本未开放」
+        const action =
+          entry.key === 'add-board'
+            ? onAddBoard
+            : entry.key === 'clear-favor'
+              ? onClearFavorites
+              : undefined;
+        const href = entry.href;
+        const onPress = href !== undefined ? () => go(href) : (action ?? showNotAvailable);
+        return (
+          <Pressable
+            key={entry.key}
+            style={styles.entry}
+            onPress={onPress}
+            android_ripple={{ color: theme.colors.divider }}
+          >
+            <Icon name={entry.icon} size={21} color={theme.colors.fg2} />
+            <Text style={styles.entryLabel} numberOfLines={1}>
+              {entry.label}
+            </Text>
+          </Pressable>
+        );
+      })}
       <View style={styles.tail} />
     </ScrollView>
   );

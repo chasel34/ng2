@@ -162,6 +162,17 @@ export const avatarColors = [
  */
 export const topbarOverlay = 'rgba(255, 255, 255, 0.22)';
 
+/**
+ * Snackbar(设计稿 snack 条)。不进 ColorTokens:这几档色在设计稿里也不是
+ * :root 声明的 token,而是 renderVals 里内联的一组——底色深浅各一档,
+ * 文字与动作色两套配色共用(深底上本来就都是浅字)。
+ */
+export const snackbarColors = {
+  bg: { light: '#33322C', dark: '#3A3A36' } satisfies Record<ColorScheme, string>,
+  fg: '#F4F1E8',
+  action: '#8FD8C9',
+} as const;
+
 export interface ShadowTokens {
   /** 卡片 / 提示条 */
   elevation1: string;

@@ -63,6 +63,34 @@ export const API_FIXTURES = {
     file: 'read-attachments.gbk.bin',
     note: 'read.php tid=47328470 page=1 __output=8 v2=1，登录态',
   },
+  /**
+   * forum_favor2 action=get —— 收藏了 1 个合集（stid=31576766，条目只带 `stid` 不带 `fid`）
+   * 与 1 个负 fid 版块（fid=-7 网事杂谈）之后的列表，**新收藏的排在前面**。
+   * 版块数组挂在 `data["0"]` 下（API 文档 §1.3）；响应体里没有任何账号信息。
+   */
+  forumFavorList: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'forum-favor-get.gbk.bin',
+    note: 'nuke.php __lib=forum_favor2 __act=forum_favor action=get __output=8，登录态',
+  },
+  /** forum_favor2 action=get —— 一个都没收藏时 `data` 是空对象，连 `"0"` 键都没有。 */
+  forumFavorEmpty: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'forum-favor-empty.gbk.bin',
+    note: 'nuke.php __lib=forum_favor2 __act=forum_favor action=get __output=8，登录态、收藏为空',
+  },
+  /** forum_favor2 action=add|del 成功 —— `data["0"]` 是文本「操作成功」；del 未收藏的版块也回这个。 */
+  forumFavorWriteOk: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'forum-favor-write-ok.gbk.bin',
+    note: 'nuke.php __lib=forum_favor2 __act=forum_favor action=del fid=-7 __output=8，登录态',
+  },
+  /** forum_favor2 action=add 重复收藏 —— error「 你已经收藏了这个版面」（带前导空格）。 */
+  forumFavorAlready: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'forum-favor-already.gbk.bin',
+    note: 'nuke.php __lib=forum_favor2 __act=forum_favor action=add fid=-7 __output=8，重复收藏',
+  },
 } as const satisfies Record<string, ApiFixture>
 
 export type ApiFixtureName = keyof typeof API_FIXTURES
