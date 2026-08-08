@@ -10,6 +10,18 @@ export {
   type AnonymousName,
 } from './anonymous'
 export {
+  advanceHistoryFloor,
+  formatHistoryTime,
+  HISTORY_LIMIT,
+  historyProgressLabel,
+  isHistoryFinished,
+  pageOfFloor,
+  upsertHistory,
+  type HistoryEntry,
+  type HistoryUpdate,
+  type TopicVisit,
+} from './history'
+export {
   formatDiceTerms,
   resolveDice,
   type DiceOutcome,

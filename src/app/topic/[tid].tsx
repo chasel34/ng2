@@ -1,10 +1,11 @@
-import { FlashList, type FlashListRef } from '@shopify/flash-list';
+import { FlashList, type FlashListRef, type ViewToken } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Easing,
   PanResponder,
   Pressable,
   Text,
@@ -12,6 +13,8 @@ import {
 } from 'react-native';
 
 import type { Floor } from '@/core/api';
+import { pageOfFloor } from '@/core/local';
+import { peekHistoryEntry, recordReadFloor, recordTopicVisit } from '@/store/history';
 import { useTopicDetail } from '@/store/topic-detail';
 import { FloorCard, type FloorContext } from '@/ui/floor-card';
 import { isHorizontalDragActive } from '@/ui/horizontal-drag';
@@ -79,6 +82,7 @@ export default function TopicScreen() {
   };
 
   const swipe = useSwipePaging({ page, totalPages, onChange: goToPage });
+  const resume = useReadingProgress({ topicId, fav, data, listRef, goToPage });
 
   const body = () => {
     if (isPending) {
@@ -126,12 +130,21 @@ export default function TopicScreen() {
           keyExtractor={(floor) => String(floor.pid)}
           renderItem={({ item }) => <FloorCard floor={item} context={floorContext} />}
           ListHeaderComponent={
-            // 热门回复是服务端在主楼里标的,只有第 1 页拿得到
-            data.hotReplies.length === 0 ? null : (
-              <HotReplies floors={data.hotReplies} context={floorContext} />
-            )
+            <>
+              {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走 */}
+              {resume.floor !== undefined && (
+                <ResumeBanner floor={resume.floor} onJump={resume.jump} onClose={resume.dismiss} />
+              )}
+              {/* 热门回复是服务端在主楼里标的,只有第 1 页拿得到 */}
+              {data.hotReplies.length > 0 && (
+                <HotReplies floors={data.hotReplies} context={floorContext} />
+              )}
+            </>
           }
           ListFooterComponent={<View style={styles.footerSpacer} />}
+          // 阅读进度:哪些楼层在屏上由 FlashList 报,记「看到过的最高楼层」(ticket 16)
+          viewabilityConfig={resume.viewabilityConfig}
+          onViewableItemsChanged={resume.onViewableItemsChanged}
           // 翻页时 isPlaceholderData 为真(屏上还是上一页的内容),那种情况下
           // 不该亮下拉转圈——只有真正在刷新当前这一页时才亮
           refreshing={isFetching && !isPlaceholderData}
@@ -239,6 +252,149 @@ export default function TopicScreen() {
         }}
       />
     </View>
+  );
+}
+
+interface ReadingProgressOptions {
+  topicId: number;
+  fav: string | undefined;
+  data: ReturnType<typeof useTopicDetail>['data'];
+  listRef: RefObject<FlashListRef<Floor> | null>;
+  goToPage: (page: number) => void;
+}
+
+/**
+ * 浏览历史 + 阅读进度(ticket 16,CONTEXT.md「阅读进度」)。
+ *
+ * 三件事:拿到一页数据就把主题登记进历史(去重、刷新元数据);滚动时把
+ * 屏上最高的楼层号报给历史(只前进,不写盘的判断在 core/local/history);
+ * 进场时如果有「上次读到第 N 楼」,管提示条的出现、关闭与「回到那里」跳转。
+ */
+function useReadingProgress({ topicId, fav, data, listRef, goToPage }: ReadingProgressOptions) {
+  // 进场那一刻的存档楼层。之后的滚动会推着进度涨,但提示条要说的是「上次」,
+  // 所以只在挂载时读一次;主楼都没读过(lastFloor 0)就不打扰
+  const [resumeFloor, setResumeFloor] = useState<number | undefined>(() => {
+    const entry = peekHistoryEntry(topicId);
+    return entry !== undefined && entry.lastFloor >= 1 ? entry.lastFloor : undefined;
+  });
+  // 点了「回到那里」之后待兑现的目标楼层:目标页的数据到了才能滚过去
+  const [pendingFloor, setPendingFloor] = useState<number | undefined>(undefined);
+
+  // 浏览即入历史:每拿到新一页就登记一次(同主题只更新时间与楼层,不新增条目)
+  useEffect(() => {
+    if (data === undefined || !Number.isFinite(topicId) || topicId <= 0) return;
+    // 楼主名只有主楼在场的那页(第 1 页)拿得到;缺席时 core 层会保留旧值
+    const starter = data.floors.find((floor) => floor.isStarter);
+    const author = starter === undefined ? undefined : data.users[starter.authorKey]?.name;
+    recordTopicVisit({
+      tid: topicId,
+      subject: data.subject,
+      maxFloor: Math.max(0, data.totalRows - 1),
+      ...(author === undefined ? {} : { author }),
+      ...(data.boardName === undefined ? {} : { boardName: data.boardName }),
+      ...(fav === undefined ? {} : { favCode: fav }),
+    });
+  }, [data, topicId, fav]);
+
+  // FlashList 要求 viewability 回调终生不变,所以塞进 ref;
+  // topicId 是路由参数,这个屏活着期间不会变,闭包捕获是安全的
+  const viewability = useRef({
+    viewabilityConfig: { itemVisiblePercentThreshold: 20 },
+    onViewableItemsChanged: ({ viewableItems }: { viewableItems: ViewToken<Floor>[] }) => {
+      let maxLou = -1;
+      for (const token of viewableItems) {
+        if (token.isViewable && token.item.lou > maxLou) maxLou = token.item.lou;
+      }
+      // 条目还没登记(recordTopicVisit 未跑)或楼层没前进时,store 层是纯 no-op
+      if (maxLou >= 0) recordReadFloor(topicId, maxLou);
+    },
+  }).current;
+
+  const jump = () => {
+    if (resumeFloor === undefined || data === undefined) return;
+    // 设计稿 jumpToLast:提示条随即消失 + toast「已跳转到第 N 楼」
+    setResumeFloor(undefined);
+    setPendingFloor(resumeFloor);
+    showToast(`已跳转到第 ${resumeFloor} 楼`);
+    goToPage(pageOfFloor(resumeFloor, data.rowsPerPage));
+  };
+
+  // 目标页的数据到位后滚到那一楼。翻页期间 keepPreviousData 还在展示旧页,
+  // 必须核对 data.page,不然会拿旧页的楼层号错滚一通
+  useEffect(() => {
+    if (pendingFloor === undefined || data === undefined) return;
+    if (data.page !== pageOfFloor(pendingFloor, data.rowsPerPage)) return;
+    setPendingFloor(undefined);
+    // 有楼层被删时 lou 有空洞,目标楼可能不在了:落到它后面最近的一楼
+    const index = data.floors.findIndex((floor) => floor.lou >= pendingFloor);
+    if (index >= 0) {
+      listRef.current?.scrollToIndex({ index, animated: true });
+    } else {
+      listRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [pendingFloor, data, listRef]);
+
+  return {
+    floor: resumeFloor,
+    dismiss: () => setResumeFloor(undefined),
+    jump,
+    viewabilityConfig: viewability.viewabilityConfig,
+    onViewableItemsChanged: viewability.onViewableItemsChanged,
+  };
+}
+
+/**
+ * 「上次读到第 N 楼」提示条。样式与出现动画照设计稿 progressTip:
+ * primary-c 底、圆角 12,进场 .28s 上浮淡入(omup);关闭/跳转即消失,无退场动画。
+ */
+function ResumeBanner({
+  floor,
+  onJump,
+  onClose,
+}: {
+  floor: number;
+  onJump: () => void;
+  onClose: () => void;
+}) {
+  const styles = useStyles();
+  const theme = useTheme();
+  const progress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.timing(progress, {
+      toValue: 1,
+      duration: 280,
+      // CSS 的 ease
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [progress]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.resumeBanner,
+        {
+          opacity: progress,
+          transform: [
+            { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) },
+          ],
+        },
+      ]}
+    >
+      <Icon name="bookmark" size={19} color={theme.colors.primary} />
+      <Text style={styles.resumeText}>
+        上次读到 <Text style={styles.resumeStrong}>第 {floor} 楼</Text>
+      </Text>
+      <Pressable onPress={onJump} accessibilityLabel={`回到第 ${floor} 楼`}>
+        <Text style={styles.resumeAction}>回到那里</Text>
+      </Pressable>
+      <Pressable onPress={onClose} accessibilityLabel="关闭提示" hitSlop={8}>
+        <Icon name="close" size={17} color={theme.colors.meta} />
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -372,6 +528,35 @@ const useStyles = createThemedStyles((theme) => ({
     ...theme.typography.drawerItem,
     fontWeight: '600',
     color: theme.colors.onPrimary,
+  },
+  /** 设计稿 progressTip:外距 10 12 2、内距 11 12 11 14、圆角 12、primary-c 底 */
+  resumeBanner: {
+    marginTop: 10,
+    marginHorizontal: theme.spacing.md,
+    marginBottom: 2,
+    paddingVertical: 11,
+    paddingLeft: theme.spacing.row,
+    paddingRight: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.primaryContainer,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  resumeText: {
+    ...theme.typography.resumeTip,
+    color: theme.colors.fg,
+    flex: 1,
+  },
+  resumeStrong: {
+    fontWeight: '700',
+  },
+  resumeAction: {
+    ...theme.typography.resumeTip,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: 6,
   },
   hotReplies: {
     borderBottomWidth: 1,

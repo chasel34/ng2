@@ -86,9 +86,9 @@ export default function BoardScreen() {
   };
 
   const menuItems: readonly MenuItem[] = useMemo(() => {
-    // 都还没做:24 小时热帖与精华区 17、浏览历史 16、子版块 23、收藏夹 11
+    // 还没做的:24 小时热帖与精华区 17、子版块 23、收藏夹 11
     // (设计稿这一条写的是「子板块」,CONTEXT.md 的词条是「子版块」,按术语表来)
-    const pending = ['24 小时热帖', '浏览历史', '精华区', '子版块', '收藏夹'].map((label) => ({
+    const pending = ['24 小时热帖', '精华区', '子版块', '收藏夹'].map((label) => ({
       key: label,
       label,
       onPress: () => {
@@ -96,6 +96,15 @@ export default function BoardScreen() {
         showNotAvailable();
       },
     }));
+    // 顺序照设计稿 MENUS.list:热帖之后、精华区之前
+    pending.splice(1, 0, {
+      key: '浏览历史',
+      label: '浏览历史',
+      onPress: () => {
+        setMenuOpen(false);
+        router.push('/history');
+      },
+    });
 
     // 设计稿的列表菜单没画排序(它在 MNGA 里是设置项),按现有菜单样式延伸一组互斥选项
     const sorts: MenuItem[] = (
@@ -115,7 +124,7 @@ export default function BoardScreen() {
     }));
 
     return [...pending, ...sorts];
-  }, [sort, setSort]);
+  }, [sort, setSort, router]);
 
   const body = () => {
     if (isPending) {
