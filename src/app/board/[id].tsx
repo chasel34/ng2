@@ -56,6 +56,8 @@ export default function BoardScreen() {
   const topics = useMemo(() => mergeTopicPages(data?.pages ?? []), [data?.pages]);
   const loadedPages = data?.pages.length ?? 0;
   const subBoards = data?.pages[0]?.subBoards ?? [];
+  // 版头(CONTEXT.md):__F.topped_topic 带 tid 时在列表顶上给一条置顶入口,普通详情页打开
+  const headTid = data?.pages[0]?.board?.head;
 
   const openBoard = (board: Board) => {
     router.push({
@@ -86,14 +88,26 @@ export default function BoardScreen() {
   };
 
   const menuItems: readonly MenuItem[] = useMemo(() => {
-    // 都还没做:24 小时热帖与精华区 17、浏览历史 16、子版块 23、收藏夹 11
+    // 热帖与精华区(17 票)已通,复用本页的路由参数;还没做:浏览历史 16、子版块 23、收藏夹 11
     // (设计稿这一条写的是「子板块」,CONTEXT.md 的词条是「子版块」,按术语表来)
-    const pending = ['24 小时热帖', '浏览历史', '精华区', '子版块', '收藏夹'].map((label) => ({
+    const boardParams = {
+      id: String(boardId),
+      kind: boardKind,
+      ...(name === undefined ? {} : { name }),
+    };
+    const entries: readonly (readonly [string, (() => void)?])[] = [
+      ['24 小时热帖', () => router.push({ pathname: '/board/hot', params: boardParams })],
+      ['浏览历史'],
+      ['精华区', () => router.push({ pathname: '/board/recommend', params: boardParams })],
+      ['子版块'],
+      ['收藏夹'],
+    ];
+    const pending = entries.map(([label, go]) => ({
       key: label,
       label,
       onPress: () => {
         setMenuOpen(false);
-        showNotAvailable();
+        (go ?? showNotAvailable)();
       },
     }));
 
@@ -115,7 +129,7 @@ export default function BoardScreen() {
     }));
 
     return [...pending, ...sorts];
-  }, [sort, setSort]);
+  }, [sort, setSort, boardId, boardKind, name, router]);
 
   const body = () => {
     if (isPending) {
@@ -152,7 +166,26 @@ export default function BoardScreen() {
           keyExtractor={(topic) => String(topic.tid)}
           renderItem={({ item }) => <TopicRow topic={item} onPress={openTopic} />}
           ListHeaderComponent={
-            subBoards.length === 0 ? null : <SubBoardBar boards={subBoards} onPress={openBoard} />
+            <View>
+              {headTid !== undefined && (
+                <Pressable
+                  style={styles.headRow}
+                  android_ripple={{ color: theme.colors.divider }}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/topic/[tid]',
+                      params: { tid: String(headTid), title: '版头' },
+                    })
+                  }
+                  accessibilityLabel="打开版头"
+                >
+                  <Icon name="push_pin" size={16} color={theme.colors.accent} />
+                  <Text style={styles.headLabel}>版头</Text>
+                  <Icon name="chevron_right" size={18} color={theme.colors.meta} />
+                </Pressable>
+              )}
+              {subBoards.length > 0 && <SubBoardBar boards={subBoards} onPress={openBoard} />}
+            </View>
           }
           ListFooterComponent={
             <View>
@@ -291,6 +324,22 @@ const useStyles = createThemedStyles((theme) => ({
     ...theme.typography.drawerItem,
     fontWeight: '600',
     color: theme.colors.onPrimary,
+  },
+  // 版头置顶入口:设计稿没画这屏,按公告条的设计语言延伸(surface-2 底 + 分隔线)
+  headRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.row,
+    backgroundColor: theme.colors.surface2,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  headLabel: {
+    ...theme.typography.notice,
+    color: theme.colors.fg2,
+    flex: 1,
   },
   subBoardBar: {
     borderBottomWidth: 1,

@@ -25,6 +25,11 @@ export interface Board {
   readonly info?: string
   /** 远程图标；服务端图标清单里没登记的版块为 undefined，UI 直接走首字占位 */
   readonly iconUrl?: string
+  /**
+   * 版头（CONTEXT.md「版头」）主题的 tid，用普通详情页打开。
+   * `thread.php` 的 `__F.topped_topic`（分类树接口偶尔也带，字段同名）；0/空串=没有。
+   */
+  readonly head?: number
 }
 
 /** 分类下的一组版块，对应设计稿宫格上方那行「⭕ 组名」。 */

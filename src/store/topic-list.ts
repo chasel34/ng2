@@ -16,10 +16,12 @@ export interface TopicListParams {
   boardId: number;
   kind: 'board' | 'collection';
   sort: TopicSort;
+  /** 精华区(recommend=1)。进 queryKey:它和普通列表是两份数据,不能混页 */
+  recommend?: boolean;
 }
 
-export const topicListQueryKey = ({ boardId, kind, sort }: TopicListParams) =>
-  ['topic-list', kind, boardId, sort] as const;
+export const topicListQueryKey = ({ boardId, kind, sort, recommend }: TopicListParams) =>
+  ['topic-list', kind, boardId, recommend === true ? 'recommend' : sort] as const;
 
 /**
  * 一个版块的主题列表,35 条一页往下翻。
@@ -38,6 +40,7 @@ export function useTopicList(
         kind: params.kind,
         page: pageParam,
         sort: params.sort,
+        ...(params.recommend === true ? { recommend: true } : {}),
         signal,
       }),
     initialPageParam: 1,
@@ -59,17 +62,22 @@ export function useTopicList(
  */
 export function useRefreshTopicList(params: TopicListParams): () => void {
   const queryClient = useQueryClient();
-  const { boardId, kind, sort } = params;
+  const { boardId, kind, sort, recommend } = params;
 
   return useCallback(() => {
-    const queryKey = topicListQueryKey({ boardId, kind, sort });
+    const queryKey = topicListQueryKey({
+      boardId,
+      kind,
+      sort,
+      ...(recommend === true ? { recommend } : {}),
+    });
     queryClient.setQueryData<InfiniteData<TopicList, number>>(queryKey, (loaded) =>
       loaded === undefined
         ? loaded
         : { pages: loaded.pages.slice(0, 1), pageParams: loaded.pageParams.slice(0, 1) },
     );
     void queryClient.refetchQueries({ queryKey });
-  }, [queryClient, boardId, kind, sort]);
+  }, [queryClient, boardId, kind, sort, recommend]);
 }
 
 interface SortState {

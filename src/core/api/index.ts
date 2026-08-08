@@ -25,6 +25,12 @@ export {
 } from './attachments'
 export { int, nonZero, orderedEntries, orderedValues, str } from './fields'
 export {
+  DEFAULT_HOT_PAGES,
+  fetchHotTopicPages,
+  type FetchHotTopicPagesOptions,
+  type HotTopicPages,
+} from './hot-topics'
+export {
   fetchTopicDetail,
   parseAvatarUrl,
   parseTopicDetail,

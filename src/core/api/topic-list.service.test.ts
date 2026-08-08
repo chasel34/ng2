@@ -54,6 +54,17 @@ describe('fetchTopicList', () => {
     expect(await urlOf({ boardId: -7, kind: 'board', page: 1 })).not.toContain('order_by')
   })
 
+  it('精华区带 recommend=1 与 Android 同款的固定参数，sort 不生效', async () => {
+    const url = await urlOf({ boardId: -7, kind: 'board', page: 1, recommend: true, sort: 'lastPost' })
+    expect(url).toContain('recommend=1')
+    expect(url).toContain('order_by=postdatedesc')
+    expect(url).toContain('user=1')
+  })
+
+  it('不开精华区时不带 recommend', async () => {
+    expect(await urlOf({ boardId: -7, kind: 'board', page: 1 })).not.toContain('recommend')
+  })
+
   it('GBK 响应一路解码、清洗、解析成一页主题', async () => {
     const { transport } = fixtureTransport()
 

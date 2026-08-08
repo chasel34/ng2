@@ -22,6 +22,11 @@ function titleTextStyle(style: TitleStyle, theme: Theme) {
 export interface TopicRowProps {
   topic: Topic;
   onPress: (topic: Topic) => void;
+  /**
+   * 二级列表(设计稿 simple-list:热帖/精华区)的时间文案。传了就切到那套行样式:
+   * 标题降到 16 档(token 表「列表主题标题」),最后回复人的位置换成时间(meta 色)。
+   */
+  time?: string;
 }
 
 /**
@@ -33,7 +38,7 @@ export interface TopicRowProps {
  * 合集与版块镜像行(`shortcut`)点开的是另一个版块的主题列表,不是讨论串。
  * 合集按设计稿加粗;镜像行不额外加粗——它的粗体本来就写在服务端下发的掩码里。
  */
-export function TopicRow({ topic, onPress }: TopicRowProps) {
+export function TopicRow({ topic, onPress, time }: TopicRowProps) {
   const styles = useStyles();
   const theme = useTheme();
 
@@ -45,7 +50,7 @@ export function TopicRow({ topic, onPress }: TopicRowProps) {
       android_ripple={{ color: theme.colors.divider }}
       style={styles.row}
     >
-      <Text style={styles.titleLine}>
+      <Text style={time === undefined ? styles.titleLine : styles.titleLineSimple}>
         <Text style={[titleStyle, topic.isCollection && styles.titleCollection]}>
           {topic.subject}
         </Text>
@@ -62,9 +67,15 @@ export function TopicRow({ topic, onPress }: TopicRowProps) {
         <Text style={styles.author} numberOfLines={1}>
           {topic.author}
         </Text>
-        <Text style={styles.lastPoster} numberOfLines={1}>
-          {topic.lastPoster ?? ''}
-        </Text>
+        {time === undefined ? (
+          <Text style={styles.lastPoster} numberOfLines={1}>
+            {topic.lastPoster ?? ''}
+          </Text>
+        ) : (
+          <Text style={styles.time} numberOfLines={1}>
+            {time}
+          </Text>
+        )}
         <Icon name="chat_bubble" size={14} color={theme.colors.meta} />
         <Text style={styles.replies}>{topic.replies}</Text>
       </View>
@@ -83,6 +94,10 @@ const useStyles = createThemedStyles((theme) => ({
   },
   titleLine: {
     ...theme.typography.topicTitle,
+  },
+  // 二级列表(simple-list)的标题是 16 档,比主题列表页的 17 小一号
+  titleLineSimple: {
+    ...theme.typography.listTitle,
   },
   titleCollection: {
     fontWeight: '600',
@@ -114,6 +129,12 @@ const useStyles = createThemedStyles((theme) => ({
     color: theme.colors.link,
     marginLeft: 'auto',
     maxWidth: 130,
+  },
+  // simple-list 的 when 槽:同一位置,但用 meta 色(设计稿 color:var(--meta))
+  time: {
+    ...theme.typography.listMeta,
+    color: theme.colors.meta,
+    marginLeft: 'auto',
   },
   replies: {
     ...theme.typography.listMeta,

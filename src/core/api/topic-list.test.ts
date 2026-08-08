@@ -54,6 +54,17 @@ describe('parseTopicList（真实样本）', () => {
     })
   })
 
+  it('版头 tid 从 __F.topped_topic 解出来（CONTEXT.md「版头」）', () => {
+    expect(fixtureList.board?.head).toBe(3593852)
+  })
+
+  it('topped_topic 是 0 或空串时没有版头', () => {
+    const noHead = parseTopicList({ __F: { fid: 7, name: '艾泽拉斯议事厅', topped_topic: '' } })
+    expect(noHead.board?.head).toBeUndefined()
+    const zeroHead = parseTopicList({ __F: { fid: 7, name: '艾泽拉斯议事厅', topped_topic: 0 } })
+    expect(zeroHead.board?.head).toBeUndefined()
+  })
+
   it('置顶主题的彩色标题来自 topic_misc', () => {
     const topped = topicById(44191387)
     expect(topped.titleStyle).toEqual({ color: 'red', bold: true, italic: false, underline: false })

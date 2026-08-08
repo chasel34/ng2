@@ -171,10 +171,13 @@ function parseBoard(raw: unknown): Board | undefined {
   if (!isRecord(raw)) return undefined
   const name = str(raw, 'name')
   if (name === undefined) return undefined
-  return boardIdentity(name, {
+  const board = boardIdentity(name, {
     fid: nonZero(int(raw, 'fid')),
     stid: nonZero(int(raw, 'stid')),
   })
+  // 版头（CONTEXT.md）：`topped_topic` 存版头帖 tid，没有时是 0 或空串
+  const head = nonZero(int(raw, 'topped_topic'))
+  return board === undefined ? undefined : { ...board, ...(head === undefined ? {} : { head }) }
 }
 
 /**
@@ -241,6 +244,11 @@ export interface FetchTopicListOptions {
   /** 从 1 起 */
   readonly page: number
   readonly sort?: TopicSort
+  /**
+   * 精华区（功能文档 §2.2）：`recommend=1`。Android 客户端还固定带
+   * `order_by=postdatedesc&user=1`（API 文档 §2），精华区下 `sort` 不生效。
+   */
+  readonly recommend?: boolean
   readonly signal?: AbortSignal
 }
 
@@ -254,14 +262,18 @@ export async function fetchTopicList(
   fetchNga: NgaFetcher,
   options: FetchTopicListOptions,
 ): Promise<TopicList> {
-  const { boardId, kind, page, sort, signal } = options
+  const { boardId, kind, page, sort, recommend, signal } = options
 
   const result = await fetchNga({
     path: 'thread.php',
     query: {
       ...(kind === 'collection' ? { stid: boardId } : { fid: boardId }),
       page,
-      ...(sort === 'postDate' ? { order_by: 'postdatedesc' } : {}),
+      ...(recommend === true
+        ? { recommend: 1, order_by: 'postdatedesc', user: 1 }
+        : sort === 'postDate'
+          ? { order_by: 'postdatedesc' }
+          : {}),
     },
     ...(signal === undefined ? {} : { signal }),
   })

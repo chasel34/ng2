@@ -17,6 +17,12 @@ export {
   type DiceTerm,
 } from './dice'
 export {
+  HOT_WINDOW_HOURS,
+  aggregateHotTopics,
+  type AggregateHotTopicsOptions,
+  type HotTopicCandidate,
+} from './hot-topics'
+export {
   PLAIN_TITLE_STYLE,
   decodeTitleStyle,
   parseTopicMisc,
