@@ -272,6 +272,8 @@ const designOnlyTypography = {
   folderBadge: { fontSize: 10.5, fontWeight: '700' },
   /** 卡片副行 / 二级列表副标题条 12(设计稿 isFolders 卡片与 listSub) */
   cardMeta: { fontSize: 12, fontWeight: '400' },
+  /** 搜索屏「搜索选项 / 搜索历史」小节标题 16 · 600(设计稿 isSearch 屏) */
+  searchSection: { fontSize: 16, fontWeight: '600' },
 } as const;
 
 export const typography = { ...tokenTableTypography, ...designOnlyTypography } as const;

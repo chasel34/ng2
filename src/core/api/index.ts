@@ -71,11 +71,23 @@ export {
   type TopicSort,
 } from './topic-list'
 export {
+  fetchBoardSearch,
+  fetchTopicSearch,
+  parseBoardSearch,
+  parseUserSearchInput,
+  type BoardSearchItem,
+  type FetchBoardSearchOptions,
+  type FetchTopicSearchOptions,
+  type UserSearchQuery,
+} from './search'
+export {
   UCP_REFERER_PATH,
   fetchUserAvatar,
   fetchUserProfile,
+  fetchUserProfileByName,
   parseUserProfile,
   type FetchUserAvatarOptions,
+  type FetchUserProfileByNameOptions,
   type FetchUserProfileOptions,
   type ParseUserProfileOptions,
 } from './user-profile'

@@ -148,6 +148,8 @@ describe('字号 / 行高 token', () => {
       dialogListItem: { fontSize: 14.5, fontWeight: '400' },
       folderBadge: { fontSize: 10.5, fontWeight: '700' },
       cardMeta: { fontSize: 12, fontWeight: '400' },
+      // 15 补:搜索屏(isSearch)的「搜索选项 / 搜索历史」小节标题 16/600
+      searchSection: { fontSize: 16, fontWeight: '600' },
     });
   });
 
@@ -187,6 +189,7 @@ describe('字号 / 行高 token', () => {
         'dialogListItem',
         'folderBadge',
         'cardMeta',
+        'searchSection',
       ].sort(),
     );
   });

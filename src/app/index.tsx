@@ -412,7 +412,7 @@ export default function HomeScreen() {
         <TopBarButton
           icon="search"
           size={23}
-          onPress={showNotAvailable}
+          onPress={() => router.push('/search')}
           accessibilityLabel="搜索"
           style={topBarSpacer}
         />
