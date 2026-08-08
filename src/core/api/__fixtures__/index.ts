@@ -160,6 +160,36 @@ export const API_FIXTURES = {
     note: 'thread.php authorid=41417929 searchpost=1 page=500 __output=8，登录态',
   },
   /**
+   * thread.php key=炉石（UTF-8）—— 全站主题搜索第一页。形状与版块列表完全一致
+   * （`__F` 是空对象、`__ROWS` 是有效总数 46020）；`__CU.uid` 已脱敏成 10000001。
+   */
+  threadSearchKey: {
+    contentType: 'text/html',
+    file: 'thread-search-key.gbk.bin',
+    note: 'thread.php key=%E7%82%89%E7%9F%B3(炉石 UTF-8) page=1 __output=8 __inchst=UTF8，登录态',
+  },
+  /**
+   * forum.php key=炉石（GBK %C2%AF%CA%AF）—— 版块搜索。条目直接以数字键挂在 data 上，
+   * 每条 `{fid, stid, name, descrip, relevance, url, parent:{fid,name}}`；
+   * 既有普通版块（stid=0）也有合集（stid 非 0、fid 是宿主版块），
+   * `topic_misc_var` 有时是空串有时是对象。响应里没有任何账号信息。
+   */
+  forumSearchKey: {
+    contentType: 'text/html',
+    file: 'forum-search-key.gbk.bin',
+    note: 'forum.php key=%C2%AF%CA%AF(炉石 GBK) __output=8，登录态',
+  },
+  /**
+   * forum.php 没有结果 —— error「2048:没找到符合条件的版面」（`没找到` 在假错误
+   * 白名单里），data 只剩 `__MESSAGE`。UTF-8 编码的中文 key 也会落到这条：
+   * 服务端按 GBK 解 percent 字节，解出来是乱码自然搜不到——GBK 编码就是这么验出来的。
+   */
+  forumSearchNone: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'forum-search-none.gbk.bin',
+    note: 'forum.php key=<不存在的关键词 GBK> __output=8，登录态',
+  },
+  /**
    * topic_favor_v2 list_folder —— 两个收藏夹：`默认` 键 + `type: 2` 标出默认夹，
    * `length` 是夹内主题数。夹名是抓包时没带 `__inchst=UTF8` 产生的 mojibake
    * （UTF-8 字节被服务端按 GBK 落库），恰好留作「名字原样透传」的样本。

@@ -271,11 +271,16 @@ export default function BoardScreen() {
           accessibilityLabel={favored ? '取消收藏本版块' : '收藏本版块'}
           style={topBarSpacer}
         />
-        {/* 搜索是 15 票 */}
+        {/* 从列表页进搜索:带上当前版块,搜索选项里才有「当前板块」(15) */}
         <TopBarButton
           icon="search"
           size={22}
-          onPress={showNotAvailable}
+          onPress={() =>
+            router.push({
+              pathname: '/search',
+              params: { boardId: String(boardId), kind: boardKind, boardName: boardTitle },
+            })
+          }
           accessibilityLabel="搜索"
         />
         <TopBarButton

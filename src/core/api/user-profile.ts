@@ -146,6 +146,10 @@ export interface FetchUserProfileOptions {
 /**
  * 拉一份用户资料（`POST nuke.php?__lib=ucp&__act=get`）。
  *
+ * 接口本身 uid / username 二选一（API 文档 §11.1，uid 优先），所以按名字查
+ * （搜索票的用户搜索）也是这条路：`fetchUserProfileByName`。用户名按 UTF-8
+ * 编码即可——fetcher 默认声明 `__inchst=UTF8`，2026-08-08 中文名真机验证过。
+ *
  * `refererPath` 而不是写死的完整 URL：反封锁链会换域名，Referer 得跟着当前 host 走
  * （要求只是「以 base url 开头」）。
  */
@@ -154,10 +158,31 @@ export async function fetchUserProfile(
   options: FetchUserProfileOptions,
 ): Promise<UserProfile> {
   const { uid, signal } = options
+  return fetchUcpProfile(fetchNga, { uid }, signal)
+}
 
+export interface FetchUserProfileByNameOptions {
+  readonly username: string
+  readonly signal?: AbortSignal
+}
+
+/** 按用户名拉资料（用户搜索：输入不是纯数字时走这条）。 */
+export async function fetchUserProfileByName(
+  fetchNga: NgaFetcher,
+  options: FetchUserProfileByNameOptions,
+): Promise<UserProfile> {
+  const { username, signal } = options
+  return fetchUcpProfile(fetchNga, { username }, signal)
+}
+
+async function fetchUcpProfile(
+  fetchNga: NgaFetcher,
+  who: { uid: number } | { username: string },
+  signal?: AbortSignal,
+): Promise<UserProfile> {
   const result = await fetchNga({
     path: 'nuke.php',
-    query: { __lib: 'ucp', __act: 'get', uid },
+    query: { __lib: 'ucp', __act: 'get', ...who },
     refererPath: UCP_REFERER_PATH,
     ...(signal === undefined ? {} : { signal }),
   })
