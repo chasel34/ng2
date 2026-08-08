@@ -35,6 +35,16 @@ export {
   type HotTopicCandidate,
 } from './hot-topics'
 export {
+  groupNotifications,
+  markRead,
+  mergeNotifications,
+  newNotifications,
+  notificationId,
+  unreadCount,
+  type NotificationIdParts,
+  type NotificationLike,
+} from './notifications'
+export {
   PLAIN_TITLE_STYLE,
   decodeTitleStyle,
   parseTopicMisc,

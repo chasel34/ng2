@@ -46,6 +46,12 @@ export {
   type ParseTopicDetailOptions,
 } from './topic-detail'
 export {
+  clearNotificationFeed,
+  fetchNotificationFeed,
+  notificationKind,
+  parseNotificationFeed,
+} from './notifications'
+export {
   fetchTopicList,
   mergeTopicPages,
   parseTopicList,
@@ -62,6 +68,9 @@ export type {
   FloorClient,
   FloorUser,
   HomeAnnouncement,
+  NgaNotification,
+  NotificationFeed,
+  NotificationKind,
   Topic,
   TopicDetail,
   TopicList,

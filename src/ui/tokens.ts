@@ -252,6 +252,12 @@ const designOnlyTypography = {
   floorLike: { fontSize: 13, fontWeight: '400' },
   /** 账号管理页「添加账号」虚线按钮 14.5 · 650(设计稿 isAccounts 屏) */
   accountAction: { fontSize: 14.5, fontWeight: '600' },
+  /** 通知条目第三行「主题 · 时间」11(设计稿 isNotify 屏) */
+  notifyMeta: { fontSize: 11, fontWeight: '400' },
+  /** 通知条目 36 见方头像里的首字 13 · 700(设计稿 isNotify 屏) */
+  notifyInitial: { fontSize: 13, fontWeight: '700' },
+  /** 未读数角标 11 · 700(设计稿 isMessages 屏的红底角标,抽屉通知入口同款) */
+  unreadBadge: { fontSize: 11, fontWeight: '700' },
   /** 对话框标题 18 · 650(与顶栏标题同字号但不带字间距) */
   dialogTitle: { fontSize: 18, fontWeight: '600' },
   /** 对话框按钮 14 · 650 */

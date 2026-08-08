@@ -209,3 +209,42 @@ export interface TopicList {
   readonly rowsPerPage: number
   readonly totalPages: number
 }
+
+/**
+ * 通知分类（API 文档 §9.1 的类型码归拢）：
+ * 回复我的（1/2）、给我贴条的（3/4）、@我的（7/8）、短信类（10/11）、
+ * 获评价（17），认不出的类型码进 `other`。
+ */
+export type NotificationKind = 'reply' | 'comment' | 'mention' | 'message' | 'rating' | 'other'
+
+/** 一条通知（`nuke.php?__lib=noti`，API 文档 §9.1）。 */
+export interface NgaNotification {
+  /** 稳定 ID `时间戳-类型-tid-pid`（spec §4），本地已读模型靠它去重 */
+  readonly id: string
+  /** 原始类型码 */
+  readonly type: number
+  readonly kind: NotificationKind
+  /** 对方 uid，短信类通知可能没有 */
+  readonly userId?: number
+  readonly userName: string
+  /** 主题标题（短信类是会话标题） */
+  readonly subject: string
+  /** 短信类通知没有主题，tid/pid 记 0（稳定 ID 里也用 0 占位） */
+  readonly tid: number
+  /** 对方楼层的 pid */
+  readonly pid: number
+  /** 我的 pid（被回复/被贴条的那层） */
+  readonly myPid?: number
+  /** 秒级 unix 时间戳 */
+  readonly timestamp: number
+  /** 对方楼层所在页码，点通知跳这一页 */
+  readonly page: number
+}
+
+/** `get_all` 一次拉回的整份通知。 */
+export interface NotificationFeed {
+  /** 三个容器合并后的条目，按时间戳降序 */
+  readonly items: readonly NgaNotification[]
+  /** 服务端的未读数——只作参考，本地已读模型不依赖它（服务端不提供逐条已读） */
+  readonly serverUnread?: number
+}

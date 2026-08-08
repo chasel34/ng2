@@ -139,6 +139,11 @@ describe('字号 / 行高 token', () => {
       // 16 补:详情页「上次读到」提示条(progressTip)与二级列表副标题条(listSub)
       resumeTip: { fontSize: 13, fontWeight: '400', lineHeight: 18.2 },
       listSubtitle: { fontSize: 12, fontWeight: '400' },
+      // 13 补:被喷屏(isNotify)条目的第三行 11 与 36 见方头像首字 13/700,
+      // 未读角标 11/700 取自短消息屏(isMessages)的红底角标
+      notifyMeta: { fontSize: 11, fontWeight: '400' },
+      notifyInitial: { fontSize: 13, fontWeight: '700' },
+      unreadBadge: { fontSize: 11, fontWeight: '700' },
     });
   });
 
@@ -172,6 +177,9 @@ describe('字号 / 行高 token', () => {
         'accountAction',
         'resumeTip',
         'listSubtitle',
+        'notifyMeta',
+        'notifyInitial',
+        'unreadBadge',
       ].sort(),
     );
   });
