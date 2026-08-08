@@ -1,4 +1,3 @@
-import CookieManager from '@react-native-cookies/cookies';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
@@ -13,6 +12,8 @@ import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showToast } from '@/ui/toast';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
 
+import NgaCookies from '../../modules/nga-cookies';
+
 /** 登录页(API 文档 §0.2),两端一致,WebView 打开。 */
 const LOGIN_PATH = 'nuke.php?__lib=login&__act=account&login';
 const LOGIN_URL = `${DEFAULT_NGA_HOST}/${LOGIN_PATH}`;
@@ -24,7 +25,7 @@ const URL_HINT = `${DEFAULT_NGA_HOST.replace('https://', '')}/nuke.php?__lib=log
  * document.cookie:ngaPassportCid 是 HttpOnly,页面 JS 根本看不到(真机实测
  * 2026-08-08,document.cookie 里只有 uid 和 uname)。MNGA(WKHTTPCookieStore)
  * 与 NGA-CLIENT(android.webkit.CookieManager)读的都是原生 cookie 仓库,
- * @react-native-cookies/cookies 在 Android 上包的正是后者。
+ * modules/nga-cookies 就是后者的本地 Expo Module 封装。
  */
 const COOKIE_POLL_MS = 500;
 
@@ -43,7 +44,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     let alive = true;
-    CookieManager.clearAll()
+    NgaCookies.clearAll()
       .catch(() => {})
       .then(() => {
         if (alive) setReady(true);
@@ -57,16 +58,13 @@ export default function LoginScreen() {
     if (!ready) return;
     const timer = setInterval(async () => {
       if (captured.current) return;
-      let cookies: Awaited<ReturnType<typeof CookieManager.get>>;
+      let raw: string;
       try {
-        cookies = await CookieManager.get(DEFAULT_NGA_HOST);
+        raw = await NgaCookies.getCookieString(DEFAULT_NGA_HOST);
       } catch {
         return;
       }
       if (captured.current) return;
-      const raw = Object.values(cookies)
-        .map((cookie) => `${cookie.name}=${cookie.value}`)
-        .join('; ');
       const parsed = extractLoginCookies(raw);
       if (parsed === null) return;
       captured.current = true;
