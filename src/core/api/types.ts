@@ -140,6 +140,8 @@ export interface FloorUser {
   readonly avatarUrl?: string
   /** 用户组名（设计稿的「级别」） */
   readonly level?: string
+  /** 签名 BBCode（楼层菜单「查看签名」用）；没设置或空串时缺省 */
+  readonly signature?: string
   /** 威望，已按服务端 `rvrc ÷ 10` 换算 */
   readonly reputation: number
   readonly postCount: number

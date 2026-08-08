@@ -94,6 +94,8 @@ function parseUser(rawKey: string, raw: unknown, context: string, groups: Map<st
   const avatarUrl = parseAvatarUrl(raw.avatar)
   const memberId = int(raw, 'memberid')
   const level = memberId === undefined ? undefined : groups.get(String(memberId))
+  // 签名是 BBCode（字段名 signature/sign 都见过，API 文档 §3）；空串 = 没设置
+  const signature = str(raw, 'signature') ?? str(raw, 'sign')
   return {
     key: userKey(rawKey, context),
     ...(uid === undefined ? {} : { uid }),
@@ -102,6 +104,7 @@ function parseUser(rawKey: string, raw: unknown, context: string, groups: Map<st
     anonymous,
     ...(avatarUrl === undefined ? {} : { avatarUrl }),
     ...(level === undefined ? {} : { level }),
+    ...(signature === undefined ? {} : { signature }),
     reputation: (int(raw, 'rvrc') ?? int(raw, 'fame') ?? 0) / REPUTATION_SCALE,
     postCount: int(raw, 'postnum') ?? int(raw, 'posts') ?? 0,
     muted: parseMuted(raw.buffs),
@@ -303,6 +306,8 @@ export interface FetchTopicDetailOptions {
   readonly page: number
   /** fav 码（CONTEXT.md「fav 码」），访问隐藏/过期主题必带 */
   readonly favCode?: string
+  /** 只看某人（API 文档 §3 的 `authorid`）：服务端只回这个 uid 的楼层，分页随之重排 */
+  readonly authorId?: number
   readonly signal?: AbortSignal
 }
 
@@ -316,7 +321,7 @@ export async function fetchTopicDetail(
   fetchNga: NgaFetcher,
   options: FetchTopicDetailOptions,
 ): Promise<TopicDetail> {
-  const { tid, page, favCode, signal } = options
+  const { tid, page, favCode, authorId, signal } = options
 
   const result = await fetchNga({
     path: 'read.php',
@@ -324,6 +329,7 @@ export async function fetchTopicDetail(
       tid,
       page,
       ...(favCode === undefined ? {} : { fav: favCode }),
+      ...(authorId === undefined ? {} : { authorid: authorId }),
       // v2 是 Android v4 的新版结构，_ATTACH_BASE_VIEW 就是它带出来的
       v2: 1,
     },

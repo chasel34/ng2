@@ -64,6 +64,17 @@ export {
   type FetchFavoriteTopicsOptions,
 } from './topic-favor'
 export {
+  expectedRecommendDelta,
+  nextRecommendState,
+  postRecommend,
+  recommendStateOf,
+  type PostRecommendOptions,
+  type RecommendAction,
+  type RecommendMark,
+  type RecommendResult,
+  type RecommendState,
+} from './topic-recommend'
+export {
   fetchTopicList,
   mergeTopicPages,
   parseTopicList,

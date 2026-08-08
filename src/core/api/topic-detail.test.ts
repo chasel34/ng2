@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { decodeResponseBody, parseNgaJson } from '../net'
+import { createNgaFetcher } from '../net/fetcher'
+import type { HttpRequest, HttpResponse } from '../net/transport'
 import { fixtureContentType, readFixtureBytes, type ApiFixtureName } from './__fixtures__'
-import { parseTopicDetail } from './topic-detail'
+import { fetchTopicDetail, parseTopicDetail } from './topic-detail'
 import type { Floor, TopicDetail } from './types'
 
 /**
@@ -199,6 +201,20 @@ describe('用户对象', () => {
     expect(parseFixture('readAnonymousHotReply').users['ctx,-1']?.muted).toBe(false)
   })
 
+  it('签名取 signature/sign 字段（BBCode 原文），空串 = 没设置', () => {
+    const detail = parseFixture('readAttachments')
+    expect(detail.users['41482387']?.signature).toContain('本人所有发言')
+    // 签名字段是空串的用户不带 signature 键
+    expect(detail.users['65690642']).toBeDefined()
+    expect(detail.users['65690642']?.signature).toBeUndefined()
+
+    const signOnly = parseTopicDetail(
+      { __U: { '7': { uid: 7, username: 'x', sign: '[b]旧字段[/b]' } } },
+      { context: 'ctx' },
+    )
+    expect(signOnly.users['7']?.signature).toBe('[b]旧字段[/b]')
+  })
+
   it('yz 为 -1 = 被 nuke；其它负值不算', () => {
     const nuked = (yz: number) =>
       parseTopicDetail({ __U: { '7': { uid: 7, username: 'x', yz } } }, { context: 'ctx' })
@@ -320,5 +336,34 @@ describe('容错', () => {
   it('解析结果可 JSON 往返（要进帖子缓存）', () => {
     const detail = parseFixture('readComment')
     expect(JSON.parse(JSON.stringify(detail))).toEqual(detail)
+  })
+})
+
+describe('fetchTopicDetail 的请求参数', () => {
+  async function requestOf(options: Parameters<typeof fetchTopicDetail>[1]) {
+    const requests: HttpRequest[] = []
+    const transport = vi.fn(async (request: HttpRequest): Promise<HttpResponse> => {
+      requests.push(request)
+      return {
+        status: 200,
+        contentType: fixtureContentType('readComment'),
+        body: readFixtureBytes('readComment'),
+      }
+    })
+    await fetchTopicDetail(createNgaFetcher({ transport }), options)
+    const first = requests[0]
+    if (!first) throw new Error('一条请求都没发出去')
+    return first
+  }
+
+  it('只看某人（12 票）：带 authorid，翻页时照带——过滤跨页保持', async () => {
+    const request = await requestOf({ tid: 44191387, page: 3, authorId: 205511 })
+    expect(request.url).toContain('authorid=205511')
+    expect(request.url).toContain('page=3')
+  })
+
+  it('不过滤时不带 authorid', async () => {
+    const request = await requestOf({ tid: 44191387, page: 1 })
+    expect(request.url).not.toContain('authorid=')
   })
 })
