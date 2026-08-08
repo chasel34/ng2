@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useRef } from 'react';
 import { PanResponder, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,7 +36,7 @@ interface DrawerEntry {
   icon: IconName;
   label: string;
   /** 落在真实路由上的条目;没有就走 showNotAvailable */
-  href?: string;
+  href?: Href;
 }
 
 /**
@@ -74,7 +74,7 @@ export function AppDrawerContent({ onNavigate }: AppDrawerContentProps) {
   const currentUid = useAccounts((state) => state.currentUid);
   const current = currentAccountOf({ accounts, currentUid });
 
-  const go = (href: string) => {
+  const go = (href: Href) => {
     onNavigate?.();
     router.push(href);
   };

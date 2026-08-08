@@ -35,3 +35,6 @@ yarn-error.*
 # misc
 *.log
 .DS_Store
+
+# agent worktrees
+.claude/worktrees/
