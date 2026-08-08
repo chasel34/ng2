@@ -42,6 +42,24 @@ export {
   type NgaTopicLink,
 } from './deep-link'
 export {
+  FILTER_KIND_LABELS,
+  compileFilterRegex,
+  createFilterRule,
+  filterMatchText,
+  filterRuleId,
+  matchFilterRules,
+  normalizeRuleValue,
+  removeFilterRule,
+  topicCategories,
+  upsertFilterRule,
+  validateFilterRule,
+  type FilterRule,
+  type FilterRuleInput,
+  type FilterRuleKind,
+  type FilterRuleOrigin,
+  type FilterSubject,
+} from './filters'
+export {
   formatDiceTerms,
   resolveDice,
   type DiceOutcome,
@@ -72,6 +90,19 @@ export {
   toReputation,
   type Money,
 } from './money'
+export {
+  TOPIC_CACHE_MAX_BYTES,
+  TOPIC_CACHE_MAX_TOPICS,
+  cachePagesLabel,
+  cacheTotalBytes,
+  formatCacheSize,
+  planCacheEviction,
+  summarizeCachedPages,
+  utf8ByteLength,
+  type CacheLimits,
+  type CachedPage,
+  type CachedTopic,
+} from './topic-cache'
 export {
   PLAIN_TITLE_STYLE,
   decodeTitleStyle,

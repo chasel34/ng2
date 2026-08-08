@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { mergeTopicPages, type Topic } from '@/core/api';
+import { useTopicFilter } from '@/store/filters';
 import { useRefreshTopicList, useTopicList } from '@/store/topic-list';
 import { Icon } from '@/ui/icon';
 import { createThemedStyles, useTheme } from '@/ui/theme';
@@ -43,7 +44,12 @@ export default function RecommendScreen() {
   } = useTopicList(params);
   const refresh = useRefreshTopicList(params);
 
-  const topics = useMemo(() => mergeTopicPages(data?.pages ?? []), [data?.pages]);
+  // 与主题列表页一样过一道屏蔽规则(21 票):精华区也是主题列表,不该漏网
+  const filterTopics = useTopicFilter();
+  const topics = useMemo(
+    () => filterTopics(mergeTopicPages(data?.pages ?? [])),
+    [data?.pages, filterTopics],
+  );
   const loadedPages = data?.pages.length ?? 0;
   const totalRows = data?.pages[0]?.totalRows;
 
@@ -87,15 +93,22 @@ export default function RecommendScreen() {
     }
     if (topics.length === 0) {
       const failed = error !== null;
+      const allFiltered = !failed && (data?.pages[0]?.topics.length ?? 0) > 0;
       return (
         <View style={styles.center}>
-          <Icon name={failed ? 'cloud_off' : 'article'} size={40} color={theme.colors.meta} />
+          <Icon
+            name={failed ? 'cloud_off' : allFiltered ? 'filter_alt' : 'article'}
+            size={40}
+            color={theme.colors.meta}
+          />
           <Text style={styles.errorText}>
             {failed
               ? error instanceof Error
                 ? error.message
                 : '精华区拉不下来'
-              : '这个版块还没有精华主题'}
+              : allFiltered
+                ? '这一页的主题都被屏蔽规则挡住了'
+                : '这个版块还没有精华主题'}
           </Text>
           <Pressable style={styles.retry} onPress={() => void refetch()}>
             <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>

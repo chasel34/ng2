@@ -1,9 +1,11 @@
 import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import type { Topic } from '@/core/api';
 import { HOT_WINDOW_HOURS } from '@/core/local';
+import { useTopicFilter } from '@/store/filters';
 import { useHotTopics } from '@/store/hot-topics';
 import { Icon } from '@/ui/icon';
 import { createThemedStyles, useTheme } from '@/ui/theme';
@@ -31,6 +33,13 @@ export default function HotTopicsScreen() {
     boardId,
     kind: boardKind,
   });
+
+  // 榜单也是主题列表,一样过屏蔽规则(21 票)
+  const filterTopics = useTopicFilter();
+  const topics = useMemo(
+    () => filterTopics(data?.topics ?? []),
+    [data?.topics, filterTopics],
+  );
 
   const openTopic = (topic: Topic) => {
     // 榜单在聚合时已剔掉合集/镜像/外链行,进来的都是普通讨论串
@@ -61,12 +70,14 @@ export default function HotTopicsScreen() {
         </View>
       );
     }
-    if (data === undefined || data.topics.length === 0) {
+    if (data === undefined || topics.length === 0) {
       const failed = data === undefined && error !== null;
+      // 榜单有货、过完屏蔽规则空了,得说清是被自己的规则挡的,别当成「没有新主题」
+      const allFiltered = data !== undefined && data.topics.length > 0;
       return (
         <View style={styles.center}>
           <Icon
-            name={failed ? 'cloud_off' : 'local_fire_department'}
+            name={failed ? 'cloud_off' : allFiltered ? 'filter_alt' : 'local_fire_department'}
             size={40}
             color={theme.colors.meta}
           />
@@ -75,7 +86,9 @@ export default function HotTopicsScreen() {
               ? error instanceof Error
                 ? error.message
                 : '热帖拉不下来'
-              : `近 ${HOT_WINDOW_HOURS} 小时没有新主题`}
+              : allFiltered
+                ? '榜单上的主题都被屏蔽规则挡住了'
+                : `近 ${HOT_WINDOW_HOURS} 小时没有新主题`}
           </Text>
           <Pressable style={styles.retry} onPress={() => void refetch()}>
             <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>
@@ -87,7 +100,7 @@ export default function HotTopicsScreen() {
       // FlashList 要一个高度确定的父容器才算得出可视区
       <View style={styles.body}>
         <FlashList
-          data={data.topics}
+          data={topics}
           keyExtractor={(topic) => String(topic.tid)}
           renderItem={({ item }) => (
             <TopicRow

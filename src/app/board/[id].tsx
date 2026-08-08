@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { mergeTopicPages, type Board, type Topic } from '@/core/api';
 import { useAccounts } from '@/store/accounts';
 import { useBoardFavoriteMutations, useIsBoardFavored } from '@/store/board-favor';
+import { useTopicFilter } from '@/store/filters';
 import { useRefreshTopicList, useTopicList, useTopicSort } from '@/store/topic-list';
 import { Icon } from '@/ui/icon';
 import { showLoginPrompt } from '@/ui/login-prompt';
@@ -56,8 +57,11 @@ export default function BoardScreen() {
 
   const refresh = useRefreshTopicList({ boardId, kind: boardKind, sort });
 
-  // 置顶主题与镜像行每页都会再回来一次,拼页时按 tid 去重
-  const topics = useMemo(() => mergeTopicPages(data?.pages ?? []), [data?.pages]);
+  // 置顶主题与镜像行每页都会再回来一次,拼页时按 tid 去重;
+  // 之后再过一道屏蔽规则(21 票):命中标题关键词/作者/分类的主题直接不画这一行
+  const filterTopics = useTopicFilter();
+  const merged = useMemo(() => mergeTopicPages(data?.pages ?? []), [data?.pages]);
+  const topics = useMemo(() => filterTopics(merged), [merged, filterTopics]);
   const loadedPages = data?.pages.length ?? 0;
   const subBoards = data?.pages[0]?.subBoards ?? [];
   // 版头(CONTEXT.md):__F.topped_topic 带 tid 时在列表顶上给一条置顶入口,普通详情页打开
@@ -179,17 +183,25 @@ export default function BoardScreen() {
       );
     }
     if (topics.length === 0) {
-      // 拉失败与「这个版块真的空着」得分开说,不然被封时用户以为版块没帖子
+      // 拉失败、版块真的空着、以及「拉到了但整页都被屏蔽规则藏掉」是三回事,
+      // 说成同一句话时用户会以为是被封了
       const failed = error !== null;
+      const allFiltered = !failed && merged.length > 0;
       return (
         <View style={styles.center}>
-          <Icon name={failed ? 'cloud_off' : 'article'} size={40} color={theme.colors.meta} />
+          <Icon
+            name={failed ? 'cloud_off' : allFiltered ? 'filter_alt' : 'article'}
+            size={40}
+            color={theme.colors.meta}
+          />
           <Text style={styles.errorText}>
             {failed
               ? error instanceof Error
                 ? error.message
                 : '主题列表拉不下来'
-              : '这个版块还没有主题'}
+              : allFiltered
+                ? '这一页的主题都被屏蔽规则挡住了'
+                : '这个版块还没有主题'}
           </Text>
           <Pressable style={styles.retry} onPress={() => void refetch()}>
             <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>

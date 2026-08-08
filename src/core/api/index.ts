@@ -25,6 +25,20 @@ export {
   removeBoardFavorite,
 } from './board-favor'
 export {
+  EMPTY_BLOCK_WORDS,
+  blockWordError,
+  blockWordRefererPath,
+  fetchBlockWords,
+  officialFilterRules,
+  parseBlockWords,
+  serializeBlockWords,
+  setBlockWords,
+  type BlockWordList,
+  type BlockWordOptions,
+  type BlockedUser,
+  type SetBlockWordsOptions,
+} from './block-word'
+export {
   ATTACH_BASE_FALLBACK,
   attachmentUrl,
   normalizeAttachBase,
@@ -55,6 +69,7 @@ export {
   fetchTopicDetail,
   parseAvatarUrl,
   parseTopicDetail,
+  type CachedPageSnapshot,
   type FetchTopicDetailOptions,
   type ParseTopicDetailOptions,
 } from './topic-detail'

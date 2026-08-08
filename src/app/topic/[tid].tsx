@@ -16,10 +16,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ATTACH_BASE_FALLBACK, type Floor, type FloorUser, type RecommendAction } from '@/core/api';
 import { parseBBCode } from '@/core/bbcode';
-import { pageOfFloor } from '@/core/local';
+import { filterMatchText, pageOfFloor, type FilterRule } from '@/core/local';
 import { currentAccount } from '@/store/accounts';
+import { blockUserLocally, useFloorFilter, useLocalFilters } from '@/store/filters';
 import { peekHistoryEntry, recordReadFloor, recordTopicVisit } from '@/store/history';
 import { forgetSuccessfulCombo } from '@/store/nga-client';
+import { isPageCached } from '@/store/topic-cache';
+import {
+  cacheTopicPages,
+  cancelTopicCacheDownload,
+  useCacheDownloadProgress,
+  type CacheDownloadOutcome,
+} from '@/store/topic-cache-download';
 import { useTopicDetail } from '@/store/topic-detail';
 import { recommendPidOf, useFloorRecommend } from '@/store/topic-recommend';
 import { BBCodeBody } from '@/ui/bbcode';
@@ -32,6 +40,7 @@ import { InputDialog } from '@/ui/input-dialog';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { PageBar } from '@/ui/page-bar';
+import { showSnackbar } from '@/ui/snackbar';
 import {
   clampPage,
   parseJumpTarget,
@@ -87,9 +96,9 @@ export default function TopicScreen() {
     const parsed = Number(fromPid);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
   });
-  // 「已切换为网页数据源」提示条被关掉了没(设计稿 fallbackBar 带关闭钮);
+  // 数据源提示条(网页数据源 19 / 缓存数据 20)被关掉了没(设计稿 fallbackBar 带关闭钮);
   // 每次重试原生都放回来,不然重试失败了用户看不出还在兜底
-  const [webNoticeDismissed, setWebNoticeDismissed] = useState(false);
+  const [sourceNoticeDismissed, setSourceNoticeDismissed] = useState(false);
   const [jumpOpen, setJumpOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -102,6 +111,8 @@ export default function TopicScreen() {
   const [onlyUser, setOnlyUser] = useState<{ uid: number; name: string } | undefined>(undefined);
   // 退出过滤时回到进入前的那一页
   const pageBeforeFilter = useRef(1);
+  // 被屏蔽规则折起来、又被用户手动点开的楼层(21 票);只活在这次停留里
+  const [unfolded, setUnfolded] = useState<readonly number[]>([]);
   const listRef = useRef<FlashListRef<Floor>>(null);
 
   const { data, error, isPending, isFetching, isPlaceholderData, refetch } = useTopicDetail({
@@ -132,7 +143,7 @@ export default function TopicScreen() {
    */
   const retryNative = () => {
     forgetSuccessfulCombo('read.php');
-    setWebNoticeDismissed(false);
+    setSourceNoticeDismissed(false);
     void refetch();
   };
 
@@ -183,6 +194,9 @@ export default function TopicScreen() {
 
   const recommend = useFloorRecommend(topicId);
 
+  // 整帖缓存的进度(20 票)。只显示本主题的那一趟——别的主题在后台缓存不该占这一条
+  const download = useCacheDownloadProgress();
+
   /**
    * 赞/踩一层(卡片钮与楼层菜单共用,状态天然同一份)。
    * 未登录先引导登录;乐观更新与失败回滚在 store 层,这里只管吐提示。
@@ -210,6 +224,24 @@ export default function TopicScreen() {
       });
   };
 
+  const matchFloorFilter = useFloorFilter();
+  const removeLocalRule = useLocalFilters((state) => state.remove);
+
+  /**
+   * 楼层菜单「屏蔽此人」(21 票,替掉 M2 的 toast 占位):加一条本地用户规则,
+   * 加完这一楼当场折起来。撤销就是把刚加的那条删掉——规则 id 是内容算出来的,
+   * 删的一定是这一条,不会误伤用户早先加过的同名规则以外的东西。
+   */
+  const blockAuthor = (floor: Floor) => {
+    const user = data?.users[floor.authorKey];
+    const name = user?.name ?? '该用户';
+    const rule = blockUserLocally(name, user?.uid);
+    showSnackbar(`已屏蔽 ${name},其发言将折叠`, {
+      label: '撤销',
+      onPress: () => removeLocalRule(rule.id),
+    });
+  };
+
   /** 进入只看此人。匿名用户没有数字 uid,服务端过滤不了。 */
   const enterOnlyUser = (floor: Floor) => {
     const user = data?.users[floor.authorKey];
@@ -232,7 +264,7 @@ export default function TopicScreen() {
 
   /**
    * 楼层菜单,条目与顺序照设计稿 `MENUS.floor`(分组空隙在「只看此人」前)。
-   * 贴条/举报/屏蔽此人是本版本未开放的占位(spec §1);收藏直接复用 11 票的对话框。
+   * 贴条/举报是本版本未开放的占位(spec §1);收藏直接复用 11 票的对话框。
    */
   const floorMenuItems = (): readonly MenuItem[] => {
     if (menuFloor === undefined) return [];
@@ -261,8 +293,66 @@ export default function TopicScreen() {
         gapBefore: true,
         onPress: pick(() => enterOnlyUser(menuFloor)),
       },
-      { key: 'block', label: '屏蔽此人', onPress: pick(showNotAvailable) },
+      { key: 'block', label: '屏蔽此人', onPress: pick(() => blockAuthor(menuFloor)) },
     ];
+  };
+
+  /** 手动缓存的结果播报(设计稿:缓存完给一句带「查看」的 toast)。 */
+  const reportCacheOutcome = (outcome: CacheDownloadOutcome) => {
+    if (outcome.kind === 'busy') {
+      showToast('已经有主题在缓存了,等它跑完再来');
+      return;
+    }
+    if (outcome.kind === 'failed') {
+      showToast(`缓存中断:${outcome.message}(已存 ${outcome.cached} 页)`);
+      return;
+    }
+    if (outcome.kind === 'cancelled') {
+      showToast(`已停止缓存,已存 ${outcome.cached} 页`);
+      return;
+    }
+    showSnackbar(`已缓存 ${outcome.cached} 页,可离线阅读`, {
+      label: '查看',
+      onPress: () => router.push('/caches'),
+    });
+  };
+
+  /**
+   * 「缓存本页」。浏览过的页本来就自动缓存了(store/topic-detail 的 onSnapshot),
+   * 所以这一下通常只是确认一句,不必再打一次 read.php——ADR-0002 的封号风险
+   * 值得为一次「已经做过的事」省下来。
+   */
+  const cacheCurrentPage = () => {
+    if (data === undefined) {
+      showToast('这一页还没加载出来');
+      return;
+    }
+    if (isPageCached(topicId, page)) {
+      showSnackbar('本页已缓存,可离线阅读', {
+        label: '查看',
+        onPress: () => router.push('/caches'),
+      });
+      return;
+    }
+    void cacheTopicPages({
+      tid: topicId,
+      pages: [page],
+      ...(fav === undefined ? {} : { favCode: fav }),
+    }).then(reportCacheOutcome);
+  };
+
+  /** 「缓存整帖」:从第 1 页顺序拉到尾页。进度条与「停止」在页码条下面。 */
+  const cacheWholeTopic = () => {
+    if (data === undefined) {
+      showToast('这一页还没加载出来');
+      return;
+    }
+    const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+    void cacheTopicPages({
+      tid: topicId,
+      pages,
+      ...(fav === undefined ? {} : { favCode: fav }),
+    }).then(reportCacheOutcome);
   };
 
   /**
@@ -270,7 +360,7 @@ export default function TopicScreen() {
    * 还没做的几项(复制链接、缓存本页 20 票、分享、夜间模式 22 票)先 toast「本版本未开放」,
    * 各票到时候换掉自己那一行即可。
    */
-  const menuItems: readonly MenuItem[] = useMemo(() => {
+  const menuItems = (): readonly MenuItem[] => {
     // 点哪一条都先收起菜单,免得动作做完了菜单还盖在上面
     const pick = (run: () => void) => () => {
       setMenuOpen(false);
@@ -280,11 +370,12 @@ export default function TopicScreen() {
       { key: 'jump', label: '跳页', onPress: pick(() => setJumpOpen(true)) },
       { key: 'copy', label: '复制链接', onPress: pick(showNotAvailable) },
       { key: 'favor', label: '收藏本帖', onPress: pick(() => setFavorOpen(true)) },
-      { key: 'cache', label: '缓存本页', onPress: pick(showNotAvailable) },
+      { key: 'cache-page', label: '缓存本页', onPress: pick(cacheCurrentPage) },
+      { key: 'cache-topic', label: '缓存整帖', onPress: pick(cacheWholeTopic) },
       { key: 'share', label: '分享', onPress: pick(showNotAvailable) },
       { key: 'theme', label: '夜间模式', gapBefore: true, onPress: pick(showNotAvailable) },
     ];
-  }, []);
+  };
 
   const body = () => {
     if (isPending) {
@@ -338,7 +429,22 @@ export default function TopicScreen() {
           ref={listRef}
           data={data.floors}
           keyExtractor={(floor) => String(floor.pid)}
-          renderItem={({ item }) => <FloorCard floor={item} context={floorContext} />}
+          renderItem={({ item }) => {
+            // 屏蔽规则命中的楼层折成一行灰字(21 票),点一下就地展开;
+            // 展开只记在本次停留里,翻页回来还是折着的
+            const rule = unfolded.includes(item.pid)
+              ? undefined
+              : matchFloorFilter(item, data.users[item.authorKey]);
+            if (rule !== undefined) {
+              return (
+                <BlockedFloorRow
+                  rule={rule}
+                  onExpand={() => setUnfolded((pids) => [...pids, item.pid])}
+                />
+              );
+            }
+            return <FloorCard floor={item} context={floorContext} />;
+          }}
           ListHeaderComponent={
             <>
               {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走。
@@ -412,23 +518,52 @@ export default function TopicScreen() {
         />
       </TopBar>
 
-      {/* 这一页是 Web 反解出来的(反封锁链的 web-fallback 档,ADR-0002)。
-          钉在页码条下面而不是跟着列表滚:它说的是「整页数据的来源」,不是某一楼的事 */}
-      {data?.source === 'web' && !webNoticeDismissed && (
+      {/* 这一页不是原生接口直出的:要么是 Web 反解(19),要么是本机缓存还原(20)——
+          都是反封锁链的兜底档(ADR-0002)。钉在页码条下面而不是跟着列表滚:
+          它说的是「整页数据的来源」,不是某一楼的事 */}
+      {data?.source !== undefined && data.source !== 'native' && !sourceNoticeDismissed && (
         <View style={styles.webNotice}>
-          <Icon name="info" size={19} color={theme.colors.primary} />
+          <Icon
+            name={data.source === 'cache' ? 'cloud_off' : 'info'}
+            size={19}
+            color={theme.colors.primary}
+          />
           <Text style={styles.webNoticeText}>
-            原生解析失败,已切换为<Text style={styles.webNoticeStrong}>网页数据源</Text>显示
+            {data.source === 'cache' ? (
+              <>
+                在线拿不到这一页,当前是<Text style={styles.webNoticeStrong}>缓存数据</Text>
+              </>
+            ) : (
+              <>
+                原生解析失败,已切换为<Text style={styles.webNoticeStrong}>网页数据源</Text>显示
+              </>
+            )}
           </Text>
-          <Pressable onPress={retryNative} accessibilityLabel="重试原生数据源" hitSlop={6}>
-            <Text style={styles.webNoticeAction}>重试原生</Text>
+          <Pressable onPress={retryNative} accessibilityLabel="重新联网获取" hitSlop={6}>
+            <Text style={styles.webNoticeAction}>
+              {data.source === 'cache' ? '重新联网' : '重试原生'}
+            </Text>
           </Pressable>
           <Pressable
-            onPress={() => setWebNoticeDismissed(true)}
+            onPress={() => setSourceNoticeDismissed(true)}
             accessibilityLabel="关闭提示"
             hitSlop={8}
           >
             <Icon name="close" size={17} color={theme.colors.meta} />
+          </Pressable>
+        </View>
+      )}
+
+      {/* 整帖缓存进度(20 票):跟数据源提示条同一条带子的语言,右侧是「停止」 */}
+      {download.tid === topicId && (
+        <View style={styles.webNotice}>
+          <Icon name="download" size={19} color={theme.colors.primary} />
+          <Text style={styles.webNoticeText}>
+            正在缓存整帖 <Text style={styles.webNoticeStrong}>{download.done}</Text> /{' '}
+            {download.total} 页
+          </Text>
+          <Pressable onPress={cancelTopicCacheDownload} accessibilityLabel="停止缓存" hitSlop={6}>
+            <Text style={styles.webNoticeAction}>停止</Text>
           </Pressable>
         </View>
       )}
@@ -506,7 +641,7 @@ export default function TopicScreen() {
       <OverflowMenu
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        items={menuItems}
+        items={menuItems()}
         top={insets.top + 6}
       />
 
@@ -690,6 +825,32 @@ function ResumeBanner({
         <Icon name="close" size={17} color={theme.colors.meta} />
       </Pressable>
     </Animated.View>
+  );
+}
+
+/**
+ * 被屏蔽规则挡下的楼层(21 票)。
+ *
+ * 折成一行灰字而不是整层删掉:楼层是有编号的连续体,凭空少一层会让人以为漏加载了;
+ * 一行占位既说明了「这里有东西、被你自己的规则挡了」,也留了点开的余地。
+ * 设计稿没画这一行,按「上次读到」提示条那套语言延伸(surface-2 底 + 分隔线)。
+ */
+function BlockedFloorRow({ rule, onExpand }: { rule: FilterRule; onExpand: () => void }) {
+  const styles = useStyles();
+  const theme = useTheme();
+  return (
+    <Pressable
+      style={styles.blockedFloor}
+      onPress={onExpand}
+      android_ripple={{ color: theme.colors.divider }}
+      accessibilityLabel={`展开${filterMatchText(rule)}`}
+    >
+      <Icon name="block" size={17} color={theme.colors.meta} />
+      <Text style={styles.blockedFloorText} numberOfLines={1}>
+        {filterMatchText(rule)}
+      </Text>
+      <Text style={styles.blockedFloorAction}>展开</Text>
+    </Pressable>
   );
 }
 
@@ -924,6 +1085,27 @@ const useStyles = createThemedStyles((theme) => ({
     color: theme.colors.fg,
   },
   onlyUserExit: {
+    ...theme.typography.listMeta,
+    fontWeight: '700',
+    color: theme.colors.primary,
+  },
+  /** 被屏蔽的楼层折叠行(21 票):一行高度,与楼层卡片一样占满宽度 */
+  blockedFloor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.row,
+    backgroundColor: theme.colors.surface2,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  blockedFloorText: {
+    ...theme.typography.listMeta,
+    color: theme.colors.meta,
+    flex: 1,
+  },
+  blockedFloorAction: {
     ...theme.typography.listMeta,
     fontWeight: '700',
     color: theme.colors.primary,
