@@ -10,14 +10,17 @@ export interface TopicDetailParams {
   page: number;
   /** fav 码(CONTEXT.md「fav 码」),从主题列表带进来 */
   favCode?: string;
+  /** 只看某人(12 票):服务端按 uid 过滤楼层,分页随之重排 */
+  authorId?: number;
 }
 
 /**
  * fav 码进 key:带 fav 与不带 fav 请求的是**不同的东西**(隐藏/过期主题只有带码才拿得到),
  * 不区分的话两者会互相命中缓存,从收藏进来的隐藏帖会命中一份空数据。
+ * authorId 同理:只看某人的第 N 页与全楼的第 N 页完全是两份数据。
  */
-export const topicDetailQueryKey = ({ tid, page, favCode }: TopicDetailParams) =>
-  ['topic-detail', tid, page, favCode ?? null] as const;
+export const topicDetailQueryKey = ({ tid, page, favCode, authorId }: TopicDetailParams) =>
+  ['topic-detail', tid, page, favCode ?? null, authorId ?? null] as const;
 
 /**
  * 一页帖子详情。
@@ -30,7 +33,7 @@ export const topicDetailQueryKey = ({ tid, page, favCode }: TopicDetailParams) =
  * 免得手指一松整屏先白一下再填上。
  */
 export function useTopicDetail(params: TopicDetailParams): UseQueryResult<TopicDetail> {
-  const { tid, page, favCode } = params;
+  const { tid, page, favCode, authorId } = params;
 
   return useQuery({
     queryKey: topicDetailQueryKey(params),
@@ -39,6 +42,7 @@ export function useTopicDetail(params: TopicDetailParams): UseQueryResult<TopicD
         tid,
         page,
         ...(favCode === undefined ? {} : { favCode }),
+        ...(authorId === undefined ? {} : { authorId }),
         signal,
       }),
     placeholderData: keepPreviousData,

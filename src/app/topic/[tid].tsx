@@ -8,20 +8,27 @@ import {
   Easing,
   PanResponder,
   Pressable,
+  ScrollView,
+  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { Floor } from '@/core/api';
+import { ATTACH_BASE_FALLBACK, type Floor, type FloorUser, type RecommendAction } from '@/core/api';
+import { parseBBCode } from '@/core/bbcode';
 import { pageOfFloor } from '@/core/local';
+import { currentAccount } from '@/store/accounts';
 import { peekHistoryEntry, recordReadFloor, recordTopicVisit } from '@/store/history';
 import { useTopicDetail } from '@/store/topic-detail';
+import { recommendPidOf, useFloorRecommend } from '@/store/topic-recommend';
+import { BBCodeBody } from '@/ui/bbcode';
 import { FavoriteFolderDialog } from '@/ui/favorite-folder-dialog';
 import { FloorCard, type FloorContext } from '@/ui/floor-card';
 import { isHorizontalDragActive } from '@/ui/horizontal-drag';
 import { Icon } from '@/ui/icon';
 import { InputDialog } from '@/ui/input-dialog';
+import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { PageBar } from '@/ui/page-bar';
 import {
@@ -83,6 +90,14 @@ export default function TopicScreen() {
   const [fabOpen, setFabOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [favorOpen, setFavorOpen] = useState(false);
+  // 楼层菜单开在哪一楼(长按或菜单钮,ticket 12);undefined = 关着
+  const [menuFloor, setMenuFloor] = useState<Floor | undefined>(undefined);
+  // 「查看签名」弹窗:点菜单那一刻就把用户对象定格下来,翻页不影响已开的弹窗
+  const [signUser, setSignUser] = useState<FloorUser | undefined>(undefined);
+  // 只看此人(CONTEXT.md 术语「只看某人」):服务端 authorid 过滤,翻页天然保持
+  const [onlyUser, setOnlyUser] = useState<{ uid: number; name: string } | undefined>(undefined);
+  // 退出过滤时回到进入前的那一页
+  const pageBeforeFilter = useRef(1);
   const listRef = useRef<FlashListRef<Floor>>(null);
 
   const { data, error, isPending, isFetching, isPlaceholderData, refetch } = useTopicDetail({
@@ -90,6 +105,7 @@ export default function TopicScreen() {
     page,
     ...(fav === undefined ? {} : { favCode: fav }),
     ...(onlyPid === undefined ? {} : { pid: onlyPid }),
+    ...(onlyUser === undefined ? {} : { authorId: onlyUser.uid }),
   });
 
   const totalPages = data?.totalPages ?? 1;
@@ -105,14 +121,100 @@ export default function TopicScreen() {
 
   const swipe = useSwipePaging({ page, totalPages, onChange: goToPage });
   // 只看某一楼时不记进度也不提示续读:屏上只有一楼,`totalRows` 是 1,
-  // 照记会把这个主题的历史楼数覆盖成 0(ticket 16)
+  // 照记会把这个主题的历史楼数覆盖成 0(ticket 16);
+  // 只看此人期间楼号与总数同样是过滤后的口径,写进阅读进度会串档,一并暂停
   const resume = useReadingProgress({
     topicId,
     fav,
     data: onlyPid === undefined ? data : undefined,
     listRef,
     goToPage,
+    paused: onlyUser !== undefined,
   });
+
+  const recommend = useFloorRecommend(topicId);
+
+  /**
+   * 赞/踩一层(卡片钮与楼层菜单共用,状态天然同一份)。
+   * 未登录先引导登录;乐观更新与失败回滚在 store 层,这里只管吐提示。
+   */
+  const runRecommend = (floor: Floor, action: RecommendAction, notify: boolean) => {
+    if (currentAccount() === null) {
+      showLoginPrompt(router, '登录后才能点赞点踩');
+      return;
+    }
+    recommend
+      .toggle(recommendPidOf(floor), action)
+      .then((outcome) => {
+        if (outcome === undefined || !notify) return;
+        // 菜单入口照设计稿吐一句;取消也说一声,不然按了没反馈
+        showToast(
+          outcome.state === 'liked'
+            ? '已支持 +1'
+            : outcome.state === 'disliked'
+              ? '已反对 -1'
+              : '已取消',
+        );
+      })
+      .catch((cause: unknown) => {
+        showToast(cause instanceof Error ? cause.message : '操作失败,稍后再试');
+      });
+  };
+
+  /** 进入只看此人。匿名用户没有数字 uid,服务端过滤不了。 */
+  const enterOnlyUser = (floor: Floor) => {
+    const user = data?.users[floor.authorKey];
+    if (user?.uid === undefined) {
+      showToast('匿名用户无法只看');
+      return;
+    }
+    pageBeforeFilter.current = page;
+    setOnlyUser({ uid: user.uid, name: user.name });
+    setPage(1);
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  };
+
+  /** 退出过滤恢复全楼,回到进入前那一页。 */
+  const exitOnlyUser = () => {
+    setOnlyUser(undefined);
+    setPage(pageBeforeFilter.current);
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  };
+
+  /**
+   * 楼层菜单,条目与顺序照设计稿 `MENUS.floor`(分组空隙在「只看此人」前)。
+   * 贴条/举报/屏蔽此人是本版本未开放的占位(spec §1);收藏直接复用 11 票的对话框。
+   */
+  const floorMenuItems = (): readonly MenuItem[] => {
+    if (menuFloor === undefined) return [];
+    const pick = (run: () => void) => () => {
+      setMenuFloor(undefined);
+      run();
+    };
+    return [
+      { key: 'note', label: '贴条', onPress: pick(showNotAvailable) },
+      { key: 'like', label: '支持', onPress: pick(() => runRecommend(menuFloor, 'like', true)) },
+      {
+        key: 'dislike',
+        label: '反对',
+        onPress: pick(() => runRecommend(menuFloor, 'dislike', true)),
+      },
+      { key: 'report', label: '举报', onPress: pick(showNotAvailable) },
+      {
+        key: 'sign',
+        label: '查看签名',
+        onPress: pick(() => setSignUser(data?.users[menuFloor.authorKey])),
+      },
+      { key: 'favor', label: '收藏', onPress: pick(() => setFavorOpen(true)) },
+      {
+        key: 'only-user',
+        label: '只看此人',
+        gapBefore: true,
+        onPress: pick(() => enterOnlyUser(menuFloor)),
+      },
+      { key: 'block', label: '屏蔽此人', onPress: pick(showNotAvailable) },
+    ];
+  };
 
   /**
    * 顶栏「更多」菜单,条目与顺序照设计稿 `MENUS.article`。
@@ -168,6 +270,10 @@ export default function TopicScreen() {
       attachBase: data.attachBase,
       // 大图查看器是 25 票
       onOpenImage: showNotAvailable,
+      // 赞踩与楼层菜单(ticket 12)。卡片钮不吐 toast,变色计数本身就是反馈
+      recommendOf: (floor) => recommend.markOf(recommendPidOf(floor)),
+      onRecommend: (floor, action) => runRecommend(floor, action, false),
+      onOpenMenu: setMenuFloor,
     };
 
     return (
@@ -182,9 +288,22 @@ export default function TopicScreen() {
           renderItem={({ item }) => <FloorCard floor={item} context={floorContext} />}
           ListHeaderComponent={
             <>
-              {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走 */}
-              {resume.floor !== undefined && (
+              {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走。
+                  只看此人期间楼号是过滤后的口径,跳过去会落错地方,先藏起来 */}
+              {onlyUser === undefined && resume.floor !== undefined && (
                 <ResumeBanner floor={resume.floor} onJump={resume.jump} onClose={resume.dismiss} />
+              )}
+              {/* 只看此人过滤条(设计稿 onlyUser):退出即恢复全楼 */}
+              {onlyUser !== undefined && (
+                <View style={styles.onlyUserBar}>
+                  <Icon name="filter_alt" size={17} color={theme.colors.primary} />
+                  <Text style={styles.onlyUserText}>
+                    只看 <Text style={styles.onlyUserName}>{onlyUser.name}</Text> 的发言
+                  </Text>
+                  <Pressable onPress={exitOnlyUser} accessibilityLabel="退出只看此人" hitSlop={8}>
+                    <Text style={styles.onlyUserExit}>退出</Text>
+                  </Pressable>
+                </View>
               )}
               {/* 热门回复是服务端在主楼里标的,只有第 1 页拿得到 */}
               {data.hotReplies.length > 0 && (
@@ -317,7 +436,22 @@ export default function TopicScreen() {
         top={insets.top + 6}
       />
 
-      {/* 多选收藏夹对话框(11 票):传 tid 就能调起,12 票的楼层菜单直接复用同一个组件 */}
+      {/* 楼层菜单(ticket 12):弹出位置照设计稿 menuTop 的 300 */}
+      <OverflowMenu
+        open={menuFloor !== undefined}
+        onClose={() => setMenuFloor(undefined)}
+        items={floorMenuItems()}
+        top={insets.top + 300}
+      />
+
+      {/* 查看签名弹窗:签名是 BBCode,复用正文渲染器 */}
+      <SignatureDialog
+        user={signUser}
+        attachBase={data?.attachBase ?? ATTACH_BASE_FALLBACK}
+        onClose={() => setSignUser(undefined)}
+      />
+
+      {/* 多选收藏夹对话框(11 票):顶栏菜单与楼层菜单的「收藏」共用这一个 */}
       <FavoriteFolderDialog
         open={favorOpen}
         tid={topicId}
@@ -333,6 +467,8 @@ interface ReadingProgressOptions {
   data: ReturnType<typeof useTopicDetail>['data'];
   listRef: RefObject<FlashListRef<Floor> | null>;
   goToPage: (page: number) => void;
+  /** 只看此人期间为 true:那时的楼号/总数是过滤后的口径,不能写进历史 */
+  paused: boolean;
 }
 
 /**
@@ -342,7 +478,14 @@ interface ReadingProgressOptions {
  * 屏上最高的楼层号报给历史(只前进,不写盘的判断在 core/local/history);
  * 进场时如果有「上次读到第 N 楼」,管提示条的出现、关闭与「回到那里」跳转。
  */
-function useReadingProgress({ topicId, fav, data, listRef, goToPage }: ReadingProgressOptions) {
+function useReadingProgress({
+  topicId,
+  fav,
+  data,
+  listRef,
+  goToPage,
+  paused,
+}: ReadingProgressOptions) {
   // 进场那一刻的存档楼层。之后的滚动会推着进度涨,但提示条要说的是「上次」,
   // 所以只在挂载时读一次;主楼都没读过(lastFloor 0)就不打扰
   const [resumeFloor, setResumeFloor] = useState<number | undefined>(() => {
@@ -352,8 +495,13 @@ function useReadingProgress({ topicId, fav, data, listRef, goToPage }: ReadingPr
   // 点了「回到那里」之后待兑现的目标楼层:目标页的数据到了才能滚过去
   const [pendingFloor, setPendingFloor] = useState<number | undefined>(undefined);
 
+  // viewability 回调终生不变(FlashList 要求),暂停信号只能从 ref 里透进去
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+
   // 浏览即入历史:每拿到新一页就登记一次(同主题只更新时间与楼层,不新增条目)
   useEffect(() => {
+    if (paused) return;
     if (data === undefined || !Number.isFinite(topicId) || topicId <= 0) return;
     // 楼主名只有主楼在场的那页(第 1 页)拿得到;缺席时 core 层会保留旧值
     const starter = data.floors.find((floor) => floor.isStarter);
@@ -366,13 +514,14 @@ function useReadingProgress({ topicId, fav, data, listRef, goToPage }: ReadingPr
       ...(data.boardName === undefined ? {} : { boardName: data.boardName }),
       ...(fav === undefined ? {} : { favCode: fav }),
     });
-  }, [data, topicId, fav]);
+  }, [data, topicId, fav, paused]);
 
   // FlashList 要求 viewability 回调终生不变,所以塞进 ref;
   // topicId 是路由参数,这个屏活着期间不会变,闭包捕获是安全的
   const viewability = useRef({
     viewabilityConfig: { itemVisiblePercentThreshold: 20 },
     onViewableItemsChanged: ({ viewableItems }: { viewableItems: ViewToken<Floor>[] }) => {
+      if (pausedRef.current) return;
       let maxLou = -1;
       for (const token of viewableItems) {
         if (token.isViewable && token.item.lou > maxLou) maxLou = token.item.lou;
@@ -562,6 +711,52 @@ function useSwipePaging({ page, totalPages, onChange }: SwipePagingOptions) {
   return { translateX, hint, panHandlers: responder.panHandlers };
 }
 
+/**
+ * 「查看签名」弹窗(设计稿 `dialog:'sign'`:标题 + 正文 + 取消/知道了)。
+ * 签名是 BBCode(可能带图带折叠),复用正文渲染器;没设置签名给一句占位。
+ */
+function SignatureDialog({
+  user,
+  attachBase,
+  onClose,
+}: {
+  user: FloorUser | undefined;
+  attachBase: string;
+  onClose: () => void;
+}) {
+  const styles = useStyles();
+  const nodes = useMemo(
+    () => (user?.signature === undefined ? [] : parseBBCode(user.signature)),
+    [user?.signature],
+  );
+  if (user === undefined) return null;
+
+  return (
+    <View style={styles.signRoot}>
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="关闭弹窗" />
+      <View style={styles.signPanel}>
+        <Text style={styles.signTitle}>查看签名</Text>
+        {/* 签名可以很长(装机单/许愿墙…),超出就在弹窗里滚 */}
+        <ScrollView style={styles.signBody} contentContainerStyle={styles.signBodyContent}>
+          {nodes.length > 0 ? (
+            <BBCodeBody nodes={nodes} options={{ attachBase }} />
+          ) : (
+            <Text style={styles.signEmpty}>{user.name} 没有设置签名</Text>
+          )}
+        </ScrollView>
+        <View style={styles.signActions}>
+          <Pressable style={styles.signCancel} onPress={onClose}>
+            <Text style={styles.signCancelLabel}>取消</Text>
+          </Pressable>
+          <Pressable style={styles.signConfirm} onPress={onClose}>
+            <Text style={styles.signConfirmLabel}>知道了</Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 /** 「在浏览器里打开」用的网页地址(19 票的网页兜底也会落到同一个 URL)。 */
 function webUrlOf(tid: number, page: number, favCode: string | undefined): string {
   const fav = favCode === undefined ? '' : `&fav=${favCode}`;
@@ -629,6 +824,100 @@ const useStyles = createThemedStyles((theme) => ({
     color: theme.colors.primary,
     paddingVertical: theme.spacing.xs,
     paddingHorizontal: 6,
+  },
+  /** 设计稿 onlyUser 过滤条:外距 10 12 2、内距 10 14、圆角 12、surface-2 底加 divider 描边 */
+  onlyUserBar: {
+    marginTop: 10,
+    marginHorizontal: theme.spacing.md,
+    marginBottom: 2,
+    paddingVertical: 10,
+    paddingHorizontal: theme.spacing.row,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface2,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  onlyUserText: {
+    ...theme.typography.listMeta,
+    color: theme.colors.fg2,
+    flex: 1,
+  },
+  onlyUserName: {
+    fontWeight: '700',
+    color: theme.colors.fg,
+  },
+  onlyUserExit: {
+    ...theme.typography.listMeta,
+    fontWeight: '700',
+    color: theme.colors.primary,
+  },
+  /** 签名弹窗:面板形状与确认/输入对话框同一套(设计稿通用 dialog) */
+  signRoot: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: theme.colors.scrim,
+  },
+  signPanel: {
+    width: '100%',
+    borderRadius: theme.radius.dialog,
+    backgroundColor: theme.colors.menu,
+    paddingTop: 22,
+    paddingHorizontal: 22,
+    paddingBottom: theme.spacing.row,
+    boxShadow: theme.shadows.elevation2,
+  },
+  signTitle: {
+    ...theme.typography.dialogTitle,
+    color: theme.colors.fg,
+  },
+  signBody: {
+    marginTop: 9,
+    maxHeight: 340,
+  },
+  signBodyContent: {
+    paddingBottom: theme.spacing.xs,
+  },
+  signEmpty: {
+    ...theme.typography.notice,
+    color: theme.colors.meta,
+  },
+  signActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 6,
+    marginTop: theme.spacing.row,
+  },
+  signCancel: {
+    height: 40,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signCancelLabel: {
+    ...theme.typography.dialogAction,
+    color: theme.colors.fg2,
+  },
+  signConfirm: {
+    height: 40,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signConfirmLabel: {
+    ...theme.typography.dialogAction,
+    color: theme.colors.onPrimary,
   },
   hotReplies: {
     borderBottomWidth: 1,

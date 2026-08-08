@@ -3,7 +3,14 @@ import { useRouter } from 'expo-router';
 import { memo, useMemo, useState } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 
-import type { Floor, FloorAttachment, FloorClient, FloorUser } from '@/core/api';
+import type {
+  Floor,
+  FloorAttachment,
+  FloorClient,
+  FloorUser,
+  RecommendAction,
+  RecommendMark,
+} from '@/core/api';
 import { parseBBCode } from '@/core/bbcode';
 import { formatReputation, parseVote, resolveDice } from '@/core/local';
 
@@ -37,6 +44,12 @@ export interface FloorContext {
   /** 附件图片基址,来自本页响应的 `__GLOBAL._ATTACH_BASE_VIEW` */
   attachBase: string;
   onOpenImage?: (uri: string) => void;
+  /** 本会话的赞踩标记(12 票),按赞踩 pid 查(主楼是 0);没接线时卡片只读展示 */
+  recommendOf?: (floor: Floor) => RecommendMark | undefined;
+  /** 点了赞/踩钮。登录判断、乐观更新与回滚都在调用方 */
+  onRecommend?: (floor: Floor, action: RecommendAction) => void;
+  /** 打开楼层菜单(菜单钮或长按整卡) */
+  onOpenMenu?: (floor: Floor) => void;
 }
 
 export interface FloorCardProps {
@@ -66,6 +79,12 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
             params: { uid: String(user.uid), name: user.name },
           });
 
+  // 赞踩即时变色计数(12 票):状态与增量都来自调用方的本会话标记
+  const mark = context.recommendOf?.(floor);
+  const liked = mark?.state === 'liked';
+  const disliked = mark?.state === 'disliked';
+  const likeColor = liked ? theme.colors.primary : theme.colors.meta;
+
   // 骰子的点数是「整楼一条数列」算出来的,所以按楼层算一次,渲染器只负责查表
   const dice = useMemo(
     () => resolveDice(nodes, { authorId: floor.authorId, tid: context.tid, pid: floor.pid }),
@@ -86,7 +105,11 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
   };
 
   return (
-    <View style={styles.card}>
+    // 长按整卡也能出楼层菜单(ticket 12:「长按或菜单钮」)
+    <Pressable
+      style={styles.card}
+      onLongPress={context.onOpenMenu === undefined ? undefined : () => context.onOpenMenu?.(floor)}
+    >
       <View style={styles.header}>
         <Pressable
           onPress={openProfile}
@@ -138,26 +161,54 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
         />
       )}
 
-      {/* 点赞点踩与楼层菜单是 12 票,回复是 v1 排除项(spec §1);
-          按钮照设计稿摆好,赞数是真的,点了先给「本版本未开放」 */}
+      {/* 赞踩与楼层菜单(ticket 12)。回复是 v1 排除项(spec §1),入口保留占位。
+          赞数 = 服务端 score + 本会话增量;已赞时图标与数字染主题色(设计稿 f.likeColor) */}
       <View style={styles.actions}>
-        <Pressable style={styles.likeButton} onPress={showNotAvailable} accessibilityLabel="点赞">
-          <Icon name="thumb_up" size={19} color={theme.colors.meta} />
-          <Text style={styles.likeCount}>{floor.score}</Text>
+        <Pressable
+          style={styles.likeButton}
+          onPress={
+            context.onRecommend === undefined
+              ? showNotAvailable
+              : () => context.onRecommend?.(floor, 'like')
+          }
+          accessibilityLabel="点赞"
+        >
+          <Icon name="thumb_up" size={19} color={likeColor} />
+          <Text style={[styles.likeCount, { color: likeColor }]}>
+            {floor.score + (mark?.scoreDelta ?? 0)}
+          </Text>
         </Pressable>
-        <Pressable style={styles.action} onPress={showNotAvailable} accessibilityLabel="点踩">
-          <Icon name="thumb_down" size={19} color={theme.colors.meta} />
+        <Pressable
+          style={styles.action}
+          onPress={
+            context.onRecommend === undefined
+              ? showNotAvailable
+              : () => context.onRecommend?.(floor, 'dislike')
+          }
+          accessibilityLabel="点踩"
+        >
+          <Icon
+            name="thumb_down"
+            size={19}
+            color={disliked ? theme.colors.primary : theme.colors.meta}
+          />
         </Pressable>
         <Pressable style={styles.action} onPress={showNotAvailable} accessibilityLabel="回复">
           <Icon name="reply" size={20} color={theme.colors.meta} />
         </Pressable>
-        <Pressable style={styles.action} onPress={showNotAvailable} accessibilityLabel="楼层菜单">
+        <Pressable
+          style={styles.action}
+          onPress={
+            context.onOpenMenu === undefined ? showNotAvailable : () => context.onOpenMenu?.(floor)
+          }
+          accessibilityLabel="楼层菜单"
+        >
           <Icon name="more_vert" size={19} color={theme.colors.meta} />
         </Pressable>
       </View>
 
       {floor.notes.length > 0 && <NoteList notes={floor.notes} users={context.users} />}
-    </View>
+    </Pressable>
   );
 });
 
