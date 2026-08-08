@@ -45,6 +45,14 @@ export {
   type NotificationLike,
 } from './notifications'
 export {
+  REPUTATION_SCALE,
+  formatMoney,
+  formatReputation,
+  splitMoney,
+  toReputation,
+  type Money,
+} from './money'
+export {
   PLAIN_TITLE_STYLE,
   decodeTitleStyle,
   parseTopicMisc,

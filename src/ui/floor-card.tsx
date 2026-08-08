@@ -1,13 +1,14 @@
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { memo, useMemo, useState } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 
 import type { Floor, FloorAttachment, FloorClient, FloorUser } from '@/core/api';
 import { parseBBCode } from '@/core/bbcode';
-import { parseVote, resolveDice } from '@/core/local';
+import { formatReputation, parseVote, resolveDice } from '@/core/local';
 
 import { Avatar } from './avatar';
-import { BBCodeBody } from './bbcode';
+import { BBCodeBody, plainTextOf } from './bbcode';
 import { Icon, type IconName } from './icon';
 import { createThemedStyles, useTheme } from './theme';
 import { showNotAvailable } from './toast';
@@ -23,9 +24,6 @@ const CLIENT_ICONS: Record<FloorClient, IconName> = {
   ios: 'phone_iphone',
   other: 'devices',
 };
-
-/** 威望显示一位小数(设计稿 `rep: '1.0'` / `'12.4'`)。 */
-const formatReputation = (value: number): string => value.toFixed(1);
 
 /**
  * 画一个楼层要的、楼层本身之外的东西——全都来自它所在的那一页
@@ -54,8 +52,19 @@ export interface FloorCardProps {
 export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardProps) {
   const styles = useStyles();
   const theme = useTheme();
+  const router = useRouter();
   const nodes = useMemo(() => parseBBCode(floor.content), [floor.content]);
   const user = context.users[floor.authorKey];
+
+  // 匿名楼层没有真身 uid(CONTEXT.md「匿名还原」),点了也没有资料可看
+  const openProfile =
+    user === undefined || user.anonymous || user.uid === undefined
+      ? undefined
+      : () =>
+          router.push({
+            pathname: '/user/[uid]',
+            params: { uid: String(user.uid), name: user.name },
+          });
 
   // 骰子的点数是「整楼一条数列」算出来的,所以按楼层算一次,渲染器只负责查表
   const dice = useMemo(
@@ -79,12 +88,16 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Pressable onPress={showNotAvailable} accessibilityLabel={`${user?.name ?? '用户'}的资料`}>
+        <Pressable
+          onPress={openProfile}
+          disabled={openProfile === undefined}
+          accessibilityLabel={`${user?.name ?? '用户'}的资料`}
+        >
           <Avatar user={user} />
         </Pressable>
         <View style={styles.headerText}>
           <View style={styles.nameRow}>
-            <Text style={styles.name} numberOfLines={1}>
+            <Text style={styles.name} numberOfLines={1} onPress={openProfile}>
               {user?.name ?? '未知用户'}
               <UserBadges user={user} isStarter={floor.isStarter} />
             </Text>
@@ -186,19 +199,6 @@ function NoteList({
       ))}
     </View>
   );
-}
-
-/** 把 BBCode 压成一行纯文本,给贴条这种只有一两行位置的地方用。 */
-function plainTextOf(content: string): string {
-  const flatten = (nodes: ReturnType<typeof parseBBCode>): string =>
-    nodes
-      .map((node) => {
-        if (node.type === 'text') return node.value;
-        if (node.type === 'linebreak') return ' ';
-        return 'children' in node ? flatten([...node.children]) : '';
-      })
-      .join('');
-  return flatten(parseBBCode(content)).replace(/\s+/g, ' ').trim();
 }
 
 /**

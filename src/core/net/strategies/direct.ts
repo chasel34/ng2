@@ -67,7 +67,7 @@ export function createDirectStrategy(): FetchStrategy {
         'User-Agent': context.userAgents[request.userAgent ?? 'webview'],
         // 客户端身份放辅助头（Android v4 的现行做法，API 文档 §0.3）
         'X-User-Agent': X_USER_AGENT_VALUE,
-        Referer: request.referer ?? `${host}/`,
+        Referer: request.referer ?? `${host}/${request.refererPath ?? ''}`,
         ...auth.headers,
       }
 

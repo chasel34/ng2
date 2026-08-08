@@ -21,7 +21,7 @@
  * 3. **`attachs` 经常是空串而不是对象**，`avatar` 可能是 JSON 串（API 文档 §3 用户字段）。
  */
 
-import { resolveAuthorName } from '../local'
+import { REPUTATION_SCALE, resolveAuthorName } from '../local'
 import { NgaError, isRecord, type NgaFetcher } from '../net'
 import { normalizeAttachBase, THUMBNAIL_SUFFIX } from './attachments'
 import { int, orderedValues, str } from './fields'
@@ -35,9 +35,6 @@ const MUTE_BUFF_IDS = ['105', '117']
 
 /** `yz` 的这个取值表示账号被 nuke。别的负值（如 -5）是另外的状态。 */
 const NUKED_YZ = -1
-
-/** 威望显示值 = 服务端 `rvrc` ÷ 10。 */
-const REPUTATION_SCALE = 10
 
 /** 没标题的主题（NGA 允许）。与主题列表用同一个占位。 */
 const UNTITLED = '无标题'
@@ -303,6 +300,12 @@ export interface FetchTopicDetailOptions {
   readonly page: number
   /** fav 码（CONTEXT.md「fav 码」），访问隐藏/过期主题必带 */
   readonly favCode?: string
+  /**
+   * 只看某一楼（API 文档 §3）。从通知或「我的回复」跳过来时用：
+   * 服务端**不提供 pid → 页码**的换算，只提供这个「单独把那一楼捞出来」的模式，
+   * 响应里只有这一条楼层（且 `lou` 会被重编为 0，不是真实楼层号）。
+   */
+  readonly pid?: number
   readonly signal?: AbortSignal
 }
 
@@ -316,7 +319,7 @@ export async function fetchTopicDetail(
   fetchNga: NgaFetcher,
   options: FetchTopicDetailOptions,
 ): Promise<TopicDetail> {
-  const { tid, page, favCode, signal } = options
+  const { tid, page, favCode, pid, signal } = options
 
   const result = await fetchNga({
     path: 'read.php',
@@ -324,6 +327,7 @@ export async function fetchTopicDetail(
       tid,
       page,
       ...(favCode === undefined ? {} : { fav: favCode }),
+      ...(pid === undefined ? {} : { pid }),
       // v2 是 Android v4 的新版结构，_ATTACH_BASE_VIEW 就是它带出来的
       v2: 1,
     },

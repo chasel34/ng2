@@ -79,6 +79,18 @@ export interface TopicShortcut {
   readonly id: number
 }
 
+/**
+ * 「某人的回复」列表里挂在主题上的那条回复（`__T[].__P`，API 文档 §2）。
+ * 只有 `searchpost=1` 的请求才有，普通主题列表没有这个子对象。
+ */
+export interface TopicReply {
+  readonly pid: number
+  /** 回复正文 BBCode 原文 */
+  readonly content: string
+  /** 秒级 unix 时间戳；过期占位条目这里是 0 */
+  readonly postedAt: number
+}
+
 /** 主题列表里的一行（CONTEXT.md「主题」）。 */
 export interface Topic {
   /** 真实 tid：`quote_from` 非空时以它为准（API 文档 §2 解析要点 1） */
@@ -106,6 +118,13 @@ export interface Topic {
   readonly parent?: TopicParent
   /** 非 read.php 的外链主题（活动页），点了应该走浏览器 */
   readonly jumpUrl?: string
+  /** `searchpost=1` 时挂在这一行上的那条回复 */
+  readonly reply?: TopicReply
+  /**
+   * 服务端拒绝给内容（`denied:"1"`）：帖子过期或没权限看。
+   * 「我的回复」列表末尾常有一串这种占位行，`subject` 就是拒绝理由。
+   */
+  readonly denied: boolean
 }
 
 /** 发帖设备（楼层的 `from_client`），设计稿在楼号前放一枚小图标。 */
@@ -178,6 +197,57 @@ export interface Floor {
   readonly notes: readonly Floor[]
   /** 投票原始串，渲染归 ticket 08 */
   readonly vote?: string
+}
+
+/** 用户在某个版面担任的职务（`adminForums`，管理权限卡一枚标签）。 */
+export interface AdminForum {
+  readonly fid: number
+  readonly name: string
+}
+
+/** 某个版面的声望（`reputation`，声望条形图一行）。 */
+export interface ReputationEntry {
+  readonly fid: number
+  /** 服务端只给 fid 时退回 `版面 <fid>` */
+  readonly name: string
+  readonly value: number
+}
+
+/** 账号状态（设计稿基础信息卡的「状态」一格）。 */
+export type UserStatus = 'active' | 'muted' | 'nuked'
+
+/**
+ * 用户资料（`nuke.php?__lib=ucp&__act=get`，API 文档 §11.1）。
+ *
+ * 字段大半是可选的：同一个接口对不同用户吐的键差别很大——实测只有查自己时才有
+ * `email`/`phone`，`adminForums`/`reputation` 只有真的担任职务/有声望的账号才有。
+ * 缺了就不画那一格，别拿 0 和空串冒充数据。
+ */
+export interface UserProfile {
+  readonly uid: number
+  readonly name: string
+  readonly avatarUrl?: string
+  /** 用户组名（设计稿的「用户组」，楼层卡叫「级别」） */
+  readonly group?: string
+  /** 服务端已打码，形如 `we******@ng******` */
+  readonly email?: string
+  readonly phone?: string
+  readonly postCount: number
+  /** 铜币总数，拆金银铜用 `splitMoney` */
+  readonly money: number
+  /** 威望，已按 `rvrc ÷ 10` 换算 */
+  readonly reputation: number
+  /** 注册时间，秒级 unix 时间戳；老账号可能是 0（服务端没记） */
+  readonly registeredAt?: number
+  /** IP 属地；没有记录时服务端给「尚无记录」，这里保留原文 */
+  readonly ipLocation?: string
+  readonly status: UserStatus
+  /** 禁言到期时间，秒级 unix 时间戳；未禁言为 undefined */
+  readonly mutedUntil?: number
+  /** 签名 BBCode 原文，渲染前过 `parseBBCode` */
+  readonly signature?: string
+  readonly adminForums: readonly AdminForum[]
+  readonly reputations: readonly ReputationEntry[]
 }
 
 /** `read.php` 一页的结果。 */

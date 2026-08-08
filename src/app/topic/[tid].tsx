@@ -52,11 +52,12 @@ export default function TopicScreen() {
   const theme = useTheme();
   const router = useRouter();
 
-  const { tid, title, fav, page: fromPage } = useLocalSearchParams<{
+  const { tid, title, fav, page: fromPage, pid: fromPid } = useLocalSearchParams<{
     tid: string;
     title?: string;
     fav?: string;
     page?: string;
+    pid?: string;
   }>();
   const topicId = Number(tid);
 
@@ -64,6 +65,15 @@ export default function TopicScreen() {
   const [page, setPage] = useState(() => {
     const parsed = Number(fromPage);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  });
+  /**
+   * 只看某一楼(14 的「我的回复」点进来):**服务端不提供 pid → 页码的换算**
+   * (实测 `read.php` 带 pid 只会把那一楼单独捞出来,`__PAGE` 恒为 1、`lou` 被重编为 0),
+   * 所以落地方式就是 NGA 自己那套「只看该楼」。点提示条上的「看全部」清掉它回到整帖。
+   */
+  const [onlyPid, setOnlyPid] = useState(() => {
+    const parsed = Number(fromPid);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
   });
   const [jumpOpen, setJumpOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
@@ -73,6 +83,7 @@ export default function TopicScreen() {
     tid: topicId,
     page,
     ...(fav === undefined ? {} : { favCode: fav }),
+    ...(onlyPid === undefined ? {} : { pid: onlyPid }),
   });
 
   const totalPages = data?.totalPages ?? 1;
@@ -87,7 +98,15 @@ export default function TopicScreen() {
   };
 
   const swipe = useSwipePaging({ page, totalPages, onChange: goToPage });
-  const resume = useReadingProgress({ topicId, fav, data, listRef, goToPage });
+  // 只看某一楼时不记进度也不提示续读:屏上只有一楼,`totalRows` 是 1,
+  // 照记会把这个主题的历史楼数覆盖成 0(ticket 16)
+  const resume = useReadingProgress({
+    topicId,
+    fav,
+    data: onlyPid === undefined ? data : undefined,
+    listRef,
+    goToPage,
+  });
 
   const body = () => {
     if (isPending) {
@@ -194,6 +213,14 @@ export default function TopicScreen() {
           accessibilityLabel="更多"
         />
       </TopBar>
+
+      {onlyPid !== undefined && (
+        <Pressable style={styles.onlyFloorBar} onPress={() => setOnlyPid(undefined)}>
+          <Icon name="filter_alt" size={15} color={theme.colors.primary} />
+          <Text style={styles.onlyFloorText}>只看该楼</Text>
+          <Text style={styles.onlyFloorAction}>看全部</Text>
+        </Pressable>
+      )}
 
       {body()}
 
@@ -584,6 +611,24 @@ const useStyles = createThemedStyles((theme) => ({
   /** 设计稿在列表末尾留 90 给 FAB 让路 */
   footerSpacer: {
     height: 90,
+  },
+  onlyFloorBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: theme.colors.primaryContainer,
+  },
+  onlyFloorText: {
+    ...theme.typography.listMeta,
+    color: theme.colors.primary,
+    flex: 1,
+  },
+  onlyFloorAction: {
+    ...theme.typography.listMeta,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
   swipeHint: {
     position: 'absolute',

@@ -18,7 +18,14 @@
 import { NgaError, isRecord, type NgaFetcher } from '../net'
 import { decodeTitleStyle, isAnonymousAuthor, parseTopicMisc, resolveAuthorName } from '../local'
 import { int, nonZero, orderedValues, str } from './fields'
-import type { Board, Topic, TopicList, TopicParent, TopicShortcut } from './types'
+import type {
+  Board,
+  Topic,
+  TopicList,
+  TopicParent,
+  TopicReply,
+  TopicShortcut,
+} from './types'
 
 /** `type` 位掩码（API 文档 §2 解析要点 3，取自 NGA 官方前端的 PB 表）。 */
 const TYPE_LOCKED = 1024
@@ -81,6 +88,21 @@ function parseShortcut(
   return undefined
 }
 
+/**
+ * `searchpost=1` 时每条主题多出来的 `__P`（API 文档 §2）：那条回复本身。
+ * 没有 `pid` 的不算——过期占位行的 `__P` 也带 pid，那种由 `denied` 单独标。
+ */
+function parseTopicReply(raw: unknown): TopicReply | undefined {
+  if (!isRecord(raw)) return undefined
+  const pid = nonZero(int(raw, 'pid'))
+  if (pid === undefined) return undefined
+  return {
+    pid,
+    content: typeof raw.content === 'string' ? raw.content : '',
+    postedAt: int(raw, 'postdatetimestamp') ?? int(raw, 'postdate') ?? 0,
+  }
+}
+
 function parseTopic(raw: unknown): Topic | undefined {
   if (!isRecord(raw)) return undefined
 
@@ -108,6 +130,7 @@ function parseTopic(raw: unknown): Topic | undefined {
   const authorId = nonZero(int(raw, 'authorid'))
   const lastPoster = str(raw, 'lastposter')
   const shortcut = parseShortcut(type, { tid, fid, stid, sfid })
+  const reply = parseTopicReply(raw.__P)
 
   return {
     tid,
@@ -129,6 +152,9 @@ function parseTopic(raw: unknown): Topic | undefined {
     ...(shortcut === undefined ? {} : { shortcut }),
     ...(parent === undefined ? {} : { parent }),
     ...(jumpUrl === undefined ? {} : { jumpUrl }),
+    ...(reply === undefined ? {} : { reply }),
+    // `denied:"1"` 是服务端拒给内容的标记（帖子过期/无权限），此时 subject 就是拒绝理由
+    denied: str(raw, 'denied') === '1',
   }
 }
 
@@ -203,7 +229,10 @@ export function parseTopicList(data: unknown): TopicList {
     .filter((item): item is Board => item !== undefined)
 
   const rowsPerPage = nonZero(int(root, '__T__ROWS_PAGE')) ?? DEFAULT_ROWS_PER_PAGE
-  const totalRows = int(root, '__ROWS') ?? topics.length
+  // `__ROWS` 在「某人的回复」里是**空串**（服务端不算这个总数），`int` 会把它读成 0,
+  // 直接用就变成「总共 0 条 / 共 1 页」。空/0 时退到本页条数 `__T__ROWS`。
+  const totalRows =
+    nonZero(int(root, '__ROWS')) ?? nonZero(int(root, '__T__ROWS')) ?? topics.length
 
   return {
     topics,

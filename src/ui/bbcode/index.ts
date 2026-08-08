@@ -13,5 +13,6 @@
 export { resolveBBColor, resolveBBSizeScale } from './colors';
 export { ContentImage } from './content-image';
 export type { BBCodeRenderOptions } from './options';
+export { plainTextOf } from './plain-text';
 export { BBCodeBody } from './render';
 export { Smiley } from './smiley';

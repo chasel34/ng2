@@ -58,7 +58,24 @@ export {
   type FetchTopicListOptions,
   type TopicSort,
 } from './topic-list'
+export {
+  UCP_REFERER_PATH,
+  fetchUserAvatar,
+  fetchUserProfile,
+  parseUserProfile,
+  type FetchUserAvatarOptions,
+  type FetchUserProfileOptions,
+  type ParseUserProfileOptions,
+} from './user-profile'
+export {
+  fetchUserTopics,
+  hasMoreUserPosts,
+  mergeUserPostPages,
+  type FetchUserTopicsOptions,
+  type UserPostKind,
+} from './user-topics'
 export type {
+  AdminForum,
   Board,
   BoardCategory,
   BoardGroup,
@@ -71,9 +88,13 @@ export type {
   NgaNotification,
   NotificationFeed,
   NotificationKind,
+  ReputationEntry,
   Topic,
   TopicDetail,
   TopicList,
   TopicParent,
+  TopicReply,
   TopicShortcut,
+  UserProfile,
+  UserStatus,
 } from './types'

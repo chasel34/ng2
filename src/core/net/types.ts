@@ -27,6 +27,11 @@ export interface NgaRequest {
   readonly host?: string
   /** 覆盖 Referer；`nuke.php?__lib=ucp` 必须带且需以 base url 开头 */
   readonly referer?: string
+  /**
+   * 同 `referer`，但只写路径，由策略补上当前 host——调用方不必知道自己会被发到哪个域名
+   * （反封锁链会换域名）。`referer` 已给出时以它为准。
+   */
+  readonly refererPath?: string
   readonly signal?: AbortSignal
 }
 

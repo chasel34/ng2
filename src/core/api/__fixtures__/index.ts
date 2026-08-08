@@ -102,6 +102,63 @@ export const API_FIXTURES = {
     file: 'noti-get-all-empty.gbk.bin',
     note: 'nuke.php __lib=noti __act=get_all __output=8，登录态，空账号',
   },
+  /**
+   * nuke.php ucp get uid=41417929 —— 一个普通用户的资料：有头像、有 BBCode 签名、
+   * 有 `ipLoc`，`rvrc`/`fame` 是 15（显示成 1.5），没有 `email`/`adminForums`。
+   */
+  ucpUser: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'ucp-get-user.gbk.bin',
+    note: 'nuke.php __lib=ucp __act=get uid=41417929 __output=8，登录态',
+  },
+  /**
+   * 同一接口、uid=2 —— 带 `adminForums`（管理权限卡的样本，key 是 fid 且为负数）、
+   * **负的 `rvrc`**（-11109 → -1110.9）与逗号串形态的 `medal`。
+   */
+  ucpAdmin: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'ucp-get-admin.gbk.bin',
+    note: 'nuke.php __lib=ucp __act=get uid=2 __output=8，登录态',
+  },
+  /** 同一接口、不存在的 uid —— `{"error":{"0":"找不到用户"}}`，命中假错误白名单。 */
+  ucpMissing: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'ucp-get-missing.gbk.bin',
+    note: 'nuke.php __lib=ucp __act=get uid=999999999 __output=8，登录态',
+  },
+  /** 头像补充查询：URL 直接躺在 `data["0"]` 上（是字符串不是对象）。 */
+  ucpAvatar: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'ucp-get-avatar.gbk.bin',
+    note: 'nuke.php __lib=ucp __act=get_avatar uid=41417929 __output=8，登录态',
+  },
+  /** thread.php authorid=41417929 —— 某人的主题（我的主题）。`__ROWS` 是正常数字。 */
+  threadUserTopics: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'thread-user-topics.gbk.bin',
+    note: 'thread.php authorid=41417929 page=1 __output=8，登录态',
+  },
+  /**
+   * thread.php authorid=41417929&searchpost=1 —— 某人的回复（我的回复）。三处坑都在里面：
+   * 每条多一个 `__P` 子对象（回复本身）、**同一个 tid 会重复出现多条**（不能按 tid 去重）、
+   * 末尾 8 条是 `denied:"1"` 的过期占位（`error` 写着「帖子发布或回复时间超过限制」）。
+   * 另外 `__ROWS` 是**空串**，总数只能退回 `__T__ROWS`。
+   */
+  threadUserReplies: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'thread-user-replies.gbk.bin',
+    note: 'thread.php authorid=41417929 searchpost=1 page=1 __output=8，登录态',
+  },
+  /**
+   * 同一请求翻过头（page=500）—— 到底的信号是 error「2048:没有符合条件的结果」，
+   * 而它在假错误白名单里；同一份响应**同时**带着 `data.__MESSAGE`，
+   * 所以解出来是一页 0 条主题，而不是一个错误。
+   */
+  threadUserRepliesEnd: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'thread-user-replies-end.gbk.bin',
+    note: 'thread.php authorid=41417929 searchpost=1 page=500 __output=8，登录态',
+  },
 } as const satisfies Record<string, ApiFixture>
 
 export type ApiFixtureName = keyof typeof API_FIXTURES

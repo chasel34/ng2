@@ -4,11 +4,13 @@ import { PanResponder, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { currentAccountOf, cycleAccountUid } from '@/core/account';
+import type { UserPostKind } from '@/core/api';
 import { useAccounts } from '@/store/accounts';
 import { useNotificationsUnread } from '@/store/notifications';
 
 import { Icon, type IconName } from './icon';
 import { nameAbbrev } from './initial';
+import { showLoginPrompt } from './login-prompt';
 import { createThemedStyles, useTheme } from './theme';
 import { showNotAvailable, showToast } from './toast';
 import { topbarOverlay } from './tokens';
@@ -40,6 +42,8 @@ interface DrawerEntry {
   href?: Href;
   /** 右侧未读角标(设计稿短消息屏那颗红底数字);目前只有通知入口有 */
   badge?: 'notifications';
+  /** 「我的主题」「我的回复」:目标 uid 是当前账号,登录后才知道,所以只记 kind */
+  mine?: UserPostKind;
 }
 
 /**
@@ -54,6 +58,9 @@ const ENTRIES: readonly DrawerEntry[] = [
   { key: 'from-url', icon: 'arrow_forward', label: '由 URL 读取' },
   { key: 'folders', icon: 'folder_special', label: '收藏夹管理' },
   { key: 'clear-favor', icon: 'warning', label: '清空我的收藏' },
+  // 我的主题/我的回复是同一个屏,只差一个 kind(14 票)
+  { key: 'my-topics', icon: 'article', label: '我的主题', mine: 'topics' },
+  { key: 'my-replies', icon: 'reply', label: '我的回复', mine: 'replies' },
   {
     key: 'notifications',
     icon: 'notifications_active',
@@ -95,6 +102,20 @@ export function AppDrawerContent({
   const go = (href: Href) => {
     onNavigate?.();
     router.push(href);
+  };
+
+  /** 「我的主题/我的回复」查的是当前账号,游客态没有 uid 可查 */
+  const openMine = (kind: UserPostKind) => {
+    if (current === null) {
+      onNavigate?.();
+      showLoginPrompt(router, '登录后才能看自己的主题与回复');
+      return;
+    }
+    onNavigate?.();
+    router.push({
+      pathname: '/user/posts',
+      params: { uid: current.uid, kind, name: current.name },
+    });
   };
 
   const headerPan = useRef(
@@ -179,7 +200,13 @@ export function AppDrawerContent({
               ? onClearFavorites
               : undefined;
         const href = entry.href;
-        const onPress = href !== undefined ? () => go(href) : (action ?? showNotAvailable);
+        const mine = entry.mine;
+        const onPress =
+          href !== undefined
+            ? () => go(href)
+            : mine !== undefined
+              ? () => openMine(mine)
+              : (action ?? showNotAvailable);
         return (
           <Pressable
             key={entry.key}
