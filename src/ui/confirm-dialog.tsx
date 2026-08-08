@@ -6,8 +6,8 @@ import { createThemedStyles } from './theme';
 export interface ConfirmDialogProps {
   open: boolean;
   title: string;
-  /** 正文说明,例如「将取消收藏全部 5 个版块」 */
-  message: string;
+  /** 正文说明,例如「将取消收藏全部 5 个版块」;对话框关着时允许缺省 */
+  message?: string;
   /** 确定按钮文案 */
   confirmLabel: string;
   /** 危险操作(清空/删除)把确定钮染成 danger */
@@ -65,7 +65,7 @@ export function ConfirmDialog({
         ]}
       >
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.message}>{message}</Text>
+        {message !== undefined && <Text style={styles.message}>{message}</Text>}
         <View style={styles.actions}>
           <Pressable style={styles.cancel} onPress={onCancel}>
             <Text style={styles.cancelLabel}>取消</Text>

@@ -102,6 +102,37 @@ export const API_FIXTURES = {
     file: 'noti-get-all-empty.gbk.bin',
     note: 'nuke.php __lib=noti __act=get_all __output=8，登录态，空账号',
   },
+  /**
+   * topic_favor_v2 list_folder —— 两个收藏夹：`默认` 键 + `type: 2` 标出默认夹，
+   * `length` 是夹内主题数。夹名是抓包时没带 `__inchst=UTF8` 产生的 mojibake
+   * （UTF-8 字节被服务端按 GBK 落库），恰好留作「名字原样透传」的样本。
+   */
+  favorFolders: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'favor-folders.gbk.bin',
+    note: 'nuke.php __lib=topic_favor_v2 __act=list_folder page=1 __output=8，登录态',
+  },
+  /** topic_favor_v2 list_folder —— 一个夹都没有：`data["0"]` 是空对象。 */
+  favorFoldersEmpty: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'favor-folders-empty.gbk.bin',
+    note: 'nuke.php __lib=topic_favor_v2 __act=list_folder page=1 __output=8，登录态，无收藏夹',
+  },
+  /** topic_favor_v2 new_folder —— 新夹 id 在 `data["1"]`，`data["0"]` 是「操作成功」。 */
+  favorNewFolder: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'favor-new-folder.gbk.bin',
+    note: 'nuke.php __lib=topic_favor_v2 __act=new_folder raw=3 __output=8，登录态',
+  },
+  /**
+   * thread.php?favor=<夹id> —— 收藏夹的主题列表，形状与版块主题列表一致
+   * （`__F` 是空对象；`tpcurl` 里带 `fav=:F…` 形式的访问码）。
+   */
+  favorTopics: {
+    contentType: 'text/html',
+    file: 'favor-topics.gbk.bin',
+    note: 'thread.php favor=<夹id> page=1 __output=8，登录态',
+  },
 } as const satisfies Record<string, ApiFixture>
 
 export type ApiFixtureName = keyof typeof API_FIXTURES
