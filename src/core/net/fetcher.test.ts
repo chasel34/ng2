@@ -382,7 +382,12 @@ describe('runStrategyChain · 反封锁链框架（ADR-0002）', () => {
       stubStrategy('cache', 'ok'),
     ]
 
-    await runStrategyChain(chain, request, { ...context, onEvent: (e) => events.push(`${e.type}:${e.strategy}`) })
+    await runStrategyChain(chain, request, {
+      ...context,
+      onEvent: (e) => {
+        if ('strategy' in e) events.push(`${e.type}:${e.strategy}`)
+      },
+    })
 
     expect(events).toEqual([
       'strategy-start:direct',

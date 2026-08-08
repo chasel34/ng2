@@ -1,5 +1,7 @@
 import type { AuthMode, NgaCredentials } from './auth'
+import type { ComboCache } from './combo'
 import type { ResponseFormat, UserAgentProfile } from './constants'
+import type { FetchDiagnostic } from './diagnostics'
 import type { NgaEnvelope } from './envelope'
 import type { NgaError } from './errors'
 import type { QueryParams } from './query'
@@ -48,6 +50,15 @@ export interface FetchContext {
   readonly credentials: NgaCredentials | null
   /** 各 UA 档位的实际取值（webview 档由设备侧注入系统 UA） */
   readonly userAgents: Readonly<Record<UserAgentProfile, string>>
+  /**
+   * 重建一个新的 HTTP client（ADR-0002：每次重试前重建）。
+   * 不给就一直用 `transport`——单测与不做反封锁的场合不需要。
+   */
+  readonly renewTransport?: () => HttpTransport
+  /** 成功组合缓存（格式 × 域名），链上各档共用一份 */
+  readonly comboCache?: ComboCache
+  /** `read.php` 的 UA 档位开关（ADR-0002，默认不开） */
+  readonly readPhpUserAgent?: UserAgentProfile
   readonly onEvent?: (event: FetchEvent) => void
 }
 
@@ -76,3 +87,19 @@ export type FetchEvent =
       readonly path: string
       readonly error: NgaError
     }
+  /** 一次真正发出去的 HTTP 尝试。诊断日志（22 号票）就是由这些攒出来的 */
+  | {
+      readonly type: 'attempt'
+      readonly strategy: string
+      readonly path: string
+      readonly format: ResponseFormat
+      readonly host: string
+      readonly userAgent: UserAgentProfile
+      readonly userAgentValue: string
+      /** 这次用的账号 uid；游客为 null */
+      readonly uid: string | null
+      /** 成功时不带 */
+      readonly error?: NgaError
+    }
+  /** 整条链失败。`diagnostic` 已经带上全部尝试记录，可直接落盘 */
+  | { readonly type: 'chain-failure'; readonly diagnostic: FetchDiagnostic }

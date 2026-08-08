@@ -80,3 +80,13 @@ export function currentCredentials(): NgaCredentials | null {
   const account = currentAccount();
   return account === null ? null : { uid: account.uid, token: account.cid };
 }
+
+/**
+ * 全部已登录账号的凭证,顺序同账号管理页。
+ * 反封锁链的「换账号重试」那一档要用(ADR-0002):它只认纯数据,不认 store。
+ */
+export function allCredentials(): readonly NgaCredentials[] {
+  return useAccounts
+    .getState()
+    .accounts.map((account) => ({ uid: account.uid, token: account.cid }));
+}

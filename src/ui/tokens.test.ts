@@ -190,6 +190,10 @@ describe('字号 / 行高 token', () => {
         'folderBadge',
         'cardMeta',
         'searchSection',
+        'errorTitle',
+        'errorBody',
+        'errorAction',
+        'diagnostic',
       ].sort(),
     );
   });
@@ -217,7 +221,7 @@ describe('顶栏选中态底色', () => {
 
 describe('圆角 / 间距 token', () => {
   it('圆角档位与设计稿一致', () => {
-    expect(radius).toEqual({ sm: 9, md: 12, lg: 14, fab: 19, dialog: 24, full: 999 });
+    expect(radius).toEqual({ sm: 9, md: 12, lg: 14, button: 15, fab: 19, dialog: 24, full: 999 });
   });
 
   it('间距档位与设计稿一致', () => {

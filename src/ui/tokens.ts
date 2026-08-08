@@ -274,7 +274,21 @@ const designOnlyTypography = {
   cardMeta: { fontSize: 12, fontWeight: '400' },
   /** 搜索屏「搜索选项 / 搜索历史」小节标题 16 · 600(设计稿 isSearch 屏) */
   searchSection: { fontSize: 16, fontWeight: '600' },
+  /** 加载失败页标题 17 · 650(设计稿 isError 屏;比 section 重一档) */
+  errorTitle: { fontSize: 17, fontWeight: '600' },
+  /** 加载失败页说明 13.5 · 1.65(比 notice 松一点,设计稿 isError 屏) */
+  errorBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 22.28 },
+  /** 加载失败页整宽动作按钮 15 · 650(设计稿 isError 屏) */
+  errorAction: { fontSize: 15, fontWeight: '600' },
+  /** 诊断信息条 11.5 · 1.6(设计稿 isError 屏底部那块) */
+  diagnostic: { fontSize: 11.5, fontWeight: '400', lineHeight: 18.4 },
 } as const;
+
+/**
+ * 等宽字体。设计稿在状态码与诊断信息上用 `ui-monospace,Menlo,monospace`,
+ * Android 侧对应的族名就是 `monospace`(系统自带,不用打包字体)。
+ */
+export const monoFontFamily = 'monospace';
 
 export const typography = { ...tokenTableTypography, ...designOnlyTypography } as const;
 
@@ -286,6 +300,8 @@ export const radius = {
   md: 12,
   /** 菜单 / 卡片 / Snackbar */
   lg: 14,
+  /** 整宽动作按钮(设计稿 isError 屏的「重试」「用网页版打开」) */
+  button: 15,
   fab: 19,
   dialog: 24,
   /** 圆形图标按钮(设计稿里是 46/44 见方配 23/22 圆角) */

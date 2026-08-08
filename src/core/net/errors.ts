@@ -1,4 +1,5 @@
 import { FAKE_ERROR_MESSAGES } from './constants'
+import type { FetchDiagnostic } from './diagnostics'
 import { isRecord } from './is-record'
 
 export type NgaErrorKind =
@@ -44,6 +45,12 @@ export class NgaError extends Error {
   readonly status?: number
   readonly via?: string
   readonly retryable: boolean
+  /**
+   * 反封锁链跑完之后由 `runStrategyChain` 补上（构造时还不知道后面会试几档）。
+   * 错误页拿它渲染诊断摘要。故意可写：重新包一个 NgaError 会丢掉调用方
+   * 用 `instanceof` / 引用比较建立的那些判断。
+   */
+  diagnostic?: FetchDiagnostic
 
   constructor(options: NgaErrorOptions) {
     super(options.message, options.cause === undefined ? undefined : { cause: options.cause })

@@ -23,6 +23,7 @@ import { peekHistoryEntry, recordReadFloor, recordTopicVisit } from '@/store/his
 import { useTopicDetail } from '@/store/topic-detail';
 import { recommendPidOf, useFloorRecommend } from '@/store/topic-recommend';
 import { BBCodeBody } from '@/ui/bbcode';
+import { LoadFailed } from '@/ui/error-screen';
 import { FavoriteFolderDialog } from '@/ui/favorite-folder-dialog';
 import { FloorCard, type FloorContext } from '@/ui/floor-card';
 import { isHorizontalDragActive } from '@/ui/horizontal-drag';
@@ -245,20 +246,24 @@ export default function TopicScreen() {
         </View>
       );
     }
+    // 反封锁链(ADR-0002)全档跑完还是没拿到数据 → 设计稿的「加载失败」页
+    if (error !== null && data === undefined) {
+      return (
+        <LoadFailed
+          error={error}
+          onRetry={() => void refetch()}
+          onOpenWeb={() => void WebBrowser.openBrowserAsync(webUrlOf(topicId, page, fav))}
+          onRelogin={() => router.push('/login')}
+        />
+      );
+    }
     if (data === undefined || data.floors.length === 0) {
-      const failed = error !== null;
       return (
         <View style={styles.center}>
-          <Icon name={failed ? 'cloud_off' : 'article'} size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>
-            {failed
-              ? error instanceof Error
-                ? error.message
-                : '这一页拉不下来'
-              : '这一页没有楼层'}
-          </Text>
+          <Icon name="article" size={40} color={theme.colors.meta} />
+          <Text style={styles.errorText}>这一页没有楼层</Text>
           <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>
+            <Text style={styles.retryLabel}>刷新</Text>
           </Pressable>
         </View>
       );

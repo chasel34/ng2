@@ -317,8 +317,10 @@ export interface FetchTopicDetailOptions {
 /**
  * 拉一页帖子详情（`POST read.php`，API 文档 §3）。
  *
- * UA 走 `windowsPhone` 档：MNGA 对 read.php 强制用它，实测更不容易被封
- * （core/net 只提供机制，选哪档由这里决定，见 02 票遗留问题 6）。
+ * UA 档不在这里写死：`read.php` 用 `windowsPhone` 档（MNGA 强制用它，实测更不容易被封）
+ * 是**策略开关**，由设备侧的设置决定（ADR-0002 / 18 票；`NgaFetcherOptions.getReadPhpUserAgent`，
+ * 默认就是 windowsPhone）。07 票原本写在这条请求上，18 票把它挪到开关后面——
+ * 被封的表现会随时间变，这一档要能关。
  */
 export async function fetchTopicDetail(
   fetchNga: NgaFetcher,
@@ -337,7 +339,6 @@ export async function fetchTopicDetail(
       // v2 是 Android v4 的新版结构，_ATTACH_BASE_VIEW 就是它带出来的
       v2: 1,
     },
-    userAgent: 'windowsPhone',
     ...(signal === undefined ? {} : { signal }),
   })
 
