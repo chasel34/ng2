@@ -20,6 +20,7 @@ import { decodeTitleStyle, isAnonymousAuthor, parseTopicMisc, resolveAuthorName 
 import { int, nonZero, orderedValues, str, text } from './fields'
 import type {
   Board,
+  SubBoard,
   Topic,
   TopicList,
   TopicParent,
@@ -178,18 +179,30 @@ function boardIdentity(
 }
 
 /**
- * 子版块（`__F.sub_forums`）：值是 `{0:id, 1:名字, 2:副标题, 3:?, 4:订阅状态码}`，
+ * 子版块（`__F.sub_forums`）：值是 `{0:id, 1:名字, 2:副标题, 3:filter_id, 4:订阅状态码}`，
  * **key 以 `t` 开头表示这是合集**（值里的 id 是 stid，见调研报告 §2）。
+ *
+ * 第 3、4 项是订阅/屏蔽（23 票）要用的：`filter_id` 是操作对象，
+ * 有没有这一项还决定 `user_option` 的 `type`（进而决定 add/del 哪个是订阅）。
+ * 判定与操作都在 `sub-board.ts`，这里只如实带出来。
  */
-function parseSubBoard(key: string, raw: unknown): Board | undefined {
+function parseSubBoard(key: string, raw: unknown): SubBoard | undefined {
   if (!isRecord(raw)) return undefined
   const name = str(raw, '1')
   const id = nonZero(int(raw, '0'))
   if (name === undefined || id === undefined) return undefined
 
   const board = boardIdentity(name, key.startsWith('t') ? { stid: id } : { fid: id })
+  if (board === undefined) return undefined
   const info = str(raw, '2')
-  return board === undefined ? undefined : { ...board, ...(info === undefined ? {} : { info }) }
+  const filterId = nonZero(int(raw, '3'))
+  return {
+    ...board,
+    ...(info === undefined ? {} : { info }),
+    filterId: filterId ?? id,
+    filterType: filterId === undefined ? 0 : 1,
+    attributes: int(raw, '4') ?? 0,
+  }
 }
 
 /** 当前版块（`__F`）。 */
@@ -226,7 +239,7 @@ export function parseTopicList(data: unknown): TopicList {
   const subForums = isRecord(forum?.sub_forums) ? Object.entries(forum.sub_forums) : []
   const subBoards = subForums
     .map(([key, raw]) => parseSubBoard(key, raw))
-    .filter((item): item is Board => item !== undefined)
+    .filter((item): item is SubBoard => item !== undefined)
 
   const rowsPerPage = nonZero(int(root, '__T__ROWS_PAGE')) ?? DEFAULT_ROWS_PER_PAGE
   // `__ROWS` 在「某人的回复」里是**空串**（服务端不算这个总数），`int` 会把它读成 0,

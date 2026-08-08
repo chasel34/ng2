@@ -27,6 +27,8 @@ export interface InputDialogProps {
   confirmLabel: string;
   initialValue?: string;
   keyboardType?: KeyboardTypeOptions;
+  /** 多行输入(签名这种可以换行的内容);此时回车是换行,确定只能点按钮 */
+  multiline?: boolean;
   onCancel: () => void;
   onConfirm: (value: string) => void;
 }
@@ -45,6 +47,7 @@ export function InputDialog({
   confirmLabel,
   initialValue = '',
   keyboardType,
+  multiline = false,
   onCancel,
   onConfirm,
 }: InputDialogProps) {
@@ -98,10 +101,11 @@ export function InputDialog({
             onChangeText={setValue}
             keyboardType={keyboardType}
             autoFocus
-            selectTextOnFocus
-            returnKeyType="go"
-            onSubmitEditing={confirm}
-            style={styles.input}
+            // 多行时回车是换行,不能拿它当「确定」,选中全文也碍事
+            selectTextOnFocus={!multiline}
+            multiline={multiline}
+            {...(multiline ? {} : { returnKeyType: 'go' as const, onSubmitEditing: confirm })}
+            style={[styles.input, multiline && styles.inputMultiline]}
             cursorColor={theme.colors.primary}
             selectionColor={theme.colors.primary}
           />
@@ -161,6 +165,12 @@ const useStyles = createThemedStyles((theme) => ({
     paddingHorizontal: 2,
     paddingBottom: 7,
     paddingTop: 0,
+  },
+  inputMultiline: {
+    minHeight: 84,
+    maxHeight: 180,
+    textAlignVertical: 'top',
+    paddingBottom: theme.spacing.md,
   },
   hint: {
     ...theme.typography.meta,

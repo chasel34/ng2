@@ -1,6 +1,11 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 
-import { fetchUserAvatar, fetchUserProfile, type UserProfile } from '@/core/api';
+import {
+  fetchUserAvatar,
+  fetchUserProfile,
+  updateSignature,
+  type UserProfile,
+} from '@/core/api';
 
 import { fetchNga } from './nga-client';
 
@@ -32,4 +37,18 @@ export function useUserProfile(uid: number): UseQueryResult<UserProfile> {
     staleTime: 5 * 60 * 1000,
     enabled: Number.isFinite(uid) && uid > 0,
   });
+}
+
+/**
+ * 改自己的签名(23 票)。写完**重拉一次资料**而不是就地改缓存:
+ * 票面的验收项是「保存后回读一致」,只有服务端存下来的那一份说了算
+ * (提交要过实体转义,存进去与读回来是否对得上正是这里要验的东西)。
+ */
+export function useUpdateSignature(uid: number): (signature: string) => Promise<void> {
+  const client = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (signature: string) => updateSignature(fetchNga, { uid, signature }),
+    onSuccess: () => client.invalidateQueries({ queryKey: userProfileQueryKey(uid) }),
+  });
+  return (signature) => mutation.mutateAsync(signature).then(() => undefined);
 }

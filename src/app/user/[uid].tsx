@@ -4,13 +4,16 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ATTACH_BASE_FALLBACK, type AdminForum, type UserProfile } from '@/core/api';
-import { parseBBCode } from '@/core/bbcode';
+import { parseBBCode, unescapeNgaText } from '@/core/bbcode';
 import { formatMoney, formatReputation } from '@/core/local';
-import { useUserProfile } from '@/store/user-profile';
+import { useAccounts } from '@/store/accounts';
+import { useUpdateSignature, useUserProfile } from '@/store/user-profile';
 import { avatarColorFor } from '@/ui/avatar';
 import { BBCodeBody } from '@/ui/bbcode';
 import { Icon } from '@/ui/icon';
 import { initialOf } from '@/ui/initial';
+import { InputDialog } from '@/ui/input-dialog';
+import { showSnackbar } from '@/ui/snackbar';
 import { createThemedStyles, useTheme, type Theme } from '@/ui/theme';
 import { dateText } from '@/ui/time-text';
 import { showNotAvailable } from '@/ui/toast';
@@ -44,6 +47,25 @@ export default function UserProfileScreen() {
 
   const { data, error, isPending, refetch } = useUserProfile(userId);
 
+  // 签名只能改自己的(服务端认 cookie 里的账号,别人的改不动),入口也只对自己出现
+  const currentUid = useAccounts((state) => state.currentUid);
+  const isMine = currentUid !== null && Number(currentUid) === userId;
+  const [signOpen, setSignOpen] = useState(false);
+  const saveSignature = useUpdateSignature(userId);
+
+  /**
+   * 存的是原文,转义交给 core(提交时转、读回来时解)。存完重拉资料——
+   * 页面上那段签名要以服务端存下来的为准,不能拿输入框里的字冒充。
+   */
+  const confirmSignature = (text: string) => {
+    setSignOpen(false);
+    void saveSignature(text).then(
+      () => showSnackbar('签名已保存'),
+      (cause: unknown) =>
+        showSnackbar(cause instanceof Error ? cause.message : '签名没能保存到服务端'),
+    );
+  };
+
   const body = () => {
     if (isPending) {
       return (
@@ -65,7 +87,12 @@ export default function UserProfileScreen() {
         </View>
       );
     }
-    return <ProfileBody profile={data} />;
+    return (
+      <ProfileBody
+        profile={data}
+        {...(isMine ? { onEditSignature: () => setSignOpen(true) } : {})}
+      />
+    );
   };
 
   return (
@@ -106,6 +133,18 @@ export default function UserProfileScreen() {
         />
         {body()}
       </ScrollView>
+
+      {/* 签名可以换行,所以是多行输入;写的是原文,BBCode 标签照打 */}
+      <InputDialog
+        open={signOpen}
+        title="修改签名"
+        hint="支持 BBCode 与 emoji;留空即清除签名"
+        confirmLabel="保存"
+        multiline
+        initialValue={unescapeNgaText(data?.signature ?? '')}
+        onCancel={() => setSignOpen(false)}
+        onConfirm={confirmSignature}
+      />
     </View>
   );
 }
@@ -189,7 +228,14 @@ function basicFields(profile: UserProfile, theme: Theme): BasicField[] {
   ];
 }
 
-function ProfileBody({ profile }: { profile: UserProfile }) {
+function ProfileBody({
+  profile,
+  onEditSignature,
+}: {
+  profile: UserProfile;
+  /** 只有自己的资料页才给,给了就在签名卡上出现编辑入口 */
+  onEditSignature?: () => void;
+}) {
   const styles = useStyles();
   const theme = useTheme();
 
@@ -228,13 +274,31 @@ function ProfileBody({ profile }: { profile: UserProfile }) {
         )}
       </View>
 
-      {profile.signature !== undefined && (
+      {/* 自己的资料页即使还没有签名也要出这张卡,不然没有地方点「编辑」 */}
+      {(profile.signature !== undefined || onEditSignature !== undefined) && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>:: 签名 ::</Text>
-          <View style={styles.signature}>
-            {/* 签名是 BBCode,和楼层正文同一个渲染器;签名里没有附件,基址走兜底 */}
-            <BBCodeBody nodes={signatureNodes} options={{ attachBase: ATTACH_BASE_FALLBACK }} />
+          <View style={styles.cardHeader}>
+            <Text style={[styles.cardTitle, styles.cardHeaderTitle]}>:: 签名 ::</Text>
+            {onEditSignature !== undefined && (
+              <Pressable
+                style={styles.cardAction}
+                onPress={onEditSignature}
+                hitSlop={8}
+                accessibilityLabel="修改签名"
+              >
+                <Icon name="edit" size={16} color={theme.colors.primary} />
+                <Text style={styles.cardActionLabel}>编辑</Text>
+              </Pressable>
+            )}
           </View>
+          {profile.signature === undefined ? (
+            <Text style={styles.cardCaption}>还没有签名,点「编辑」写一段。</Text>
+          ) : (
+            <View style={styles.signature}>
+              {/* 签名是 BBCode,和楼层正文同一个渲染器;签名里没有附件,基址走兜底 */}
+              <BBCodeBody nodes={signatureNodes} options={{ attachBase: ATTACH_BASE_FALLBACK }} />
+            </View>
+          )}
         </View>
       )}
 
@@ -374,6 +438,28 @@ const useStyles = createThemedStyles((theme) => ({
     fontWeight: '600',
     color: theme.colors.accent,
     marginBottom: theme.spacing.md,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+  },
+  cardHeaderTitle: {
+    flex: 1,
+  },
+  // 卡片标题行右侧的次要动作,按设计稿的 primary 文字按钮延伸
+  cardAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 2,
+    paddingLeft: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  cardActionLabel: {
+    ...theme.typography.listMeta,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
   cardCaption: {
     ...theme.typography.note,

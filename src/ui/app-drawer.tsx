@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { currentAccountOf, cycleAccountUid } from '@/core/account';
 import type { UserPostKind } from '@/core/api';
 import { useAccounts } from '@/store/accounts';
+import { useCheckIn, useCheckedInToday } from '@/store/check-in';
 import { useNotificationsUnread } from '@/store/notifications';
 
 import { Icon, type IconName } from './icon';
@@ -42,6 +43,8 @@ interface DrawerEntry {
   href?: Href;
   /** 右侧未读角标(设计稿短消息屏那颗红底数字);目前只有通知入口有 */
   badge?: 'notifications';
+  /** 右侧的状态灰字;目前只有签到入口有(今天签没签) */
+  status?: 'check-in';
   /** 「我的主题」「我的回复」:目标 uid 是当前账号,登录后才知道,所以只记 kind */
   mine?: UserPostKind;
 }
@@ -54,6 +57,8 @@ interface DrawerEntry {
  */
 const ENTRIES: readonly DrawerEntry[] = [
   { key: 'login', icon: 'person_add', label: '登录账号', href: '/login' },
+  // 签到是设计稿缺失页面(spec §1:抽屉「登录账号」下加一行),按现有条目的设计语言延伸
+  { key: 'check-in', icon: 'workspace_premium', label: '每日签到', status: 'check-in' },
   { key: 'add-board', icon: 'library_add', label: '添加版面 ID' },
   { key: 'from-url', icon: 'arrow_forward', label: '由 URL 读取' },
   { key: 'folders', icon: 'folder_special', label: '收藏夹管理', href: '/favorites/folders' },
@@ -101,6 +106,8 @@ export function AppDrawerContent({
   const currentUid = useAccounts((state) => state.currentUid);
   const current = currentAccountOf({ accounts, currentUid });
   const unread = useNotificationsUnread();
+  const checkedInToday = useCheckedInToday(currentUid);
+  const checkInPending = useCheckIn((state) => state.pendingUid === currentUid);
 
   const go = (href: Href) => {
     onNavigate?.();
@@ -119,6 +126,39 @@ export function AppDrawerContent({
       pathname: '/user/posts',
       params: { uid: current.uid, kind, name: current.name },
     });
+  };
+
+  /**
+   * 每日签到(CONTEXT.md「签到」)。抽屉不关:签完那行就地变成「今天已签到」,
+   * 关掉再弹提示反而看不见结果。
+   *
+   * 「今天已经签到」服务端当假错误回,这里和成功一样处理,只换一句话说。
+   */
+  const checkInNow = () => {
+    if (current === null) {
+      onNavigate?.();
+      showLoginPrompt(router, '登录后才能签到');
+      return;
+    }
+    void useCheckIn
+      .getState()
+      .checkIn(current.uid)
+      .then(
+        (outcome) => {
+          // 本地记录已是今天、或上一次还在途,都不该再打接口(重复点击就落在这两支)
+          if (outcome.kind === 'in-flight') return;
+          if (outcome.kind === 'already-today') {
+            showToast('今天已经签到过了');
+            return;
+          }
+          showToast(
+            outcome.result.alreadyCheckedIn
+              ? '今天已经签到过了'
+              : (outcome.result.message ?? '签到成功'),
+          );
+        },
+        (error: unknown) => showToast(error instanceof Error ? error.message : '签到失败'),
+      );
   };
 
   const headerPan = useRef(
@@ -204,7 +244,9 @@ export function AppDrawerContent({
               ? onClearFavorites
               : entry.key === 'from-url'
                 ? onOpenUrl
-                : undefined;
+                : entry.key === 'check-in'
+                  ? checkInNow
+                  : undefined;
         const href = entry.href;
         const mine = entry.mine;
         const onPress =
@@ -224,6 +266,11 @@ export function AppDrawerContent({
             <Text style={styles.entryLabel} numberOfLines={1}>
               {entry.label}
             </Text>
+            {entry.status === 'check-in' && current !== null ? (
+              <Text style={styles.entryStatus} numberOfLines={1}>
+                {checkedInToday ? '今天已签到' : checkInPending ? '签到中…' : '今天还没签'}
+              </Text>
+            ) : null}
             {entry.badge === 'notifications' && unread > 0 ? (
               <View style={styles.entryBadge}>
                 <Text style={styles.entryBadgeText} allowFontScaling={false}>
@@ -300,6 +347,12 @@ const useStyles = createThemedStyles((theme) => ({
   entryLabel: {
     ...theme.typography.drawerItem,
     color: theme.colors.fg,
+  },
+  /** 签到那行右侧的状态灰字,与未读角标一样顶到行尾 */
+  entryStatus: {
+    ...theme.typography.meta,
+    color: theme.colors.meta,
+    marginLeft: 'auto',
   },
   /** 未读角标照设计稿短消息屏:18 高胶囊、红底白字,顶到行尾 */
   entryBadge: {

@@ -10,6 +10,15 @@ export {
   type AnonymousName,
 } from './anonymous'
 export {
+  EMPTY_CHECK_IN_DAYS,
+  beijingDayKey,
+  isCheckedInOn,
+  markCheckedIn,
+  parseCheckInDays,
+  serializeCheckInDays,
+  type CheckInDays,
+} from './check-in'
+export {
   advanceHistoryFloor,
   formatHistoryTime,
   HISTORY_LIMIT,

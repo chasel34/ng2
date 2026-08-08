@@ -44,6 +44,9 @@ describe('parseTopicList（真实样本）', () => {
       kind: 'board',
       fid: 300,
       name: '网络游戏综合',
+      filterId: 21171299,
+      filterType: 1,
+      attributes: 4654,
     })
     // key 带 t 前缀的是合集，取 stid
     expect(fixtureList.subBoards.find((board) => board.name === '期货交易')).toEqual({
@@ -51,7 +54,25 @@ describe('parseTopicList（真实样本）', () => {
       kind: 'collection',
       stid: 44618580,
       name: '期货交易',
+      filterId: 44618580,
+      filterType: 1,
+      attributes: 2590,
     })
+  })
+
+  it('订阅/屏蔽要用的 filter_id 与 attributes 如实带出来（23 票）', () => {
+    // 第 3 项就是 user_option 的操作对象，与 fid 不是一回事
+    const shopping = fixtureList.subBoards.find((board) => board.fid === 570)
+    expect(shopping).toMatchObject({ filterId: 12700430, filterType: 1, attributes: 4654 })
+
+    // 没有第 3 项的退回版块 id，type 记 0（add/del 的语义按它反转）
+    expect(
+      parseTopicList({
+        __F: { fid: -7, name: '网事杂谈', sub_forums: { '9': { '0': 9, '1': '子版块' } } },
+      }).subBoards,
+    ).toEqual([
+      { id: 9, kind: 'board', fid: 9, name: '子版块', filterId: 9, filterType: 0, attributes: 0 },
+    ])
   })
 
   it('版头 tid 从 __F.topped_topic 解出来（CONTEXT.md「版头」）', () => {

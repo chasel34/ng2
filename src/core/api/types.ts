@@ -32,6 +32,24 @@ export interface Board {
   readonly head?: number
 }
 
+/**
+ * 子版块（CONTEXT.md「子版块」）：版块下的细分区，可订阅或屏蔽。
+ *
+ * 比普通版块多两个只有 `thread.php` 的 `__F.sub_forums` 才给的字段，
+ * 判定与操作规则见 `sub-board.ts`。
+ */
+export interface SubBoard extends Board {
+  /**
+   * 订阅/屏蔽操作的对象 id（`sub_forums` 的第 3 项，服务端管它叫 block tid，
+   * 见 `info=add_to_block_tids`）。**不等于** fid/stid；缺这一项时退回版块 id。
+   */
+  readonly filterId: number
+  /** `user_option` 的 `type`：有第 3 项 = 1（按 tid 屏蔽），没有 = 0（按 fid）。add/del 的语义按它反转 */
+  readonly filterType: 0 | 1
+  /** 订阅状态码（`sub_forums` 的第 4 项），魔法数判定见 `sub-board.ts` */
+  readonly attributes: number
+}
+
 /** 分类下的一组版块，对应设计稿宫格上方那行「⭕ 组名」。 */
 export interface BoardGroup {
   readonly id: string
@@ -276,7 +294,7 @@ export interface TopicList {
   /** 当前版块（`__F`），进来时只有名字是已知的，这里能补上真身 */
   readonly board?: Board
   /** 子版块横条 */
-  readonly subBoards: readonly Board[]
+  readonly subBoards: readonly SubBoard[]
   readonly totalRows: number
   readonly rowsPerPage: number
   readonly totalPages: number

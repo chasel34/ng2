@@ -31,7 +31,20 @@ export {
   stripThumbnailSuffix,
   type AttachmentUrlOptions,
 } from './attachments'
+export { checkIn, type CheckInResult } from './check-in'
 export { int, nonZero, orderedEntries, orderedValues, str } from './fields'
+export { updateSignature, type UpdateSignatureOptions } from './set-sign'
+export {
+  FILTERABLE_ATTRIBUTES_MIN,
+  SUBSCRIBED_ATTRIBUTES,
+  nextSubBoardState,
+  setSubBoardOption,
+  subBoardOptionParam,
+  subBoardState,
+  type SetSubBoardOptionOptions,
+  type SubBoardAction,
+  type SubBoardState,
+} from './sub-board'
 export {
   DEFAULT_HOT_PAGES,
   fetchHotTopicPages,
@@ -124,6 +137,7 @@ export type {
   NotificationFeed,
   NotificationKind,
   ReputationEntry,
+  SubBoard,
   Topic,
   TopicDetail,
   TopicList,
