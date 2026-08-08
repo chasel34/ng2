@@ -63,6 +63,19 @@ export {
   type TopicMisc,
 } from './title-style'
 export {
+  EMPTY_TOPIC_FAVOR_INDEX,
+  applyFavoriteChange,
+  diffFolderSelection,
+  foldersOfTopic,
+  parseTopicFavorIndex,
+  pruneFolders,
+  seedFolderTopics,
+  type FavoriteChange,
+  type FolderSelectionDiff,
+  type SeedFolderTopicsOptions,
+  type TopicFavorIndex,
+} from './topic-favor-index'
+export {
   isVoteClosed,
   parseVote,
   voteSharePercent,

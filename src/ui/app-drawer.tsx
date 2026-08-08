@@ -49,14 +49,14 @@ interface DrawerEntry {
 /**
  * 抽屉条目,顺序与图标照抄设计稿。
  *
- * 还没做的页面(收藏夹 11、设置与关于 22、由 URL 读取 24)
+ * 还没做的页面(设置与关于 22、由 URL 读取 24)
  * 一律 toast「本版本未开放」——入口先立在这儿,后续票各自换掉自己那一行。
  */
 const ENTRIES: readonly DrawerEntry[] = [
   { key: 'login', icon: 'person_add', label: '登录账号', href: '/login' },
   { key: 'add-board', icon: 'library_add', label: '添加版面 ID' },
   { key: 'from-url', icon: 'arrow_forward', label: '由 URL 读取' },
-  { key: 'folders', icon: 'folder_special', label: '收藏夹管理' },
+  { key: 'folders', icon: 'folder_special', label: '收藏夹管理', href: '/favorites/folders' },
   { key: 'clear-favor', icon: 'warning', label: '清空我的收藏' },
   // 我的主题/我的回复是同一个屏,只差一个 kind(14 票)
   { key: 'my-topics', icon: 'article', label: '我的主题', mine: 'topics' },

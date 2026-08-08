@@ -11,15 +11,18 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Floor } from '@/core/api';
 import { pageOfFloor } from '@/core/local';
 import { peekHistoryEntry, recordReadFloor, recordTopicVisit } from '@/store/history';
 import { useTopicDetail } from '@/store/topic-detail';
+import { FavoriteFolderDialog } from '@/ui/favorite-folder-dialog';
 import { FloorCard, type FloorContext } from '@/ui/floor-card';
 import { isHorizontalDragActive } from '@/ui/horizontal-drag';
 import { Icon } from '@/ui/icon';
 import { InputDialog } from '@/ui/input-dialog';
+import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { PageBar } from '@/ui/page-bar';
 import {
   clampPage,
@@ -51,6 +54,7 @@ export default function TopicScreen() {
   const styles = useStyles();
   const theme = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const { tid, title, fav, page: fromPage, pid: fromPid } = useLocalSearchParams<{
     tid: string;
@@ -77,6 +81,8 @@ export default function TopicScreen() {
   });
   const [jumpOpen, setJumpOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [favorOpen, setFavorOpen] = useState(false);
   const listRef = useRef<FlashListRef<Floor>>(null);
 
   const { data, error, isPending, isFetching, isPlaceholderData, refetch } = useTopicDetail({
@@ -107,6 +113,27 @@ export default function TopicScreen() {
     listRef,
     goToPage,
   });
+
+  /**
+   * 顶栏「更多」菜单,条目与顺序照设计稿 `MENUS.article`。
+   * 还没做的几项(复制链接、缓存本页 20 票、分享、夜间模式 22 票)先 toast「本版本未开放」,
+   * 各票到时候换掉自己那一行即可。
+   */
+  const menuItems: readonly MenuItem[] = useMemo(() => {
+    // 点哪一条都先收起菜单,免得动作做完了菜单还盖在上面
+    const pick = (run: () => void) => () => {
+      setMenuOpen(false);
+      run();
+    };
+    return [
+      { key: 'jump', label: '跳页', onPress: pick(() => setJumpOpen(true)) },
+      { key: 'copy', label: '复制链接', onPress: pick(showNotAvailable) },
+      { key: 'favor', label: '收藏本帖', onPress: pick(() => setFavorOpen(true)) },
+      { key: 'cache', label: '缓存本页', onPress: pick(showNotAvailable) },
+      { key: 'share', label: '分享', onPress: pick(showNotAvailable) },
+      { key: 'theme', label: '夜间模式', gapBefore: true, onPress: pick(showNotAvailable) },
+    ];
+  }, []);
 
   const body = () => {
     if (isPending) {
@@ -205,11 +232,10 @@ export default function TopicScreen() {
           accessibilityLabel="在浏览器里打开"
           style={topBarSpacer}
         />
-        {/* 楼层过滤、收藏、缓存等菜单项分别是 11/12/16/20 票 */}
         <TopBarButton
           icon="more_vert"
           size={22}
-          onPress={showNotAvailable}
+          onPress={() => setMenuOpen(true)}
           accessibilityLabel="更多"
         />
       </TopBar>
@@ -282,6 +308,20 @@ export default function TopicScreen() {
           }
           goToPage(target);
         }}
+      />
+
+      <OverflowMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        items={menuItems}
+        top={insets.top + 6}
+      />
+
+      {/* 多选收藏夹对话框(11 票):传 tid 就能调起,12 票的楼层菜单直接复用同一个组件 */}
+      <FavoriteFolderDialog
+        open={favorOpen}
+        tid={topicId}
+        onClose={() => setFavorOpen(false)}
       />
     </View>
   );

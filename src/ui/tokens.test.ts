@@ -144,6 +144,10 @@ describe('字号 / 行高 token', () => {
       notifyMeta: { fontSize: 11, fontWeight: '400' },
       notifyInitial: { fontSize: 13, fontWeight: '700' },
       unreadBadge: { fontSize: 11, fontWeight: '700' },
+      // 11 补:「收藏到…」对话框的夹条目、收藏夹管理屏的默认徽标与卡片副行
+      dialogListItem: { fontSize: 14.5, fontWeight: '400' },
+      folderBadge: { fontSize: 10.5, fontWeight: '700' },
+      cardMeta: { fontSize: 12, fontWeight: '400' },
     });
   });
 
@@ -180,6 +184,9 @@ describe('字号 / 行高 token', () => {
         'notifyMeta',
         'notifyInitial',
         'unreadBadge',
+        'dialogListItem',
+        'folderBadge',
+        'cardMeta',
       ].sort(),
     );
   });
