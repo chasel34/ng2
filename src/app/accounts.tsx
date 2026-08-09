@@ -23,7 +23,13 @@ export default function AccountsScreen() {
   return (
     <View style={styles.root}>
       <TopBar paddingHorizontal={4}>
-        <TopBarButton icon="arrow_back" size={24} onPress={() => router.back()} accessibilityLabel="返回" />
+        <TopBarButton
+          icon="arrow_back"
+          box={46}
+          size={24}
+          onPress={() => router.back()}
+          accessibilityLabel="返回"
+        />
         <TopBarTitle variant="sub">账号管理</TopBarTitle>
       </TopBar>
 

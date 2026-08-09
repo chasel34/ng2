@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ATTACH_BASE_FALLBACK, type AdminForum, type UserProfile } from '@/core/api';
 import { parseBBCode, unescapeNgaText } from '@/core/bbcode';
@@ -14,6 +14,8 @@ import { Icon } from '@/ui/icon';
 import { initialOf } from '@/ui/initial';
 import { InputDialog } from '@/ui/input-dialog';
 import { showSnackbar } from '@/ui/snackbar';
+import { LoadFailedNotice } from '@/ui/error-screen';
+import { LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme, type Theme } from '@/ui/theme';
 import { dateText } from '@/ui/time-text';
 import { showNotAvailable } from '@/ui/toast';
@@ -67,25 +69,10 @@ export default function UserProfileScreen() {
   };
 
   const body = () => {
-    if (isPending) {
-      return (
-        <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
-        </View>
-      );
-    }
+    // 这两块挂在 ScrollView 的内容里,撑不出 flex:1 的高度,所以走 inline 档
+    if (isPending) return <LoadingState variant="inline" />;
     if (data === undefined) {
-      return (
-        <View style={styles.center}>
-          <Icon name="person" size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>
-            {error instanceof Error ? error.message : '这个人的资料拉不下来'}
-          </Text>
-          <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>重试</Text>
-          </Pressable>
-        </View>
-      );
+      return <LoadFailedNotice error={error} onRetry={() => void refetch()} />;
     }
     return (
       <ProfileBody
@@ -100,6 +87,7 @@ export default function UserProfileScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -295,8 +283,13 @@ function ProfileBody({
             <Text style={styles.cardCaption}>还没有签名,点「编辑」写一段。</Text>
           ) : (
             <View style={styles.signature}>
-              {/* 签名是 BBCode,和楼层正文同一个渲染器;签名里没有附件,基址走兜底 */}
-              <BBCodeBody nodes={signatureNodes} options={{ attachBase: ATTACH_BASE_FALLBACK }} />
+              {/* 签名是 BBCode,和楼层正文同一个渲染器;签名里没有附件,基址走兜底。
+                  设计稿的签名比楼层正文小一档(13.5 · 1.7,fg-2 色),覆盖掉默认的 body 档 */}
+              <BBCodeBody
+                nodes={signatureNodes}
+                options={{ attachBase: ATTACH_BASE_FALLBACK }}
+                style={styles.signatureText}
+              />
             </View>
           )}
         </View>
@@ -417,14 +410,15 @@ const useStyles = createThemedStyles((theme) => ({
     color: theme.colors.onPrimary,
   },
   bannerUid: {
-    ...theme.typography.notice,
-    fontSize: 13,
+    ...theme.typography.bannerMeta,
     color: theme.colors.onPrimary,
     opacity: 0.85,
     marginTop: theme.spacing.xs,
   },
+  // 底留白交给 scrollContent 的 24,这里不再叠一层
   cards: {
-    padding: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
     gap: theme.spacing.md,
   },
   card: {
@@ -462,11 +456,13 @@ const useStyles = createThemedStyles((theme) => ({
     color: theme.colors.primary,
   },
   cardCaption: {
-    ...theme.typography.note,
+    ...theme.typography.listMeta,
     color: theme.colors.meta,
     marginTop: -theme.spacing.xs,
     marginBottom: 10,
   },
+  // 设计稿是两列网格,行距 9、列距 12。列距不能写 columnGap:格子是 50% 宽的,
+  // 加了 gap 就撑破一行,所以拆成两边各半个内距
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -474,10 +470,13 @@ const useStyles = createThemedStyles((theme) => ({
   },
   gridCell: {
     width: '50%',
+    paddingRight: theme.spacing.md / 2,
     fontSize: 13,
     color: theme.colors.fg2,
   },
   gridCellRight: {
+    paddingRight: 0,
+    paddingLeft: theme.spacing.md / 2,
     textAlign: 'right',
   },
   mutedNote: {
@@ -490,7 +489,11 @@ const useStyles = createThemedStyles((theme) => ({
     paddingHorizontal: theme.spacing.md,
     borderWidth: 1.5,
     borderColor: theme.colors.track,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.xs,
+  },
+  signatureText: {
+    ...theme.typography.signature,
+    color: theme.colors.fg2,
   },
   chips: {
     flexDirection: 'row',
@@ -500,7 +503,7 @@ const useStyles = createThemedStyles((theme) => ({
   chip: {
     paddingVertical: 6,
     paddingHorizontal: 11,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.xs,
     backgroundColor: theme.colors.primaryContainer,
     color: theme.colors.primary,
     fontSize: 12.5,
@@ -532,30 +535,5 @@ const useStyles = createThemedStyles((theme) => ({
     fontWeight: '600',
     minWidth: 34,
     textAlign: 'right',
-  },
-  center: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.md,
-    paddingVertical: 64,
-    paddingHorizontal: theme.spacing.xl,
-  },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
   },
 }));

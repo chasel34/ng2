@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import { Animated, Pressable, Text, View } from 'react-native';
 
 import { Icon } from './icon';
+import { duration, easeStandard } from './motion';
 import { createThemedStyles, useTheme } from './theme';
 
 /**
@@ -17,8 +18,8 @@ const TRACK_PADDING = 3;
 const KNOB_SIZE = 20;
 const KNOB_TRAVEL = TRACK_WIDTH - TRACK_PADDING * 2 - KNOB_SIZE;
 
-/** 设计稿的 `transition:.18s`。 */
-const TOGGLE_MS = 180;
+/** 设计稿开关的 `transition:.18s`(动效 token 的 quick 档)。 */
+const TOGGLE_MS = duration.quick;
 
 /** 分组标题(设计稿:12.5/700 的主题色小标题)。 */
 export function SettingsSection({ children }: { children: string }) {
@@ -101,7 +102,7 @@ export function SettingsSwitch({ value }: { value: boolean }) {
     const animation = Animated.timing(progress, {
       toValue: value ? 1 : 0,
       duration: TOGGLE_MS,
-      easing: Easing.out(Easing.quad),
+      easing: easeStandard,
       // 轨道底色要动,颜色插值走不了原生驱动
       useNativeDriver: false,
     });
@@ -142,8 +143,10 @@ export function SettingsSwitch({ value }: { value: boolean }) {
 }
 
 const useStyles = createThemedStyles((theme) => ({
+  // 设计稿设置屏的分组标题不带字间距(caption 那 0.4 是抽屉分区小标题的)
   section: {
     ...theme.typography.caption,
+    letterSpacing: 0,
     color: theme.colors.primary,
     paddingTop: theme.spacing.page,
     paddingHorizontal: theme.spacing.page,

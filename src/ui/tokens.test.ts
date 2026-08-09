@@ -158,6 +158,13 @@ describe('字号 / 行高 token', () => {
       // 26 补:回复链屏(isChain)的卡片作者名 13.5/650 与正文 14/1.65
       chainName: { fontSize: 13.5, fontWeight: '600' },
       chainBody: { fontSize: 14, fontWeight: '400', lineHeight: 23.1 },
+      // 27 补:逐屏走查抓出来的五档——详情页顶栏比别的二级页矮半档、网页兜底页
+      // 顶栏还要再矮一档、资料页签名与 banner UID 行、对话框正文的 1.6 行高
+      articleTitle: { fontSize: 16.5, fontWeight: '600' },
+      webTitle: { fontSize: 15.5, fontWeight: '600' },
+      signature: { fontSize: 13.5, fontWeight: '400', lineHeight: 22.95 },
+      dialogBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 21.6 },
+      bannerMeta: { fontSize: 13, fontWeight: '400' },
     });
   });
 
@@ -206,6 +213,11 @@ describe('字号 / 行高 token', () => {
         'sliderValue',
         'chainName',
         'chainBody',
+        'articleTitle',
+        'webTitle',
+        'signature',
+        'dialogBody',
+        'bannerMeta',
       ].sort(),
     );
   });
@@ -233,7 +245,18 @@ describe('顶栏选中态底色', () => {
 
 describe('圆角 / 间距 token', () => {
   it('圆角档位与设计稿一致', () => {
-    expect(radius).toEqual({ sm: 9, md: 12, lg: 14, button: 15, fab: 19, dialog: 24, full: 999 });
+    // xs/sm 是 token 表「radius/sm 8–9」那一档的两个端点:页码格取 8、分类标签取 9
+    expect(radius).toEqual({
+      xs: 8,
+      sm: 9,
+      md: 12,
+      lg: 14,
+      button: 15,
+      pill: 16,
+      fab: 19,
+      dialog: 24,
+      full: 999,
+    });
   });
 
   it('间距档位与设计稿一致', () => {

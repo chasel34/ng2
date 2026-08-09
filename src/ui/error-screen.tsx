@@ -56,7 +56,8 @@ export function LoadFailed({ error, onRetry, onOpenWeb, onRelogin }: LoadFailedP
       </View>
       <Text style={styles.title}>这一页没能加载出来</Text>
       <Text style={styles.body}>
-        <Text style={styles.headline}>{failure.headline}</Text>
+        {failure.headline}
+        {failure.code !== undefined && <Text style={styles.code}> {failure.code}</Text>}
         {'\n'}
         {failure.hint}
       </Text>
@@ -106,7 +107,10 @@ export function LoadFailedNotice({ error, onRetry }: LoadFailedNoticeProps) {
   return (
     <View style={styles.notice}>
       <Icon name="cloud_off" size={34} color={theme.colors.meta} />
-      <Text style={styles.noticeHeadline}>{failure.headline}</Text>
+      <Text style={styles.noticeHeadline}>
+        {failure.headline}
+        {failure.code !== undefined && <Text style={styles.code}> {failure.code}</Text>}
+      </Text>
       <Text style={styles.noticeHint}>{failure.hint}</Text>
       <Pressable style={styles.noticeRetry} onPress={onRetry}>
         <Icon name="refresh" size={18} color={theme.colors.onPrimary} />
@@ -145,8 +149,8 @@ const useStyles = createThemedStyles((theme) => ({
     textAlign: 'center',
     marginTop: 10,
   },
-  /** 设计稿把状态码那半句加粗并用等宽字 */
-  headline: {
+  /** 设计稿只把状态码那一截加粗并用等宽字,前半句是普通正文 */
+  code: {
     fontWeight: '700',
     fontFamily: monoFontFamily,
   },

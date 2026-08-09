@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, Text, View } from 'react-native';
 
+import { useOverlayAnimation, OverlayScrim, popStyle } from './overlay';
 import { createThemedStyles } from './theme';
 
 export interface ConfirmDialogProps {
@@ -31,39 +31,14 @@ export function ConfirmDialog({
   onConfirm,
 }: ConfirmDialogProps) {
   const styles = useStyles();
-  const progress = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (!open) {
-      progress.setValue(0);
-      return;
-    }
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration: 200,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    });
-    animation.start();
-    return () => animation.stop();
-  }, [open, progress]);
+  const { scrim, panel } = useOverlayAnimation(open);
 
   if (!open) return null;
 
   return (
     <View style={styles.root}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} accessibilityLabel="关闭对话框" />
-      <Animated.View
-        style={[
-          styles.panel,
-          {
-            opacity: progress,
-            transform: [
-              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) },
-            ],
-          },
-        ]}
-      >
+      <OverlayScrim progress={scrim} onPress={onCancel} />
+      <Animated.View style={[styles.panel, popStyle(panel)]}>
         <Text style={styles.title}>{title}</Text>
         {message !== undefined && <Text style={styles.message}>{message}</Text>}
         <View style={styles.actions}>
@@ -92,7 +67,6 @@ const useStyles = createThemedStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: theme.colors.scrim,
   },
   panel: {
     width: '100%',
@@ -107,10 +81,11 @@ const useStyles = createThemedStyles((theme) => ({
     ...theme.typography.dialogTitle,
     color: theme.colors.fg,
   },
+  // 设计稿:正文 13.5 · 1.6,距标题 9
   message: {
-    ...theme.typography.notice,
+    ...theme.typography.dialogBody,
     color: theme.colors.fg2,
-    marginTop: theme.spacing.lg,
+    marginTop: 9,
   },
   actions: {
     flexDirection: 'row',

@@ -149,6 +149,7 @@ export default function ChainScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"

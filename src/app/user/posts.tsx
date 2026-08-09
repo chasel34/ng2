@@ -1,12 +1,13 @@
 import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { mergeUserPostPages, type Topic, type UserPostKind } from '@/core/api';
 import { useUserPosts } from '@/store/user-topics';
-import { Icon } from '@/ui/icon';
 import { ReplyRow } from '@/ui/reply-row';
+import { LoadFailedNotice } from '@/ui/error-screen';
+import { EmptyState, LoadingFooter, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { dateText } from '@/ui/time-text';
 import { showToast } from '@/ui/toast';
@@ -83,29 +84,21 @@ export default function UserPostsScreen() {
   };
 
   const body = () => {
-    if (isPending) {
+    if (isPending) return <LoadingState />;
+    if (items.length === 0 && error !== null) {
       return (
         <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
+          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       );
     }
     if (items.length === 0) {
-      const failed = error !== null;
       return (
-        <View style={styles.center}>
-          <Icon name={failed ? 'cloud_off' : 'article'} size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>
-            {failed
-              ? error instanceof Error
-                ? error.message
-                : '列表拉不下来'
-              : EMPTY_TEXT[postKind]}
-          </Text>
-          <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          icon="article"
+          text={EMPTY_TEXT[postKind]}
+          action={{ label: '刷新', onPress: () => void refetch() }}
+        />
       );
     }
 
@@ -127,9 +120,7 @@ export default function UserPostsScreen() {
           }
           ListFooterComponent={
             <View>
-              {isFetchingNextPage && (
-                <Text style={styles.footerText}>正在载入第 {loadedPages + 1} 页…</Text>
-              )}
+              {isFetchingNextPage && <LoadingFooter text={`正在载入第 ${loadedPages + 1} 页…`} />}
               {!hasNextPage && <Text style={styles.footerText}>没有更多了</Text>}
               <View style={styles.footerSpacer} />
             </View>
@@ -150,6 +141,7 @@ export default function UserPostsScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -186,9 +178,9 @@ const useStyles = createThemedStyles((theme) => ({
     flex: 1,
   },
   sub: {
+    ...theme.typography.listSubtitle,
     paddingVertical: 11,
     paddingHorizontal: theme.spacing.lg,
-    fontSize: 12,
     color: theme.colors.meta,
     backgroundColor: theme.colors.surface2,
     borderBottomWidth: 1,
@@ -200,24 +192,6 @@ const useStyles = createThemedStyles((theme) => ({
     justifyContent: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
-  },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
   },
   footerText: {
     ...theme.typography.listMeta,

@@ -13,6 +13,7 @@ import {
 } from '@/ui/image-files';
 import { stagedImageViewer } from '@/ui/image-viewer-request';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
+import { EmptyState } from '@/ui/state-view';
 import { usePreferThumbnail } from '@/ui/network';
 import { createThemedStyles } from '@/ui/theme';
 import { showToast } from '@/ui/toast';
@@ -50,15 +51,14 @@ export default function ImageViewerScreen() {
         <TopBar paddingHorizontal={4}>
           <TopBarButton
             icon="arrow_back"
+            box={46}
             size={24}
             onPress={() => router.back()}
             accessibilityLabel="返回"
           />
           <TopBarTitle variant="sub">图片</TopBarTitle>
         </TopBar>
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>没有可查看的图片</Text>
-        </View>
+        <EmptyState icon="image" text="没有可查看的图片" />
       </View>
     );
   }
@@ -166,6 +166,7 @@ export default function ImageViewerScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -173,14 +174,22 @@ export default function ImageViewerScreen() {
         <Text style={styles.counter}>
           {index + 1} / {images.length}
         </Text>
+        {/* 这一屏的保存/分享是设计稿里少见的 46 档,只有「更多」维持 44 */}
         <TopBarButton
           icon="save"
+          box={46}
           size={23}
           onPress={saveCurrent}
           accessibilityLabel="保存到相册"
           style={topBarSpacer}
         />
-        <TopBarButton icon="share" size={23} onPress={shareCurrent} accessibilityLabel="分享" />
+        <TopBarButton
+          icon="share"
+          box={46}
+          size={23}
+          onPress={shareCurrent}
+          accessibilityLabel="分享"
+        />
         <TopBarButton
           icon="more_vert"
           size={22}
@@ -213,14 +222,5 @@ const useStyles = createThemedStyles((theme) => ({
     letterSpacing: 0.5,
     marginLeft: 8,
     color: theme.colors.onTopbar,
-  },
-  empty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyText: {
-    ...theme.typography.notice,
-    color: theme.colors.meta,
   },
 }));

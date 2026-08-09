@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Animated,
-  Easing,
   Keyboard,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -18,6 +16,7 @@ import {
 } from '@/core/local';
 
 import { Icon } from './icon';
+import { useOverlayAnimation, OverlayScrim, popStyle } from './overlay';
 import { createThemedStyles, useTheme } from './theme';
 
 /** 三类规则的顺序照设计稿对话框提示语「支持 用户 / 关键词 / 分类」。 */
@@ -51,26 +50,16 @@ export function FilterRuleDialog({ open, onCancel, onConfirm }: FilterRuleDialog
   const [regex, setRegex] = useState(false);
   // 提交过一次才显示错误:一进来就红着说「请输入关键词」太凶
   const [submitted, setSubmitted] = useState(false);
-  const progress = useRef(new Animated.Value(0)).current;
+  const { scrim, panel } = useOverlayAnimation(open);
 
+  // 每次打开都回到空白表单,不留上一次的残留
   useEffect(() => {
-    if (!open) {
-      progress.setValue(0);
-      return;
-    }
+    if (!open) return;
     setKind('keyword');
     setValue('');
     setRegex(false);
     setSubmitted(false);
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration: 200,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    });
-    animation.start();
-    return () => animation.stop();
-  }, [open, progress]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -87,22 +76,8 @@ export function FilterRuleDialog({ open, onCancel, onConfirm }: FilterRuleDialog
 
   return (
     <View style={styles.root}>
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={onCancel}
-        accessibilityLabel="关闭对话框"
-      />
-      <Animated.View
-        style={[
-          styles.panel,
-          {
-            opacity: progress,
-            transform: [
-              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) },
-            ],
-          },
-        ]}
-      >
+      <OverlayScrim progress={scrim} onPress={onCancel} />
+      <Animated.View style={[styles.panel, popStyle(panel)]}>
         <Text style={styles.title}>新增屏蔽规则</Text>
 
         <View style={styles.kindRow}>
@@ -188,7 +163,6 @@ const useStyles = createThemedStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: theme.colors.scrim,
   },
   panel: {
     width: '100%',

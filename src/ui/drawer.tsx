@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import {
-  Animated,
-  BackHandler,
-  Easing,
-  PanResponder,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Animated, BackHandler, PanResponder, Pressable, StyleSheet, View } from 'react-native';
 
+import { duration, easeStandard } from './motion';
 import { createThemedStyles } from './theme';
 
-/** 设计稿:抽屉宽 300,滑入 .22s、遮罩淡入 .2s。 */
+/**
+ * 设计稿:抽屉宽 300,面板滑入 .22s、遮罩淡入 .2s。
+ *
+ * 面板走横推而不是设计稿 omup 的上浮——左抽屉的横推是 Android 的系统语言,
+ * 也是「边缘右滑拉出、左滑关掉」那套手势成立的前提(手势拖的就是这个位移)。
+ * 遮罩与面板共用一个 progress(设计稿是分开的两条 .2s / .22s):拖动时遮罩必须
+ * 跟着手指一起深浅,拆开就对不上了,差的那 20ms 换手势跟手值。
+ */
 const DRAWER_WIDTH = 300;
-const OPEN_DURATION = 220;
-const CLOSE_DURATION = 200;
+const OPEN_DURATION = duration.panel;
+const CLOSE_DURATION = duration.base;
 /** 左边缘多宽的一条可以拉出抽屉 */
 const EDGE_WIDTH = 22;
 /** 手势判定:横向位移超过这个值才认,免得和纵向滚动打架 */
@@ -46,7 +46,7 @@ export function Drawer({ open, onClose, children }: DrawerProps) {
     const animation = Animated.timing(progress, {
       toValue: open ? 1 : 0,
       duration: open ? OPEN_DURATION : CLOSE_DURATION,
-      easing: Easing.out(Easing.cubic),
+      easing: easeStandard,
       useNativeDriver: true,
     });
     animation.start(({ finished }) => {
@@ -83,7 +83,7 @@ export function Drawer({ open, onClose, children }: DrawerProps) {
         Animated.timing(progress, {
           toValue: 1,
           duration: CLOSE_DURATION,
-          easing: Easing.out(Easing.cubic),
+          easing: easeStandard,
           useNativeDriver: true,
         }).start();
       },

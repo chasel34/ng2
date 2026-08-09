@@ -43,6 +43,7 @@ export default function FontSizeScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -69,7 +70,6 @@ export default function FontSizeScreen() {
                 {
                   width: avatarSize,
                   height: avatarSize,
-                  borderRadius: avatarSize / 2,
                   backgroundColor: PREVIEW_AVATAR_COLOR,
                 },
               ]}
@@ -131,8 +131,10 @@ const useStyles = createThemedStyles((theme) => ({
   content: {
     paddingBottom: theme.spacing.xl,
   },
+  // 设计稿这屏的分组标题不带字间距(caption 那 0.4 是抽屉分区小标题的)
   section: {
     ...theme.typography.caption,
+    letterSpacing: 0,
     color: theme.colors.primary,
     paddingTop: theme.spacing.lg,
     paddingHorizontal: theme.spacing.page,
@@ -150,7 +152,9 @@ const useStyles = createThemedStyles((theme) => ({
     flexDirection: 'row',
     gap: 11,
   },
+  // 设计稿这张预览卡的头像是 14 圆角的方块,不是楼层里那种正圆
   avatar: {
+    borderRadius: theme.radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -161,7 +165,6 @@ const useStyles = createThemedStyles((theme) => ({
   cardHeaderText: {
     flex: 1,
     minWidth: 0,
-    justifyContent: 'center',
   },
   name: {
     ...theme.typography.floorName,

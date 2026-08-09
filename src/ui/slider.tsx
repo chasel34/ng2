@@ -9,17 +9,24 @@ import { createThemedStyles, useTheme } from './theme';
  *
  * 自己画而不是拉社区滑杆库:要的形状很具体(气泡跟着钮走、两端带步进钮),
  * 而且这是全 app 唯一一处滑杆——为它多背一个原生依赖不划算。
+ *
+ * 布局照设计稿的绝对定位来:一块 66 高的相对容器,气泡贴顶(top 4)、轨道贴底
+ * (bottom 20)、± 压在轨道下方的两端(bottom −6)。轨道是**整行通宽**的,
+ * ± 不占它的宽度——所以 0 和 1 两端的钮正好落在行的左右边缘上。
  */
 
-/** 设计稿:轨道 3 高、圆钮 18、气泡与钮之间那一段 66 高的区域。 */
+/** 设计稿:轨道 3 高、圆钮 18、整块滑杆区 66 高。 */
+const AREA_HEIGHT = 66;
 const TRACK_HEIGHT = 3;
+const TRACK_BOTTOM = 20;
 const KNOB_SIZE = 18;
-/** 轨道的可拖区域(轨道本身只有 3px,拖不住)。 */
+/** 轨道本身只有 3px 拖不住,给它套一条 34 高的可拖带,上下各让出一截。 */
 const TOUCH_HEIGHT = 34;
-/** 取值气泡那一行的高度(设计稿气泡是 6 上下内距 + 14 字)。 */
-const BUBBLE_HEIGHT = 30;
-/** 轨道左端距行首的距离:一个 20 的步进钮 + 12 的间距。 */
-const STEP_BUTTON_OFFSET = 20 + 12;
+const TOUCH_BOTTOM = TRACK_BOTTOM - (TOUCH_HEIGHT - TRACK_HEIGHT) / 2;
+/** 步进钮:20 见方的图标,设计稿把它压在轨道下方、左右各外挑 2。 */
+const STEP_SIZE = 20;
+const STEP_BOTTOM = -6;
+const STEP_INSET = -2;
 
 export interface SliderProps {
   label: string;
@@ -70,42 +77,40 @@ export function Slider({ label, text, ratio, onSlide, onStep }: SliderProps) {
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.area}>
+      <View style={styles.area} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
         {/* 气泡以钮为中心。宽度随文字变(「1.70」比「17」宽),所以量出来再抵掉一半,
             而不是写死一个偏移 */}
-        <View style={styles.bubbleRow}>
-          <View
-            style={[styles.bubble, { left: STEP_BUTTON_OFFSET + filled - bubbleWidth / 2 }]}
-            onLayout={(event) => setBubbleWidth(event.nativeEvent.layout.width)}
-          >
-            <Text style={styles.bubbleText} allowFontScaling={false}>
-              {text}
-            </Text>
-          </View>
+        <View
+          style={[styles.bubble, { left: filled - bubbleWidth / 2 }]}
+          onLayout={(event) => setBubbleWidth(event.nativeEvent.layout.width)}
+        >
+          <Text style={styles.bubbleText} allowFontScaling={false}>
+            {text}
+          </Text>
         </View>
 
-        <View style={styles.trackRow}>
-          <Pressable
-            onPress={() => onStep(-1)}
-            hitSlop={10}
-            accessibilityLabel={`调小${label}`}
-          >
-            <Icon name="remove" size={20} color={theme.colors.meta} />
-          </Pressable>
-          <View
-            style={styles.touch}
-            onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
-            {...pan.panHandlers}
-          >
-            <View style={styles.track}>
-              <View style={[styles.trackFill, { width: filled }]} />
-            </View>
-            <View style={[styles.knob, { left: filled - KNOB_SIZE / 2 }]} />
+        <View style={styles.touch} {...pan.panHandlers}>
+          <View style={styles.track}>
+            <View style={[styles.trackFill, { width: filled }]} />
           </View>
-          <Pressable onPress={() => onStep(1)} hitSlop={10} accessibilityLabel={`调大${label}`}>
-            <Icon name="add" size={20} color={theme.colors.meta} />
-          </Pressable>
+          <View style={[styles.knob, { left: filled - KNOB_SIZE / 2 }]} />
         </View>
+
+        {/* ± 排在可拖带之后,压在它上面——两者在设计稿里本来就有一小段重叠 */}
+        <Pressable
+          style={styles.stepMinus}
+          onPress={() => onStep(-1)}
+          accessibilityLabel={`调小${label}`}
+        >
+          <Icon name="remove" size={STEP_SIZE} color={theme.colors.meta} />
+        </Pressable>
+        <Pressable
+          style={styles.stepPlus}
+          onPress={() => onStep(1)}
+          accessibilityLabel={`调大${label}`}
+        >
+          <Icon name="add" size={STEP_SIZE} color={theme.colors.meta} />
+        </Pressable>
       </View>
     </View>
   );
@@ -114,10 +119,11 @@ export function Slider({ label, text, ratio, onSlide, onStep }: SliderProps) {
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 
 const useStyles = createThemedStyles((theme) => ({
+  /** 设计稿:16 上 / 16 左右 / 4 下 */
   row: {
     paddingTop: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.sm,
+    paddingBottom: theme.spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.divider,
   },
@@ -126,13 +132,12 @@ const useStyles = createThemedStyles((theme) => ({
     color: theme.colors.fg,
   },
   area: {
+    height: AREA_HEIGHT,
     marginTop: 2,
-  },
-  bubbleRow: {
-    height: BUBBLE_HEIGHT,
   },
   bubble: {
     position: 'absolute',
+    top: theme.spacing.xs,
     paddingVertical: 6,
     paddingHorizontal: theme.spacing.row,
     borderRadius: 3,
@@ -142,14 +147,11 @@ const useStyles = createThemedStyles((theme) => ({
     ...theme.typography.sliderValue,
     color: theme.colors.onPrimary,
   },
-  trackRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-    marginTop: 6,
-  },
   touch: {
-    flex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: TOUCH_BOTTOM,
     height: TOUCH_HEIGHT,
     justifyContent: 'center',
   },
@@ -172,5 +174,23 @@ const useStyles = createThemedStyles((theme) => ({
     height: KNOB_SIZE,
     borderRadius: KNOB_SIZE / 2,
     backgroundColor: theme.colors.primary,
+  },
+  stepMinus: {
+    position: 'absolute',
+    left: STEP_INSET,
+    bottom: STEP_BOTTOM,
+    width: STEP_SIZE,
+    height: STEP_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepPlus: {
+    position: 'absolute',
+    right: STEP_INSET,
+    bottom: STEP_BOTTOM,
+    width: STEP_SIZE,
+    height: STEP_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }));

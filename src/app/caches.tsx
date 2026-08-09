@@ -12,6 +12,7 @@ import {
 } from '@/core/local';
 import { clearTopicCache, deleteCachedTopic, useCachedTopics } from '@/store/topic-cache';
 import { Icon } from '@/ui/icon';
+import { EmptyState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showToast } from '@/ui/toast';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
@@ -73,6 +74,7 @@ export default function CachesScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -88,12 +90,10 @@ export default function CachesScreen() {
       </TopBar>
 
       {topics.length === 0 ? (
-        <View style={styles.empty}>
-          <Icon name="cached" size={40} color={theme.colors.meta} />
-          <Text style={styles.emptyText}>
-            还没有缓存的主题{'\n'}看过的帖子会自动存一份,断网时也能打开
-          </Text>
-        </View>
+        <EmptyState
+          icon="cached"
+          text={'还没有缓存的主题\n看过的帖子会自动存一份,断网时也能打开'}
+        />
       ) : (
         <View style={styles.body}>
           <FlashList
@@ -217,9 +217,10 @@ const useStyles = createThemedStyles((theme) => ({
     gap: 6,
     marginTop: 9,
   },
+  /** 设计稿 isSimpleList 的信息行整行走 link 色,`who` 槽也继承它 */
   pages: {
     ...theme.typography.listMeta,
-    color: theme.colors.fg2,
+    color: theme.colors.link,
     maxWidth: 150,
   },
   time: {
@@ -238,17 +239,5 @@ const useStyles = createThemedStyles((theme) => ({
   /** 设计稿列表末尾留 26 */
   footerSpacer: {
     height: 26,
-  },
-  empty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.md,
-    padding: theme.spacing.xl,
-  },
-  emptyText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
   },
 }));

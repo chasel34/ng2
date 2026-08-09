@@ -6,7 +6,7 @@ import { visiblePages } from './paging';
 import { createThemedStyles, useTheme } from './theme';
 import { topbarOverlay } from './tokens';
 
-/** 设计稿:页码格 28 高、最小 30 宽(圆角走 token 的 radius.sm,它的注释指的就是页码格)。 */
+/** 设计稿:页码格 28 高、最小 30 宽、圆角 8(token 的 radius.xs)。 */
 const CHIP_HEIGHT = 28;
 const CHIP_MIN_WIDTH = 30;
 /** 格间距,设计稿 `gap:6`。 */
@@ -93,7 +93,7 @@ const useStyles = createThemedStyles((theme) => ({
     minWidth: CHIP_MIN_WIDTH,
     height: CHIP_HEIGHT,
     paddingHorizontal: 9,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.xs,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -119,7 +119,7 @@ const useStyles = createThemedStyles((theme) => ({
     gap: theme.spacing.xs,
     height: CHIP_HEIGHT,
     paddingHorizontal: 10,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.xs,
   },
   jumpLabel: {
     ...theme.typography.listMeta,

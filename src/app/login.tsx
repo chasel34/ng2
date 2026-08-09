@@ -81,7 +81,13 @@ export default function LoginScreen() {
   return (
     <View style={styles.root}>
       <TopBar paddingHorizontal={4}>
-        <TopBarButton icon="close" size={24} onPress={() => router.back()} accessibilityLabel="关闭登录页" />
+        <TopBarButton
+          icon="close"
+          box={46}
+          size={24}
+          onPress={() => router.back()}
+          accessibilityLabel="关闭登录页"
+        />
         <TopBarTitle variant="sub">登录 NGA 账号</TopBarTitle>
         <TopBarButton
           icon="refresh"
@@ -156,7 +162,7 @@ const useStyles = createThemedStyles((theme) => ({
   // 琥珀色提示卡照设计稿写死:它压在白底登录页下面,不跟主题走
   note: {
     padding: theme.spacing.md,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.xs,
     backgroundColor: '#FFF8E6',
     borderWidth: 1,
     borderColor: '#F0E0B0',

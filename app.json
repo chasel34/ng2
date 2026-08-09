@@ -8,9 +8,11 @@
     "icon": "./assets/images/icon.png",
     "scheme": "ng2",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#FCF4E1",
     "android": {
       "package": "com.chasel.ng2",
       "versionCode": 1,
+      "backgroundColor": "#FCF4E1",
       "adaptiveIcon": {
         "backgroundColor": "#14796B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -45,9 +47,14 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#14796B",
+          "backgroundColor": "#FCF4E1",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 96,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#1C1C1B",
+            "image": "./assets/images/splash-icon-dark.png"
+          }
         }
       ],
       "expo-sqlite",

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { useLeftHanded } from './appearance';
+import { duration, easeStandard, POP_SCALE } from './motion';
 import { createThemedStyles, useTheme } from './theme';
 
 export interface MenuItem {
@@ -21,10 +23,16 @@ export interface OverflowMenuProps {
   top: number;
 }
 
-/** 顶栏右上角的弹出菜单。设计稿:右侧留 8,圆角 14,条目高 50,弹出 .16s。 */
+/**
+ * 顶栏右上角的弹出菜单。设计稿:右侧留 8,圆角 14,条目高 50,弹出 .16s。
+ *
+ * 左手模式(22 票)下整块镜像到左上角——它是浮在内容上、要单手够的东西,
+ * 缩放的原点也跟着换边,免得动画从一个够不着的角上长出来。
+ */
 export function OverflowMenu({ open, onClose, items, top }: OverflowMenuProps) {
   const styles = useStyles();
   const theme = useTheme();
+  const leftHanded = useLeftHanded();
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -34,8 +42,8 @@ export function OverflowMenu({ open, onClose, items, top }: OverflowMenuProps) {
     }
     const animation = Animated.timing(progress, {
       toValue: 1,
-      duration: 160,
-      easing: Easing.out(Easing.quad),
+      duration: duration.menu,
+      easing: easeStandard,
       useNativeDriver: true,
     });
     animation.start();
@@ -50,27 +58,32 @@ export function OverflowMenu({ open, onClose, items, top }: OverflowMenuProps) {
       <Animated.View
         style={[
           styles.panel,
+          leftHanded ? styles.panelLeft : styles.panelRight,
           {
             top,
             opacity: progress,
             transform: [
-              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }) },
+              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [POP_SCALE, 1] }) },
             ],
           },
         ]}
       >
-        {items.map((item) => (
-          <Pressable
-            key={item.key}
-            onPress={item.onPress}
-            android_ripple={{ color: theme.colors.divider }}
-            style={[styles.item, item.gapBefore === true && styles.itemGap]}
-          >
-            <Text style={[styles.label, item.selected === true && styles.labelSelected]}>
-              {item.label}
-            </Text>
-          </Pressable>
-        ))}
+        {/* 设计稿给面板设了 max-height 520 + overflow-y:auto——条目多到顶格时要能滚,
+            不然最下面几条够不着(收藏夹切换菜单的夹数是用户定的) */}
+        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+          {items.map((item) => (
+            <Pressable
+              key={item.key}
+              onPress={item.onPress}
+              android_ripple={{ color: theme.colors.divider }}
+              style={[styles.item, item.gapBefore === true && styles.itemGap]}
+            >
+              <Text style={[styles.label, item.selected === true && styles.labelSelected]}>
+                {item.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -79,14 +92,20 @@ export function OverflowMenu({ open, onClose, items, top }: OverflowMenuProps) {
 const useStyles = createThemedStyles((theme) => ({
   panel: {
     position: 'absolute',
-    right: theme.spacing.sm,
     minWidth: 186,
     maxHeight: 520,
     paddingVertical: 6,
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.menu,
     boxShadow: theme.shadows.elevation2,
+  },
+  panelRight: {
+    right: theme.spacing.sm,
     transformOrigin: 'top right',
+  },
+  panelLeft: {
+    left: theme.spacing.sm,
+    transformOrigin: 'top left',
   },
   item: {
     height: 50,

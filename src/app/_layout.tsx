@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useNotificationsPoller } from '@/store/notifications';
 import { useAppSettings } from '@/store/settings';
 import { useIconFont } from '@/ui/icon';
+import { duration, screenTransition } from '@/ui/motion';
 import { SnackbarHost } from '@/ui/snackbar';
 import { useTheme } from '@/ui/theme';
 
@@ -56,6 +57,9 @@ export default function RootLayout() {
             screenOptions={{
               headerShown: false,
               contentStyle: { backgroundColor: theme.colors.bg },
+              // 屏与屏之间的转场统一从 ui/motion 取,和菜单/对话框/toast 同一套口径
+              animation: screenTransition.push,
+              animationDuration: duration.panel,
               // 「手势返回」(22 票)。Android 上这一档由 react-native-screens 转成
               // predictive back 的开关,关掉后只能点顶栏返回箭头
               gestureEnabled: settings.gestureBack,
@@ -66,7 +70,7 @@ export default function RootLayout() {
               name="image-viewer"
               options={{
                 presentation: 'transparentModal',
-                animation: 'fade',
+                animation: screenTransition.overlay,
                 contentStyle: { backgroundColor: 'transparent' },
               }}
             />

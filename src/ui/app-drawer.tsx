@@ -52,8 +52,7 @@ interface DrawerEntry {
 /**
  * 抽屉条目,顺序与图标照抄设计稿。
  *
- * 还没做的页面(关于)一律 toast「本版本未开放」——入口先立在这儿,
- * 后续票各自换掉自己那一行。
+ * 每一条要么跳一个路由,要么关掉抽屉、由宿主页面弹对应的对话框。
  */
 const ENTRIES: readonly DrawerEntry[] = [
   { key: 'login', icon: 'person_add', label: '登录账号', href: '/login' },
@@ -77,7 +76,7 @@ const ENTRIES: readonly DrawerEntry[] = [
     badge: 'notifications',
   },
   { key: 'settings', icon: 'settings', label: '设置', href: '/settings' },
-  { key: 'about', icon: 'info', label: '关于' },
+  { key: 'about', icon: 'info', label: '关于', href: '/settings/about' },
 ];
 
 export interface AppDrawerContentProps {
@@ -293,9 +292,7 @@ const useStyles = createThemedStyles((theme) => ({
   root: {
     flex: 1,
   },
-  content: {
-    paddingBottom: theme.spacing.xl,
-  },
+  content: {},
   header: {
     backgroundColor: theme.colors.primary,
     paddingHorizontal: theme.spacing.xl,
@@ -323,7 +320,7 @@ const useStyles = createThemedStyles((theme) => ({
     opacity: 0.55,
   },
   headerCaption: {
-    ...theme.typography.note,
+    ...theme.typography.listMeta,
     color: theme.colors.onPrimary,
     opacity: 0.8,
     marginTop: theme.spacing.row,

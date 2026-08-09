@@ -1,13 +1,14 @@
 import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import type { Topic } from '@/core/api';
 import { HOT_WINDOW_HOURS } from '@/core/local';
 import { useTopicFilter } from '@/store/filters';
 import { useHotTopics } from '@/store/hot-topics';
-import { Icon } from '@/ui/icon';
+import { LoadFailedNotice } from '@/ui/error-screen';
+import { EmptyState, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { relativeTimeText } from '@/ui/time-text';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
@@ -63,37 +64,27 @@ export default function HotTopicsScreen() {
   ];
 
   const body = () => {
-    if (isPending) {
+    if (isPending) return <LoadingState />;
+    if (data === undefined && error !== null) {
       return (
         <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
+          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       );
     }
     if (data === undefined || topics.length === 0) {
-      const failed = data === undefined && error !== null;
       // 榜单有货、过完屏蔽规则空了,得说清是被自己的规则挡的,别当成「没有新主题」
       const allFiltered = data !== undefined && data.topics.length > 0;
       return (
-        <View style={styles.center}>
-          <Icon
-            name={failed ? 'cloud_off' : allFiltered ? 'filter_alt' : 'local_fire_department'}
-            size={40}
-            color={theme.colors.meta}
-          />
-          <Text style={styles.errorText}>
-            {failed
-              ? error instanceof Error
-                ? error.message
-                : '热帖拉不下来'
-              : allFiltered
-                ? '榜单上的主题都被屏蔽规则挡住了'
-                : `近 ${HOT_WINDOW_HOURS} 小时没有新主题`}
-          </Text>
-          <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          icon={allFiltered ? 'filter_alt' : 'local_fire_department'}
+          text={
+            allFiltered
+              ? '榜单上的主题都被屏蔽规则挡住了'
+              : `近 ${HOT_WINDOW_HOURS} 小时没有新主题`
+          }
+          action={{ label: '刷新', onPress: () => void refetch() }}
+        />
       );
     }
     return (
@@ -122,6 +113,7 @@ export default function HotTopicsScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -153,9 +145,9 @@ const useStyles = createThemedStyles((theme) => ({
     flex: 1,
   },
   sub: {
+    ...theme.typography.listSubtitle,
     paddingVertical: 11,
     paddingHorizontal: theme.spacing.lg,
-    fontSize: 12,
     color: theme.colors.meta,
     backgroundColor: theme.colors.surface2,
     borderBottomWidth: 1,
@@ -167,24 +159,6 @@ const useStyles = createThemedStyles((theme) => ({
     justifyContent: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
-  },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
   },
   footerSpacer: {
     height: 26,

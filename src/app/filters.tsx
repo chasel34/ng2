@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -9,10 +8,13 @@ import {
   View,
 } from 'react-native';
 
-import { blockWordError, type BlockWordList, type BlockedUser } from '@/core/api';
+import { blockWordError, type BlockWordList } from '@/core/api';
 import { FILTER_KIND_LABELS, type FilterRule, type FilterRuleInput } from '@/core/local';
 import { useAccounts } from '@/store/accounts';
 import { useBlockWordMutations, useBlockWords, useLocalFilters } from '@/store/filters';
+import { useLeftHanded } from '@/ui/appearance';
+import { LoadFailedNotice } from '@/ui/error-screen';
+import { EmptyState, LoadingState } from '@/ui/state-view';
 import { FilterRuleDialog } from '@/ui/filter-rule-dialog';
 import { Icon, type IconName } from '@/ui/icon';
 import { InputDialog } from '@/ui/input-dialog';
@@ -61,6 +63,7 @@ export default function FiltersScreen() {
   const styles = useStyles();
   const theme = useTheme();
   const router = useRouter();
+  const leftHanded = useLeftHanded();
 
   const [tab, setTab] = useState<FilterTab>('local');
   const [addRuleOpen, setAddRuleOpen] = useState(false);
@@ -146,29 +149,20 @@ export default function FiltersScreen() {
   /** 云端两个 tab 共用一份取数状态:游客、加载中、失败、空表各有各的话。 */
   const officialBody = () => {
     if (!signedIn) {
-      return <Empty icon="person" text="登录后才能读写官方屏蔽词" />;
+      return <EmptyState variant="inline" icon="person" text="登录后才能读写官方屏蔽词" />;
     }
-    if (blockWords.isPending) {
-      return (
-        <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
-        </View>
-      );
-    }
+    if (blockWords.isPending) return <LoadingState variant="inline" />;
     const list = blockWords.data;
     if (list === undefined) {
       return (
-        <Empty
-          icon="cloud_off"
-          text={blockWords.error instanceof Error ? blockWords.error.message : '官方屏蔽词拉不下来'}
-          action={{ label: '重试', onPress: () => void blockWords.refetch() }}
-        />
+        <LoadFailedNotice error={blockWords.error} onRetry={() => void blockWords.refetch()} />
       );
     }
     const rows = officialRows(list);
     if (rows.length === 0) {
       return (
-        <Empty
+        <EmptyState
+          variant="inline"
           icon="block"
           text={tab === 'officialUsers' ? '云端还没有屏蔽的用户' : '云端还没有屏蔽关键词'}
         />
@@ -204,6 +198,7 @@ export default function FiltersScreen() {
       >
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -229,7 +224,7 @@ export default function FiltersScreen() {
         <Text style={styles.hint}>{TABS.find((item) => item.key === tab)?.hint}</Text>
         {tab === 'local' ? (
           rules.length === 0 ? (
-            <Empty icon="block" text="还没有本地屏蔽规则" />
+            <EmptyState variant="inline" icon="block" text="还没有本地屏蔽规则" />
           ) : (
             localRows()
           )
@@ -241,7 +236,7 @@ export default function FiltersScreen() {
 
       {showFab && (
         <Pressable
-          style={styles.fab}
+          style={[styles.fab, leftHanded ? styles.fabLeft : styles.fabRight]}
           onPress={() => {
             if (tab === 'local') {
               setAddRuleOpen(true);
@@ -333,30 +328,6 @@ function FilterRow({ icon, text, sub, onDelete }: FilterRowProps) {
   );
 }
 
-function Empty({
-  icon,
-  text,
-  action,
-}: {
-  icon: IconName;
-  text: string;
-  action?: { label: string; onPress: () => void };
-}) {
-  const styles = useStyles();
-  const theme = useTheme();
-  return (
-    <View style={styles.center}>
-      <Icon name={icon} size={40} color={theme.colors.meta} />
-      <Text style={styles.emptyText}>{text}</Text>
-      {action !== undefined && (
-        <Pressable style={styles.retry} onPress={action.onPress}>
-          <Text style={styles.retryLabel}>{action.label}</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-}
-
 const useStyles = createThemedStyles((theme) => ({
   root: {
     flex: 1,
@@ -423,38 +394,12 @@ const useStyles = createThemedStyles((theme) => ({
     color: theme.colors.meta,
     marginTop: 4,
   },
-  center: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.md,
-    paddingVertical: 60,
-    paddingHorizontal: theme.spacing.xl,
-  },
-  emptyText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
-  },
   bottomSpacer: {
     height: 80,
   },
   // 设计稿:扩展 FAB,高 50、左右 20、圆角 16、距右 20 距底 24
   fab: {
     position: 'absolute',
-    right: theme.spacing.xl,
     bottom: 24,
     height: 50,
     paddingHorizontal: theme.spacing.xl,
@@ -468,5 +413,12 @@ const useStyles = createThemedStyles((theme) => ({
   fabLabel: {
     ...theme.typography.accountAction,
     color: theme.colors.onFab,
+  },
+  // 左手模式(22 票):FAB 镜像到左下角
+  fabRight: {
+    right: theme.spacing.xl,
+  },
+  fabLeft: {
+    left: theme.spacing.xl,
   },
 }));

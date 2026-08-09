@@ -4,7 +4,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Keyboard,
   Pressable,
   ScrollView,
@@ -31,6 +30,8 @@ import { Icon, type IconName } from '@/ui/icon';
 import { initialOf } from '@/ui/initial';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { showSnackbar } from '@/ui/snackbar';
+import { LoadFailedNotice, loadFailureCopy } from '@/ui/error-screen';
+import { EmptyState, LoadingFooter, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { TopBar } from '@/ui/top-bar';
 import { TopicRow } from '@/ui/topic-row';
@@ -326,10 +327,10 @@ function TopicResults({
     });
   };
 
-  if (isPending) return <Loading />;
+  if (isPending) return <LoadingState />;
   if (topics.length === 0) {
     return (
-      <EmptyState
+      <SearchOutcome
         error={error}
         emptyIcon="search"
         emptyText={`没有找到与「${query}」相关的主题`}
@@ -351,13 +352,9 @@ function TopicResults({
         renderItem={({ item }) => <TopicRow topic={item} onPress={openTopic} />}
         ListFooterComponent={
           <View>
-            {isFetchingNextPage && (
-              <Text style={styles.footerText}>正在载入第 {loadedPages + 1} 页…</Text>
-            )}
+            {isFetchingNextPage && <LoadingFooter text={`正在载入第 ${loadedPages + 1} 页…`} />}
             {!isFetchingNextPage && error !== null && (
-              <Text style={styles.footerText}>
-                {error instanceof Error ? error.message : '下一页拉不下来'}
-              </Text>
+              <Text style={styles.footerText}>{loadFailureCopy(error).headline}</Text>
             )}
             {!hasNextPage && <Text style={styles.footerText}>没有更多了</Text>}
             <View style={styles.bottomSpacer} />
@@ -377,10 +374,10 @@ function BoardResults({ query }: { query: string }) {
   const styles = useStyles();
   const { data, error, isPending, refetch } = useBoardSearch(query);
 
-  if (isPending) return <Loading />;
+  if (isPending) return <LoadingState />;
   if (data === undefined || data.length === 0) {
     return (
-      <EmptyState
+      <SearchOutcome
         error={error}
         emptyIcon="search"
         emptyText={`没有找到与「${query}」相关的版块`}
@@ -476,10 +473,10 @@ function UserResult({ query }: { query: string }) {
   const { data, error, isPending, refetch } = useUserSearch(query);
   const [avatarFailed, setAvatarFailed] = useState(false);
 
-  if (isPending) return <Loading />;
+  if (isPending) return <LoadingState />;
   if (data === undefined) {
     return (
-      <EmptyState
+      <SearchOutcome
         error={error}
         emptyIcon="person"
         emptyText={`没有找到用户「${query}」`}
@@ -536,18 +533,8 @@ function UserResult({ query }: { query: string }) {
   );
 }
 
-function Loading() {
-  const styles = useStyles();
-  const theme = useTheme();
-  return (
-    <View style={styles.center}>
-      <ActivityIndicator color={theme.colors.primary} />
-    </View>
-  );
-}
-
 /** 空结果与拉取失败分开说(与主题列表页同一套话术)。 */
-function EmptyState({
+function SearchOutcome({
   error,
   emptyIcon,
   emptyText,
@@ -559,21 +546,14 @@ function EmptyState({
   onRetry: () => void;
 }) {
   const styles = useStyles();
-  const theme = useTheme();
-  const failed = error !== null && error !== undefined;
-  return (
-    <View style={styles.center}>
-      <Icon name={failed ? 'cloud_off' : emptyIcon} size={40} color={theme.colors.meta} />
-      <Text style={styles.errorText}>
-        {failed ? (error instanceof Error ? error.message : '搜索结果拉不下来') : emptyText}
-      </Text>
-      {failed && (
-        <Pressable style={styles.retry} onPress={onRetry}>
-          <Text style={styles.retryLabel}>重试</Text>
-        </Pressable>
-      )}
-    </View>
-  );
+  if (error !== null && error !== undefined) {
+    return (
+      <View style={styles.center}>
+        <LoadFailedNotice error={error} onRetry={onRetry} />
+      </View>
+    );
+  }
+  return <EmptyState icon={emptyIcon} text={emptyText} />;
 }
 
 const useStyles = createThemedStyles((theme) => ({
@@ -727,24 +707,6 @@ const useStyles = createThemedStyles((theme) => ({
     justifyContent: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
-  },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
   },
   boardRow: {
     flexDirection: 'row',

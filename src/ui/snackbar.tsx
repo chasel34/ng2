@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import { Animated, Pressable, Text, View } from 'react-native';
 import { create } from 'zustand';
 
+import { duration, easeStandard, RISE_OFFSET } from './motion';
 import { createThemedStyles, useTheme } from './theme';
 import { snackbarColors } from './tokens';
 
-/** 设计稿:snack 条距底 92(给 FAB 让路)、左右 16,滑入 .22s。 */
+/** 设计稿:snack 条距底 92(给 FAB 让路)、左右 16,滑入走 omup 的 .22s。 */
 const BOTTOM_OFFSET = 92;
-const SHOW_DURATION = 220;
+const SHOW_DURATION = duration.panel;
 /** 自动消失时长。设计稿的 mock 不会自己关,真机上带撤销的提示给 4 秒反应时间。 */
 const AUTO_DISMISS_MS = 4000;
 
@@ -64,7 +65,7 @@ export function SnackbarHost() {
     const animation = Animated.timing(progress, {
       toValue: 1,
       duration: SHOW_DURATION,
-      easing: Easing.out(Easing.quad),
+      easing: easeStandard,
       useNativeDriver: true,
     });
     animation.start();
@@ -88,7 +89,7 @@ export function SnackbarHost() {
           {
             opacity: progress,
             transform: [
-              { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+              { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [RISE_OFFSET, 0] }) },
             ],
           },
         ]}

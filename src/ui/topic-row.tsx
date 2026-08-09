@@ -123,7 +123,7 @@ const useStyles = createThemedStyles((theme) => ({
   author: {
     ...theme.typography.listMeta,
     color: theme.colors.link,
-    maxWidth: 120,
+    maxWidth: 118,
   },
   lastPoster: {
     ...theme.typography.listMeta,

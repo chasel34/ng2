@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -24,6 +24,7 @@ import { BoardIcon } from '@/ui/board-icon';
 import { ConfirmDialog } from '@/ui/confirm-dialog';
 import { Drawer, DrawerEdgeHandle } from '@/ui/drawer';
 import { LoadFailedNotice } from '@/ui/error-screen';
+import { LoadingState } from '@/ui/state-view';
 import { Icon, type IconName } from '@/ui/icon';
 import { initialOf } from '@/ui/initial';
 import { InputDialog } from '@/ui/input-dialog';
@@ -442,6 +443,7 @@ export default function HomeScreen() {
       >
         <TopBarButton
           icon="menu"
+          box={46}
           size={24}
           onPress={() => setDrawerOpen(true)}
           accessibilityLabel="打开抽屉"
@@ -463,9 +465,7 @@ export default function HomeScreen() {
       </TopBar>
 
       {isPending ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
-        </View>
+        <LoadingState />
       ) : category === undefined ? (
         // 分类树拉不下来 = 除「我的收藏」外每个 tab 都是空的,所以这一屏也走统一错误块
         <View style={styles.center}>

@@ -3,9 +3,7 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
-  ActivityIndicator,
   Animated,
-  Easing,
   PanResponder,
   Pressable,
   ScrollView,
@@ -42,14 +40,17 @@ import { loadedTopicPages, useTopicDetail } from '@/store/topic-detail';
 import { recommendPidOf, useFloorRecommend } from '@/store/topic-recommend';
 import { BBCodeBody } from '@/ui/bbcode';
 import { LoadFailed } from '@/ui/error-screen';
+import { LoadingState } from '@/ui/state-view';
 import { FavoriteFolderDialog } from '@/ui/favorite-folder-dialog';
 import { FloorCard, type FloorContext } from '@/ui/floor-card';
 import { isHorizontalDragActive } from '@/ui/horizontal-drag';
 import { Icon } from '@/ui/icon';
 import { stageImageViewer } from '@/ui/image-viewer-request';
 import { InputDialog } from '@/ui/input-dialog';
+import { useLeftHanded } from '@/ui/appearance';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
+import { duration, easeDecelerate, easeStandard, RISE_OFFSET } from '@/ui/motion';
 import { PageBar } from '@/ui/page-bar';
 import { showSnackbar } from '@/ui/snackbar';
 import {
@@ -72,6 +73,52 @@ const SWIPE_ACTIVATE = 12;
 
 /** 屏幕常亮锁的标签。只有详情页申请这把锁,退出这一屏就还回去。 */
 const KEEP_AWAKE_TAG = 'ng2-topic';
+
+/**
+ * FAB 的两段动效(设计稿 isArticle 256 / 261 行):
+ * 展开的动作列走 omup `.18s`,FAB 自己的 `add` 转 45° 变成 `×`,`.2s`。
+ */
+function useFabAnimation(open: boolean): {
+  menuStyle: { opacity: Animated.Value; transform: { translateY: Animated.AnimatedInterpolation<number> }[] };
+  iconStyle: { transform: { rotate: Animated.AnimatedInterpolation<string> }[] };
+} {
+  const rise = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (open) rise.setValue(0);
+    const animation = Animated.parallel([
+      Animated.timing(rise, {
+        toValue: open ? 1 : 0,
+        duration: duration.quick,
+        easing: easeStandard,
+        useNativeDriver: true,
+      }),
+      Animated.timing(spin, {
+        toValue: open ? 1 : 0,
+        duration: duration.base,
+        easing: easeStandard,
+        useNativeDriver: true,
+      }),
+    ]);
+    animation.start();
+    return () => animation.stop();
+  }, [open, rise, spin]);
+
+  return {
+    menuStyle: {
+      opacity: rise,
+      transform: [
+        { translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [RISE_OFFSET, 0] }) },
+      ],
+    },
+    iconStyle: {
+      transform: [
+        { rotate: spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] }) },
+      ],
+    },
+  };
+}
 
 /**
  * 「阅读时常亮」(22 票)。`useKeepAwake` 是无条件的,而这里要跟着设置开关走,
@@ -103,6 +150,7 @@ export default function TopicScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const settings = useAppSettings();
+  const leftHanded = useLeftHanded();
 
   useKeepScreenOn(settings.keepScreenOn);
 
@@ -146,6 +194,7 @@ export default function TopicScreen() {
   const [sourceNoticeDismissed, setSourceNoticeDismissed] = useState(false);
   const [jumpOpen, setJumpOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const { menuStyle: fabMenuStyle, iconStyle: fabIconStyle } = useFabAnimation(fabOpen);
   const [menuOpen, setMenuOpen] = useState(false);
   const [favorOpen, setFavorOpen] = useState(false);
   // 楼层菜单开在哪一楼(长按或菜单钮,ticket 12);undefined = 关着
@@ -450,13 +499,7 @@ export default function TopicScreen() {
   };
 
   const body = () => {
-    if (isPending) {
-      return (
-        <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
-        </View>
-      );
-    }
+    if (isPending) return <LoadingState />;
     // 反封锁链(ADR-0002)全档跑完还是没拿到数据 → 设计稿的「加载失败」页
     if (error !== null && data === undefined) {
       return (
@@ -599,11 +642,14 @@ export default function TopicScreen() {
       >
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
         />
-        <TopBarTitle variant="sub">{title ?? data?.subject ?? `主题 ${tid}`}</TopBarTitle>
+        <TopBarTitle variant="article" maxWidth={190}>
+          {title ?? data?.subject ?? `主题 ${tid}`}
+        </TopBarTitle>
         <TopBarButton
           icon="public"
           size={22}
@@ -684,14 +730,23 @@ export default function TopicScreen() {
         <View style={[styles.bottomPageBar, { paddingBottom: insets.bottom }]}>{pageBar}</View>
       )}
 
+      {/* 设计稿把提示盒的**中心**放在屏幕中心,所以套一层整屏居中容器 */}
       {swipe.hint !== undefined && (
-        <View style={styles.swipeHint} pointerEvents="none">
-          <Text style={styles.swipeHintText}>{swipe.hint}</Text>
+        <View style={styles.swipeHintLayer} pointerEvents="none">
+          <View style={styles.swipeHint}>
+            <Text style={styles.swipeHintText}>{swipe.hint}</Text>
+          </View>
         </View>
       )}
 
       {fabOpen && (
-        <View style={styles.fabMenu}>
+        <Animated.View
+          style={[
+            styles.fabMenu,
+            leftHanded ? styles.fabMenuLeft : styles.fabMenuRight,
+            fabMenuStyle,
+          ]}
+        >
           {/* 回帖是 v1 排除项(spec §1),入口保留 */}
           <Pressable
             style={styles.fabItem}
@@ -713,15 +768,18 @@ export default function TopicScreen() {
             <Icon name="refresh" size={19} color={theme.colors.primary} />
             <Text style={styles.fabItemLabel}>刷新</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       )}
 
       <Pressable
-        style={styles.fab}
+        style={[styles.fab, leftHanded ? styles.fabLeft : styles.fabRight]}
         onPress={() => setFabOpen((open) => !open)}
         accessibilityLabel={fabOpen ? '收起操作' : '展开操作'}
       >
-        <Icon name={fabOpen ? 'close' : 'add'} size={27} color={theme.colors.onFab} />
+        {/* 设计稿是同一枚 add 转 45° 变成 ×,不是换字形 */}
+        <Animated.View style={fabIconStyle}>
+          <Icon name="add" size={27} color={theme.colors.onFab} />
+        </Animated.View>
       </Pressable>
 
       <InputDialog
@@ -903,9 +961,8 @@ function ResumeBanner({
   useEffect(() => {
     const animation = Animated.timing(progress, {
       toValue: 1,
-      duration: 280,
-      // CSS 的 ease
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      duration: duration.notice,
+      easing: easeStandard,
       useNativeDriver: true,
     });
     animation.start();
@@ -1037,7 +1094,8 @@ function useSwipePaging({ page, totalPages, onChange }: SwipePagingOptions) {
           }
           Animated.timing(translateX, {
             toValue: 0,
-            duration: 220,
+            duration: duration.panel,
+            easing: easeDecelerate,
             useNativeDriver: true,
           }).start();
         },
@@ -1045,7 +1103,8 @@ function useSwipePaging({ page, totalPages, onChange }: SwipePagingOptions) {
           setHint(undefined);
           Animated.timing(translateX, {
             toValue: 0,
-            duration: 220,
+            duration: duration.panel,
+            easing: easeDecelerate,
             useNativeDriver: true,
           }).start();
         },
@@ -1365,23 +1424,27 @@ const useStyles = createThemedStyles((theme) => ({
     fontWeight: '600',
     color: theme.colors.primary,
   },
-  swipeHint: {
+  swipeHintLayer: {
     position: 'absolute',
-    alignSelf: 'center',
-    top: '50%',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  swipeHint: {
     paddingVertical: 9,
     paddingHorizontal: theme.spacing.lg,
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.scrim,
   },
   swipeHintText: {
-    ...theme.typography.tab,
-    fontWeight: '600',
+    ...theme.typography.dialogAction,
     color: theme.colors.onPrimary,
   },
   fab: {
     position: 'absolute',
-    right: theme.spacing.xl,
     bottom: 24,
     width: 50,
     height: 50,
@@ -1393,10 +1456,23 @@ const useStyles = createThemedStyles((theme) => ({
   },
   fabMenu: {
     position: 'absolute',
-    right: 22,
     bottom: 96,
     gap: 10,
+  },
+  // 左手模式(22 票):FAB 与它展开的动作列整体镜像到左下角
+  fabRight: {
+    right: theme.spacing.xl,
+  },
+  fabLeft: {
+    left: theme.spacing.xl,
+  },
+  fabMenuRight: {
+    right: 22,
     alignItems: 'flex-end',
+  },
+  fabMenuLeft: {
+    left: 22,
+    alignItems: 'flex-start',
   },
   fabItem: {
     flexDirection: 'row',

@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Share } from 'react-native';
 
@@ -12,7 +13,7 @@ import { ConfirmDialog } from '@/ui/confirm-dialog';
 import { OptionDialog, type DialogOption } from '@/ui/option-dialog';
 import { SettingsNavRow, SettingsSection, SettingsSwitchRow } from '@/ui/settings-row';
 import { SettingsShell } from '@/ui/settings-shell';
-import { showNotAvailable, showToast } from '@/ui/toast';
+import { showToast } from '@/ui/toast';
 
 /**
  * 网页数据源兜底的四档(ADR-0002 / API 文档 §0.8)。设计稿这行画的是开关,
@@ -37,6 +38,7 @@ const EXPORT_LIMIT = 50;
 
 /** 设置 3 / 3 —— 实验室与存储(设计稿 `settings3` 屏)。 */
 export default function LabSettingsScreen() {
+  const router = useRouter();
   const settings = useSettings((state) => state.settings);
   const setSetting = useSettings((state) => state.set);
   const resetAll = useSettings((state) => state.resetAll);
@@ -129,7 +131,7 @@ export default function LabSettingsScreen() {
       <SettingsNavRow
         label="关于本客户端"
         sub={`v${version}`}
-        onPress={showNotAvailable}
+        onPress={() => router.push('/settings/about')}
       />
 
       <OptionDialog

@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import type { FavoriteFolder } from '@/core/api';
 import {
@@ -12,6 +12,8 @@ import {
 import { ConfirmDialog } from '@/ui/confirm-dialog';
 import { Icon } from '@/ui/icon';
 import { InputDialog } from '@/ui/input-dialog';
+import { LoadFailedNotice } from '@/ui/error-screen';
+import { LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showToast } from '@/ui/toast';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
@@ -83,23 +85,11 @@ export default function FavoriteFoldersScreen() {
   };
 
   const body = () => {
-    if (isPending) {
-      return (
-        <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
-        </View>
-      );
-    }
+    if (isPending) return <LoadingState />;
     if (folders === undefined) {
       return (
         <View style={styles.center}>
-          <Icon name="cloud_off" size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>
-            {error instanceof Error ? error.message : '收藏夹列表拉不下来'}
-          </Text>
-          <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>重试</Text>
-          </Pressable>
+          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       );
     }
@@ -181,6 +171,7 @@ export default function FavoriteFoldersScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -267,19 +258,6 @@ const useStyles = createThemedStyles((theme) => ({
     ...theme.typography.notice,
     color: theme.colors.fg2,
     textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
   },
   // 设计稿:14 内边距、13 间距、圆角 14、surface 底 + 1px divider 描边,行距 10
   card: {

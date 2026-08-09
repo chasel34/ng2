@@ -78,11 +78,17 @@ describe('formatDiagnostic · 落本地日志的文本', () => {
 })
 
 describe('describeFetchFailure · 错误页上的两行说明', () => {
-  it('带状态码的失败照设计稿说「服务端返回 HTTP …」', () => {
+  // 设计稿只把状态码那一截加粗换等宽,前半句是普通正文,所以两段分开给
+  it('带状态码的失败照设计稿说「服务端返回 HTTP …」,状态码单独一段', () => {
     expect(describeFetchFailure({ kind: 'parse', status: 403, message: 'x' })).toEqual({
-      headline: '服务端返回 HTTP 403',
+      headline: '服务端返回',
+      code: 'HTTP 403',
       hint: '第三方客户端被拦是最常见的原因，可以先用网页版打开',
     })
+  })
+
+  it('没有状态码时不给 code 段,前半句自己把话说完', () => {
+    expect(describeFetchFailure({ kind: 'http', message: 'x' }).code).toBeUndefined()
   })
 
   it('没有状态码的解析失败也要说得出是什么事', () => {

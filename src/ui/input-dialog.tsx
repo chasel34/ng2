@@ -1,16 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Animated,
-  Easing,
   Keyboard,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
   type KeyboardTypeOptions,
 } from 'react-native';
 
+import { useOverlayAnimation, OverlayScrim, popStyle } from './overlay';
 import { createThemedStyles, useTheme } from './theme';
 
 export interface InputDialogProps {
@@ -60,24 +59,12 @@ export function InputDialog({
   const styles = useStyles();
   const theme = useTheme();
   const [value, setValue] = useState(initialValue);
-  const progress = useRef(new Animated.Value(0)).current;
+  const { scrim, panel } = useOverlayAnimation(open);
 
+  // 每次打开都回到调用方给的初始值,不留上一次的残留
   useEffect(() => {
-    if (!open) {
-      progress.setValue(0);
-      return;
-    }
-    // 每次打开都回到调用方给的初始值,不留上一次的残留
-    setValue(initialValue);
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration: 200,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    });
-    animation.start();
-    return () => animation.stop();
-  }, [open, initialValue, progress]);
+    if (open) setValue(initialValue);
+  }, [open, initialValue]);
 
   if (!open) return null;
 
@@ -88,18 +75,8 @@ export function InputDialog({
 
   return (
     <View style={styles.root}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} accessibilityLabel="关闭对话框" />
-      <Animated.View
-        style={[
-          styles.panel,
-          {
-            opacity: progress,
-            transform: [
-              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) },
-            ],
-          },
-        ]}
-      >
+      <OverlayScrim progress={scrim} onPress={onCancel} />
+      <Animated.View style={[styles.panel, popStyle(panel)]}>
         <Text style={styles.title}>{title}</Text>
         <View style={styles.field}>
           <TextInput
@@ -147,7 +124,6 @@ const useStyles = createThemedStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: theme.colors.scrim,
   },
   panel: {
     width: '100%',

@@ -244,7 +244,7 @@ const designOnlyTypography = {
   topicTitle: { fontSize: 17, fontWeight: '400', lineHeight: 24.65 },
   /** 主题行信息行 / 子版块 tag / 底部载入提示 12.5 */
   listMeta: { fontSize: 12.5, fontWeight: '400' },
-  /** 公告条 / 对话框正文 13.5 · 1.5 */
+  /** 公告条 13.5 · 1.5(对话框正文是更松的 dialogBody 档) */
   notice: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
   /** 分组标题 / 二级页顶栏标题 17 */
   section: { fontSize: 17, fontWeight: '400' },
@@ -310,6 +310,16 @@ const designOnlyTypography = {
   sliderLabel: { fontSize: 16, fontWeight: '400' },
   /** 同屏滑杆上方的取值气泡 14 · 600 */
   sliderValue: { fontSize: 14, fontWeight: '600' },
+  /** 帖子详情顶栏标题 16.5 · 600(设计稿 isArticle 比别的二级页矮半档,标题后面还跟着两枚图标) */
+  articleTitle: { fontSize: 16.5, fontWeight: '600' },
+  /** 网页兜底页顶栏主标题 15.5 · 600(设计稿 isWebview;这条顶栏下面还压着一行 URL) */
+  webTitle: { fontSize: 15.5, fontWeight: '600' },
+  /** 资料页签名档正文 13.5 · 1.7(设计稿 isProfile;比楼层正文小一档) */
+  signature: { fontSize: 13.5, fontWeight: '400', lineHeight: 22.95 },
+  /** 对话框正文 13.5 · 1.6(设计稿 952 段;比公告条的 1.5 松一点) */
+  dialogBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 21.6 },
+  /** 资料页 banner 的 UID 行 13(设计稿 isProfile,不带行高) */
+  bannerMeta: { fontSize: 13, fontWeight: '400' },
 } as const;
 
 /**
@@ -320,9 +330,14 @@ export const monoFontFamily = 'monospace';
 
 export const typography = { ...tokenTableTypography, ...designOnlyTypography } as const;
 
-/** 圆角档位。sm 取设计稿 8–9 区间的上界(token 表色块用的就是 9)。 */
+/**
+ * 圆角档位。Design Token 表把最小一档写成「radius/sm 8–9」,设计稿里两个值都在用:
+ * 分类标签取 9(色块样例也是 9),页码格 / 签名框 / 登录提示卡取 8——所以拆成两档。
+ */
 export const radius = {
-  /** 分类标签 / 页码格 */
+  /** 页码格 / 跳页格 / 签名框 / 版主标签 */
+  xs: 8,
+  /** 分类标签 */
   sm: 9,
   /** 提示条 / 引用块 / 折叠按钮 */
   md: 12,
@@ -330,6 +345,8 @@ export const radius = {
   lg: 14,
   /** 整宽动作按钮(设计稿 isError 屏的「重试」「用网页版打开」) */
   button: 15,
+  /** 胶囊按钮(设计稿 isSubboards 的订阅钮:32 高配 16 圆角) */
+  pill: 16,
   fab: 19,
   dialog: 24,
   /** 圆形图标按钮(设计稿里是 46/44 见方配 23/22 圆角) */

@@ -39,6 +39,8 @@
 2. **18 错误页 server explanation 渲染原始 HTML**:51 待审核页的说明区逐字显示 `51:帖子正等待审核;<br/><a href='/nuke.php?…' style='color:dimgray' …>[查看所需的权限/条件]</a>`,标签属性裸露约 5 行。应剥标签(或至少把 `<br/>` 转行、`<a>` 取文本)。
 3. **首页「我的收藏」tab 错误态显示裸异常**:断网时该 tab 显示 `fetch failed: java.io.IOException: unexpected end of stream on https://ngabbs.com/...` + 重试按钮,无友好文案,与详情页错误页规格不一致。应换成统一的友好错误组件。
 4. **「由 URL 读取」错误提示不随输入清除**(低):报红「只认 NGA 官方域名的链接」后清空重输,红字保留到再次点「打开」才刷新。建议 onChangeText 清错误态。
+> 2026-08-09 更新:缺陷 2/3/4 已修复(commit 050a467):`extractServerError` 统一剥标签+解实体(新增 `core/net/server-text.ts` + 10 条单测);首页全部 tab 错误态换 `LoadFailedNotice` 友好组件;「由 URL 读取」onChangeText 清错误。真机复验待下轮:缺陷 2 找 51 待审核帖、缺陷 3 走过滤代理断网、缺陷 4 直接输 `example.com`。缺陷 1(App Links 系统授权)与 5(资料页入口)维持待决策。
+
 5. **(体验,待定性)自己资料页入口隐蔽**:抽屉头像/昵称行与「账号管理」内卡片均进账号管理,唯一资料页入口在「我的主题」右上角人形图标。若设计意图是头像进资料页则为路由指向不符,否则建议补一个显性入口。
 
 ## 非缺陷 / 定性结论

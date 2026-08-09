@@ -6,6 +6,7 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { formatHistoryTime, historyProgressLabel, type HistoryEntry } from '@/core/local';
 import { clearHistory, useHistoryEntries } from '@/store/history';
 import { Icon } from '@/ui/icon';
+import { EmptyState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showToast } from '@/ui/toast';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
@@ -56,6 +57,7 @@ export default function HistoryScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -71,10 +73,7 @@ export default function HistoryScreen() {
       </TopBar>
 
       {entries.length === 0 ? (
-        <View style={styles.empty}>
-          <Icon name="history" size={40} color={theme.colors.meta} />
-          <Text style={styles.emptyText}>还没有浏览记录{'\n'}看过的主题会自动出现在这里</Text>
-        </View>
+        <EmptyState icon="history" text={'还没有浏览记录\n看过的主题会自动出现在这里'} />
       ) : (
         <View style={styles.body}>
           <FlashList
@@ -194,17 +193,5 @@ const useStyles = createThemedStyles((theme) => ({
   /** 设计稿列表末尾留 26 */
   footerSpacer: {
     height: 26,
-  },
-  empty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.md,
-    padding: theme.spacing.xl,
-  },
-  emptyText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
   },
 }));

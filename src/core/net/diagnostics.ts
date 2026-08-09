@@ -82,8 +82,13 @@ export function formatDiagnostic(diagnostic: FetchDiagnostic): string {
 
 /** 「加载失败」页上那两行说明。 */
 export interface FetchFailureCopy {
-  /** 服务端到底返回了什么（设计稿里加粗的那一段） */
+  /** 服务端到底返回了什么。普通字重的那半句（`服务端返回` / `连不上服务器`） */
   readonly headline: string
+  /**
+   * 状态码那一截（`HTTP 403`）。设计稿只把它加粗并换等宽字，前面那半句是正常正文——
+   * 所以拆成两个字段，别再让页面去猜从哪儿断开。没有状态码的档不给这个字段。
+   */
+  readonly code?: string
   /** 为什么会这样、还能怎么办 */
   readonly hint: string
 }
@@ -99,19 +104,21 @@ export function describeFetchFailure(error: {
   readonly status?: number
   readonly message: string
 }): FetchFailureCopy {
-  const http = error.status === undefined ? undefined : `服务端返回 HTTP ${error.status}`
+  const code = error.status === undefined ? undefined : { code: `HTTP ${error.status}` }
   switch (error.kind) {
     case 'server':
       // 服务端把话说清楚了（权限不足、找不到主题…），照搬比我们编强
       return { headline: error.message, hint: '这是论坛给出的说明，换个页面或重新登录再试' }
     case 'http':
       return {
-        headline: http ?? '服务端没有返回内容',
+        headline: code === undefined ? '服务端没有返回内容' : '服务端返回',
+        ...code,
         hint: '通常是客户端 UA 被拒或需要重新登录',
       }
     case 'parse':
       return {
-        headline: http ?? '响应内容解析不了',
+        headline: code === undefined ? '响应内容解析不了' : '服务端返回',
+        ...code,
         hint: '第三方客户端被拦是最常见的原因，可以先用网页版打开',
       }
     case 'network':

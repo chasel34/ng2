@@ -242,8 +242,10 @@ export function ImageGallery({ sources, index, onIndexChange }: ImageGalleryProp
       {width > 0 && (
         <GestureDetector gesture={gesture}>
           <Animated.View style={[styles.row, { width: width * count }, rowStyle]}>
+            {/* 设计稿 isViewer 给图四周留 16 白边。内距落在页上而不是根容器上:
+                分页位移吃的是 onLayout 量到的整宽,根容器加内距就对不上了 */}
             {sources.map((source, i) => (
-              <View key={i} style={{ width, height }}>
+              <View key={i} style={[styles.page, { width, height }]}>
                 {/* 只挂当前页与两侧邻页,几十张的楼不至于一进来全拉原图 */}
                 {Math.abs(i - index) <= 1 && (
                   <GalleryPage
@@ -318,7 +320,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   page: {
-    flex: 1,
+    padding: 16,
   },
   image: {
     flex: 1,

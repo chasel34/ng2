@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { mergeTopicPages, type Board, type Topic } from '@/core/api';
@@ -11,10 +11,13 @@ import { useBoardFavoriteMutations, useIsBoardFavored } from '@/store/board-favo
 import { useTopicFilter } from '@/store/filters';
 import { useSettings } from '@/store/settings';
 import { useRefreshTopicList, useTopicList, useTopicSort } from '@/store/topic-list';
+import { useLeftHanded } from '@/ui/appearance';
 import { Icon } from '@/ui/icon';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { showSnackbar } from '@/ui/snackbar';
+import { LoadFailedNotice, loadFailureCopy } from '@/ui/error-screen';
+import { EmptyState, LoadingFooter, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showNotAvailable } from '@/ui/toast';
 import { TopicRow } from '@/ui/topic-row';
@@ -33,6 +36,7 @@ export default function BoardScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const solidBackground = useSettings((state) => state.settings.solidBackground);
+  const leftHanded = useLeftHanded();
 
   const { id, name, kind } = useLocalSearchParams<{
     id: string;
@@ -177,38 +181,24 @@ export default function BoardScreen() {
   }, [sort, setSort, boardId, boardKind, name, router]);
 
   const body = () => {
-    if (isPending) {
+    if (isPending) return <LoadingState />;
+    // 拉失败、版块真的空着、以及「拉到了但整页都被屏蔽规则藏掉」是三回事,
+    // 说成同一句话时用户会以为是被封了
+    if (topics.length === 0 && error !== null) {
       return (
         <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
+          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       );
     }
     if (topics.length === 0) {
-      // 拉失败、版块真的空着、以及「拉到了但整页都被屏蔽规则藏掉」是三回事,
-      // 说成同一句话时用户会以为是被封了
-      const failed = error !== null;
-      const allFiltered = !failed && merged.length > 0;
+      const allFiltered = merged.length > 0;
       return (
-        <View style={styles.center}>
-          <Icon
-            name={failed ? 'cloud_off' : allFiltered ? 'filter_alt' : 'article'}
-            size={40}
-            color={theme.colors.meta}
-          />
-          <Text style={styles.errorText}>
-            {failed
-              ? error instanceof Error
-                ? error.message
-                : '主题列表拉不下来'
-              : allFiltered
-                ? '这一页的主题都被屏蔽规则挡住了'
-                : '这个版块还没有主题'}
-          </Text>
-          <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          icon={allFiltered ? 'filter_alt' : 'article'}
+          text={allFiltered ? '这一页的主题都被屏蔽规则挡住了' : '这个版块还没有主题'}
+          action={{ label: '刷新', onPress: () => void refetch() }}
+        />
       );
     }
     return (
@@ -242,14 +232,10 @@ export default function BoardScreen() {
           }
           ListFooterComponent={
             <View>
-              {isFetchingNextPage && (
-                <Text style={styles.footerText}>正在载入第 {loadedPages + 1} 页…</Text>
-              )}
+              {isFetchingNextPage && <LoadingFooter text={`正在载入第 ${loadedPages + 1} 页…`} />}
               {/* 翻页失败别闷着:列表照旧,底下把原因说出来 */}
               {!isFetchingNextPage && error !== null && (
-                <Text style={styles.footerText}>
-                  {error instanceof Error ? error.message : '下一页拉不下来'}
-                </Text>
+                <Text style={styles.footerText}>{loadFailureCopy(error).headline}</Text>
               )}
               {/* 设计稿在列表末尾留了 70 给 FAB 让路 */}
               <View style={styles.footerSpacer} />
@@ -272,11 +258,15 @@ export default function BoardScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
         />
-        <TopBarTitle variant="sub">{boardTitle}</TopBarTitle>
+        {/* 设计稿 isList 给标题标了 150 的截断宽度,右边三枚图标才排得开 */}
+        <TopBarTitle variant="sub" maxWidth={150}>
+          {boardTitle}
+        </TopBarTitle>
         {/* 已收藏用 accent 点亮:图标字体是静态 Outlined 版,没有设计稿那根 FILL 轴 */}
         <TopBarButton
           icon="star"
@@ -309,7 +299,11 @@ export default function BoardScreen() {
       {body()}
 
       {/* 发新帖不在 v1 范围内(spec §1),入口保留 */}
-      <Pressable style={styles.fab} onPress={showNotAvailable} accessibilityLabel="发新帖">
+      <Pressable
+        style={[styles.fab, leftHanded ? styles.fabLeft : styles.fabRight]}
+        onPress={showNotAvailable}
+        accessibilityLabel="发新帖"
+      >
         <Icon name="add" size={27} color={theme.colors.onFab} />
       </Pressable>
 
@@ -369,24 +363,6 @@ const useStyles = createThemedStyles((theme) => ({
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
   },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
-  },
   // 版头置顶入口:设计稿没画这屏,按公告条的设计语言延伸(surface-2 底 + 分隔线)
   headRow: {
     flexDirection: 'row',
@@ -435,7 +411,6 @@ const useStyles = createThemedStyles((theme) => ({
   },
   fab: {
     position: 'absolute',
-    right: theme.spacing.xl,
     bottom: 24,
     width: 50,
     height: 50,
@@ -444,5 +419,12 @@ const useStyles = createThemedStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: theme.shadows.elevation2,
+  },
+  // 左手模式(22 票):FAB 镜像到左下角
+  fabRight: {
+    right: theme.spacing.xl,
+  },
+  fabLeft: {
+    left: theme.spacing.xl,
   },
 }));

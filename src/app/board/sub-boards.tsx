@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import type { SubBoard } from '@/core/api';
 import { useAccounts } from '@/store/accounts';
@@ -9,9 +9,10 @@ import {
   useToggleSubBoard,
 } from '@/store/sub-boards';
 import { useTopicList, useTopicSort } from '@/store/topic-list';
-import { Icon } from '@/ui/icon';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { showSnackbar } from '@/ui/snackbar';
+import { LoadFailedNotice } from '@/ui/error-screen';
+import { EmptyState, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { TopBar, TopBarButton, TopBarTitle } from '@/ui/top-bar';
 
@@ -35,7 +36,7 @@ export default function SubBoardsScreen() {
   const boardKind = kind === 'collection' ? 'collection' : 'board';
   const sort = useTopicSort((state) => state.sort);
 
-  const { data, error, isPending } = useTopicList({ boardId, kind: boardKind, sort });
+  const { data, error, isPending, refetch } = useTopicList({ boardId, kind: boardKind, sort });
   const firstPage = data?.pages[0];
   const subBoards = firstPage?.subBoards ?? [];
   // 操作要带父版块的 fid;合集没有 fid 时退回路由上的 id
@@ -49,27 +50,16 @@ export default function SubBoardsScreen() {
   };
 
   const body = () => {
-    if (isPending) {
+    if (isPending) return <LoadingState />;
+    if (data === undefined && error !== null) {
       return (
         <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
+          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       );
     }
     if (subBoards.length === 0) {
-      const failed = data === undefined && error !== null;
-      return (
-        <View style={styles.center}>
-          <Icon name={failed ? 'cloud_off' : 'account_tree'} size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>
-            {failed
-              ? error instanceof Error
-                ? error.message
-                : '子版块拉不下来'
-              : '这个版块没有子版块'}
-          </Text>
-        </View>
-      );
+      return <EmptyState icon="account_tree" text="这个版块没有子版块" />;
     }
     return (
       <ScrollView contentContainerStyle={styles.list}>
@@ -93,14 +83,14 @@ export default function SubBoardsScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
         />
-        <TopBarTitle variant="sub">子版块</TopBarTitle>
+        {/* 设计稿把版块名并进顶栏标题(「子板块 · 网事杂谈」),没有副标题条 */}
+        <TopBarTitle variant="sub">子版块 · {name ?? `版块 ${id}`}</TopBarTitle>
       </TopBar>
-
-      <Text style={styles.sub}>{name ?? `版块 ${id}`}</Text>
 
       {body()}
     </View>
@@ -161,19 +151,14 @@ function SubBoardRow({
       {/* 服务端不让改的(attributes 太小)只显示状态,不给按钮 */}
       {state.filterable ? (
         <Pressable
-          style={styles.toggle}
+          style={[styles.toggle, state.subscribed && styles.toggleOn]}
           onPress={flip}
           disabled={pending}
           hitSlop={8}
           accessibilityLabel={state.subscribed ? `屏蔽 ${subBoard.name}` : `订阅 ${subBoard.name}`}
         >
-          <Icon
-            name={state.subscribed ? 'check_box' : 'check_box_outline_blank'}
-            size={21}
-            color={state.subscribed ? theme.colors.primary : theme.colors.meta}
-          />
           <Text
-            style={[styles.toggleLabel, state.subscribed && { color: theme.colors.primary }]}
+            style={[styles.toggleLabel, state.subscribed && styles.toggleLabelOn]}
             allowFontScaling={false}
           >
             {pending ? '处理中' : state.subscribed ? '已订阅' : '已屏蔽'}
@@ -193,24 +178,14 @@ const useStyles = createThemedStyles((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.bg,
   },
-  // 设计稿 listSub:12px meta 色副标题条,surface-2 底
-  sub: {
-    paddingVertical: 11,
-    paddingHorizontal: theme.spacing.lg,
-    fontSize: 12,
-    color: theme.colors.meta,
-    backgroundColor: theme.colors.surface2,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
-  },
   list: {
     paddingBottom: 26,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    gap: theme.spacing.row,
+    paddingVertical: theme.spacing.row,
     paddingHorizontal: theme.spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.divider,
@@ -224,22 +199,30 @@ const useStyles = createThemedStyles((theme) => ({
     color: theme.colors.fg,
   },
   rowInfo: {
-    ...theme.typography.listMeta,
+    ...theme.typography.cardMeta,
     color: theme.colors.meta,
     marginTop: 3,
   },
+  /** 设计稿:32 高的纯文字胶囊,左右 13,1px primary 描边;已订阅时填 primary,屏蔽时留空底 */
   toggle: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingVertical: 6,
-    paddingHorizontal: 9,
-    borderRadius: theme.radius.sm,
-    backgroundColor: theme.colors.surface2,
+    justifyContent: 'center',
+    height: 32,
+    paddingHorizontal: 13,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  toggleOn: {
+    backgroundColor: theme.colors.primary,
   },
   toggleLabel: {
     ...theme.typography.listMeta,
-    color: theme.colors.meta,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+  toggleLabelOn: {
+    color: theme.colors.onPrimary,
   },
   locked: {
     ...theme.typography.listMeta,
@@ -251,11 +234,6 @@ const useStyles = createThemedStyles((theme) => ({
     justifyContent: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
-  },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
   },
   footnote: {
     ...theme.typography.note,

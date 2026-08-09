@@ -258,7 +258,7 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
           <Icon name="reply" size={20} color={theme.colors.meta} />
         </Pressable>
         <Pressable
-          style={styles.action}
+          style={[styles.action, styles.actionNarrow]}
           onPress={
             context.onOpenMenu === undefined ? showNotAvailable : () => context.onOpenMenu?.(floor)
           }
@@ -519,6 +519,10 @@ const useStyles = createThemedStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
+  },
+  /** 设计稿把这一排最右边的「更多」收窄 4pt,让它贴着卡片右缘 */
+  actionNarrow: {
+    width: 34,
   },
   signature: {
     marginTop: 10,

@@ -2,12 +2,13 @@ import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { mergeTopicPages, type Topic } from '@/core/api';
 import { useTopicFilter } from '@/store/filters';
 import { useRefreshTopicList, useTopicList } from '@/store/topic-list';
-import { Icon } from '@/ui/icon';
+import { LoadFailedNotice, loadFailureCopy } from '@/ui/error-screen';
+import { EmptyState, LoadingFooter, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { dateText } from '@/ui/time-text';
 import { showNotAvailable } from '@/ui/toast';
@@ -84,36 +85,24 @@ export default function RecommendScreen() {
   ];
 
   const body = () => {
-    if (isPending) {
+    if (isPending) return <LoadingState />;
+    if (topics.length === 0 && error !== null) {
       return (
         <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
+          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       );
     }
     if (topics.length === 0) {
-      const failed = error !== null;
-      const allFiltered = !failed && (data?.pages[0]?.topics.length ?? 0) > 0;
+      const allFiltered = (data?.pages[0]?.topics.length ?? 0) > 0;
       return (
-        <View style={styles.center}>
-          <Icon
-            name={failed ? 'cloud_off' : allFiltered ? 'filter_alt' : 'article'}
-            size={40}
-            color={theme.colors.meta}
-          />
-          <Text style={styles.errorText}>
-            {failed
-              ? error instanceof Error
-                ? error.message
-                : '精华区拉不下来'
-              : allFiltered
-                ? '这一页的主题都被屏蔽规则挡住了'
-                : '这个版块还没有精华主题'}
-          </Text>
-          <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          icon={allFiltered ? 'filter_alt' : 'article'}
+          text={
+            allFiltered ? '这一页的主题都被屏蔽规则挡住了' : '这个版块还没有精华主题'
+          }
+          action={{ label: '刷新', onPress: () => void refetch() }}
+        />
       );
     }
     return (
@@ -127,13 +116,9 @@ export default function RecommendScreen() {
           )}
           ListFooterComponent={
             <View>
-              {isFetchingNextPage && (
-                <Text style={styles.footerText}>正在载入第 {loadedPages + 1} 页…</Text>
-              )}
+              {isFetchingNextPage && <LoadingFooter text={`正在载入第 ${loadedPages + 1} 页…`} />}
               {!isFetchingNextPage && error !== null && (
-                <Text style={styles.footerText}>
-                  {error instanceof Error ? error.message : '下一页拉不下来'}
-                </Text>
+                <Text style={styles.footerText}>{loadFailureCopy(error).headline}</Text>
               )}
               <View style={styles.footerSpacer} />
             </View>
@@ -154,6 +139,7 @@ export default function RecommendScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -186,9 +172,9 @@ const useStyles = createThemedStyles((theme) => ({
     flex: 1,
   },
   sub: {
+    ...theme.typography.listSubtitle,
     paddingVertical: 11,
     paddingHorizontal: theme.spacing.lg,
-    fontSize: 12,
     color: theme.colors.meta,
     backgroundColor: theme.colors.surface2,
     borderBottomWidth: 1,
@@ -200,24 +186,6 @@ const useStyles = createThemedStyles((theme) => ({
     justifyContent: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
-  },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
   },
   footerText: {
     ...theme.typography.listMeta,

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Icon } from './icon';
+import { useOverlayAnimation, OverlayScrim, popStyle } from './overlay';
 import { createThemedStyles, useTheme } from './theme';
 
 /**
@@ -43,7 +44,7 @@ export function OptionDialog<T extends string>({
 }: OptionDialogProps<T>) {
   const styles = useStyles();
   const theme = useTheme();
-  const progress = useRef(new Animated.Value(0)).current;
+  const { scrim, panel } = useOverlayAnimation(open);
   const [picked, setPicked] = useState<T>(value);
 
   // 每次打开都从当前生效的档位开始:上次点了取消,选中态不该留在那儿
@@ -51,37 +52,12 @@ export function OptionDialog<T extends string>({
     if (open) setPicked(value);
   }, [open, value]);
 
-  useEffect(() => {
-    if (!open) {
-      progress.setValue(0);
-      return;
-    }
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration: 200,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    });
-    animation.start();
-    return () => animation.stop();
-  }, [open, progress]);
-
   if (!open) return null;
 
   return (
     <View style={styles.root}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} accessibilityLabel="关闭对话框" />
-      <Animated.View
-        style={[
-          styles.panel,
-          {
-            opacity: progress,
-            transform: [
-              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) },
-            ],
-          },
-        ]}
-      >
+      <OverlayScrim progress={scrim} onPress={onCancel} />
+      <Animated.View style={[styles.panel, popStyle(panel)]}>
         <Text style={styles.title}>{title}</Text>
         <ScrollView style={styles.list} bounces={false}>
           {options.map((option) => {
@@ -97,7 +73,7 @@ export function OptionDialog<T extends string>({
               >
                 <Icon
                   name={selected ? 'radio_button_checked' : 'radio_button_unchecked'}
-                  size={22}
+                  size={21}
                   color={selected ? theme.colors.primary : theme.colors.meta}
                 />
                 <View style={styles.optionText}>
@@ -134,7 +110,6 @@ const useStyles = createThemedStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: theme.colors.scrim,
   },
   panel: {
     width: '100%',
@@ -155,11 +130,12 @@ const useStyles = createThemedStyles((theme) => ({
     maxHeight: 340,
     marginTop: theme.spacing.md,
   },
+  // 设计稿:行 48 高、gap 13(与「收藏到…」的夹条目同一档)
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-    paddingVertical: 11,
+    gap: 13,
+    height: 48,
     paddingHorizontal: 22,
   },
   optionText: {
@@ -175,9 +151,8 @@ const useStyles = createThemedStyles((theme) => ({
     fontWeight: '600',
   },
   optionSub: {
-    ...theme.typography.listMeta,
+    ...theme.typography.meta,
     color: theme.colors.meta,
-    marginTop: 3,
   },
   hint: {
     ...theme.typography.listMeta,
@@ -189,8 +164,8 @@ const useStyles = createThemedStyles((theme) => ({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 6,
-    marginTop: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
+    marginTop: theme.spacing.row,
+    paddingHorizontal: 22,
   },
   cancel: {
     height: 40,

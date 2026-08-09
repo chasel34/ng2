@@ -45,5 +45,16 @@ export function useSmileyHeight(): number {
   return smileyHeightOf(useAppearance().smileyScale);
 }
 
+/**
+ * 「左手模式」(22 票)。开着时把够不着的浮层控件整体镜像到左边:
+ * FAB 与它展开的动作列、顶栏右上角弹出的菜单。
+ *
+ * 只镜像**浮在内容上的**那几样。顶栏按钮、列表行、对话框按钮不动——
+ * 它们在页面流里,镜像了就是换一套排版而不是换一只手。
+ */
+export function useLeftHanded(): boolean {
+  return useSettings((state) => state.settings.leftHanded);
+}
+
 /** 设计稿主题列表标题的行高倍数(token 表里的 17 / 24.65)。 */
 const LIST_TITLE_LINE_RATIO = typography.topicTitle.lineHeight / typography.topicTitle.fontSize;

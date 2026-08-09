@@ -7,6 +7,7 @@ import { WebView } from 'react-native-webview';
 
 import { Icon } from '@/ui/icon';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
+import { EmptyState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showNotAvailable, showToast } from '@/ui/toast';
 import { TopBar, TopBarButton } from '@/ui/top-bar';
@@ -76,6 +77,7 @@ export default function WebFallbackScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -99,10 +101,7 @@ export default function WebFallbackScreen() {
       </TopBar>
 
       {url === undefined ? (
-        <View style={styles.center}>
-          <Icon name="cloud_off" size={38} color={theme.colors.meta} />
-          <Text style={styles.emptyText}>没有可打开的网页地址</Text>
-        </View>
+        <EmptyState icon="cloud_off" text="没有可打开的网页地址" />
       ) : (
         <View style={styles.web}>
           <WebView
@@ -153,8 +152,7 @@ const useStyles = createThemedStyles((theme) => ({
     marginLeft: 4,
   },
   title: {
-    ...theme.typography.section,
-    fontWeight: '600',
+    ...theme.typography.webTitle,
     color: theme.colors.onTopbar,
   },
   /** 设计稿:10.5px 等宽,透明度 .75 */
@@ -185,16 +183,6 @@ const useStyles = createThemedStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F2EFE6',
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.md,
-  },
-  emptyText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
   },
   backToApp: {
     position: 'absolute',

@@ -45,6 +45,7 @@ export function SettingsShell({ index, children }: SettingsShellProps) {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -55,7 +56,8 @@ export function SettingsShell({ index, children }: SettingsShellProps) {
         </Text>
       </TopBar>
 
-      <ScrollView style={styles.body} contentContainerStyle={styles.content}>
+      {/* 页脚自带 30 的下留白,滚动容器不再另加,否则底部空出 38 */}
+      <ScrollView style={styles.body}>
         {children}
         <View style={styles.footer}>
           <Pressable style={styles.prev} onPress={goPrev}>
@@ -87,9 +89,6 @@ const useStyles = createThemedStyles((theme) => ({
   },
   body: {
     flex: 1,
-  },
-  content: {
-    paddingBottom: theme.spacing.sm,
   },
   footer: {
     flexDirection: 'row',

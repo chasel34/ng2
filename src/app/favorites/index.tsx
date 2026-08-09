@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { mergeTopicPages, type Topic } from '@/core/api';
@@ -12,8 +12,11 @@ import {
 } from '@/store/topic-favor';
 import { Icon } from '@/ui/icon';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
+import { LoadFailedNotice, loadFailureCopy } from '@/ui/error-screen';
+import { EmptyState, LoadingFooter, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
+import { dateText } from '@/ui/time-text';
 import { TopicRow } from '@/ui/topic-row';
 
 /**
@@ -84,51 +87,38 @@ export default function FavoriteTopicsScreen() {
   };
 
   const body = () => {
-    if (foldersPending || (folder !== undefined && isPending)) {
-      return (
-        <View style={styles.center}>
-          <ActivityIndicator color={theme.colors.primary} />
-        </View>
-      );
-    }
+    if (foldersPending || (folder !== undefined && isPending)) return <LoadingState />;
     if (folders === undefined) {
       return (
         <View style={styles.center}>
-          <Icon name="cloud_off" size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>
-            {foldersError instanceof Error ? foldersError.message : '收藏夹列表拉不下来'}
-          </Text>
+          <LoadFailedNotice error={foldersError} onRetry={() => void refetch()} />
           <Text style={styles.errorHint}>没登录的话，先从抽屉里登录账号</Text>
         </View>
       );
     }
     if (folder === undefined) {
       return (
+        <EmptyState
+          icon="folder"
+          text="还没有收藏夹"
+          action={{ label: '去新建', onPress: () => router.push('/favorites/folders') }}
+        />
+      );
+    }
+    if (topics.length === 0 && error !== null) {
+      return (
         <View style={styles.center}>
-          <Icon name="folder" size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>还没有收藏夹</Text>
-          <Pressable style={styles.retry} onPress={() => router.push('/favorites/folders')}>
-            <Text style={styles.retryLabel}>去新建</Text>
-          </Pressable>
+          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       );
     }
     if (topics.length === 0) {
-      const failed = error !== null;
       return (
-        <View style={styles.center}>
-          <Icon name={failed ? 'cloud_off' : 'star'} size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>
-            {failed
-              ? error instanceof Error
-                ? error.message
-                : '收藏列表拉不下来'
-              : `「${folder.name}」里还没有主题`}
-          </Text>
-          <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>{failed ? '重试' : '刷新'}</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          icon="star"
+          text={`「${folder.name}」里还没有主题`}
+          action={{ label: '刷新', onPress: () => void refetch() }}
+        />
       );
     }
 
@@ -138,16 +128,14 @@ export default function FavoriteTopicsScreen() {
         <FlashList
           data={topics}
           keyExtractor={(topic) => String(topic.tid)}
-          renderItem={({ item }) => <TopicRow topic={item} onPress={openTopic} />}
+          renderItem={({ item }) => (
+            <TopicRow topic={item} onPress={openTopic} time={dateText(item.postedAt)} />
+          )}
           ListFooterComponent={
             <View>
-              {isFetchingNextPage && (
-                <Text style={styles.footerText}>正在载入第 {loadedPages + 1} 页…</Text>
-              )}
+              {isFetchingNextPage && <LoadingFooter text={`正在载入第 ${loadedPages + 1} 页…`} />}
               {!isFetchingNextPage && error !== null && (
-                <Text style={styles.footerText}>
-                  {error instanceof Error ? error.message : '下一页拉不下来'}
-                </Text>
+                <Text style={styles.footerText}>{loadFailureCopy(error).headline}</Text>
               )}
               <View style={styles.footerSpacer} />
             </View>
@@ -168,6 +156,7 @@ export default function FavoriteTopicsScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -242,28 +231,10 @@ const useStyles = createThemedStyles((theme) => ({
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
   },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
   errorHint: {
     ...theme.typography.meta,
     color: theme.colors.meta,
     textAlign: 'center',
-  },
-  retry: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
   },
   footerText: {
     ...theme.typography.listMeta,

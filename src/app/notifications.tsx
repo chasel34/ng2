@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import type { NgaNotification, NotificationKind } from '@/core/api';
 import { groupNotifications } from '@/core/local';
@@ -9,6 +9,8 @@ import { useNotifications } from '@/store/notifications';
 import { avatarColorFor } from '@/ui/avatar';
 import { Icon, type IconName } from '@/ui/icon';
 import { initialOf } from '@/ui/initial';
+import { LoadFailedNotice } from '@/ui/error-screen';
+import { EmptyState, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { relativeTimeText } from '@/ui/time-text';
 import { showNotAvailable, showToast } from '@/ui/toast';
@@ -117,44 +119,27 @@ export default function NotificationsScreen() {
   const body = () => {
     if (!loggedIn) {
       return (
-        <View style={styles.center}>
-          <Icon name="person_add" size={40} color={theme.colors.meta} />
-          <Text style={styles.emptyText}>登录后才能收通知</Text>
-          <Pressable style={styles.action} onPress={() => router.push('/login')}>
-            <Text style={styles.actionLabel}>去登录</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          icon="person_add"
+          text="登录后才能收通知"
+          action={{ label: '去登录', onPress: () => router.push('/login') }}
+        />
       );
     }
     if (items.length === 0) {
-      if (refreshing) {
-        return (
-          <View style={styles.center}>
-            <ActivityIndicator color={theme.colors.primary} />
-          </View>
-        );
-      }
+      if (refreshing) return <LoadingState />;
       // 拉失败也是空列表,得说清是「没人喷」还是「没拉到」
       if (error !== null) {
         return (
           <View style={styles.center}>
-            <Icon name="cloud_off" size={40} color={theme.colors.meta} />
-            <Text style={styles.emptyText}>{error}</Text>
-            <Pressable
-              style={styles.action}
-              onPress={() => void useNotifications.getState().refresh()}
-            >
-              <Text style={styles.actionLabel}>重试</Text>
-            </Pressable>
+            <LoadFailedNotice
+              error={error}
+              onRetry={() => void useNotifications.getState().refresh()}
+            />
           </View>
         );
       }
-      return (
-        <View style={styles.center}>
-          <Icon name="notifications_active" size={40} color={theme.colors.meta} />
-          <Text style={styles.emptyText}>最近没人喷你</Text>
-        </View>
-      );
+      return <EmptyState icon="notifications_active" text="最近没人喷你" />;
     }
 
     const now = Date.now();
@@ -212,6 +197,7 @@ export default function NotificationsScreen() {
       <TopBar paddingHorizontal={4}>
         <TopBarButton
           icon="arrow_back"
+          box={46}
           size={24}
           onPress={() => router.back()}
           accessibilityLabel="返回"
@@ -244,24 +230,6 @@ const useStyles = createThemedStyles((theme) => ({
     justifyContent: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
-  },
-  emptyText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
-  },
-  action: {
-    height: 40,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionLabel: {
-    ...theme.typography.drawerItem,
-    fontWeight: '600',
-    color: theme.colors.onPrimary,
   },
   /** 设计稿:分组头 padding 15/16/9,底 surface-2,压一条分隔线 */
   groupHeader: {
