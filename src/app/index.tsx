@@ -23,6 +23,7 @@ import { AppDrawerContent } from '@/ui/app-drawer';
 import { BoardIcon } from '@/ui/board-icon';
 import { ConfirmDialog } from '@/ui/confirm-dialog';
 import { Drawer, DrawerEdgeHandle } from '@/ui/drawer';
+import { LoadFailedNotice } from '@/ui/error-screen';
 import { Icon, type IconName } from '@/ui/icon';
 import { initialOf } from '@/ui/initial';
 import { InputDialog } from '@/ui/input-dialog';
@@ -78,13 +79,20 @@ type HomeRow =
       /** 分组里的第一行:上方留的是宫格容器的 10,不是行距 14 */
       readonly first: boolean;
     }
-  /** 空「我的收藏」的占位说明(游客引导登录、还没收藏、拉取失败都走它) */
+  /** 空「我的收藏」的占位说明(游客引导登录、还没收藏都走它) */
   | {
       readonly kind: 'notice';
       readonly key: string;
       readonly icon: IconName;
       readonly text: string;
       readonly action?: { readonly label: string; readonly onPress: () => void };
+    }
+  /** 收藏拉不下来。文案交给统一的错误组件,不在这儿把异常摊出来 */
+  | {
+      readonly kind: 'error';
+      readonly key: string;
+      readonly error: unknown;
+      readonly onRetry: () => void;
     };
 
 /** 把一组版块摊成「一行三个」的宫格行。 */
@@ -124,14 +132,14 @@ function buildRows(category: BoardCategory, announcement: HomeAnnouncement | und
 function buildFavoriteRows(
   announcement: HomeAnnouncement | undefined,
   boards: readonly Board[],
-  notice: Extract<HomeRow, { kind: 'notice' }>,
+  placeholder: HomeRow,
 ): HomeRow[] {
   const rows: HomeRow[] = [];
   if (announcement) {
     rows.push({ kind: 'announcement', key: `announcement/${announcement.id}`, announcement });
   }
   if (boards.length === 0) {
-    rows.push(notice);
+    rows.push(placeholder);
     return rows;
   }
   rows.push({
@@ -194,8 +202,8 @@ export default function HomeScreen() {
     return dismissedIds.includes(BUILTIN_ANNOUNCEMENT.id) ? undefined : BUILTIN_ANNOUNCEMENT;
   }, [data, dismissedIds]);
 
-  /** 空收藏时那条说明:游客给登录出口,拉失败给重试,其余就是「还没收藏」。 */
-  const favoritesNotice = useMemo((): Extract<HomeRow, { kind: 'notice' }> => {
+  /** 空收藏时那条说明:游客给登录出口,拉失败给统一错误块,其余就是「还没收藏」。 */
+  const favoritesPlaceholder = useMemo((): HomeRow => {
     if (!signedIn) {
       return {
         kind: 'notice',
@@ -210,11 +218,10 @@ export default function HomeScreen() {
     }
     if (favorites.error !== null) {
       return {
-        kind: 'notice',
+        kind: 'error',
         key: 'notice/error',
-        icon: 'cloud_off',
-        text: favorites.error instanceof Error ? favorites.error.message : '收藏列表拉不下来',
-        action: { label: '重试', onPress: () => void favorites.refetch() },
+        error: favorites.error,
+        onRetry: () => void favorites.refetch(),
       };
     }
     return {
@@ -228,10 +235,10 @@ export default function HomeScreen() {
   const rows = useMemo(() => {
     if (category === undefined) return [];
     if (category.id === FAVORITES_CATEGORY_ID) {
-      return buildFavoriteRows(announcement, favoriteBoards, favoritesNotice);
+      return buildFavoriteRows(announcement, favoriteBoards, favoritesPlaceholder);
     }
     return buildRows(category, announcement);
-  }, [category, announcement, favoriteBoards, favoritesNotice]);
+  }, [category, announcement, favoriteBoards, favoritesPlaceholder]);
 
   const menuItems: readonly MenuItem[] = useMemo(
     () =>
@@ -389,6 +396,8 @@ export default function HomeScreen() {
             )}
           </View>
         );
+      case 'error':
+        return <LoadFailedNotice error={row.error} onRetry={row.onRetry} />;
       case 'boards':
         return (
           <View style={[styles.grid, row.first && styles.gridFirst]}>
@@ -458,14 +467,9 @@ export default function HomeScreen() {
           <ActivityIndicator color={theme.colors.primary} />
         </View>
       ) : category === undefined ? (
+        // 分类树拉不下来 = 除「我的收藏」外每个 tab 都是空的,所以这一屏也走统一错误块
         <View style={styles.center}>
-          <Icon name="cloud_off" size={40} color={theme.colors.meta} />
-          <Text style={styles.errorText}>
-            {error instanceof Error ? error.message : '版块列表拉不下来'}
-          </Text>
-          <Pressable style={styles.retry} onPress={() => void refetch()}>
-            <Text style={styles.retryLabel}>重试</Text>
-          </Pressable>
+          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       ) : (
         // FlashList 要一个高度确定的父容器才算得出可视区
@@ -511,6 +515,8 @@ export default function HomeScreen() {
         error={urlError}
         confirmLabel="打开"
         keyboardType="url"
+        // 改了链接就把上一次的红字撤了,别让它挂到下一次点「打开」
+        onChangeText={() => setUrlError(undefined)}
         onCancel={() => setUrlOpen(false)}
         onConfirm={confirmFromUrl}
       />
@@ -568,11 +574,6 @@ const useStyles = createThemedStyles((theme) => ({
     justifyContent: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
-  },
-  errorText: {
-    ...theme.typography.notice,
-    color: theme.colors.fg2,
-    textAlign: 'center',
   },
   retry: {
     height: 40,

@@ -75,6 +75,7 @@ export {
   type QueryValue,
 } from './query'
 export { sanitizeNgaJson } from './sanitize'
+export { stripServerHtml } from './server-text'
 export { resolveUserAgentProfile, runAttempt, type AttemptOptions } from './strategies/attempt'
 export { DIRECT_STRATEGY_NAME, createDirectStrategy } from './strategies/direct'
 export {

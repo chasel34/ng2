@@ -1,6 +1,7 @@
 import { FAKE_ERROR_MESSAGES } from './constants'
 import type { FetchDiagnostic } from './diagnostics'
 import { isRecord } from './is-record'
+import { stripServerHtml } from './server-text'
 
 export type NgaErrorKind =
   /** 传输层失败：DNS、超时、连接断 */
@@ -81,6 +82,10 @@ export function isFakeError(message: string): boolean {
  * 从顶层响应对象里抽 JSON 错误（API 文档 §0.7）：
  * `{"error":{"0":"信息"}}` 或 `{"error":{"code":403,"0":"信息"}}`。
  * 没有错误时返回 null。
+ *
+ * 说明文字在这儿就剥成纯文本（`stripServerHtml`）：NGA 的错误说明是给网页版
+ * innerHTML 用的，带 `<br/>` 与 `<a>`；抽取口只有这一个，剥在这里错误页、诊断日志、
+ * 各处 Toast 就都拿到人话，不必各自记得剥一遍。
  */
 export function extractServerError(root: unknown): NgaServerError | null {
   if (!isRecord(root)) return null
@@ -88,7 +93,8 @@ export function extractServerError(root: unknown): NgaServerError | null {
   if (error === undefined || error === null) return null
 
   if (typeof error === 'string') {
-    return error === '' ? null : { code: '?', message: error }
+    // 剥完只剩空的（整条说明全是标签）仍然算错误——空说明比误判成功强
+    return error === '' ? null : { code: '?', message: stripServerHtml(error) || unknownMessage('?') }
   }
   if (!isRecord(error)) return null
 
@@ -98,11 +104,17 @@ export function extractServerError(root: unknown): NgaServerError | null {
   const messages: string[] = []
   for (const [key, value] of Object.entries(error)) {
     if (key === 'code') continue
-    if (typeof value === 'string' && value !== '') messages.push(value)
+    if (typeof value !== 'string') continue
+    const message = stripServerHtml(value)
+    if (message !== '') messages.push(message)
   }
   if (messages.length === 0) {
     // 有 error 对象但没有可读信息，仍然算错误
-    return { code, message: `未知错误（code=${String(code)}）` }
+    return { code, message: unknownMessage(code) }
   }
   return { code, message: messages.join('；') }
+}
+
+function unknownMessage(code: string | number): string {
+  return `未知错误（code=${String(code)}）`
 }

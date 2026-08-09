@@ -1,10 +1,25 @@
 import { Pressable, Text, View } from 'react-native';
 
-import { NgaError, describeFetchFailure, diagnosticSummary } from '@/core/net';
+import { NgaError, describeFetchFailure, diagnosticSummary, type FetchFailureCopy } from '@/core/net';
 
 import { Icon } from './icon';
 import { createThemedStyles, useTheme } from './theme';
 import { monoFontFamily } from './tokens';
+
+/**
+ * 把 TanStack Query 手里那个 `unknown` 翻成错误页的两行文案。
+ *
+ * 不是 NgaError 的（渲染期异常、别的库抛的)也要有话说,所以兜一个 unknown 档;
+ * 关键是**别把 `error.message` 直接摆到屏幕上**——反封锁链末端抛的是
+ * `fetch failed: java.io.IOException: …` 这种给开发者看的东西(M3 验收缺陷 3)。
+ */
+export function loadFailureCopy(error: unknown): FetchFailureCopy {
+  return describeFetchFailure(
+    error instanceof NgaError
+      ? error
+      : { kind: 'unknown', message: error instanceof Error ? error.message : '这一页拉不下来' },
+  );
+}
 
 export interface LoadFailedProps {
   /** 反封锁链最后抛出来的那个错误(TanStack Query 给的是 `Error | null`) */
@@ -28,11 +43,7 @@ export function LoadFailed({ error, onRetry, onOpenWeb, onRelogin }: LoadFailedP
   const styles = useStyles();
   const theme = useTheme();
 
-  const failure = describeFetchFailure(
-    error instanceof NgaError
-      ? error
-      : { kind: 'unknown', message: error instanceof Error ? error.message : '这一页拉不下来' },
-  );
+  const failure = loadFailureCopy(error);
   const summary =
     error instanceof NgaError && error.diagnostic !== undefined
       ? diagnosticSummary(error.diagnostic)
@@ -71,6 +82,36 @@ export function LoadFailed({ error, onRetry, onOpenWeb, onRelogin }: LoadFailedP
           </Text>
         </View>
       )}
+    </View>
+  );
+}
+
+export interface LoadFailedNoticeProps {
+  error: unknown;
+  onRetry: () => void;
+}
+
+/**
+ * 「加载失败」的轻量形态:图标 + 同一套文案 + 重试。
+ *
+ * 给列表屏用(首页两个 tab、以及以后别的列表):那儿只有「重试」一个出路,
+ * 摆不下整宽三动作,但文案必须和详情页错误页同一口径——不能一处说
+ * 「连不上服务器」,另一处把 `java.io.IOException` 摊在用户脸上。
+ */
+export function LoadFailedNotice({ error, onRetry }: LoadFailedNoticeProps) {
+  const styles = useStyles();
+  const theme = useTheme();
+  const failure = loadFailureCopy(error);
+
+  return (
+    <View style={styles.notice}>
+      <Icon name="cloud_off" size={34} color={theme.colors.meta} />
+      <Text style={styles.noticeHeadline}>{failure.headline}</Text>
+      <Text style={styles.noticeHint}>{failure.hint}</Text>
+      <Pressable style={styles.noticeRetry} onPress={onRetry}>
+        <Icon name="refresh" size={18} color={theme.colors.onPrimary} />
+        <Text style={styles.noticeRetryLabel}>重试</Text>
+      </Pressable>
     </View>
   );
 }
@@ -163,5 +204,40 @@ const useStyles = createThemedStyles((theme) => ({
   },
   diagnosticMono: {
     fontFamily: monoFontFamily,
+  },
+  /** 轻量形态:没有整宽按钮那一列,所以内距按列表空态那套(纵 56)给 */
+  notice: {
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    paddingVertical: 56,
+    paddingHorizontal: theme.spacing.xl,
+  },
+  noticeHeadline: {
+    ...theme.typography.errorBody,
+    fontWeight: '600',
+    color: theme.colors.fg,
+    textAlign: 'center',
+    marginTop: theme.spacing.xs,
+  },
+  noticeHint: {
+    ...theme.typography.notice,
+    color: theme.colors.fg2,
+    textAlign: 'center',
+  },
+  noticeRetry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 40,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.primary,
+    marginTop: theme.spacing.xs,
+  },
+  noticeRetryLabel: {
+    ...theme.typography.drawerItem,
+    fontWeight: '600',
+    color: theme.colors.onPrimary,
   },
 }));

@@ -29,6 +29,11 @@ export interface InputDialogProps {
   keyboardType?: KeyboardTypeOptions;
   /** 多行输入(签名这种可以换行的内容);此时回车是换行,确定只能点按钮 */
   multiline?: boolean;
+  /**
+   * 每次改动都通知一次。给的就是「一动手就把 `error` 撤了」——
+   * 报了红字之后清空重输,红字不该赖到下一次点确定才刷新(M3 验收缺陷 4)。
+   */
+  onChangeText?: (value: string) => void;
   onCancel: () => void;
   onConfirm: (value: string) => void;
 }
@@ -48,6 +53,7 @@ export function InputDialog({
   initialValue = '',
   keyboardType,
   multiline = false,
+  onChangeText,
   onCancel,
   onConfirm,
 }: InputDialogProps) {
@@ -98,7 +104,10 @@ export function InputDialog({
         <View style={styles.field}>
           <TextInput
             value={value}
-            onChangeText={setValue}
+            onChangeText={(next) => {
+              setValue(next);
+              onChangeText?.(next);
+            }}
             keyboardType={keyboardType}
             autoFocus
             // 多行时回车是换行,不能拿它当「确定」,选中全文也碍事
