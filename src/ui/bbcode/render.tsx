@@ -1,9 +1,11 @@
 import { Fragment, type ReactNode } from 'react';
-import { Linking, Text, View, type StyleProp, type TextStyle } from 'react-native';
+import { Linking, Pressable, Text, View, type StyleProp, type TextStyle } from 'react-native';
 
 import { attachmentUrl, thumbnailUrl } from '@/core/api';
 import type { BBCodeNode } from '@/core/bbcode';
+import { quoteRefOf } from '@/core/local';
 
+import { Icon } from '../icon';
 import { createThemedStyles, useTheme, type Theme } from '../theme';
 import { alignStyles, BoxBlock, CollapseBlock, ListBlock, TableBlock } from './blocks';
 import { resolveBBColor, resolveBBSizeScale } from './colors';
@@ -175,19 +177,37 @@ function BlockNode({
   style?: StyleProp<TextStyle>;
 }) {
   const styles = useStyles();
+  const theme = useTheme();
   const body = (nodes: readonly BBCodeNode[], extra?: StyleProp<TextStyle>) => (
     <BBCodeBody nodes={nodes} options={options} style={extra === undefined ? style : [style, extra]} />
   );
 
   switch (node.type) {
-    case 'quote':
+    case 'quote': {
+      // 「查看对话链(N 层)」入口(26 票,设计稿 f.quote 里的 openChain 行):
+      // 只有调用方给了链信息、且这个引用块认得出 [pid] 引用时才画——
+      // 手打的 [quote](没有 pid 标记)追不了链,画了也是死入口
+      const chain = options.quoteChain !== undefined && quoteRefOf(node) !== undefined
+        ? options.quoteChain
+        : undefined;
       return (
         <View style={styles.quote}>
           {/* 引用块里那句「Post by 谁 (时间)」是服务端塞在 BBCode 里的,
               原样渲染就够,不另外合成一行标题——合成的话作者名会重复出现两遍 */}
           {body(node.children, styles.quoteText)}
+          {chain !== undefined && (
+            <Pressable
+              style={styles.chainEntry}
+              onPress={chain.onOpen}
+              accessibilityLabel={`查看对话链(${chain.depth} 层)`}
+            >
+              <Icon name="account_tree" size={15} color={theme.colors.primary} />
+              <Text style={styles.chainEntryLabel}>查看对话链({chain.depth} 层)</Text>
+            </Pressable>
+          )}
         </View>
       );
+    }
     case 'image': {
       const uri = attachmentUrl(node, attachOptions(options));
       return (
@@ -329,6 +349,18 @@ const useStyles = createThemedStyles((theme) => ({
   quoteText: {
     ...theme.typography.quoteBody,
     color: theme.colors.fg2,
+  },
+  /** 设计稿 openChain 行:上距 8(容器自带 gap 6,补 2 凑够)、12.5/650 主题色 */
+  chainEntry: {
+    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  chainEntryLabel: {
+    ...theme.typography.listMeta,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
   imageWrap: {
     marginTop: 11,

@@ -1,4 +1,9 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useQuery,
+  type QueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { fetchTopicDetail, type TopicDetail } from '@/core/api';
 
@@ -28,6 +33,28 @@ export interface TopicDetailParams {
  */
 export const topicDetailQueryKey = ({ tid, page, favCode, pid, authorId }: TopicDetailParams) =>
   ['topic-detail', tid, page, favCode ?? null, pid ?? null, authorId ?? null] as const;
+
+/**
+ * 这个主题已经进了 Query 缓存的**完整页**(26 票的「本帖已加载楼层」口径)。
+ *
+ * 只认 pid/authorId 都空的整页——只看该楼/只看某人是过滤视图,楼号与分页
+ * 都是过滤后的口径,混进 quote 索引会指错楼。fav 码要对上:带码与不带码
+ * 拿到的可能根本不是同一份数据。
+ */
+export function loadedTopicPages(
+  queryClient: QueryClient,
+  tid: number,
+  favCode?: string,
+): readonly TopicDetail[] {
+  return queryClient
+    .getQueriesData<TopicDetail>({ queryKey: ['topic-detail', tid] })
+    .filter(
+      ([key]) => key[3] === (favCode ?? null) && key[4] === null && key[5] === null,
+    )
+    .map(([, detail]) => detail)
+    .filter((detail): detail is TopicDetail => detail !== undefined)
+    .sort((a, b) => a.page - b.page);
+}
 
 /**
  * 一页帖子详情。

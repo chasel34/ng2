@@ -302,6 +302,10 @@ const designOnlyTypography = {
   errorAction: { fontSize: 15, fontWeight: '600' },
   /** 诊断信息条 11.5 · 1.6(设计稿 isError 屏底部那块) */
   diagnostic: { fontSize: 11.5, fontWeight: '400', lineHeight: 18.4 },
+  /** 回复链卡片作者名 13.5 · 650(设计稿 isChain 屏) */
+  chainName: { fontSize: 13.5, fontWeight: '600' },
+  /** 回复链卡片正文 14 · 1.65(设计稿 isChain 屏;引用块是 1.6,这里更松一点) */
+  chainBody: { fontSize: 14, fontWeight: '400', lineHeight: 23.1 },
   /** 字号调节屏(设计稿 isFontSize)的滑杆标题 16 */
   sliderLabel: { fontSize: 16, fontWeight: '400' },
   /** 同屏滑杆上方的取值气泡 14 · 600 */

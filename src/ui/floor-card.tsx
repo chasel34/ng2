@@ -54,6 +54,13 @@ export interface FloorContext {
   onRecommend?: (floor: Floor, action: RecommendAction) => void;
   /** 打开楼层菜单(菜单钮或长按整卡) */
   onOpenMenu?: (floor: Floor) => void;
+  /**
+   * 回复链(26 票):这一楼可追溯的链深(含它自己),按 quote 索引算。
+   * < 2(链上只有它自己)时引用块不出「查看对话链」入口。
+   */
+  chainDepthOf?: (floor: Floor) => number;
+  /** 点了引用块里的「查看对话链(N 层)」 */
+  onOpenChain?: (floor: Floor) => void;
 }
 
 export interface FloorCardProps {
@@ -114,6 +121,16 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
     ...(context.onOpenImage === undefined ? {} : { onOpenImage: context.onOpenImage }),
   };
 
+  // 「查看对话链(N 层)」(26 票):只接在正文的引用块上——签名档也走同一个渲染器,
+  // 但签名里的引用块跟这一楼的回复关系无关,不给它链入口
+  const chainDepth = context.chainDepthOf?.(floor) ?? 0;
+  const bodyOptions = {
+    ...renderOptions,
+    ...(chainDepth >= 2 && context.onOpenChain !== undefined
+      ? { quoteChain: { depth: chainDepth, onOpen: () => context.onOpenChain?.(floor) } }
+      : {}),
+  };
+
   return (
     // 长按整卡也能出楼层菜单(ticket 12:「长按或菜单钮」)
     <Pressable
@@ -158,7 +175,7 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
       )}
 
       <View style={styles.body}>
-        <BBCodeBody nodes={nodes} options={renderOptions} style={bodyStyle} />
+        <BBCodeBody nodes={nodes} options={bodyOptions} style={bodyStyle} />
       </View>
 
       {/* 签名档(22 票的「显示签名档」)。签名也是 BBCode,但它是「附在正文后面的一小块」,

@@ -15,9 +15,17 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { ATTACH_BASE_FALLBACK, type Floor, type FloorUser, type RecommendAction } from '@/core/api';
 import { parseBBCode } from '@/core/bbcode';
-import { filterMatchText, pageOfFloor, type FilterRule } from '@/core/local';
+import {
+  buildQuoteIndex,
+  chainDepthOf,
+  filterMatchText,
+  pageOfFloor,
+  type FilterRule,
+} from '@/core/local';
 import { currentAccount } from '@/store/accounts';
 import { blockUserLocally, useFloorFilter, useLocalFilters } from '@/store/filters';
 import { peekHistoryEntry, recordReadFloor, recordTopicVisit } from '@/store/history';
@@ -30,7 +38,7 @@ import {
   type CacheDownloadOutcome,
 } from '@/store/topic-cache-download';
 import { useAppSettings } from '@/store/settings';
-import { useTopicDetail } from '@/store/topic-detail';
+import { loadedTopicPages, useTopicDetail } from '@/store/topic-detail';
 import { recommendPidOf, useFloorRecommend } from '@/store/topic-recommend';
 import { BBCodeBody } from '@/ui/bbcode';
 import { LoadFailed } from '@/ui/error-screen';
@@ -97,19 +105,31 @@ export default function TopicScreen() {
 
   useKeepScreenOn(settings.keepScreenOn);
 
-  const { tid, title, fav, page: fromPage, pid: fromPid } = useLocalSearchParams<{
+  const { tid, title, fav, page: fromPage, pid: fromPid, floor: fromFloor } = useLocalSearchParams<{
     tid: string;
     title?: string;
     fav?: string;
     page?: string;
     pid?: string;
+    floor?: string;
   }>();
   const topicId = Number(tid);
+
+  // 回复链的「在原帖中查看」(26)带着楼号进来:开到那一页并滚到那一楼。
+  // 跳楼本身复用 16 票阅读进度的机制(useReadingProgress 的 pending 目标)
+  const jumpFloor = (() => {
+    const parsed = Number(fromFloor);
+    return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
+  })();
 
   // 通知(13)点进来时带着对方楼层所在页,直接开在那一页;没带就从第 1 页起
   const [page, setPage] = useState(() => {
     const parsed = Number(fromPage);
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+    if (Number.isInteger(parsed) && parsed > 0) return parsed;
+    // 只带楼号没带页码时按固定的每页 20 楼估算(read.php 的口径,API 文档 §3);
+    // 万一服务端口径不同,useReadingProgress 兑现目标时会按真实 rowsPerPage 再核对
+    if (jumpFloor !== undefined) return pageOfFloor(jumpFloor, 20);
+    return 1;
   });
   /**
    * 只看某一楼(14 的「我的回复」点进来):**服务端不提供 pid → 页码的换算**
@@ -148,6 +168,29 @@ export default function TopicScreen() {
   });
 
   const totalPages = data?.totalPages ?? 1;
+
+  const queryClient = useQueryClient();
+
+  /**
+   * quote 关系索引(26 票):扫描本帖**已加载**的所有整页(Query 缓存里翻过的每一页,
+   * 不只当前页)建索引,引用块上「查看对话链(N 层)」的 N 就从它来。
+   * 依赖挂在 data 上:每拿到新一页数据都重建,索引随浏览越扫越全。
+   */
+  const chainIndex = useMemo(() => {
+    if (data === undefined) return undefined;
+    const floors = new Map<number, Floor>();
+    for (const detail of loadedTopicPages(queryClient, topicId, fav)) {
+      for (const floor of [...detail.floors, ...detail.hotReplies]) {
+        if (!floors.has(floor.pid)) floors.set(floor.pid, floor);
+      }
+    }
+    // 只看该楼/只看某人的过滤视图不在 loadedTopicPages 里,当前屏上的楼层单独补进去,
+    // 过滤视图下引用块也能出链入口
+    for (const floor of [...data.floors, ...data.hotReplies]) {
+      if (!floors.has(floor.pid)) floors.set(floor.pid, floor);
+    }
+    return buildQuoteIndex([...floors.values()], { tid: topicId });
+  }, [data, queryClient, topicId, fav]);
 
   // 页码条、跳页、滑动三个入口都收敛到这里,页码规则只有一套(ui/paging)
   const goToPage = (next: number) => {
@@ -216,6 +259,7 @@ export default function TopicScreen() {
     listRef,
     goToPage,
     paused: onlyUser !== undefined,
+    ...(jumpFloor === undefined ? {} : { jumpToFloor: jumpFloor }),
   });
 
   const recommend = useFloorRecommend(topicId);
@@ -445,6 +489,17 @@ export default function TopicScreen() {
       recommendOf: (floor) => recommend.markOf(recommendPidOf(floor)),
       onRecommend: (floor, action) => runRecommend(floor, action, false),
       onOpenMenu: setMenuFloor,
+      // 回复链(26):N 层按已加载楼层的 quote 索引算,点入口进链页
+      chainDepthOf: (floor) => (chainIndex === undefined ? 0 : chainDepthOf(chainIndex, floor.pid)),
+      onOpenChain: (floor) =>
+        router.push({
+          pathname: '/chain',
+          params: {
+            tid: String(topicId),
+            pid: String(floor.pid),
+            ...(fav === undefined ? {} : { fav }),
+          },
+        }),
     };
 
     return (
@@ -725,6 +780,8 @@ interface ReadingProgressOptions {
   goToPage: (page: number) => void;
   /** 只看此人期间为 true:那时的楼号/总数是过滤后的口径,不能写进历史 */
   paused: boolean;
+  /** 进场就要定位到的楼号(26 回复链的「在原帖中查看」);目标页数据到位后滚过去 */
+  jumpToFloor?: number;
 }
 
 /**
@@ -741,6 +798,7 @@ function useReadingProgress({
   listRef,
   goToPage,
   paused,
+  jumpToFloor,
 }: ReadingProgressOptions) {
   // 进场那一刻的存档楼层。之后的滚动会推着进度涨,但提示条要说的是「上次」,
   // 所以只在挂载时读一次;主楼都没读过(lastFloor 0)就不打扰
@@ -748,8 +806,9 @@ function useReadingProgress({
     const entry = peekHistoryEntry(topicId);
     return entry !== undefined && entry.lastFloor >= 1 ? entry.lastFloor : undefined;
   });
-  // 点了「回到那里」之后待兑现的目标楼层:目标页的数据到了才能滚过去
-  const [pendingFloor, setPendingFloor] = useState<number | undefined>(undefined);
+  // 点了「回到那里」之后待兑现的目标楼层:目标页的数据到了才能滚过去。
+  // 回复链带着楼号进场(jumpToFloor)走的也是这条兑现路径——两处只能有一套滚动逻辑
+  const [pendingFloor, setPendingFloor] = useState<number | undefined>(jumpToFloor);
 
   // viewability 回调终生不变(FlashList 要求),暂停信号只能从 ref 里透进去
   const pausedRef = useRef(paused);

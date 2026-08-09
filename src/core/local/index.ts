@@ -124,6 +124,19 @@ export {
   type ThemeStyle,
 } from './settings'
 export {
+  buildQuoteIndex,
+  buildReplyChain,
+  chainDepthOf,
+  extractQuoteRefs,
+  quoteRefOf,
+  stripQuoteMarkup,
+  type BuildQuoteIndexOptions,
+  type ChainNode,
+  type QuoteIndex,
+  type QuoteIndexFloor,
+  type QuoteRef,
+} from './reply-chain'
+export {
   PLAIN_TITLE_STYLE,
   decodeTitleStyle,
   parseTopicMisc,

@@ -155,6 +155,9 @@ describe('字号 / 行高 token', () => {
       // 22 补:字号调节屏(isFontSize)的滑杆标题 16 与取值气泡 14/600
       sliderLabel: { fontSize: 16, fontWeight: '400' },
       sliderValue: { fontSize: 14, fontWeight: '600' },
+      // 26 补:回复链屏(isChain)的卡片作者名 13.5/650 与正文 14/1.65
+      chainName: { fontSize: 13.5, fontWeight: '600' },
+      chainBody: { fontSize: 14, fontWeight: '400', lineHeight: 23.1 },
     });
   });
 
@@ -201,6 +204,8 @@ describe('字号 / 行高 token', () => {
         'diagnostic',
         'sliderLabel',
         'sliderValue',
+        'chainName',
+        'chainBody',
       ].sort(),
     );
   });
