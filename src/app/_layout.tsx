@@ -3,6 +3,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useNotificationsPoller } from '@/store/notifications';
@@ -45,6 +47,8 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* 大图查看器(25)用 react-native-gesture-handler,它要求根上有这一层 */}
+      <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         {/* 图标字体没就位时整屏都是豆腐块,等它加载完再渲染路由 */}
         {iconFontLoaded && (
@@ -56,13 +60,30 @@ export default function RootLayout() {
               // predictive back 的开关,关掉后只能点顶栏返回箭头
               gestureEnabled: settings.gestureBack,
             }}
-          />
+          >
+            {/* 大图查看器(25):全屏、透明背景淡入,不走横推转场 */}
+            <Stack.Screen
+              name="image-viewer"
+              options={{
+                presentation: 'transparentModal',
+                animation: 'fade',
+                contentStyle: { backgroundColor: 'transparent' },
+              }}
+            />
+          </Stack>
         )}
         {/* Snackbar 盖在所有页面上:发起它的页面退场后,「撤销」还能等得到 */}
         <SnackbarHost />
         {/* 状态栏压在顶栏上:浅色下顶栏是墨绿、深色下是近黑,两种都需要浅色图标 */}
         <StatusBar style="light" />
       </SafeAreaProvider>
+      </GestureHandlerRootView>
     </QueryClientProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
