@@ -271,7 +271,7 @@ function GalleryPage({
   onAspect,
 }: {
   source: GallerySource;
-  zoomStyle: ReturnType<typeof useAnimatedStyle> | undefined;
+  zoomStyle: React.ComponentProps<typeof Animated.View>['style'] | undefined;
   spinnerColor: string;
   onAspect: (aspect: number) => void;
 }) {
