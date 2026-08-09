@@ -27,6 +27,15 @@ export interface BBCodeRenderOptions {
   readonly bodyFontSize?: number;
   /** 同上,正文行高的绝对像素值 */
   readonly bodyLineHeight?: number;
+  /**
+   * 「查看对话链(N 层)」入口(26 票):给了、且引用块里认得出 `[pid]` 引用时,
+   * 引用块底部画这一行。`depth` 就是文案里的 N(从所在楼层可追溯的链长,
+   * 由调用方按 quote 索引算好);链上只有本楼自己(depth < 2)时调用方不该传。
+   */
+  readonly quoteChain?: {
+    readonly depth: number;
+    readonly onOpen: () => void;
+  };
 }
 
 /** 把渲染参数削成 `attachmentUrl` 要的那两项——正文图、附件、相册都走同一份。 */
