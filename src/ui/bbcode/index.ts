@@ -12,6 +12,7 @@
 
 export { resolveBBColor, resolveBBSizeScale } from './colors';
 export { ContentImage } from './content-image';
+export { collectFloorImages } from './floor-images';
 export type { BBCodeRenderOptions } from './options';
 export { plainTextOf } from './plain-text';
 export { BBCodeBody } from './render';

@@ -41,6 +41,8 @@ export {
 export {
   ATTACH_BASE_FALLBACK,
   attachmentUrl,
+  imageFileName,
+  imageMimeType,
   normalizeAttachBase,
   stripThumbnailSuffix,
   thumbnailUrl,

@@ -38,6 +38,7 @@ import { FavoriteFolderDialog } from '@/ui/favorite-folder-dialog';
 import { FloorCard, type FloorContext } from '@/ui/floor-card';
 import { isHorizontalDragActive } from '@/ui/horizontal-drag';
 import { Icon } from '@/ui/icon';
+import { stageImageViewer } from '@/ui/image-viewer-request';
 import { InputDialog } from '@/ui/input-dialog';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
@@ -439,8 +440,11 @@ export default function TopicScreen() {
       tid: topicId,
       users: data.users,
       attachBase: data.attachBase,
-      // 大图查看器是 25 票
-      onOpenImage: showNotAvailable,
+      // 大图查看器(25 票):图片列表塞不进路由参数,先暂存再进查看器屏
+      onOpenImage: (request) => {
+        stageImageViewer(request);
+        router.push('/image-viewer');
+      },
       // 赞踩与楼层菜单(ticket 12)。卡片钮不吐 toast,变色计数本身就是反馈
       recommendOf: (floor) => recommend.markOf(recommendPidOf(floor)),
       onRecommend: (floor, action) => runRecommend(floor, action, false),

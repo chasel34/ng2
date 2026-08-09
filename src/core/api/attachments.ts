@@ -105,6 +105,70 @@ export function thumbnailUrl(url: string, base: string): string {
   return `${stripThumbnailSuffix(url)}${THUMBNAIL_SUFFIX}`
 }
 
+/** 落盘文件名里不敢要的字符（Android 文件系统 + MediaStore 的交集）。 */
+const UNSAFE_FILENAME_CHARS = /[\\/:*?"<>|\s%#]+/g
+
+/** 常见图片扩展名 → MIME。落不进表的按 jpeg 兜底——NGA 附件绝大多数是 jpg。 */
+const IMAGE_MIME_TYPES: Readonly<Record<string, string>> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  bmp: 'image/bmp',
+  avif: 'image/avif',
+}
+
+/**
+ * 从图片地址取一个能直接落盘的文件名（保存到相册 / 分享的下载中转都用它）。
+ *
+ * 取路径最后一段、去掉查询串、剥掉缩略图后缀（存的是原图，名字不该带 `.thumb`）、
+ * 替换文件系统不认的字符；没有认得出的图片扩展名时补 `.jpg`——
+ * `MediaStore` 靠扩展名认类型，裸哈希名会存成「未知文件」进不了相册。
+ */
+export function imageFileName(url: string): string {
+  const path = url.split(/[?#]/)[0] ?? url
+  const lastSegment = path.slice(path.lastIndexOf('/') + 1)
+  const base = stripThumbnailSuffix(decodeURIComponentSafe(lastSegment)).replace(
+    UNSAFE_FILENAME_CHARS,
+    '_',
+  )
+  const named = base === '' || base === '_' ? `image-${hashOf(url)}` : base
+  return extensionOf(named) === undefined ? `${named}.jpg` : named
+}
+
+/** 按文件名猜 MIME（系统分享面板要它来挑目标应用）。 */
+export function imageMimeType(fileName: string): string {
+  const extension = extensionOf(fileName)
+  return (extension === undefined ? undefined : IMAGE_MIME_TYPES[extension]) ?? 'image/jpeg'
+}
+
+/** 认得出的图片扩展名（小写），认不出返回 undefined。 */
+function extensionOf(fileName: string): string | undefined {
+  const dot = fileName.lastIndexOf('.')
+  if (dot <= 0) return undefined
+  const extension = fileName.slice(dot + 1).toLowerCase()
+  return extension in IMAGE_MIME_TYPES ? extension : undefined
+}
+
+/** 站外图床会出现 `%20` 这类转义；转不动的（裸 `%`）原样保留，不能抛。 */
+function decodeURIComponentSafe(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+/** 文件名兜底用的短哈希（djb2）。只求稳定可辨，不求防碰撞。 */
+function hashOf(value: string): string {
+  let hash = 5381
+  for (let index = 0; index < value.length; index += 1) {
+    hash = ((hash << 5) + hash + value.charCodeAt(index)) >>> 0
+  }
+  return hash.toString(36)
+}
+
 export interface AttachmentUrlOptions {
   /** `normalizeAttachBase` 的产物 */
   readonly base: string

@@ -17,12 +17,18 @@ importers:
       expo:
         specifier: ~57.0.10
         version: 57.0.10(55cb73999f05b065b60e3ea8e6d62b63)
+      expo-clipboard:
+        specifier: ~57.0.1
+        version: 57.0.1(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)
       expo-constants:
         specifier: ~57.0.9
         version: 57.0.9(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(supports-color@8.0.0)
       expo-dev-client:
         specifier: ~57.0.10
         version: 57.0.10(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))
+      expo-file-system:
+        specifier: ~57.0.2
+        version: 57.0.2(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))
       expo-font:
         specifier: ~57.0.1
         version: 57.0.1(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)
@@ -35,6 +41,9 @@ importers:
       expo-linking:
         specifier: ~57.0.5
         version: 57.0.5(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)(supports-color@8.0.0)
+      expo-media-library:
+        specifier: ~57.0.3
+        version: 57.0.3(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))
       expo-network:
         specifier: ~57.0.1
         version: 57.0.1(expo@57.0.10)(react@19.2.3)
@@ -44,6 +53,9 @@ importers:
       expo-secure-store:
         specifier: ~57.0.1
         version: 57.0.1(expo@57.0.10)
+      expo-sharing:
+        specifier: 57.0.9
+        version: 57.0.9(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)(supports-color@8.0.0)(typescript@6.0.3)
       expo-splash-screen:
         specifier: ~57.0.5
         version: 57.0.5(expo@57.0.10)(supports-color@8.0.0)(typescript@6.0.3)
@@ -524,6 +536,9 @@ packages:
 
   '@expo/config-plugins@57.0.6':
     resolution: {integrity: sha512-7CmKrS5Rnu8aSZyNlxH2qzA7Ls1HEa4EQvEVOAkHDKPr1e4Cg/nz7I7dUl09QDTVjMvkKYDH4Th0DuAsgqASaw==}
+
+  '@expo/config-plugins@57.0.7':
+    resolution: {integrity: sha512-jvXMiNuH8W7fmU9yCk4/jVwDX2G/5rWUg5PZ22mriccEeQVS9HJjQiUHivMaK6MxEG5L9f0RPScxe/nQfnpQvg==}
 
   '@expo/config-types@57.0.2':
     resolution: {integrity: sha512-ewW08OonrcRIsRKIlFvvcmmafE5zemb1ocu3HkNwtVPyRtj2w42pZCAkMIROYpcVBaPnc3mDT9UZDzwXWC3i6g==}
@@ -1706,6 +1721,13 @@ packages:
       react: '*'
       react-native: '*'
 
+  expo-clipboard@57.0.1:
+    resolution: {integrity: sha512-HWICri4+1ao7S6QEfcorxVumXDiDnx1guGGewjZgGJWLGxFYs0RgH8ujBs+lkTzBkMmlwADaWSlaesR+nDJt5Q==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
+
   expo-constants@57.0.9:
     resolution: {integrity: sha512-Y47sGiF+U8fwicUSPdJPjB27PuU+FgLK4Mpai0ksZF5hv8jNN3HBqKuDNxsiu70uHBKf80TaR4gwMPh0pmETiQ==}
     peerDependencies:
@@ -1734,8 +1756,8 @@ packages:
       expo: '*'
       react-native: '*'
 
-  expo-file-system@57.0.1:
-    resolution: {integrity: sha512-w7/ERvQFrGP2apTO9lDtZ+O6JQIhfakL7+Xqzh+rfMO9B4LB4qwrz+YvLgir8KFRVX64JHBnRuYBVLY1oQZcqw==}
+  expo-file-system@57.0.2:
+    resolution: {integrity: sha512-bPgzpaOJ3NWHZxV++Osj/1QoFzFe/QOo1jBF4EODJdiZgrrxyi2dv+7PLhKuut5QqPBuihUOITRh3s5jhRtA5A==}
     peerDependencies:
       expo: '*'
       react-native: '*'
@@ -1784,6 +1806,12 @@ packages:
     resolution: {integrity: sha512-qB/mDG2dYdl+EvUeQuqP8KFYCFgFCQjJYdWIHo8SFBgDzMYmdF286DFY2M1M9Okr99wkb5M4tgA3aCcwv3aEQA==}
     peerDependencies:
       expo: '*'
+
+  expo-media-library@57.0.3:
+    resolution: {integrity: sha512-VI2NEDaMWIfz9Gxgibzu8BxxxVvgwHRAeZDjV9gci9YH+JkXn5vdvNAnRdmojaPxpp3tbWMfMDB1ympFcrak9A==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
 
   expo-modules-autolinking@57.0.9:
     resolution: {integrity: sha512-lj2nsAKMMRLXSFnGgaaQrWJ2fdSpLPc/bca6Rkiw4g8zYPn7qX4MRUJgavvzm/hBrzvMnlhXVgJtidOGuwBh+w==}
@@ -1850,6 +1878,13 @@ packages:
   expo-server@57.0.1:
     resolution: {integrity: sha512-sBfVDH6dmKVHZxqUxbfkzS00PZELMZt1IpnHKxcOTMZtR/t7CtRAFrbXcisG+EyzeqHSVDacZT+1tbYfZt5D8w==}
     engines: {node: '>=20.16.0'}
+
+  expo-sharing@57.0.9:
+    resolution: {integrity: sha512-zcN1D3RzOZk967s233EeES/hOmRTNRd/7OTXsYQniuXKplv6EgCTjvn+YE7BPVoExz8Ve4a8hLma4Btr1UwZgw==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
 
   expo-splash-screen@57.0.5:
     resolution: {integrity: sha512-ZN0LDXlhHRNFjXTYZDojXk8IfaoUIu7qa3hhoBTXgyj1UB/iewGlH6+M3Nvhun2lY2d/+xhwqMhv0hIRoBo09Q==}
@@ -3894,6 +3929,25 @@ snapshots:
       - supports-color
       - typescript
 
+  '@expo/config-plugins@57.0.7(supports-color@8.0.0)(typescript@6.0.3)':
+    dependencies:
+      '@expo/config-types': 57.0.2
+      '@expo/json-file': 11.0.1
+      '@expo/plist': 0.8.1
+      '@expo/require-utils': 57.0.4(supports-color@8.0.0)(typescript@6.0.3)
+      '@expo/sdk-runtime-versions': 1.0.0
+      chalk: 4.1.2
+      debug: 4.4.3(supports-color@8.0.0)
+      getenv: 2.0.0
+      glob: 13.0.6
+      semver: 7.8.5
+      slugify: 1.6.9
+      xcode: 3.0.1
+      xml2js: 0.6.0
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
   '@expo/config-types@57.0.2': {}
 
   '@expo/config@57.0.6(supports-color@8.0.0)(typescript@6.0.3)':
@@ -5203,6 +5257,12 @@ snapshots:
       - supports-color
       - typescript
 
+  expo-clipboard@57.0.1(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3):
+    dependencies:
+      expo: 57.0.10(55cb73999f05b065b60e3ea8e6d62b63)
+      react: 19.2.3
+      react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)
+
   expo-constants@57.0.9(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(supports-color@8.0.0):
     dependencies:
       '@expo/env': 2.4.2(supports-color@8.0.0)
@@ -5240,7 +5300,7 @@ snapshots:
       expo-dev-menu-interface: 57.0.0(expo@57.0.10)
       react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)
 
-  expo-file-system@57.0.1(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)):
+  expo-file-system@57.0.2(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)):
     dependencies:
       expo: 57.0.10(55cb73999f05b065b60e3ea8e6d62b63)
       react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)
@@ -5288,6 +5348,11 @@ snapshots:
     dependencies:
       expo: 57.0.10(55cb73999f05b065b60e3ea8e6d62b63)
       expo-json-utils: 57.0.1
+
+  expo-media-library@57.0.3(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)):
+    dependencies:
+      expo: 57.0.10(55cb73999f05b065b60e3ea8e6d62b63)
+      react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)
 
   expo-modules-autolinking@57.0.9(supports-color@8.0.0)(typescript@6.0.3):
     dependencies:
@@ -5375,6 +5440,18 @@ snapshots:
 
   expo-server@57.0.1: {}
 
+  expo-sharing@57.0.9(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)(supports-color@8.0.0)(typescript@6.0.3):
+    dependencies:
+      '@expo/config-plugins': 57.0.7(supports-color@8.0.0)(typescript@6.0.3)
+      '@expo/config-types': 57.0.2
+      '@expo/plist': 0.8.1
+      expo: 57.0.10(55cb73999f05b065b60e3ea8e6d62b63)
+      react: 19.2.3
+      react-native: 0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
   expo-splash-screen@57.0.5(expo@57.0.10)(supports-color@8.0.0)(typescript@6.0.3):
     dependencies:
       '@expo/config-plugins': 57.0.6(supports-color@8.0.0)(typescript@6.0.3)
@@ -5443,7 +5520,7 @@ snapshots:
       babel-preset-expo: 57.0.5(@babel/core@7.29.7(supports-color@8.0.0))(@babel/runtime@7.29.7)(expo@57.0.10)(react-refresh@0.14.2)(supports-color@8.0.0)
       expo-asset: 57.0.8(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)(supports-color@8.0.0)(typescript@6.0.3)
       expo-constants: 57.0.9(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(supports-color@8.0.0)
-      expo-file-system: 57.0.1(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))
+      expo-file-system: 57.0.2(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))
       expo-font: 57.0.1(expo@57.0.10)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.0.0))(supports-color@8.0.0))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.0.0))(react@19.2.3)
       expo-keep-awake: 57.0.1(expo@57.0.10)(react@19.2.3)
       expo-modules-autolinking: 57.0.9(supports-color@8.0.0)(typescript@6.0.3)

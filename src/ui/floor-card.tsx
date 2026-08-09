@@ -18,8 +18,9 @@ import { useSettings } from '@/store/settings';
 
 import { useBodyTextStyle } from './appearance';
 import { Avatar } from './avatar';
-import { BBCodeBody, plainTextOf, type BBCodeRenderOptions } from './bbcode';
+import { BBCodeBody, collectFloorImages, plainTextOf, type BBCodeRenderOptions } from './bbcode';
 import { Icon, type IconName } from './icon';
+import type { ImageViewerRequest } from './image-viewer-request';
 import { useImagesUnlocked } from './network';
 import { createThemedStyles, useTheme } from './theme';
 import { showNotAvailable } from './toast';
@@ -47,7 +48,8 @@ export interface FloorContext {
   users: Readonly<Record<string, FloorUser>>;
   /** 附件图片基址,来自本页响应的 `__GLOBAL._ATTACH_BASE_VIEW` */
   attachBase: string;
-  onOpenImage?: (uri: string) => void;
+  /** 打开大图查看器(25 票),带本楼全部图片与被点那张的下标 */
+  onOpenImage?: (request: ImageViewerRequest) => void;
   /** 本会话的赞踩标记(12 票),按赞踩 pid 查(主楼是 0);没接线时卡片只读展示 */
   recommendOf?: (floor: Floor) => RecommendMark | undefined;
   /** 点了赞/踩钮。登录判断、乐观更新与回滚都在调用方 */
@@ -102,6 +104,32 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
     [floor.vote, context.tid],
   );
 
+  // 本楼全部图片(正文 + 附件),给大图查看器当翻页列表(25 票)
+  const floorImages = useMemo(
+    () =>
+      collectFloorImages(nodes, floor.attachments, {
+        base: context.attachBase,
+        postedAt: floor.postedAt,
+      }),
+    [nodes, floor.attachments, context.attachBase, floor.postedAt],
+  );
+
+  /**
+   * 点了某张图 → 换算成「列表 + 下标」交给查看器。签名档里的图不算「本楼图片」,
+   * 反查不到就单开一张,别让查看器里冒出计数对不上的翻页。
+   */
+  const openImage =
+    context.onOpenImage === undefined
+      ? undefined
+      : (uri: string) => {
+          const imageIndex = floorImages.findIndex((image) => image.url === uri);
+          context.onOpenImage?.(
+            imageIndex >= 0
+              ? { images: floorImages, index: imageIndex }
+              : { images: [{ url: uri }], index: 0 },
+          );
+        };
+
   const renderOptions = {
     attachBase: context.attachBase,
     // 发帖时间是 [noimg] 相对路径补 mon_YYYYMM/DD/ 的依据,所以按楼层给
@@ -111,7 +139,7 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
     // 这两个值另外传一份是给 [size=] 当相对基准用的
     bodyFontSize: bodyStyle.fontSize,
     bodyLineHeight: bodyStyle.lineHeight,
-    ...(context.onOpenImage === undefined ? {} : { onOpenImage: context.onOpenImage }),
+    ...(openImage === undefined ? {} : { onOpenImage: openImage }),
   };
 
   return (
@@ -173,7 +201,7 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
       {floor.attachments.length > 0 && (
         <AttachmentGrid
           attachments={floor.attachments}
-          {...(context.onOpenImage === undefined ? {} : { onOpenImage: context.onOpenImage })}
+          {...(openImage === undefined ? {} : { onOpenImage: openImage })}
         />
       )}
 

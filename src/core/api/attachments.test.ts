@@ -5,6 +5,8 @@ import { decodeResponseBody, parseNgaJson } from '../net'
 import {
   ATTACH_BASE_FALLBACK,
   attachmentUrl,
+  imageFileName,
+  imageMimeType,
   normalizeAttachBase,
   stripThumbnailSuffix,
   thumbnailUrl,
@@ -185,5 +187,48 @@ describe('版头 0 楼那张图（真实样本，M2 遗留缺陷 2）', () => {
     expect(
       attachmentUrl(images[0]!, { base: detail.attachBase, postedAt: main!.postedAt }),
     ).toBe('https://img.nga.cn/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png')
+  })
+})
+
+describe('imageFileName', () => {
+  it('取路径最后一段并去掉查询串', () => {
+    expect(
+      imageFileName('https://img.nga.cn/attachments/mon_202608/07/-7Qd36d-abcK2fT3cSu0-qo.jpg?x=1#f'),
+    ).toBe('-7Qd36d-abcK2fT3cSu0-qo.jpg')
+  })
+
+  it('剥掉缩略图后缀——存的是原图，名字不该带 .thumb', () => {
+    expect(imageFileName('https://img.nga.cn/attachments/mon_202608/07/a.jpg.thumb.jpg')).toBe('a.jpg')
+    expect(imageFileName('https://img.nga.cn/attachments/mon_202608/07/a.jpg.medium.jpg')).toBe('a.jpg')
+  })
+
+  it('没有认得出的图片扩展名时补 .jpg', () => {
+    expect(imageFileName('https://example.com/image/12345')).toBe('12345.jpg')
+    expect(imageFileName('https://example.com/a.php')).toBe('a.php.jpg')
+  })
+
+  it('替换文件系统不认的字符', () => {
+    expect(imageFileName('https://example.com/a%20b.png')).toBe('a_b.png')
+    expect(imageFileName('https://example.com/a"b|c.png')).toBe('a_b_c.png')
+  })
+
+  it('整段路径都没有名字时用短哈希兜底', () => {
+    const name = imageFileName('https://example.com/')
+    expect(name).toMatch(/^image-[0-9a-z]+\.jpg$/)
+    // 同一地址两次要得到同一个名字（缓存中转靠它幂等）
+    expect(imageFileName('https://example.com/')).toBe(name)
+  })
+})
+
+describe('imageMimeType', () => {
+  it('按扩展名给 MIME，大小写不敏感', () => {
+    expect(imageMimeType('a.PNG')).toBe('image/png')
+    expect(imageMimeType('a.webp')).toBe('image/webp')
+    expect(imageMimeType('a.gif')).toBe('image/gif')
+  })
+
+  it('认不出扩展名时按 jpeg 兜底', () => {
+    expect(imageMimeType('a.bin')).toBe('image/jpeg')
+    expect(imageMimeType('noext')).toBe('image/jpeg')
   })
 })
