@@ -208,6 +208,9 @@ export default function TopicScreen() {
   // 被屏蔽规则折起来、又被用户手动点开的楼层(21 票);只活在这次停留里
   const [unfolded, setUnfolded] = useState<readonly number[]>([]);
   const listRef = useRef<FlashListRef<Floor>>(null);
+  // 本页内用户是否亲手滚动过。跳楼/回到上次读到用 scrollToIndex 滚到页尾时
+  // 也会触发 onEndReached,不区分的话「自动加载下一页」会把定位好的楼直接翻走
+  const userScrolled = useRef(false);
 
   const { data, error, isPending, isFetching, isPlaceholderData, refetch } = useTopicDetail({
     tid: topicId,
@@ -247,6 +250,7 @@ export default function TopicScreen() {
     const clamped = clampPage(next, totalPages);
     if (clamped === page) return;
     setPage(clamped);
+    userScrolled.current = false;
     // 换页等于换内容,停在上一页的滚动位置会让人以为没翻动
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
   };
@@ -603,9 +607,14 @@ export default function TopicScreen() {
           // 「自动加载下一页」(22 票)。翻页中(isPlaceholderData)不再触发,
           // 不然一口气能把好几页跳过去
           onEndReachedThreshold={0.4}
+          onScrollBeginDrag={() => {
+            userScrolled.current = true;
+          }}
           onEndReached={
             settings.autoLoadNextPage
               ? () => {
+                  // 只认用户亲手滚出来的到底,程序化滚动(跳楼落到页尾)不算
+                  if (!userScrolled.current) return;
                   if (isFetching || isPlaceholderData) return;
                   if (page >= totalPages) return;
                   goToPage(page + 1);
@@ -925,11 +934,18 @@ function useReadingProgress({
     setPendingFloor(undefined);
     // 有楼层被删时 lou 有空洞,目标楼可能不在了:落到它后面最近的一楼
     const index = data.floors.findIndex((floor) => floor.lou >= pendingFloor);
-    if (index >= 0) {
-      listRef.current?.scrollToIndex({ index, animated: true });
-    } else {
-      listRef.current?.scrollToEnd({ animated: true });
-    }
+    const scroll = (animated: boolean) => {
+      if (index >= 0) {
+        listRef.current?.scrollToIndex({ index, animated });
+      } else {
+        listRef.current?.scrollToEnd({ animated });
+      }
+    };
+    scroll(true);
+    // FlashList 对还没量过高的楼层按估算滚,目标离得远时会短滚停在前几楼
+    // (M4 复验 R-H5):首滚把沿途的行都量完,动画结束后补一脚就停准。
+    // 不能挂在 effect 清理里——上面 setPendingFloor 会立刻触发重跑把它清掉
+    setTimeout(() => scroll(false), 700);
   }, [pendingFloor, data, listRef]);
 
   return {

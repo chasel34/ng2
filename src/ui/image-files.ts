@@ -40,21 +40,32 @@ async function ensureWritePermission(): Promise<void> {
   if (!response.granted) throw new MediaPermissionError();
 }
 
-/** 下载中转 + 写进「相册/NGA」。`moveAssets: false`——中转文件留在缓存里给分享/重存复用。 */
-async function saveDownloadedImage(url: string): Promise<void> {
-  const file = await downloadImage(url);
-  const album = await Album.get(ALBUM_NAME);
-  if (album === null) {
-    await Album.create(ALBUM_NAME, [file.uri], false);
-  } else {
-    await Asset.create(file.uri, album);
-  }
+/**
+ * 相册里已有的文件名。文件名由 `imageFileName` 从 URL 稳定推出,
+ * 所以「同名」就是「同一张图存过了」(M4 验收 G8:重复保存不该在相册里堆两套)。
+ */
+async function albumFilenames(album: Album | null): Promise<Set<string>> {
+  if (album === null) return new Set();
+  const assets = await album.getAssets();
+  return new Set(await Promise.all(assets.map((asset) => asset.getFilename())));
 }
 
-/** 把一张图存进「相册/NGA」。 */
-export async function saveImageToAlbum(url: string): Promise<void> {
+/** 下载中转 + 写进「相册/NGA」,返回落进去的相册。`moveAssets: false`——中转文件留在缓存里给分享/重存复用。 */
+async function saveDownloadedImage(url: string, album: Album | null): Promise<Album> {
+  const file = await downloadImage(url);
+  if (album === null) return Album.create(ALBUM_NAME, [file.uri], false);
+  await Asset.create(file.uri, album);
+  return album;
+}
+
+/** 把一张图存进「相册/NGA」;已经存过的不再存第二份。 */
+export async function saveImageToAlbum(url: string): Promise<'saved' | 'duplicate'> {
   await ensureWritePermission();
-  await saveDownloadedImage(url);
+  const album = await Album.get(ALBUM_NAME);
+  const existing = await albumFilenames(album);
+  if (existing.has(imageFileName(url))) return 'duplicate';
+  await saveDownloadedImage(url, album);
+  return 'saved';
 }
 
 /** 调起系统分享面板分享图片文件本体(不是分享一条链接)。 */
@@ -65,24 +76,35 @@ export async function shareImage(url: string): Promise<void> {
 
 export interface BatchSaveResult {
   saved: number;
+  /** 相册里已经有同一张,这次跳过没存 */
+  skipped: number;
   failed: number;
 }
 
 /**
  * 批量下载本楼全部图片进相册。顺序下,一张失败不拦着后面的;
- * 权限被拒是整批的事,直接抛出去。
+ * 已经在相册里的跳过(G8);权限被拒是整批的事,直接抛出去。
  */
 export async function saveImagesToAlbum(urls: readonly string[]): Promise<BatchSaveResult> {
   await ensureWritePermission();
+  let album = await Album.get(ALBUM_NAME);
+  const existing = await albumFilenames(album);
   let saved = 0;
+  let skipped = 0;
   let failed = 0;
   for (const url of urls) {
+    const name = imageFileName(url);
+    if (existing.has(name)) {
+      skipped += 1;
+      continue;
+    }
     try {
-      await saveDownloadedImage(url);
+      album = await saveDownloadedImage(url, album);
+      existing.add(name);
       saved += 1;
     } catch {
       failed += 1;
     }
   }
-  return { saved, failed };
+  return { saved, skipped, failed };
 }

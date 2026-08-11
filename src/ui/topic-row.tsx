@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Topic } from '@/core/api';
@@ -38,8 +39,12 @@ export interface TopicRowProps {
  *
  * 合集与版块镜像行(`shortcut`)点开的是另一个版块的主题列表,不是讨论串。
  * 合集按设计稿加粗;镜像行不额外加粗——它的粗体本来就写在服务端下发的掩码里。
+ *
+ * memo:翻页追加时列表屏的 loading state 一翻转就整屏重渲染,几十行全量重画
+ * 在 120Hz 下是肉眼可见的一顿(M4 滚动排查)。调用方的 onPress 都要 useCallback,
+ * 不然 props 恒不等,memo 白包。
  */
-export function TopicRow({ topic, onPress, time }: TopicRowProps) {
+export const TopicRow = memo(function TopicRow({ topic, onPress, time }: TopicRowProps) {
   const styles = useStyles();
   const theme = useTheme();
   // 「帖子列表字体大小」(22 票)。二级列表(simple-list)那一档不跟着改——
@@ -85,7 +90,7 @@ export function TopicRow({ topic, onPress, time }: TopicRowProps) {
       </View>
     </Pressable>
   );
-}
+});
 
 const useStyles = createThemedStyles((theme) => ({
   // 设计稿:14/16/12 的行内边距 + 1px 分隔线

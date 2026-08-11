@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Text, View } from 'react-native';
 
 import { mergeUserPostPages, type Topic, type UserPostKind } from '@/core/api';
@@ -64,24 +64,27 @@ export default function UserPostsScreen() {
   const items = useMemo(() => mergeUserPostPages(data?.pages ?? []), [data?.pages]);
   const loadedPages = data?.pages.length ?? 0;
 
-  const openTopic = (topic: Topic) => {
-    if (topic.denied) {
-      // 服务端已经明说了不给看,点进去只会是一个空帖子
-      showToast(topic.subject);
-      return;
-    }
-    router.push({
-      pathname: '/topic/[tid]',
-      params: {
-        tid: String(topic.tid),
-        title: topic.subject,
-        ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
-        // 回复条目直接落到那一楼:NGA 不提供 pid → 页码 的换算,
-        // 只提供「只看某一楼」(API 文档 §3 的 pid 参数),详情页会带一条返回全帖的提示
-        ...(topic.reply === undefined ? {} : { pid: String(topic.reply.pid) }),
-      },
-    });
-  };
+  const openTopic = useCallback(
+    (topic: Topic) => {
+      if (topic.denied) {
+        // 服务端已经明说了不给看,点进去只会是一个空帖子
+        showToast(topic.subject);
+        return;
+      }
+      router.push({
+        pathname: '/topic/[tid]',
+        params: {
+          tid: String(topic.tid),
+          title: topic.subject,
+          ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
+          // 回复条目直接落到那一楼:NGA 不提供 pid → 页码 的换算,
+          // 只提供「只看某一楼」(API 文档 §3 的 pid 参数),详情页会带一条返回全帖的提示
+          ...(topic.reply === undefined ? {} : { pid: String(topic.reply.pid) }),
+        },
+      });
+    },
+    [router],
+  );
 
   const body = () => {
     if (isPending) return <LoadingState />;

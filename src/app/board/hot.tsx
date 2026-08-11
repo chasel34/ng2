@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Text, View } from 'react-native';
 
 import type { Topic } from '@/core/api';
@@ -42,17 +42,20 @@ export default function HotTopicsScreen() {
     [data?.topics, filterTopics],
   );
 
-  const openTopic = (topic: Topic) => {
-    // 榜单在聚合时已剔掉合集/镜像/外链行,进来的都是普通讨论串
-    router.push({
-      pathname: '/topic/[tid]',
-      params: {
-        tid: String(topic.tid),
-        title: topic.subject,
-        ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
-      },
-    });
-  };
+  const openTopic = useCallback(
+    (topic: Topic) => {
+      // 榜单在聚合时已剔掉合集/镜像/外链行,进来的都是普通讨论串
+      router.push({
+        pathname: '/topic/[tid]',
+        params: {
+          tid: String(topic.tid),
+          title: topic.subject,
+          ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
+        },
+      });
+    },
+    [router],
+  );
 
   // 副标题条(设计稿 listSub):来源版块 + 排序口径;部分页失败时把话说在这儿
   const subParts = [

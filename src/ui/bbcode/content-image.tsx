@@ -12,6 +12,12 @@ const INITIAL_ASPECT = 4 / 3;
 /** 竖长图(手机长截图)按整屏高展开会把楼层撑成一屏一张,压到这个比例封顶。 */
 const MIN_ASPECT = 0.6;
 
+/**
+ * 不足这个宽度(原始像素)的算小图:按原尺寸摆,不铺满卡宽——
+ * 签名里 16px 的站标拉到整卡宽会糊成一片色块(M4 验收缺陷 E7)。
+ */
+const SMALL_IMAGE_WIDTH = 200;
+
 export interface ContentImageProps {
   uri: string;
   /** 同一张图的缩略图地址(「图片加载策略」省流量那两档用);站外图没有就不给 */
@@ -31,7 +37,7 @@ export interface ContentImageProps {
 export function ContentImage({ uri, thumbnailUri, onPress }: ContentImageProps) {
   const styles = useStyles();
   const theme = useTheme();
-  const [aspect, setAspect] = useState(INITIAL_ASPECT);
+  const [natural, setNatural] = useState<{ width: number; height: number } | undefined>(undefined);
   const [failed, setFailed] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const unlocked = useImagesUnlocked();
@@ -57,18 +63,34 @@ export function ContentImage({ uri, thumbnailUri, onPress }: ContentImageProps) 
     );
   }
 
+  // 小图按原尺寸(px 当 dp)靠左摆;大图照旧铺满卡宽、按真实比例给高,
+  // 竖长图压 MIN_ASPECT 封顶。小图不套这个封顶——16×64 的竖条原样放着就好
+  const small = natural !== undefined && natural.width <= SMALL_IMAGE_WIDTH;
+  const sizeStyle = small
+    ? {
+        width: natural.width,
+        aspectRatio: natural.width / Math.max(1, natural.height),
+        alignSelf: 'flex-start' as const,
+      }
+    : {
+        aspectRatio:
+          natural === undefined
+            ? INITIAL_ASPECT
+            : Math.max(MIN_ASPECT, natural.width / Math.max(1, natural.height)),
+      };
+
   return (
     <Pressable onPress={onPress === undefined ? undefined : () => onPress(uri)}>
       <Image
         source={{ uri: source }}
-        style={[styles.image, { aspectRatio: aspect }]}
+        style={[styles.image, sizeStyle]}
         contentFit="cover"
         cachePolicy="disk"
         transition={120}
         recyclingKey={source}
         onLoad={({ source }) => {
           if (source.height > 0) {
-            setAspect(Math.max(MIN_ASPECT, source.width / source.height));
+            setNatural({ width: source.width, height: source.height });
           }
         }}
         onError={() => setFailed(true)}

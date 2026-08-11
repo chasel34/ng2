@@ -88,8 +88,12 @@ interface NotificationsStore {
   readIds: ReadonlySet<string>;
   /** 手动/轮询刷新是否在途(页面空态转圈用) */
   refreshing: boolean;
-  /** 最近一次拉取的失败原因;成功即清空。空列表配上它才知道是「没通知」还是「没拉到」 */
-  error: string | null;
+  /**
+   * 最近一次拉取抛出的错误**原样**;成功即清空。空列表配上它才知道是「没通知」还是
+   * 「没拉到」。存对象不存 message:错误页要按 NgaError 的 kind 分文案(M4 验收缺陷 F4,
+   * 压成字符串会让断网也落进 generic 兜底那句)。
+   */
+  error: unknown;
   /** 切号/登出:清条目、换已读桶 */
   activate: (uid: string | null) => void;
   /** 拉一次 get_all 并合并(只增不覆盖,core/local)。轮询与进页共用。 */
@@ -130,7 +134,7 @@ export const useNotifications = create<NotificationsStore>()((set, get) => ({
     } catch (cause) {
       // 轮询失败不打断谁:错误只记在 state 上,页面空着时才拿出来说
       if (get().activeUid !== uid) return;
-      set({ error: cause instanceof Error ? cause.message : '通知拉不下来' });
+      set({ error: cause ?? new Error('通知拉不下来') });
     } finally {
       if (get().activeUid === uid) set({ refreshing: false });
     }

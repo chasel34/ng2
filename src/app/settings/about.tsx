@@ -23,6 +23,15 @@ import { TopBar, TopBarButton, TopBarTitle } from '@/ui/top-bar';
 const DISCLAIMER =
   '本客户端与 NGA 官方无关,仅供个人学习与自用。所有内容版权归原作者与 NGA 所有,不做任何分发。';
 
+/**
+ * 「免责声明」行展开后的全文。底部那句常驻页脚已经把短版摆着了,
+ * 行里再展开同一句会像渲染重复(M4 验收缺陷 D4),所以这里给的是说全乎的长版。
+ */
+const DISCLAIMER_DETAIL =
+  '本客户端是个人开发的第三方阅读工具,与 NGA(bbs.nga.cn)及其运营方没有任何关联。' +
+  '所有帖子、图片、表情等内容的版权归原作者与 NGA 所有;本应用只做阅读呈现,' +
+  '不缓存分发任何内容,也不提供公开下载。仅供个人学习与自用。';
+
 /** 打包进 APK 的第三方组件,都是 package.json 里实际在用的。 */
 const LICENSES = [
   'React Native · Expo SDK — MIT',
@@ -88,7 +97,7 @@ export default function AboutScreen() {
       key: 'disclaimer',
       icon: 'gavel',
       label: '免责声明',
-      detail: DISCLAIMER,
+      detail: DISCLAIMER_DETAIL,
     },
   ];
 

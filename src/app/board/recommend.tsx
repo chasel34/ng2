@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Text, View } from 'react-native';
 
 import { mergeTopicPages, type Topic } from '@/core/api';
@@ -54,28 +54,31 @@ export default function RecommendScreen() {
   const loadedPages = data?.pages.length ?? 0;
   const totalRows = data?.pages[0]?.totalRows;
 
-  const openTopic = (topic: Topic) => {
-    // 与主题列表页同一套规则:快捷方式行开版块、活动行走浏览器
-    if (topic.shortcut !== undefined) {
+  const openTopic = useCallback(
+    (topic: Topic) => {
+      // 与主题列表页同一套规则:快捷方式行开版块、活动行走浏览器
+      if (topic.shortcut !== undefined) {
+        router.push({
+          pathname: '/board/[id]',
+          params: { id: String(topic.shortcut.id), name: topic.subject, kind: topic.shortcut.kind },
+        });
+        return;
+      }
+      if (topic.jumpUrl !== undefined) {
+        void WebBrowser.openBrowserAsync(topic.jumpUrl);
+        return;
+      }
       router.push({
-        pathname: '/board/[id]',
-        params: { id: String(topic.shortcut.id), name: topic.subject, kind: topic.shortcut.kind },
+        pathname: '/topic/[tid]',
+        params: {
+          tid: String(topic.tid),
+          title: topic.subject,
+          ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
+        },
       });
-      return;
-    }
-    if (topic.jumpUrl !== undefined) {
-      void WebBrowser.openBrowserAsync(topic.jumpUrl);
-      return;
-    }
-    router.push({
-      pathname: '/topic/[tid]',
-      params: {
-        tid: String(topic.tid),
-        title: topic.subject,
-        ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
-      },
-    });
-  };
+    },
+    [router],
+  );
 
   // 副标题条(设计稿 listSub:「版面推荐 · 共 148 篇」,「版面」沿用设计稿原字)
   const subParts = [

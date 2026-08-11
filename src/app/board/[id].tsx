@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -106,33 +106,40 @@ export default function BoardScreen() {
     void run(!favored);
   };
 
-  const openBoard = (board: Board) => {
-    router.push({
-      pathname: '/board/[id]',
-      params: { id: String(board.id), name: board.name, kind: board.kind },
-    });
-  };
+  // useCallback:TopicRow 是 memo 的,onPress 不稳定的话每次父渲染都白比一遍
+  const openBoard = useCallback(
+    (board: Board) => {
+      router.push({
+        pathname: '/board/[id]',
+        params: { id: String(board.id), name: board.name, kind: board.kind },
+      });
+    },
+    [router],
+  );
 
-  const openTopic = (topic: Topic) => {
-    // 合集 / 版块镜像行不是讨论串,点开是另一个版块的主题列表(API 文档 §2 解析要点 3)
-    if (topic.shortcut !== undefined) {
-      openBoard({ id: topic.shortcut.id, kind: topic.shortcut.kind, name: topic.subject });
-      return;
-    }
-    // 活动主题指向站内活动页,不是 read.php,只能交给浏览器
-    if (topic.jumpUrl !== undefined) {
-      void WebBrowser.openBrowserAsync(topic.jumpUrl);
-      return;
-    }
-    router.push({
-      pathname: '/topic/[tid]',
-      params: {
-        tid: String(topic.tid),
-        title: topic.subject,
-        ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
-      },
-    });
-  };
+  const openTopic = useCallback(
+    (topic: Topic) => {
+      // 合集 / 版块镜像行不是讨论串,点开是另一个版块的主题列表(API 文档 §2 解析要点 3)
+      if (topic.shortcut !== undefined) {
+        openBoard({ id: topic.shortcut.id, kind: topic.shortcut.kind, name: topic.subject });
+        return;
+      }
+      // 活动主题指向站内活动页,不是 read.php,只能交给浏览器
+      if (topic.jumpUrl !== undefined) {
+        void WebBrowser.openBrowserAsync(topic.jumpUrl);
+        return;
+      }
+      router.push({
+        pathname: '/topic/[tid]',
+        params: {
+          tid: String(topic.tid),
+          title: topic.subject,
+          ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
+        },
+      });
+    },
+    [router, openBoard],
+  );
 
   const menuItems: readonly MenuItem[] = useMemo(() => {
     // 热帖/精华区(17 票)、浏览历史(16 票)、子版块(23 票)都复用本页的路由参数;

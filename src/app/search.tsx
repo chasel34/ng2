@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Keyboard,
   Pressable,
@@ -300,32 +300,38 @@ function TopicResults({
   const totalRows = data?.pages[0]?.totalRows ?? 0;
   const loadedPages = data?.pages.length ?? 0;
 
-  const openBoard = (board: Board) => {
-    router.push({
-      pathname: '/board/[id]',
-      params: { id: String(board.id), name: board.name, kind: board.kind },
-    });
-  };
+  const openBoard = useCallback(
+    (board: Board) => {
+      router.push({
+        pathname: '/board/[id]',
+        params: { id: String(board.id), name: board.name, kind: board.kind },
+      });
+    },
+    [router],
+  );
 
-  const openTopic = (topic: Topic) => {
-    // 合集 / 版块镜像行点开的是另一个版块的列表(API 文档 §2 解析要点 3)
-    if (topic.shortcut !== undefined) {
-      openBoard({ id: topic.shortcut.id, kind: topic.shortcut.kind, name: topic.subject });
-      return;
-    }
-    if (topic.jumpUrl !== undefined) {
-      void WebBrowser.openBrowserAsync(topic.jumpUrl);
-      return;
-    }
-    router.push({
-      pathname: '/topic/[tid]',
-      params: {
-        tid: String(topic.tid),
-        title: topic.subject,
-        ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
-      },
-    });
-  };
+  const openTopic = useCallback(
+    (topic: Topic) => {
+      // 合集 / 版块镜像行点开的是另一个版块的列表(API 文档 §2 解析要点 3)
+      if (topic.shortcut !== undefined) {
+        openBoard({ id: topic.shortcut.id, kind: topic.shortcut.kind, name: topic.subject });
+        return;
+      }
+      if (topic.jumpUrl !== undefined) {
+        void WebBrowser.openBrowserAsync(topic.jumpUrl);
+        return;
+      }
+      router.push({
+        pathname: '/topic/[tid]',
+        params: {
+          tid: String(topic.tid),
+          title: topic.subject,
+          ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
+        },
+      });
+    },
+    [router, openBoard],
+  );
 
   if (isPending) return <LoadingState />;
   if (topics.length === 0) {

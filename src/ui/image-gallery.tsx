@@ -320,6 +320,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   page: {
+    // flex:1 不能少:GalleryPage 的根节点也用这份样式,它外面那层只给了宽高,
+    // 只有 padding 的话内容自适应高度会坍缩成 0,flex:1 的 Image 就永远量不出尺寸
+    flex: 1,
     padding: 16,
   },
   image: {

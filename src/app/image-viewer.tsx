@@ -86,7 +86,9 @@ export default function ImageViewerScreen() {
   const saveCurrent = () => {
     showToast('正在保存…');
     saveImageToAlbum(current.url)
-      .then(() => showToast('已保存到 相册/NGA'))
+      .then((outcome) =>
+        showToast(outcome === 'duplicate' ? '这张图已经在 相册/NGA 里了' : '已保存到 相册/NGA'),
+      )
       .catch(reportError);
   };
 
@@ -107,8 +109,15 @@ export default function ImageViewerScreen() {
     batchRunning.current = true;
     showToast(`开始下载 ${images.length} 张图片…`);
     saveImagesToAlbum(images.map((image) => image.url))
-      .then(({ saved, failed }) => {
-        showToast(failed === 0 ? `已保存 ${saved} 张到 相册/NGA` : `已保存 ${saved} 张,${failed} 张失败`);
+      .then(({ saved, skipped, failed }) => {
+        if (saved === 0 && failed === 0 && skipped > 0) {
+          showToast('这些图都已经在 相册/NGA 里了');
+          return;
+        }
+        const parts = [`已保存 ${saved} 张到 相册/NGA`];
+        if (skipped > 0) parts.push(`${skipped} 张已在相册`);
+        if (failed > 0) parts.push(`${failed} 张失败`);
+        showToast(parts.join(','));
       })
       .catch(reportError)
       .finally(() => {

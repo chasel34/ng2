@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
@@ -19,6 +20,10 @@ import { useTheme } from '@/ui/theme';
  * 会点不动。声明首页为 anchor,expo-router 会在深链落地页下面垫一层 index。
  */
 export const unstable_settings = { anchor: 'index' };
+
+// 深色模式冷启动(M4 验收缺陷 A5):窗口背景色是构建期资源、只有浅色一档,
+// 启动屏一撤就露出奶油底。把启动屏(带深色档)按住,等首帧真正能画了再放
+void SplashScreen.preventAutoHideAsync();
 
 function createQueryClient() {
   return new QueryClient({
@@ -45,6 +50,12 @@ export default function RootLayout() {
   useEffect(() => {
     void SystemUI.setBackgroundColorAsync(theme.colors.bg);
   }, [theme]);
+
+  // 图标字体就位 = 路由树开始渲染,这时才撤启动屏;深色下从深色启动屏
+  // 直接接到深色首屏,中间不再闪浅色窗口底
+  useEffect(() => {
+    if (iconFontLoaded) void SplashScreen.hideAsync();
+  }, [iconFontLoaded]);
 
   return (
     <QueryClientProvider client={queryClient}>

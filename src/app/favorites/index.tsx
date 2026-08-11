@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -74,17 +74,20 @@ export default function FavoriteTopicsScreen() {
     [folders, folder?.id],
   );
 
-  const openTopic = (topic: Topic) => {
-    router.push({
-      pathname: '/topic/[tid]',
-      params: {
-        tid: String(topic.tid),
-        title: topic.subject,
-        // 收藏夹列表的 tpcurl 带 fav 码,进详情页要带上才打得开隐藏/过期主题
-        ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
-      },
-    });
-  };
+  const openTopic = useCallback(
+    (topic: Topic) => {
+      router.push({
+        pathname: '/topic/[tid]',
+        params: {
+          tid: String(topic.tid),
+          title: topic.subject,
+          // 收藏夹列表的 tpcurl 带 fav 码,进详情页要带上才打得开隐藏/过期主题
+          ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
+        },
+      });
+    },
+    [router],
+  );
 
   const body = () => {
     if (foldersPending || (folder !== undefined && isPending)) return <LoadingState />;

@@ -208,10 +208,17 @@ export function AppDrawerContent({
             >
               <Icon name="chevron_left" size={18} color={theme.colors.onPrimary} style={styles.chevron} />
             </Pressable>
+            {/* 头像点开自己的资料页(M4 验收 I5):此前 app 里没有任何入口能看
+                自己的资料;账号管理走下面那行「当前:…」,两个入口各管一件事 */}
             <Pressable
               style={styles.avatar}
-              onPress={() => go('/accounts')}
-              accessibilityLabel="账号管理"
+              onPress={() =>
+                go({
+                  pathname: '/user/[uid]',
+                  params: { uid: current.uid, name: current.name },
+                })
+              }
+              accessibilityLabel="查看我的资料"
             >
               <Text style={styles.avatarText} allowFontScaling={false}>
                 {nameAbbrev(current.name, 4)}
