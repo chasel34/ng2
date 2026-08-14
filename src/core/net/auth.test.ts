@@ -18,6 +18,13 @@ describe('buildAuthAttachment · 两种等价认证方式（API 文档 §0.2）'
     })
   })
 
+  it('both（默认）两样都带：Cookie 头会被 okhttp 的 cookie jar 顶掉，form 顶不掉', () => {
+    expect(buildAuthAttachment('both', credentials)).toEqual({
+      headers: { Cookie: 'ngaPassportUid=10000001; ngaPassportCid=fake-cid-token' },
+      form: { access_uid: '10000001', access_token: 'fake-cid-token' },
+    })
+  })
+
   it('none 或无凭证时什么都不加（游客访问）', () => {
     expect(buildAuthAttachment('none', credentials)).toEqual({ headers: {}, form: {} })
     expect(buildAuthAttachment('cookie', null)).toEqual({ headers: {}, form: {} })

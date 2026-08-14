@@ -18,6 +18,7 @@
 
 export { buildAuthAttachment, type AuthAttachment, type AuthMode, type NgaCredentials } from './auth'
 export {
+  DEFAULT_COMBO_TTL_MS,
   DEFAULT_MAX_ATTEMPTS,
   DEFAULT_ROTATION_FORMATS,
   createComboCache,
@@ -26,6 +27,8 @@ export {
   interfaceKeyOf,
   isRotatableFormat,
   type ComboCache,
+  type ComboCacheOptions,
+  type ComboRecord,
   type FetchCombo,
 } from './combo'
 export {
@@ -45,14 +48,17 @@ export {
   describeFetchFailure,
   diagnosticSummary,
   formatDiagnostic,
+  formatOutcome,
+  summarizeEnvelopeData,
   type FetchAttemptError,
   type FetchFailureCopy,
   type FetchAttemptLog,
   type FetchDiagnostic,
+  type FetchOutcomeSummary,
 } from './diagnostics'
 export { decodeResponseBody } from './encoding/decode-body'
 export { decodeGb18030, gbkEncodeURIComponent } from './encoding/gb18030'
-export { parseNgaJson, type NgaEnvelope } from './envelope'
+export { parseNgaJson, type EnvelopeShape, type NgaEnvelope } from './envelope'
 export { isRecord } from './is-record'
 export {
   NgaError,

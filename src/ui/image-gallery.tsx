@@ -291,6 +291,26 @@ function GalleryPage({
             })}
         style={styles.image}
         contentFit="contain"
+        /*
+         * 这里**故意留 disk**,和头像/正文图/版块图标那几处不一样。
+         *
+         * expo-image 在 Android 上把 cachePolicy 直接翻译成 Glide 的
+         * `skipMemoryCache`(`ExpoImageViewWrapper.kt:440`),而 Glide 的内存缓存是
+         * **整个进程共用的一个 LruResourceCache**,容量按「解码后位图的字节数」算
+         * (MemorySizeCalculator,约两屏像素)。
+         *
+         * 查看器画的是整屏原图:contain 到全屏后一张解码位图就是屏幕像素级
+         * (1080×2400×4B ≈ 10MB)。放进去几张就能把那个共用池挤空——被挤掉的正是
+         * 头像和缩略图,也就是我们刚决定要留在内存里的东西。
+         *
+         * 换来的好处又很小:查看器同时只挂当前页与两侧邻页(见上面的 ±1 判断),
+         * 活着的三张本来就被视图持有;真正靠内存缓存省的只有「翻出 ±1 窗口再翻回来」
+         * 那一次,而那一次已经有 placeholderUri(缩略图,它是走内存缓存的)先糊着看,
+         * 底下只是一次本地磁盘读。
+         *
+         * 再加上走查里 P2 记的「看完 20 帖 PSS 174→289MB 不回落」,更不该往这个池子里
+         * 塞整屏位图。
+         */
         cachePolicy="disk"
         transition={120}
         onLoad={({ source: loaded }) => {

@@ -166,21 +166,47 @@ describe('反封锁链失败时的诊断记录', () => {
     expect(logged[0]!.params).toEqual({ page: '2' })
   })
 
-  it('成功的请求不写日志', async () => {
+  it('成功的请求也留一条记录:哪个组合、拿回来什么形状', async () => {
     const logged: FetchDiagnostic[] = []
     const fetchNga = createNgaFetcher({
       transport: () =>
         Promise.resolve<HttpResponse>({
           status: 200,
           contentType: 'text/javascript; charset=UTF-8',
-          body: utf8('{"data":{"0":"ok"}}'),
+          body: utf8('{"data":{"__T":{"0":{"tid":1},"1":{"tid":2}},"__F":{"fid":650}}}'),
         }),
       onDiagnostic: (d) => logged.push(d),
     })
 
     await fetchNga({ path: 'thread.php' })
 
-    expect(logged).toHaveLength(0)
+    // 「链自认为成功、拿回来的却是空数据」这种静默降级只有成功记录里看得见
+    expect(logged).toHaveLength(1)
+    expect(logged[0]!.success).toEqual({
+      strategy: 'direct',
+      format: 'json',
+      host: 'https://bbs.nga.cn',
+      keys: ['__T', '__F'],
+      rows: 2,
+    })
+    expect(formatDiagnostic(logged[0]!)).toContain('成功：[direct] json @ https://bbs.nga.cn')
+  })
+
+  it('成功记录里带的是结构信息,不含正文', async () => {
+    const logged: FetchDiagnostic[] = []
+    const fetchNga = createNgaFetcher({
+      transport: () =>
+        Promise.resolve<HttpResponse>({
+          status: 200,
+          contentType: 'text/javascript; charset=UTF-8',
+          body: utf8('{"data":{"__T":{"0":{"tid":1,"subject":"绝对不能进日志的标题"}}}}'),
+        }),
+      onDiagnostic: (d) => logged.push(d),
+    })
+
+    await fetchNga({ path: 'thread.php' })
+
+    expect(formatDiagnostic(logged[0]!)).not.toContain('绝对不能进日志的标题')
   })
 
   it('read.php 的 Windows Phone UA 是策略开关:默认关,开了才切', async () => {

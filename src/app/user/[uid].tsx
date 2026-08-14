@@ -164,7 +164,9 @@ function Banner({ uid, name, avatarUrl }: { uid: number; name: string; avatarUrl
           source={{ uri: avatarUrl }}
           style={styles.bannerAvatar}
           contentFit="cover"
-          cachePolicy="disk"
+          // memory-disk:和楼层头像是同一张图、共用 Glide 的那份内存缓存,
+          // 从楼层点进资料页基本直接命中,不用再读盘解码一次
+          cachePolicy="memory-disk"
           transition={120}
           onError={() => setFailed(true)}
           accessibilityIgnoresInvertColors

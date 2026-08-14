@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DEFAULT_MAX_ATTEMPTS,
+  DEFAULT_ROTATION_FORMATS,
   createComboCache,
   enumerateCombos,
   formatParamsOf,
@@ -112,6 +114,36 @@ describe('createComboCache', () => {
     cache.forget('read.php')
     expect(cache.get('read.php')).toBeUndefined()
   })
+
+  it('条目有保质期：过期后当没记过，重新从默认组合试探', () => {
+    // 「全组合都失败才清缓存」这一条出口不够用：组合半通不通（能解析但没有业务数据）时
+    // 缓存永远清不掉，唯一复位手段变成杀进程（2026-08-13「版块全空」排查）
+    let clock = 0
+    const cache = createComboCache({ ttlMs: 1000, now: () => clock })
+    cache.remember('thread.php', { format: 'json', host: 'https://a' })
+
+    clock = 999
+    expect(cache.get('thread.php')).toEqual({ format: 'json', host: 'https://a' })
+    clock = 1000
+    expect(cache.get('thread.php')).toBeUndefined()
+  })
+
+  it('entries 给出当前记着的全部组合（实验室页的「本次运行的组合」）', () => {
+    let clock = 0
+    const cache = createComboCache({ ttlMs: 1000, now: () => clock })
+    cache.remember('thread.php', { format: 'json', host: 'https://a' })
+    clock = 500
+    cache.remember('read.php', { format: 'jsonLite', host: 'https://b' })
+
+    expect(cache.entries()).toEqual([
+      ['thread.php', { combo: { format: 'json', host: 'https://a' }, at: 0 }],
+      ['read.php', { combo: { format: 'jsonLite', host: 'https://b' }, at: 500 }],
+    ])
+
+    // 过期的不列出来
+    clock = 1200
+    expect(cache.entries().map(([key]) => key)).toEqual(['read.php'])
+  })
 })
 
 describe('formatParamsOf · 诊断日志里要看得出实际发的是什么', () => {
@@ -119,5 +151,36 @@ describe('formatParamsOf · 诊断日志里要看得出实际发的是什么', (
     expect(formatParamsOf('json')).toBe('__output=8')
     expect(formatParamsOf('jsonLite')).toBe('lite=js')
     expect(formatParamsOf('html')).toBe('(无格式参数)')
+  })
+})
+
+describe('默认轮换表 · 冗余来自「不共用同一段服务端代码」', () => {
+  it('jsonVerbose 在表里,而且排在 jsonLite 前面', () => {
+    // fid=414 的教训:`json`(__output=8) 与 `jsonLite`(lite=js) 是**同一份字节**,
+    // 只差一层 `window.script_muti_get_var_store=` 包装。服务端把坏字节写进那份响应时,
+    // 这两档一起完蛋,换几个域名都一样。`jsonVerbose`(__output=11) 是另一个序列化器,
+    // 必须在耗掉一整轮域名之前就试到它。
+    expect(DEFAULT_ROTATION_FORMATS).toContain('jsonVerbose')
+    expect(DEFAULT_ROTATION_FORMATS.indexOf('jsonVerbose')).toBeLessThan(
+      DEFAULT_ROTATION_FORMATS.indexOf('jsonLite'),
+    )
+  })
+
+  it('默认上限够第一个域名试满所有格式,还剩得下第二、三个域名', () => {
+    const combos = enumerateCombos({
+      formats: DEFAULT_ROTATION_FORMATS,
+      hosts: ['https://a', 'https://b', 'https://c'],
+      maxAttempts: DEFAULT_MAX_ATTEMPTS,
+    })
+    const hostsTried = new Set(combos.map((c) => c.host))
+
+    // 第一个域名把三个格式都试到(坏字节靠换格式救)
+    expect(ids(combos).slice(0, 3)).toEqual([
+      'json@https://a',
+      'jsonVerbose@https://a',
+      'jsonLite@https://a',
+    ])
+    // 同时保住三域名覆盖(被封靠换域名救),两者都不能丢
+    expect(hostsTried.size).toBe(3)
   })
 })

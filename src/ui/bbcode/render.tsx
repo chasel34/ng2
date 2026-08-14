@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, memo, useMemo, type ReactNode } from 'react';
 import { Linking, Pressable, Text, View, type StyleProp, type TextStyle } from 'react-native';
 
 import { attachmentUrl, thumbnailUrl } from '@/core/api';
@@ -137,8 +137,12 @@ const textNode = (value: string): BBCodeNode => ({ type: 'text', value });
 
 /**
  * 一段 AST。`style` 覆盖正文字号(引用块里的正文比楼层正文小一档)。
+ *
+ * memo:正文是楼层里最贵的一块(整棵 AST → 元素树)。楼层卡片因为别的原因重渲染
+ * (赞踩变色、菜单开合)时,只要 AST / 渲染参数 / 字号没变就整块跳过——
+ * 前提是调用方把 `options` 稳住,见 `floor-card.tsx` 的 `renderOptions`。
  */
-export function BBCodeBody({
+export const BBCodeBody = memo(function BBCodeBody({
   nodes,
   options,
   style,
@@ -149,14 +153,18 @@ export function BBCodeBody({
 }) {
   const styles = useStyles();
   const theme = useTheme();
-  const segments = splitIntoSegments(nodes);
+  // 分段只跟 AST 有关,跟主题/字号/回调都无关。AST 是 `parseBBCode` 缓好的稳定对象,
+  // 所以按它缓存——不然每次重渲染都要把整棵树重新切一遍段
+  const segments = useMemo(() => splitIntoSegments(nodes), [nodes]);
+  // 每个行内段的 <Text> 都是同一份样式,一段一个新数组没必要
+  const bodyStyle = useMemo(() => [styles.body, style], [styles.body, style]);
 
   return (
     <>
       {segments.map((segment, index) => {
         if (segment.kind === 'inline') {
           return (
-            <Text key={index} style={[styles.body, style]}>
+            <Text key={index} style={bodyStyle}>
               {renderInline({ nodes: segment.nodes, options, styles, theme })}
             </Text>
           );
@@ -165,7 +173,7 @@ export function BBCodeBody({
       })}
     </>
   );
-}
+});
 
 function BlockNode({
   node,
@@ -210,14 +218,15 @@ function BlockNode({
     }
     case 'image': {
       const uri = attachmentUrl(node, attachOptions(options));
+      // 上距直接摞在 ContentImage 的根节点上,不再为了一条 marginTop 多套一层 View——
+      // 图多的楼层里每张图都省一个视图节点(量算 + 绘制)
       return (
-        <View style={styles.imageWrap}>
-          <ContentImage
-            uri={uri}
-            thumbnailUri={thumbnailUrl(uri, options.attachBase)}
-            {...(options.onOpenImage === undefined ? {} : { onPress: options.onOpenImage })}
-          />
-        </View>
+        <ContentImage
+          uri={uri}
+          thumbnailUri={thumbnailUrl(uri, options.attachBase)}
+          style={styles.imageWrap}
+          {...(options.onOpenImage === undefined ? {} : { onPress: options.onOpenImage })}
+        />
       );
     }
     case 'divider':

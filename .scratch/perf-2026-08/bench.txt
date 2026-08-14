@@ -1,0 +1,21 @@
+node v24.18.0
+
+read-attachments.gbk.bin  楼层 24 段 / 2001 字
+  parseBBCode 整页                                 0.12 ms/次
+  splitIntoSegments 整页（AST 已解析）                  0.01 ms/次
+  splitIntoSegments 整页（每次新 AST）                  0.16 ms/次
+
+read-anonymous-hotreply.gbk.bin  楼层 23 段 / 2339 字
+  parseBBCode 整页                                 0.14 ms/次
+  splitIntoSegments 整页（AST 已解析）                  0.00 ms/次
+  splitIntoSegments 整页（每次新 AST）                  0.11 ms/次
+
+read-board-head.gbk.bin  楼层 2 段 / 4618 字
+  parseBBCode 整页                                 0.23 ms/次
+  splitIntoSegments 整页（AST 已解析）                  0.00 ms/次
+  splitIntoSegments 整页（每次新 AST）                  0.23 ms/次
+
+read-comment-noimg.gbk.bin  楼层 19 段 / 983 字
+  parseBBCode 整页                                 0.04 ms/次
+  splitIntoSegments 整页（AST 已解析）                  0.00 ms/次
+  splitIntoSegments 整页（每次新 AST）                  0.04 ms/次

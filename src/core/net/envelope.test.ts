@@ -60,9 +60,27 @@ describe('parseNgaJson', () => {
     expect(envelope.fakeError).toBeUndefined()
   })
 
-  it('不套 data 壳的接口（app_api 版块树）data 退化成整个顶层', () => {
-    const envelope = parseNgaJson('{"code":0,"msg":"","result":[]}')
+  it('顶层既没有 data 也没有 error 时默认报解析错（可重试，链会换下一个组合）', () => {
+    // 以前这里把顶层当 data，于是任何一个陌生 JSON 都成了「合法的空数据」，
+    // 一路走到 UI 变成「这个版块还没有主题」（2026-08-13，「版块全空」排查）
+    try {
+      parseNgaJson('{"code":0,"msg":"","result":[]}', 'direct')
+      expect.unreachable('应当抛错')
+    } catch (error) {
+      expect(error).toBeInstanceOf(NgaError)
+      expect((error as NgaError).kind).toBe('parse')
+      expect((error as NgaError).retryable).toBe(true)
+      expect((error as NgaError).via).toBe('direct')
+    }
+  })
+
+  it('调用方显式声明 bare 时，顶层才当 data', () => {
+    const envelope = parseNgaJson('{"code":0,"msg":"","result":[]}', undefined, 'bare')
     expect(envelope.data).toEqual({ code: 0, msg: '', result: [] })
+  })
+
+  it('有 data 壳的响应不受 bare 影响', () => {
+    expect(parseNgaJson('{"data":{"0":"ok"}}', undefined, 'bare').data).toEqual({ '0': 'ok' })
   })
 
   it('真错误抛 server 错误，且不重试', () => {

@@ -48,10 +48,27 @@ const comboCache = createComboCache();
 
 /**
  * 忘掉某个接口上次试通的格式 × 域名组合(ADR-0002)。
- * key 即接口 key(`read.php`、`nuke.php?__lib=…&__act=…`)。
+ * key 即接口 key(`read.php`、`thread.php`、`nuke.php?__lib=…&__act=…`)。
+ *
+ * ⚠️ `thread.php` 这一条是**版块列表 / 搜索 / 收藏夹 / 热帖 / 精华区 / 某人的主题共用**的
+ * (接口 key 的粒度就是脚本 + `__lib/__act`),清它等于让这半个 app 一起重新试探。
  */
 export function forgetSuccessfulCombo(interfaceKey: string): void {
   comboCache.forget(interfaceKey);
+}
+
+/**
+ * 本次运行里各接口当前挂在哪个组合上(实验室页的「本次运行的组合」)。
+ *
+ * 有它才看得出「所有版块都空」是不是因为 `thread.php` 被钉在了某个坏组合上——
+ * 那次事故里这件事在界面上完全不可见(2026-08-13 排查)。
+ */
+export function successfulCombos(): readonly { key: string; combo: string; at: number }[] {
+  return comboCache.entries().map(([key, record]) => ({
+    key,
+    combo: `${record.combo.format} @ ${record.combo.host}`,
+    at: record.at,
+  }));
 }
 
 export const fetchNga: NgaFetcher = createNgaFetcher({

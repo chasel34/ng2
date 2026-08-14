@@ -2,7 +2,7 @@ import type { AuthMode, NgaCredentials } from './auth'
 import type { ComboCache } from './combo'
 import type { ResponseFormat, UserAgentProfile } from './constants'
 import type { FetchDiagnostic } from './diagnostics'
-import type { NgaEnvelope } from './envelope'
+import type { EnvelopeShape, NgaEnvelope } from './envelope'
 import type { NgaError } from './errors'
 import type { QueryParams } from './query'
 import type { HttpTransport } from './transport'
@@ -27,6 +27,23 @@ export interface NgaRequest {
   readonly credentials?: NgaCredentials | null
   /** 覆盖域名 */
   readonly host?: string
+  /**
+   * 这个接口的信封形状，默认 `wrapped`（顶层有 `data`/`error` 壳）。
+   * 顶层就是数据的接口显式写 `bare`（见 envelope.ts 为什么默认不能是它）。
+   */
+  readonly envelope?: EnvelopeShape
+  /**
+   * 业务层的成功判据（2026-08-13，「版块全空」排查）。
+   *
+   * 反封锁链原本只认「洗得成 JSON」= 成功，于是一个**能解析但根本不是这个接口的响应**
+   * 会被当成功、被记进成功组合缓存、并把「0 条数据」当结果交给 UI。给调用方一个
+   * 一票否决权：返回一段说明就表示「这不是我要的东西」，链会把它当 `kind: 'parse'`
+   * （可重试）继续换下一个组合，坏组合也进不了缓存。
+   *
+   * 返回 `undefined` = 认可这个响应。**不要在这里做业务校验**（权限、空列表都属于
+   * 正常结果），只判「形状对不对」。
+   */
+  readonly validate?: (envelope: NgaEnvelope) => string | undefined
   /** 覆盖 Referer；`nuke.php?__lib=ucp` 必须带且需以 base url 开头 */
   readonly referer?: string
   /**
@@ -103,3 +120,8 @@ export type FetchEvent =
     }
   /** 整条链失败。`diagnostic` 已经带上全部尝试记录，可直接落盘 */
   | { readonly type: 'chain-failure'; readonly diagnostic: FetchDiagnostic }
+  /**
+   * 整条链拿到了结果。`diagnostic.success` 带落点摘要（组合 / `data` 顶层键 / 条数）——
+   * 「成功但空」这种静默降级只有在这里才看得见
+   */
+  | { readonly type: 'chain-success'; readonly diagnostic: FetchDiagnostic }

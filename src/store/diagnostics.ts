@@ -26,7 +26,70 @@ function read(): readonly string[] {
   }
 }
 
+/**
+ * 本次运行的请求落点表(H2,2026-08-13「版块全空」排查)。
+ *
+ * **只活在内存里**,进程一死就没了——它要回答的正是「这个进程现在挂在哪个组合上」。
+ * 成功的请求也进这张表:那次事故里整条链自认为成功,失败日志里一条记录都没有,
+ * 从界面上完全看不出「我们其实没拿到列表」。
+ *
+ * 不落 MMKV 是有意的:每次请求都读一遍整份日志再 stringify 写回去,是个
+ * O(日志长度) 的同步写,请求热路径上不该有这个(M4 性能走查还在跑)。
+ */
+export interface RunLogEntry {
+  readonly at: number;
+  readonly path: string;
+  readonly params: Readonly<Record<string, string>>;
+  /** 成功时是落点摘要(组合 + data 顶层键 + 条数),失败时是最终错误 */
+  readonly message: string;
+  readonly ok: boolean;
+  /** 这一次链上真发出去了几次 HTTP */
+  readonly attempts: number;
+}
+
+const RUN_LOG_LIMIT = 40;
+let runLog: RunLogEntry[] = [];
+
+/** 最新的在前。实验室页的「本次运行的请求」拿它渲染。 */
+export function readRunLog(): readonly RunLogEntry[] {
+  return runLog;
+}
+
+export function clearRunLog(): void {
+  runLog = [];
+}
+
+/**
+ * 成功的请求要不要也落盘。
+ *
+ * 全落会把导出日志冲垮(一屏能几十条),所以只留**值得看的那些**:
+ * 组合换了(反封锁链真的动了)、或者试了不止一次。稳态下的成功一条都不写。
+ */
+const lastPersistedCombo = new Map<string, string>();
+
+function worthPersisting(diagnostic: FetchDiagnostic): boolean {
+  if (diagnostic.success === undefined) return true; // 失败一律留
+  const combo = `${diagnostic.success.format} @ ${diagnostic.success.host}`;
+  const previous = lastPersistedCombo.get(diagnostic.path);
+  // 先记上再判：早退会让水位线停在旧值,下一条同组合的成功又被当成「换组合了」
+  lastPersistedCombo.set(diagnostic.path, combo);
+  return diagnostic.attempts.length > 1 || (previous !== undefined && previous !== combo);
+}
+
 export function recordFetchDiagnostic(diagnostic: FetchDiagnostic): void {
+  runLog = [
+    {
+      at: diagnostic.at,
+      path: diagnostic.path,
+      params: diagnostic.params,
+      message: diagnostic.message,
+      ok: diagnostic.success !== undefined,
+      attempts: diagnostic.attempts.length,
+    },
+    ...runLog,
+  ].slice(0, RUN_LOG_LIMIT);
+
+  if (!worthPersisting(diagnostic)) return;
   try {
     storage.set(STORE_KEY, JSON.stringify(appendDiagnosticLog(read(), diagnostic)));
   } catch {

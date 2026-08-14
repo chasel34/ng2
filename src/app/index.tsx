@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter, type Href } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -258,12 +258,15 @@ export default function HomeScreen() {
     [router],
   );
 
-  const openBoard = (board: Board) => {
-    router.push({
-      pathname: '/board/[id]',
-      params: { id: String(board.id), name: board.name, kind: board.kind },
-    });
-  };
+  const openBoard = useCallback(
+    (board: Board) => {
+      router.push({
+        pathname: '/board/[id]',
+        params: { id: String(board.id), name: board.name, kind: board.kind },
+      });
+    },
+    [router],
+  );
 
   const failed = (cause: unknown, fallback: string) =>
     showSnackbar(cause instanceof Error ? cause.message : fallback);
@@ -353,67 +356,12 @@ export default function HomeScreen() {
     );
   };
 
-  const renderRow = (row: HomeRow) => {
-    switch (row.kind) {
-      case 'announcement':
-        return (
-          <View style={styles.announcement}>
-            <Icon
-              name="campaign"
-              size={19}
-              color={theme.colors.accent}
-              style={styles.announcementIcon}
-            />
-            <Text style={styles.announcementText}>{row.announcement.title}</Text>
-            <Pressable
-              onPress={() => dismiss(row.announcement.id)}
-              hitSlop={10}
-              accessibilityLabel="关闭公告"
-            >
-              <Icon name="close" size={17} color={theme.colors.meta} />
-            </Pressable>
-          </View>
-        );
-      case 'group':
-        return (
-          <View style={styles.groupHeader}>
-            <View style={styles.groupBadge}>
-              <Text style={styles.groupBadgeText} allowFontScaling={false}>
-                {row.initial}
-              </Text>
-            </View>
-            <Text style={styles.groupName}>{row.name}</Text>
-          </View>
-        );
-      case 'notice':
-        return (
-          <View style={styles.notice}>
-            <Icon name={row.icon} size={34} color={theme.colors.meta} />
-            <Text style={styles.noticeText}>{row.text}</Text>
-            {row.action !== undefined && (
-              <Pressable style={styles.retry} onPress={row.action.onPress}>
-                <Text style={styles.retryLabel}>{row.action.label}</Text>
-              </Pressable>
-            )}
-          </View>
-        );
-      case 'error':
-        return <LoadFailedNotice error={row.error} onRetry={row.onRetry} />;
-      case 'boards':
-        return (
-          <View style={[styles.grid, row.first && styles.gridFirst]}>
-            {row.boards.map((board) => (
-              <Pressable key={board.id} style={styles.cell} onPress={() => openBoard(board)}>
-                <View style={styles.cellIcon}>
-                  <BoardIcon board={board} />
-                </View>
-                <Text style={styles.cellLabel}>{board.name}</Text>
-              </Pressable>
-            ))}
-          </View>
-        );
-    }
-  };
+  const renderRow = useCallback(
+    ({ item }: { item: HomeRow }) => (
+      <HomeRowView row={item} onOpenBoard={openBoard} onDismiss={dismiss} />
+    ),
+    [openBoard, dismiss],
+  );
 
   return (
     <View style={styles.root}>
@@ -477,8 +425,12 @@ export default function HomeScreen() {
           <FlashList
             data={rows}
             keyExtractor={(row) => row.key}
+            // 行是异构的:公告条、分组标题、一行三个版块的宫格、空态说明、错误块,
+            // 高度差好几倍。不给 getItemType 的话它们混在同一个回收池里,
+            // 复用到形状完全不同的行就得重新量一次
+            getItemType={(row) => row.kind}
             contentContainerStyle={styles.bodyContent}
-            renderItem={({ item }) => renderRow(item)}
+            renderItem={renderRow}
           />
         </View>
       )}
@@ -532,6 +484,87 @@ export default function HomeScreen() {
     </View>
   );
 }
+
+/**
+ * 首页列表的一行。
+ *
+ * 单独抽出来包 `memo`,是因为 `HomeScreen` 会因为抽屉、菜单、三个对话框的开合
+ * 频繁重渲染,而这一屏最大的分类有 300 多个版块(摊成一百多行)。
+ * props 的引用稳定性:`row` 来自 `rows` 那个 `useMemo`,`onOpenBoard` 是
+ * `useCallback`,`onDismiss` 是 zustand 的 action(建仓时就定死),三个都稳。
+ */
+const HomeRowView = memo(function HomeRowView({
+  row,
+  onOpenBoard,
+  onDismiss,
+}: {
+  row: HomeRow;
+  onOpenBoard: (board: Board) => void;
+  onDismiss: (id: string) => void;
+}) {
+  const styles = useStyles();
+  const theme = useTheme();
+
+  switch (row.kind) {
+    case 'announcement':
+      return (
+        <View style={styles.announcement}>
+          <Icon
+            name="campaign"
+            size={19}
+            color={theme.colors.accent}
+            style={styles.announcementIcon}
+          />
+          <Text style={styles.announcementText}>{row.announcement.title}</Text>
+          <Pressable
+            onPress={() => onDismiss(row.announcement.id)}
+            hitSlop={10}
+            accessibilityLabel="关闭公告"
+          >
+            <Icon name="close" size={17} color={theme.colors.meta} />
+          </Pressable>
+        </View>
+      );
+    case 'group':
+      return (
+        <View style={styles.groupHeader}>
+          <View style={styles.groupBadge}>
+            <Text style={styles.groupBadgeText} allowFontScaling={false}>
+              {row.initial}
+            </Text>
+          </View>
+          <Text style={styles.groupName}>{row.name}</Text>
+        </View>
+      );
+    case 'notice':
+      return (
+        <View style={styles.notice}>
+          <Icon name={row.icon} size={34} color={theme.colors.meta} />
+          <Text style={styles.noticeText}>{row.text}</Text>
+          {row.action !== undefined && (
+            <Pressable style={styles.retry} onPress={row.action.onPress}>
+              <Text style={styles.retryLabel}>{row.action.label}</Text>
+            </Pressable>
+          )}
+        </View>
+      );
+    case 'error':
+      return <LoadFailedNotice error={row.error} onRetry={row.onRetry} />;
+    case 'boards':
+      return (
+        <View style={[styles.grid, row.first && styles.gridFirst]}>
+          {row.boards.map((board) => (
+            <Pressable key={board.id} style={styles.cell} onPress={() => onOpenBoard(board)}>
+              <View style={styles.cellIcon}>
+                <BoardIcon board={board} />
+              </View>
+              <Text style={styles.cellLabel}>{board.name}</Text>
+            </Pressable>
+          ))}
+        </View>
+      );
+  }
+});
 
 const useStyles = createThemedStyles((theme) => ({
   root: {

@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { memo, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 
 import type {
@@ -125,45 +125,63 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
    * 点了某张图 → 换算成「列表 + 下标」交给查看器。签名档里的图不算「本楼图片」,
    * 反查不到就单开一张,别让查看器里冒出计数对不上的翻页。
    */
-  const openImage =
-    context.onOpenImage === undefined
-      ? undefined
-      : (uri: string) => {
-          const imageIndex = floorImages.findIndex((image) => image.url === uri);
-          context.onOpenImage?.(
-            imageIndex >= 0
-              ? { images: floorImages, index: imageIndex }
-              : { images: [{ url: uri }], index: 0 },
-          );
-        };
+  const onOpenImage = context.onOpenImage;
+  const openImage = useMemo(
+    () =>
+      onOpenImage === undefined
+        ? undefined
+        : (uri: string) => {
+            const imageIndex = floorImages.findIndex((image) => image.url === uri);
+            onOpenImage(
+              imageIndex >= 0
+                ? { images: floorImages, index: imageIndex }
+                : { images: [{ url: uri }], index: 0 },
+            );
+          },
+    [onOpenImage, floorImages],
+  );
 
-  const renderOptions = {
-    attachBase: context.attachBase,
-    // 发帖时间是 [noimg] 相对路径补 mon_YYYYMM/DD/ 的依据,所以按楼层给
-    postedAt: floor.postedAt,
-    dice,
-    // 「帖子内字体大小 / 行高」(22 票):正文本身靠 style 覆盖,
-    // 这两个值另外传一份是给 [size=] 当相对基准用的
-    bodyFontSize: bodyStyle.fontSize,
-    bodyLineHeight: bodyStyle.lineHeight,
-    ...(openImage === undefined ? {} : { onOpenImage: openImage }),
-  };
+  // 渲染参数每次渲染都新建一个对象的话,它会一路传进 BBCodeBody / 卡片组件,
+  // 把下游所有按 props 比较的记忆化全部打穿——所以这两个对象必须稳住
+  const renderOptions = useMemo<BBCodeRenderOptions>(
+    () => ({
+      attachBase: context.attachBase,
+      // 发帖时间是 [noimg] 相对路径补 mon_YYYYMM/DD/ 的依据,所以按楼层给
+      postedAt: floor.postedAt,
+      dice,
+      // 「帖子内字体大小 / 行高」(22 票):正文本身靠 style 覆盖,
+      // 这两个值另外传一份是给 [size=] 当相对基准用的
+      bodyFontSize: bodyStyle.fontSize,
+      bodyLineHeight: bodyStyle.lineHeight,
+      ...(openImage === undefined ? {} : { onOpenImage: openImage }),
+    }),
+    [context.attachBase, floor.postedAt, dice, bodyStyle.fontSize, bodyStyle.lineHeight, openImage],
+  );
 
   // 「查看对话链(N 层)」(26 票):只接在正文的引用块上——签名档也走同一个渲染器,
   // 但签名里的引用块跟这一楼的回复关系无关,不给它链入口
   const chainDepth = context.chainDepthOf?.(floor) ?? 0;
-  const bodyOptions = {
-    ...renderOptions,
-    ...(chainDepth >= 2 && context.onOpenChain !== undefined
-      ? { quoteChain: { depth: chainDepth, onOpen: () => context.onOpenChain?.(floor) } }
-      : {}),
-  };
+  const onOpenChain = context.onOpenChain;
+  const bodyOptions = useMemo<BBCodeRenderOptions>(
+    () => ({
+      ...renderOptions,
+      ...(chainDepth >= 2 && onOpenChain !== undefined
+        ? { quoteChain: { depth: chainDepth, onOpen: () => onOpenChain(floor) } }
+        : {}),
+    }),
+    [renderOptions, chainDepth, onOpenChain, floor],
+  );
+
+  const openMenu = useCallback(
+    () => context.onOpenMenu?.(floor),
+    [context.onOpenMenu, floor],
+  );
 
   return (
     // 长按整卡也能出楼层菜单(ticket 12:「长按或菜单钮」)
     <Pressable
       style={styles.card}
-      onLongPress={context.onOpenMenu === undefined ? undefined : () => context.onOpenMenu?.(floor)}
+      onLongPress={context.onOpenMenu === undefined ? undefined : openMenu}
     >
       <View style={styles.header}>
         <Pressable
@@ -259,9 +277,7 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
         </Pressable>
         <Pressable
           style={[styles.action, styles.actionNarrow]}
-          onPress={
-            context.onOpenMenu === undefined ? showNotAvailable : () => context.onOpenMenu?.(floor)
-          }
+          onPress={context.onOpenMenu === undefined ? showNotAvailable : openMenu}
           accessibilityLabel="楼层菜单"
         >
           <Icon name="more_vert" size={19} color={theme.colors.meta} />
@@ -277,7 +293,13 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
  * 用户状态标注(功能文档 §2.3「禁言/楼主/匿名/拉黑」)。
  * 拉黑属 21 票的屏蔽规则,这里只有前三种。
  */
-function UserBadges({ user, isStarter }: { user: FloorUser | undefined; isStarter: boolean }) {
+const UserBadges = memo(function UserBadges({
+  user,
+  isStarter,
+}: {
+  user: FloorUser | undefined;
+  isStarter: boolean;
+}) {
   const styles = useStyles();
   return (
     <>
@@ -287,13 +309,13 @@ function UserBadges({ user, isStarter }: { user: FloorUser | undefined; isStarte
       {user?.nuked === true && <Text style={styles.badgeDanger}>(已封禁)</Text>}
     </>
   );
-}
+});
 
 /**
  * 签名档。用引用块那一档字号(14/1.6),颜色压到次级——签名再长也不该抢正文。
  * 内容是 BBCode(常带图与折叠),所以还是走正文渲染器。
  */
-function Signature({
+const Signature = memo(function Signature({
   signature,
   options,
 }: {
@@ -307,10 +329,14 @@ function Signature({
       <BBCodeBody nodes={nodes} options={options} style={styles.signatureText} />
     </View>
   );
-}
+});
 
-/** 贴条区(设计稿:surface2 底、圆角 12 的一块,每条一行「谁:内容」)。 */
-function NoteList({
+/**
+ * 贴条区(设计稿:surface2 底、圆角 12 的一块,每条一行「谁:内容」)。
+ *
+ * memo:`plainTextOf` 要把每条贴条的 BBCode 解析一遍,楼层重渲染时没必要重来。
+ */
+const NoteList = memo(function NoteList({
   notes,
   users,
 }: {
@@ -331,7 +357,7 @@ function NoteList({
       ))}
     </View>
   );
-}
+});
 
 /**
  * 附件宫格。默认折叠成设计稿那条「点击显示附件(N)」,展开后是三列方格。
@@ -340,7 +366,7 @@ function NoteList({
  * 既费流量又慢。「仅 Wi-Fi 下加载图片」(22 票)关掉自动展开的那条路——
  * 折叠条上多一句「移动网络」,点了照样能看。
  */
-function AttachmentGrid({
+const AttachmentGrid = memo(function AttachmentGrid({
   attachments,
   onOpenImage,
 }: {
@@ -384,7 +410,8 @@ function AttachmentGrid({
         {images.map((attachment) => (
           <Pressable
             key={attachment.url}
-            style={[styles.attachCell, { width: cellSize, height: cellSize }]}
+            // 三列等分的边长量出来才知道,只能写成内联样式
+            style={{ width: cellSize, height: cellSize }}
             onPress={() => onOpenImage?.(attachment.url)}
           >
             {/* 宫格里用缩略图,点开大图才拉原图 */}
@@ -392,7 +419,9 @@ function AttachmentGrid({
               source={{ uri: attachment.thumbnailUrl ?? attachment.url }}
               style={styles.attachImage}
               contentFit="cover"
-              cachePolicy="disk"
+              // memory-disk 而不是 disk:宫格展开后一屏好几张,收起再展开、
+              // 滚出去再滚回来,disk 档每次都要重新读盘 + 解码
+              cachePolicy="memory-disk"
               transition={120}
               recyclingKey={attachment.url}
               accessibilityIgnoresInvertColors
@@ -420,7 +449,7 @@ function AttachmentGrid({
       </Pressable>
     </View>
   );
-}
+});
 
 /** 服务端给的 `size` 单位是 KB。 */
 const formatSize = (sizeKb: number): string =>
@@ -576,15 +605,15 @@ const useStyles = createThemedStyles((theme) => ({
     flexWrap: 'wrap',
     gap: ATTACH_GAP,
   },
-  attachCell: {
-    // 宽高由 AttachmentGrid 量出来后传进来(三列等分)
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: theme.colors.surface2,
-  },
+  /**
+   * 圆角与底色都落在图片自己身上,而不是靠外面那层 `overflow: 'hidden'` 裁——
+   * Android 上裁切要额外开一层离屏合成,而 expo-image 本来就会自己画圆角。
+   */
   attachImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 10,
+    backgroundColor: theme.colors.surface2,
   },
   attachFile: {
     flexDirection: 'row',

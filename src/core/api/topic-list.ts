@@ -15,8 +15,14 @@
  * 绝不让一条主题带崩整页——被封时这一页是用户唯一能看到的东西。
  */
 
-import { NgaError, isRecord, type NgaFetcher } from '../net'
-import { decodeTitleStyle, isAnonymousAuthor, parseTopicMisc, resolveAuthorName } from '../local'
+import { NgaError, isRecord, type NgaEnvelope, type NgaFetcher, type NgaRequest } from '../net'
+import {
+  decodeTitleStyle,
+  isAnonymousAuthor,
+  parseTopicMisc,
+  resolveAuthorName,
+  signedBoardId,
+} from '../local'
 import { int, nonZero, orderedValues, str, text } from './fields'
 import type {
   Board,
@@ -61,7 +67,8 @@ function parseParent(raw: unknown): TopicParent | undefined {
 
   const name = str(value, '2')
   if (name === undefined) return undefined
-  const fid = nonZero(int(value, '0'))
+  // fid 过一道符号还原：NGA 的版块 id 可以是负数。stid 是主题 id，不适用
+  const fid = nonZero(signedBoardId(int(value, '0')))
   const stid = nonZero(int(value, '1'))
 
   return {
@@ -120,10 +127,13 @@ function parseTopic(raw: unknown): Topic | undefined {
   // topic_misc_var 是服务端预解析好的同一份东西，topic_misc 是空串时靠它兜底
   const miscVar = isRecord(raw.topic_misc_var) ? raw.topic_misc_var : undefined
   const stid = misc.stid ?? (miscVar === undefined ? undefined : nonZero(int(miscVar, '2')))
-  const sfid = misc.sfid ?? (miscVar === undefined ? undefined : nonZero(int(miscVar, '3')))
+  // `topic_misc` 那条路已经在 TLV 解码时还原过符号；`topic_misc_var` 是服务端预解析的
+  // 同一份东西，它有没有丢符号我们说了不算，所以这一路也过一道
+  const sfid =
+    misc.sfid ?? (miscVar === undefined ? undefined : nonZero(signedBoardId(int(miscVar, '3'))))
 
   const type = int(raw, 'type') ?? 0
-  const fid = nonZero(int(raw, 'fid'))
+  const fid = nonZero(signedBoardId(int(raw, 'fid')))
   const rawAuthor = str(raw, 'author') ?? ''
   const favCode = tpcurl === undefined ? undefined : FAV_PATTERN.exec(tpcurl)?.[1]
   const parent = parseParent(raw.parent)
@@ -189,10 +199,12 @@ function boardIdentity(
 function parseSubBoard(key: string, raw: unknown): SubBoard | undefined {
   if (!isRecord(raw)) return undefined
   const name = str(raw, '1')
-  const id = nonZero(int(raw, '0'))
+  const collection = key.startsWith('t')
+  // 合集那一档的 id 是主题 id，不能套版块 id 的符号还原
+  const id = nonZero(collection ? int(raw, '0') : signedBoardId(int(raw, '0')))
   if (name === undefined || id === undefined) return undefined
 
-  const board = boardIdentity(name, key.startsWith('t') ? { stid: id } : { fid: id })
+  const board = boardIdentity(name, collection ? { stid: id } : { fid: id })
   if (board === undefined) return undefined
   const info = str(raw, '2')
   const filterId = nonZero(int(raw, '3'))
@@ -211,7 +223,7 @@ function parseBoard(raw: unknown): Board | undefined {
   const name = str(raw, 'name')
   if (name === undefined) return undefined
   const board = boardIdentity(name, {
-    fid: nonZero(int(raw, 'fid')),
+    fid: nonZero(signedBoardId(int(raw, 'fid'))),
     stid: nonZero(int(raw, 'stid')),
   })
   // 版头（CONTEXT.md）：`topped_topic` 存版头帖 tid，没有时是 0 或空串
@@ -220,10 +232,57 @@ function parseBoard(raw: unknown): Board | undefined {
 }
 
 /**
+ * `thread.php` 的响应里，这些键任意一个在场就说明「服务端确实按主题列表回了话」。
+ *
+ * 空版块也会有 `__T:{}` 与 `__F`——**一条主题都没有 ≠ 没有这个结构**。
+ * 一个都没有的响应根本不是这个接口的东西（被限流、被拦、或者轮换到了一个
+ * 我们没验证过的格式档），2026-08-13 之前这种响应会一路变成「这个版块还没有主题」。
+ */
+const TOPIC_LIST_STRUCTURE_KEYS = ['__T', '__F', '__ROWS'] as const
+
+/** 这份 `data` 是不是一页主题列表的形状。 */
+export function hasTopicListStructure(data: unknown): boolean {
+  return isRecord(data) && TOPIC_LIST_STRUCTURE_KEYS.some((key) => key in data)
+}
+
+/** 形状不对时的说明，两处（链内 `validate` 与链外兜底）共用同一句话。 */
+const NOT_A_TOPIC_LIST = '响应里没有主题列表结构（多半是被限流或拦截了）'
+
+/**
+ * 反封锁链的一票否决（`NgaRequest.validate`）：所有走 `thread.php` 的调用都挂它。
+ *
+ * 有了它，「能洗成 JSON 但不是主题列表」的响应会被当成 `kind:'parse'` 继续轮换，
+ * **坏组合也就进不了成功组合缓存**——否则一次瞬时失败就能把 `thread.php` 这条
+ * 缓存记录钉死在坏组合上，版块/搜索/收藏夹/热帖一起空到进程重启为止。
+ */
+export function rejectNonTopicList(envelope: NgaEnvelope): string | undefined {
+  // 假错误（「2048:没有符合条件的结果」= 翻到底了）是正常终止，不是坏组合
+  if (envelope.fakeError !== undefined) return undefined
+  if (!isRecord(envelope.data)) return '响应里没有 data'
+  return hasTopicListStructure(envelope.data) ? undefined : NOT_A_TOPIC_LIST
+}
+
+/** 走 `thread.php` 的请求都带上这一份（形状校验 + 明确信封形状）。 */
+export const TOPIC_LIST_REQUEST = {
+  validate: rejectNonTopicList,
+} as const satisfies Pick<NgaRequest, 'validate'>
+
+/**
+ * 服务端明确回了「2048:没有符合条件的结果」（假错误白名单）时的空列表。
+ *
+ * 和「我们根本没拿到列表」不是一回事，所以 `listStructure` 是 true：
+ * 服务端把话说清楚了，只是内容为空。
+ */
+export function serverEmptyTopicList(): TopicList {
+  return { ...parseTopicList({}), listStructure: true }
+}
+
+/**
  * 解一页主题列表。传的是响应的 `data`。
  *
  * 整页解不出来也不抛：主题列表是无限滚动的，某一页坏掉应该只是"这页没东西"，
- * 上层拿 `topics.length === 0` 判断要不要停止翻页。
+ * 上层拿 `topics.length === 0` 判断要不要停止翻页；**到底是"没帖"还是"没拿到"
+ * 看 `listStructure`**。
  */
 export function parseTopicList(data: unknown): TopicList {
   const root = isRecord(data) ? data : {}
@@ -254,6 +313,7 @@ export function parseTopicList(data: unknown): TopicList {
     totalRows,
     rowsPerPage,
     totalPages: Math.max(1, Math.ceil(totalRows / rowsPerPage)),
+    listStructure: hasTopicListStructure(data),
   }
 }
 
@@ -297,7 +357,8 @@ export interface FetchTopicListOptions {
 /**
  * 拉一页主题列表（`POST thread.php`，API 文档 §2）。
  *
- * `data` 为空（被封或版块不存在）时抛 `kind: 'parse'`，交给上层走反封锁链兜底；
+ * `data` 为空、或者压根不是主题列表的形状（被封、被限流、轮换到了没验证过的格式档）
+ * 时抛 `kind: 'parse'`，交给上层走反封锁链兜底；
  * 有 `__T` 但一条都解不出来不算错——版块本来就可能是空的。
  */
 export async function fetchTopicList(
@@ -307,6 +368,7 @@ export async function fetchTopicList(
   const { boardId, kind, page, sort, recommend, signal } = options
 
   const result = await fetchNga({
+    ...TOPIC_LIST_REQUEST,
     path: 'thread.php',
     query: {
       ...(kind === 'collection' ? { stid: boardId } : { fid: boardId }),
@@ -322,6 +384,11 @@ export async function fetchTopicList(
 
   if (!isRecord(result.data)) {
     throw new NgaError({ kind: 'parse', message: '主题列表响应里没有 data', via: result.via })
+  }
+  // 链内的 validate 已经拦过一道，这里再拦一次是为了让 fetchTopicList 的契约
+  // 不依赖调用方传对了 validate（比如别处直接拿 direct 策略打这个接口）
+  if (!hasTopicListStructure(result.data)) {
+    throw new NgaError({ kind: 'parse', message: NOT_A_TOPIC_LIST, via: result.via })
   }
   return parseTopicList(result.data)
 }

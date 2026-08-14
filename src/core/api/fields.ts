@@ -9,10 +9,18 @@ import { isRecord } from '../net'
  * 「取一个字符串」「取一个整数」「按数组顺序遍历」写得短一点。
  */
 
-/** 按数字键升序取键值对；非数字键排在后面，保持原有顺序。 */
+/**
+ * 按数字键升序取键值对；非数字键排在后面，保持原有顺序。
+ *
+ * **真数组也走这条路**：§0.6 说的「用字符串数字键当数组」只是 `__output=8` 的习惯，
+ * `__output=11` 同一个 `__T` 下发的就是货真价实的 JSON 数组。`isRecord` 按约定把数组
+ * 排除在外，不单独认一下的话整页主题会静默变成 0 条——`errors.ts` 认 `error` 的数组形态
+ * 时踩过同一个坑（2026-08-14，fid=414 打不开的排查）。
+ * 数组的 `Object.entries` 给出的正是 `['0', v]` 这样的数字键，后面的排序逻辑原样适用。
+ */
 export function orderedEntries(value: unknown): (readonly [string, unknown])[] {
-  if (!isRecord(value)) return []
-  return Object.entries(value)
+  if (!isRecord(value) && !Array.isArray(value)) return []
+  return Object.entries(value as Record<string, unknown>)
     .map((entry, index) => ({ entry, order: Number(entry[0]), index }))
     .sort((a, b) => {
       const aNum = Number.isFinite(a.order)

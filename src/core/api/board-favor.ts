@@ -18,6 +18,7 @@
  * - 需要登录:游客请求报「你必须先登录论坛」(server 错误),UI 层应先挡住入口。
  */
 
+import { signedBoardId } from '../local'
 import { NgaError, isRecord, type NgaFetcher } from '../net'
 import { int, nonZero, orderedValues, str } from './fields'
 import type { Board } from './types'
@@ -29,10 +30,11 @@ function parseFavorBoard(raw: unknown): Board | undefined {
   const name = str(raw, 'name')
   if (name === undefined) return undefined
 
-  // 与分类树同一套规则(board-tree.ts):0 不是有效 id,stid 优先于 fid
-  const fid = nonZero(int(raw, 'fid'))
+  // 与分类树同一套规则(board-tree.ts):0 不是有效 id,stid 优先于 fid;
+  // 版块 id 可以是负数,过一道符号还原(core/local 的 signedBoardId)
+  const fid = nonZero(signedBoardId(int(raw, 'fid')))
   const stid = nonZero(int(raw, 'stid'))
-  const id = stid ?? fid ?? nonZero(int(raw, 'id'))
+  const id = stid ?? fid ?? nonZero(signedBoardId(int(raw, 'id')))
   if (id === undefined) return undefined
 
   const info = str(raw, 'info')

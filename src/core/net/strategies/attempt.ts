@@ -3,7 +3,7 @@ import type { FetchCombo } from '../combo'
 import { RESPONSE_FORMATS, X_USER_AGENT_VALUE, isJsonFormat, type UserAgentProfile } from '../constants'
 import { decodeResponseBody } from '../encoding/decode-body'
 import { parseNgaJson, type NgaEnvelope } from '../envelope'
-import { NgaError } from '../errors'
+import { NgaError, isAuthLevelServerError } from '../errors'
 import { buildQueryString, hasGbkParam, type QueryParams } from '../query'
 import type { HttpTransport } from '../transport'
 import type { FetchContext, NgaRequest, StrategyOutcome } from '../types'
@@ -88,9 +88,10 @@ export async function runAttempt(
         ? context.credentials
         : request.credentials
   const auth = buildAuthAttachment(authMode, credentials)
-  if (method === 'GET' && Object.keys(auth.form).length > 0) {
-    // form 方式把凭证放 POST body，GET 没有 body——静默降级成游客请求太难查了
-    return unavailable("form 认证方式要求 POST，这条请求写的是 GET；改用 auth: 'cookie'", via)
+  if (method === 'GET' && Object.keys(auth.form).length > 0 && authMode === 'form') {
+    // form 方式把凭证放 POST body，GET 没有 body——静默降级成游客请求太难查了。
+    // `both` 档不用报错：GET 时 form 那一半带不上，但 Cookie 头还在
+    return unavailable("form 认证方式要求 POST，这条请求写的是 GET；改用 auth: 'both'", via)
   }
 
   const userAgent = resolveUserAgentProfile(request, context)
@@ -160,11 +161,43 @@ export async function runAttempt(
   // HTTP 非 2xx 时 body 仍可能带有效错误信息，所以先解析 body，
   // **body 为空**才退回状态码报错（API 文档 §0.7）——
   // 非 2xx 但 body 有内容只是解析不了，那更像被封，要留 parse 这个信号。
-  const parse = options.parse ?? ((body: string) => parseNgaJson(body, via))
+  const parse = options.parse ?? ((body: string) => parseNgaJson(body, via, request.envelope))
   try {
-    return report({ ok: true, result: { ...parse(text), via } })
+    const envelope = parse(text)
+    // 调用方的一票否决（`NgaRequest.validate`）：形状不对的响应等同于解析失败，
+    // 于是它既不会被当成结果交出去，也不会被 format-rotation 记成「好组合」
+    const rejected = request.validate?.(envelope)
+    if (rejected !== undefined) {
+      throw new NgaError({ kind: 'parse', message: rejected, status, via })
+    }
+    return report({ ok: true, result: { ...envelope, via } })
   } catch (cause) {
     if (cause instanceof NgaError && cause.kind === 'server') {
+      // 服务端说「未登录」而我们手上明明有凭证 = 这一发的身份没送到，不是语义错误。
+      // 标成可重试，让 format-rotation 换下一个组合（判据见 AUTH_LEVEL_SERVER_MESSAGES）。
+      // 顺带避开 rotation 里「服务端语义错误 = 这个组合是通的」那条缓存规则——
+      // 否则丢身份的那个域名会被记住并继续用满一个缓存周期（2026-08-13 真机取证）。
+      //
+      // 写操作（签到 / 点赞 / 回帖）也走这条路，但不会重复提交：服务端回「未登录」
+      // 就是它**拒绝**了这一发，没有副作用可言，换个域名重发才是用户要的结果。
+      //
+      // 游客态也要标成可重试——不是为了换域名（游客哪个域名都没 cookie，换了也白换，
+      // 那一层在 format-rotation 里单独刹住），而是为了**别把整条链掐死**：
+      // 链上后面还有网页兜底和帖子缓存，它们确实能把这一页拿出来（2026-08-13 真机取证：
+      // 同一个帖子接口报未登录、点「用网页版打开」正文完整渲染）。
+      if (isAuthLevelServerError(cause.message)) {
+        return report({
+          ok: false,
+          error: new NgaError({
+            kind: 'server',
+            message: cause.message,
+            ...(cause.code === undefined ? {} : { code: cause.code }),
+            via,
+            retryable: true,
+            cause,
+          }),
+        })
+      }
       return report({ ok: false, error: cause })
     }
     const statusFailed = status < 200 || status >= 300

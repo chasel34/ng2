@@ -1,16 +1,29 @@
-import { FlashList, type FlashListRef, type ViewToken } from '@shopify/flash-list';
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+  type ViewToken,
+} from '@shopify/flash-list';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
-  Animated,
-  PanResponder,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type Ref,
+  type RefObject,
+} from 'react';
+import { Animated, AppState, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Reanimated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -26,7 +39,12 @@ import {
 } from '@/core/local';
 import { currentAccount } from '@/store/accounts';
 import { blockUserLocally, useFloorFilter, useLocalFilters } from '@/store/filters';
-import { peekHistoryEntry, recordReadFloor, recordTopicVisit } from '@/store/history';
+import {
+  flushReadFloor,
+  peekHistoryEntry,
+  recordReadFloor,
+  recordTopicVisit,
+} from '@/store/history';
 import { forgetSuccessfulCombo } from '@/store/nga-client';
 import { isPageCached } from '@/store/topic-cache';
 import {
@@ -43,14 +61,14 @@ import { LoadFailed } from '@/ui/error-screen';
 import { LoadingState } from '@/ui/state-view';
 import { FavoriteFolderDialog } from '@/ui/favorite-folder-dialog';
 import { FloorCard, type FloorContext } from '@/ui/floor-card';
-import { isHorizontalDragActive } from '@/ui/horizontal-drag';
+import { horizontalDragActive } from '@/ui/horizontal-drag';
 import { Icon } from '@/ui/icon';
-import { stageImageViewer } from '@/ui/image-viewer-request';
+import { stageImageViewer, type ImageViewerRequest } from '@/ui/image-viewer-request';
 import { InputDialog } from '@/ui/input-dialog';
 import { useLeftHanded } from '@/ui/appearance';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
-import { duration, easeDecelerate, easeStandard, RISE_OFFSET } from '@/ui/motion';
+import { duration, easeDecelerateWorklet, easeStandard, RISE_OFFSET } from '@/ui/motion';
 import { PageBar } from '@/ui/page-bar';
 import { showSnackbar } from '@/ui/snackbar';
 import {
@@ -70,6 +88,12 @@ import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
  * 三个翻页入口共用同一套算术。
  */
 const SWIPE_ACTIVATE = 12;
+
+/** 「明显压过纵向」是多明显。横向位移要到纵向的这个倍数才认领。 */
+const SWIPE_AXIS_RATIO = 1.3;
+
+/** 楼层卡片上下文的空用户表:数据还没到位时也要给出一份稳定引用。 */
+const NO_USERS: Readonly<Record<string, FloorUser>> = {};
 
 /** 屏幕常亮锁的标签。只有详情页申请这把锁,退出这一屏就还回去。 */
 const KEEP_AWAKE_TAG = 'ng2-topic';
@@ -351,6 +375,109 @@ export default function TopicScreen() {
   const matchFloorFilter = useFloorFilter();
   const removeLocalRule = useLocalFilters((state) => state.remove);
 
+  /* ——— 楼层列表的渲染契约(M4 性能走查:详情页慢拖 54% janky frames)———
+   *
+   * `FloorCard` 是 memo 的,但它的 `context` 以前在 body() 里现建,每渲染换一次引用,
+   * memo 直接作废;而 TopicScreen 会因为菜单/FAB/展开折叠/加载态一堆 state 频繁重渲染,
+   * 于是「点开一个菜单」= 屏上每张楼层卡片连同 BBCode 全量重画。
+   *
+   * 所以这里的规矩是:上下文里的回调要么终生不变(走 ref 读最新值),要么**只在它
+   * 真的会改变画面时**换引用——赞踩标记与回复链索引属后者。
+   */
+  const users = data?.users;
+  const attachBase = data?.attachBase;
+  const markOf = recommend.markOf;
+
+  // 「读最新值就行」的那几个回调靠这份 ref 稳住引用
+  const latest = useRef({ router, runRecommend, topicId, fav });
+  latest.current = { router, runRecommend, topicId, fav };
+
+  // 大图查看器(25 票):图片列表塞不进路由参数,先暂存再进查看器屏
+  const openImage = useCallback((request: ImageViewerRequest) => {
+    stageImageViewer(request);
+    latest.current.router.push('/image-viewer');
+  }, []);
+
+  // 赞踩(12 票):卡片钮不吐 toast,变色计数本身就是反馈
+  const recommendFloor = useCallback((floor: Floor, action: RecommendAction) => {
+    latest.current.runRecommend(floor, action, false);
+  }, []);
+
+  const openChain = useCallback((floor: Floor) => {
+    const { router: pushTo, topicId: tid, fav: favCode } = latest.current;
+    pushTo.push({
+      pathname: '/chain',
+      params: {
+        tid: String(tid),
+        pid: String(floor.pid),
+        ...(favCode === undefined ? {} : { fav: favCode }),
+      },
+    });
+  }, []);
+
+  // 回复链(26 票):N 层按已加载楼层的 quote 索引算;索引换了必须换引用,不然卡片不重画
+  const floorChainDepth = useCallback(
+    (floor: Floor) => (chainIndex === undefined ? 0 : chainDepthOf(chainIndex, floor.pid)),
+    [chainIndex],
+  );
+
+  // `markOf` 只在本会话的赞踩标记真的动过时换引用,正是卡片要重画的那一刻
+  const recommendOf = useCallback((floor: Floor) => markOf(recommendPidOf(floor)), [markOf]);
+
+  const floorContext = useMemo<FloorContext>(
+    () => ({
+      tid: topicId,
+      users: users ?? NO_USERS,
+      attachBase: attachBase ?? ATTACH_BASE_FALLBACK,
+      onOpenImage: openImage,
+      recommendOf,
+      onRecommend: recommendFloor,
+      onOpenMenu: setMenuFloor,
+      chainDepthOf: floorChainDepth,
+      onOpenChain: openChain,
+    }),
+    [
+      topicId,
+      users,
+      attachBase,
+      openImage,
+      recommendOf,
+      recommendFloor,
+      floorChainDepth,
+      openChain,
+    ],
+  );
+
+  /**
+   * 这一楼是不是被屏蔽规则挡下的(21 票)。`renderItem` 与 `getItemType` 必须
+   * 给出同一个答案——折叠行只有一行高、楼层卡片动辄大半屏,混进同一个回收池
+   * 会让 FlashList 反复重量。
+   */
+  const blockedRuleOf = useCallback(
+    (floor: Floor): FilterRule | undefined =>
+      // 展开只记在本次停留里,翻页回来还是折着的
+      unfolded.includes(floor.pid) ? undefined : matchFloorFilter(floor, users?.[floor.authorKey]),
+    [unfolded, matchFloorFilter, users],
+  );
+
+  const renderFloor = useCallback<ListRenderItem<Floor>>(
+    ({ item }) => {
+      const rule = blockedRuleOf(item);
+      if (rule !== undefined) {
+        return (
+          <BlockedFloorRow rule={rule} onExpand={() => setUnfolded((pids) => [...pids, item.pid])} />
+        );
+      }
+      return <FloorCard floor={item} context={floorContext} />;
+    },
+    [blockedRuleOf, floorContext],
+  );
+
+  const floorItemType = useCallback(
+    (floor: Floor) => (blockedRuleOf(floor) === undefined ? 'floor' : 'blocked'),
+    [blockedRuleOf],
+  );
+
   /**
    * 楼层菜单「屏蔽此人」(21 票,替掉 M2 的 toast 占位):加一条本地用户规则,
    * 加完这一楼当场折起来。撤销就是把刚加的那条删掉——规则 id 是内容算出来的,
@@ -527,109 +654,73 @@ export default function TopicScreen() {
       );
     }
 
-    const floorContext: FloorContext = {
-      tid: topicId,
-      users: data.users,
-      attachBase: data.attachBase,
-      // 大图查看器(25 票):图片列表塞不进路由参数,先暂存再进查看器屏
-      onOpenImage: (request) => {
-        stageImageViewer(request);
-        router.push('/image-viewer');
-      },
-      // 赞踩与楼层菜单(ticket 12)。卡片钮不吐 toast,变色计数本身就是反馈
-      recommendOf: (floor) => recommend.markOf(recommendPidOf(floor)),
-      onRecommend: (floor, action) => runRecommend(floor, action, false),
-      onOpenMenu: setMenuFloor,
-      // 回复链(26):N 层按已加载楼层的 quote 索引算,点入口进链页
-      chainDepthOf: (floor) => (chainIndex === undefined ? 0 : chainDepthOf(chainIndex, floor.pid)),
-      onOpenChain: (floor) =>
-        router.push({
-          pathname: '/chain',
-          params: {
-            tid: String(topicId),
-            pid: String(floor.pid),
-            ...(fav === undefined ? {} : { fav }),
-          },
-        }),
-    };
-
     return (
-      <Animated.View
-        style={[styles.body, { transform: [{ translateX: swipe.translateX }] }]}
-        {...swipe.panHandlers}
-      >
-        <FlashList
-          ref={listRef}
-          data={data.floors}
-          keyExtractor={(floor) => String(floor.pid)}
-          renderItem={({ item }) => {
-            // 屏蔽规则命中的楼层折成一行灰字(21 票),点一下就地展开;
-            // 展开只记在本次停留里,翻页回来还是折着的
-            const rule = unfolded.includes(item.pid)
-              ? undefined
-              : matchFloorFilter(item, data.users[item.authorKey]);
-            if (rule !== undefined) {
-              return (
-                <BlockedFloorRow
-                  rule={rule}
-                  onExpand={() => setUnfolded((pids) => [...pids, item.pid])}
-                />
-              );
+      <GestureDetector gesture={swipe.gesture}>
+        <Reanimated.View style={[styles.body, swipe.style]}>
+          <FlashList
+            ref={listRef}
+            data={data.floors}
+            keyExtractor={(floor) => String(floor.pid)}
+            // 屏蔽规则命中的楼层折成一行灰字(21 票),点一下就地展开
+            renderItem={renderFloor}
+            getItemType={floorItemType}
+            ListHeaderComponent={
+              <>
+                {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走。
+                    只看此人期间楼号是过滤后的口径,跳过去会落错地方,先藏起来 */}
+                {onlyUser === undefined && resume.floor !== undefined && (
+                  <ResumeBanner
+                    floor={resume.floor}
+                    onJump={resume.jump}
+                    onClose={resume.dismiss}
+                  />
+                )}
+                {/* 只看此人过滤条(设计稿 onlyUser):退出即恢复全楼 */}
+                {onlyUser !== undefined && (
+                  <View style={styles.onlyUserBar}>
+                    <Icon name="filter_alt" size={17} color={theme.colors.primary} />
+                    <Text style={styles.onlyUserText}>
+                      只看 <Text style={styles.onlyUserName}>{onlyUser.name}</Text> 的发言
+                    </Text>
+                    <Pressable onPress={exitOnlyUser} accessibilityLabel="退出只看此人" hitSlop={8}>
+                      <Text style={styles.onlyUserExit}>退出</Text>
+                    </Pressable>
+                  </View>
+                )}
+                {/* 热门回复是服务端在主楼里标的,只有第 1 页拿得到 */}
+                {data.hotReplies.length > 0 && (
+                  <HotReplies floors={data.hotReplies} context={floorContext} />
+                )}
+              </>
             }
-            return <FloorCard floor={item} context={floorContext} />;
-          }}
-          ListHeaderComponent={
-            <>
-              {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走。
-                  只看此人期间楼号是过滤后的口径,跳过去会落错地方,先藏起来 */}
-              {onlyUser === undefined && resume.floor !== undefined && (
-                <ResumeBanner floor={resume.floor} onJump={resume.jump} onClose={resume.dismiss} />
-              )}
-              {/* 只看此人过滤条(设计稿 onlyUser):退出即恢复全楼 */}
-              {onlyUser !== undefined && (
-                <View style={styles.onlyUserBar}>
-                  <Icon name="filter_alt" size={17} color={theme.colors.primary} />
-                  <Text style={styles.onlyUserText}>
-                    只看 <Text style={styles.onlyUserName}>{onlyUser.name}</Text> 的发言
-                  </Text>
-                  <Pressable onPress={exitOnlyUser} accessibilityLabel="退出只看此人" hitSlop={8}>
-                    <Text style={styles.onlyUserExit}>退出</Text>
-                  </Pressable>
-                </View>
-              )}
-              {/* 热门回复是服务端在主楼里标的,只有第 1 页拿得到 */}
-              {data.hotReplies.length > 0 && (
-                <HotReplies floors={data.hotReplies} context={floorContext} />
-              )}
-            </>
-          }
-          ListFooterComponent={<View style={styles.footerSpacer} />}
-          // 「自动加载下一页」(22 票)。翻页中(isPlaceholderData)不再触发,
-          // 不然一口气能把好几页跳过去
-          onEndReachedThreshold={0.4}
-          onScrollBeginDrag={() => {
-            userScrolled.current = true;
-          }}
-          onEndReached={
-            settings.autoLoadNextPage
-              ? () => {
-                  // 只认用户亲手滚出来的到底,程序化滚动(跳楼落到页尾)不算
-                  if (!userScrolled.current) return;
-                  if (isFetching || isPlaceholderData) return;
-                  if (page >= totalPages) return;
-                  goToPage(page + 1);
-                }
-              : undefined
-          }
-          // 阅读进度:哪些楼层在屏上由 FlashList 报,记「看到过的最高楼层」(ticket 16)
-          viewabilityConfig={resume.viewabilityConfig}
-          onViewableItemsChanged={resume.onViewableItemsChanged}
-          // 翻页时 isPlaceholderData 为真(屏上还是上一页的内容),那种情况下
-          // 不该亮下拉转圈——只有真正在刷新当前这一页时才亮
-          refreshing={isFetching && !isPlaceholderData}
-          onRefresh={() => void refetch()}
-        />
-      </Animated.View>
+            ListFooterComponent={<View style={styles.footerSpacer} />}
+            // 「自动加载下一页」(22 票)。翻页中(isPlaceholderData)不再触发,
+            // 不然一口气能把好几页跳过去
+            onEndReachedThreshold={0.4}
+            onScrollBeginDrag={() => {
+              userScrolled.current = true;
+            }}
+            onEndReached={
+              settings.autoLoadNextPage
+                ? () => {
+                    // 只认用户亲手滚出来的到底,程序化滚动(跳楼落到页尾)不算
+                    if (!userScrolled.current) return;
+                    if (isFetching || isPlaceholderData) return;
+                    if (page >= totalPages) return;
+                    goToPage(page + 1);
+                  }
+                : undefined
+            }
+            // 阅读进度:哪些楼层在屏上由 FlashList 报,记「看到过的最高楼层」(ticket 16)
+            viewabilityConfig={resume.viewabilityConfig}
+            onViewableItemsChanged={resume.onViewableItemsChanged}
+            // 翻页时 isPlaceholderData 为真(屏上还是上一页的内容),那种情况下
+            // 不该亮下拉转圈——只有真正在刷新当前这一页时才亮
+            refreshing={isFetching && !isPlaceholderData}
+            onRefresh={() => void refetch()}
+          />
+        </Reanimated.View>
+      </GestureDetector>
     );
   };
 
@@ -739,14 +830,7 @@ export default function TopicScreen() {
         <View style={[styles.bottomPageBar, { paddingBottom: insets.bottom }]}>{pageBar}</View>
       )}
 
-      {/* 设计稿把提示盒的**中心**放在屏幕中心,所以套一层整屏居中容器 */}
-      {swipe.hint !== undefined && (
-        <View style={styles.swipeHintLayer} pointerEvents="none">
-          <View style={styles.swipeHint}>
-            <Text style={styles.swipeHintText}>{swipe.hint}</Text>
-          </View>
-        </View>
-      )}
+      <SwipeHint ref={swipe.hintRef} />
 
       {fabOpen && (
         <Animated.View
@@ -901,6 +985,30 @@ function useReadingProgress({
       ...(fav === undefined ? {} : { favCode: fav }),
     });
   }, [data, topicId, fav, paused]);
+
+  /**
+   * 进度落盘的兜底(store/history:滚动时只记在内存里,按秒节流写盘)。
+   * 退到后台、离开这一屏、屏被销毁,这三处各兜一次——最后那一秒读到的楼层
+   * 不能跟着页面一起丢。`flushReadFloor` 没有待落盘的东西时是纯 no-op。
+   */
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') flushReadFloor();
+    });
+    return () => {
+      subscription.remove();
+      flushReadFloor();
+    };
+  }, []);
+
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        flushReadFloor();
+      },
+      [],
+    ),
+  );
 
   // FlashList 要求 viewability 回调终生不变,所以塞进 ref;
   // topicId 是路由参数,这个屏活着期间不会变,闭包捕获是安全的
@@ -1064,71 +1172,156 @@ interface SwipePagingOptions {
 /**
  * 左右滑动翻页。
  *
- * 用 RN 自带的 PanResponder 而不是 gesture-handler:后者要在根布局套一层
- * `GestureHandlerRootView`,而这里只需要「横向拖一下」这一个手势,不值得为它改根布局。
- * 关键在 `onMoveShouldSetPanResponder`——只有横向位移明显压过纵向时才认领手势,
- * 认领不了的时候列表照常上下滚。
+ * gesture-handler 的 Pan + Reanimated 共享值:手势判定、跟手位移、提示文案
+ * 全在 UI 线程上算完,只有「真的翻页」和「提示文案变了」这两下回 JS 线程。
+ *
+ * 之前这里是 PanResponder,每个 touch move 都要回 JS 跑一遍判定,认领之后
+ * 还 `setHint` 把整屏重渲染一次——M4 性能走查里详情页慢拖 54% janky frames、
+ * 横滑翻页 45%,而同样脚本拖版块主题列表只有 0.3%,差的就是这段每 move 的 JS。
+ *
+ * 手势判定用 `manualActivation` 自己算而不是 `activeOffsetX`/`failOffsetY`:
+ * 要的条件是「横向位移**压过**纵向」这个比例关系,原生阈值表达不了;而且自己算
+ * 才有地方在认领前看一眼 `horizontalDragActive`——楼层里那张能横滚的表格正被拖着时,
+ * 这一把要整个让给它(ui/horizontal-drag)。等走够 12px 再看这个标志也不怕抢跑:
+ * 表格是在手指按下那一刻(JS 线程)打的招呼,早就同步到 UI 线程了。
+ *
+ * 翻页算术仍然全部走 `ui/paging`——页码条、跳页对话框、这里,三个入口一套规则。
  */
 function useSwipePaging({ page, totalPages, onChange }: SwipePagingOptions) {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const [hint, setHint] = useState<string | undefined>(undefined);
-  // PanResponder 的回调建一次就固定住了,拿不到后来的 page/totalPages,用 ref 兜住
-  const state = useRef({ page, totalPages, onChange });
-  state.current = { page, totalPages, onChange };
+  const translateX = useSharedValue(0);
+  // 手势跑在 UI 线程上,读不到 React 的最新值:页码与总页数镜像一份过去
+  const paging = useSharedValue({ page, totalPages });
+  // 按下时的触点。位移一律按「离按下点多远」算,与旧的 PanResponder `dx` 同口径
+  const origin = useSharedValue({ x: 0, y: 0 });
+  // 已经推给 JS 线程的提示文案。只有它真的变了才回一次 JS(一次拖动通常两三下)
+  const shownHint = useSharedValue<string | undefined>(undefined);
+  const hintRef = useRef<SwipeHintHandle>(null);
+
+  const showHint = useCallback((text: string | undefined) => {
+    hintRef.current?.show(text);
+  }, []);
+
+  // onChange 每渲染都是新的,而 worklet 那边要的是一个终生不变的入口
+  const change = useRef(onChange);
+  change.current = onChange;
+  const commit = useCallback((target: number) => {
+    change.current(target);
+  }, []);
 
   useEffect(() => {
-    translateX.setValue(0);
-    setHint(undefined);
-  }, [page, translateX]);
+    paging.value = { page, totalPages };
+  }, [page, totalPages, paging]);
 
-  const responder = useMemo(
+  // 换页 = 换内容,位移与提示都不该留着
+  useEffect(() => {
+    translateX.value = 0;
+    shownHint.value = undefined;
+    showHint(undefined);
+  }, [page, translateX, shownHint, showHint]);
+
+  const gesture = useMemo(
     () =>
-      PanResponder.create({
-        // 用 capture:responder 的捕获阶段从根往下走,不这么做的话
-        // FlashList 里的 ScrollView 会先把手势抢走,横滑就再也认领不到了。
-        // 条件卡得很死(横向位移明显压过纵向),所以不会误伤上下滚动。
-        // 捕获阶段祖先先手,楼层里横向滚的表格抢不回来,所以它按下时会先打招呼(ui/horizontal-drag)。
-        onMoveShouldSetPanResponderCapture: (_event, gesture) =>
-          !isHorizontalDragActive() &&
-          Math.abs(gesture.dx) >= SWIPE_ACTIVATE &&
-          Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.3,
-        onPanResponderMove: (_event, gesture) => {
-          const { page: current, totalPages: total } = state.current;
-          translateX.setValue(swipeOffset(current, gesture.dx, total));
-          setHint(swipeHintText(current, gesture.dx, total));
-        },
-        onPanResponderRelease: (_event, gesture) => {
-          const { page: current, totalPages: total, onChange: change } = state.current;
-          setHint(undefined);
-          const target = swipeTargetPage(current, gesture.dx, total);
-
-          // 翻页时不弹回:换页会重置 translateX,弹回动画反而多闪一下
-          if (target !== current) {
-            translateX.setValue(0);
-            change(target);
+      Gesture.Pan()
+        .manualActivation(true)
+        // 只认第一根手指落下的那一点:后来的手指再下来不该把起点挪走
+        .onTouchesDown((event) => {
+          const touch = event.changedTouches[0];
+          if (event.numberOfTouches === 1 && touch !== undefined) {
+            origin.value = { x: touch.absoluteX, y: touch.absoluteY };
+          }
+        })
+        .onTouchesMove((event, manager) => {
+          const touch = event.allTouches[0];
+          if (touch === undefined) return;
+          // 楼层里的表格已经在横滚了:这一把整个让给它,别抢
+          if (horizontalDragActive.value) {
+            manager.fail();
             return;
           }
-          Animated.timing(translateX, {
-            toValue: 0,
+          const dx = touch.absoluteX - origin.value.x;
+          const dy = touch.absoluteY - origin.value.y;
+          // 认领不了就一直不认领(不主动 fail):斜着起手后又转成横滑的也还能翻页,
+          // 这与旧实现每个 move 重算累计位移的判定是一致的
+          if (Math.abs(dx) >= SWIPE_ACTIVATE && Math.abs(dx) > Math.abs(dy) * SWIPE_AXIS_RATIO) {
+            manager.activate();
+          }
+        })
+        .onUpdate((event) => {
+          const { page: current, totalPages: total } = paging.value;
+          const dx = event.absoluteX - origin.value.x;
+          translateX.value = swipeOffset(current, dx, total);
+          const text = swipeHintText(current, dx, total);
+          if (text !== shownHint.value) {
+            shownHint.value = text;
+            runOnJS(showHint)(text);
+          }
+        })
+        .onEnd((event) => {
+          const { page: current, totalPages: total } = paging.value;
+          if (shownHint.value !== undefined) {
+            shownHint.value = undefined;
+            runOnJS(showHint)(undefined);
+          }
+          const target = swipeTargetPage(current, event.absoluteX - origin.value.x, total);
+          // 翻页时不弹回:换页会重置位移,弹回动画反而多闪一下
+          if (target !== current) {
+            translateX.value = 0;
+            runOnJS(commit)(target);
+            return;
+          }
+          translateX.value = withTiming(0, {
             duration: duration.panel,
-            easing: easeDecelerate,
-            useNativeDriver: true,
-          }).start();
-        },
-        onPanResponderTerminate: () => {
-          setHint(undefined);
-          Animated.timing(translateX, {
-            toValue: 0,
-            duration: duration.panel,
-            easing: easeDecelerate,
-            useNativeDriver: true,
-          }).start();
-        },
-      }),
-    [translateX],
+            easing: easeDecelerateWorklet,
+          });
+        })
+        // 被别的手势顶掉、或者压根没认领成的收尾。没认领成时下面两条都是空转,
+        // 也就不会有任何一次回 JS——纵向滚动的那条路上一句 JS 都不跑
+        .onFinalize((_event, success) => {
+          if (success) return;
+          if (shownHint.value !== undefined) {
+            shownHint.value = undefined;
+            runOnJS(showHint)(undefined);
+          }
+          if (translateX.value !== 0) {
+            translateX.value = withTiming(0, {
+              duration: duration.panel,
+              easing: easeDecelerateWorklet,
+            });
+          }
+        }),
+    [commit, origin, paging, showHint, shownHint, translateX],
   );
 
-  return { translateX, hint, panHandlers: responder.panHandlers };
+  const style = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
+
+  return { gesture, style, hintRef };
+}
+
+interface SwipeHintHandle {
+  /** 换提示文案;`undefined` = 收起。 */
+  show: (text: string | undefined) => void;
+}
+
+/**
+ * 横滑翻页时浮出来的「第 N 页」(设计稿 swipeHint:提示盒的**中心**放在屏幕中心,
+ * 所以套一层整屏居中容器)。
+ *
+ * 文案由手势从 UI 线程推进来,而不是当 TopicScreen 的 state:拖动过程中改一次
+ * 整屏 state,等于把屏上所有楼层卡片重画一遍——正是这一屏卡顿的来源之一。
+ */
+function SwipeHint({ ref }: { ref: Ref<SwipeHintHandle> }) {
+  const styles = useStyles();
+  const [text, setText] = useState<string | undefined>(undefined);
+  useImperativeHandle(ref, () => ({ show: setText }), []);
+
+  if (text === undefined) return null;
+  return (
+    <View style={styles.swipeHintLayer} pointerEvents="none">
+      <View style={styles.swipeHint}>
+        <Text style={styles.swipeHintText}>{text}</Text>
+      </View>
+    </View>
+  );
 }
 
 /**

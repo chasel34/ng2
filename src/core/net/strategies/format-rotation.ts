@@ -6,7 +6,7 @@ import {
   type FetchCombo,
 } from '../combo'
 import { NGA_HOSTS, type ResponseFormat } from '../constants'
-import { NgaError } from '../errors'
+import { NgaError, isAuthLevelServerError } from '../errors'
 import type { FetchContext, FetchStrategy, NgaRequest, StrategyOutcome } from '../types'
 import { runAttempt } from './attempt'
 
@@ -48,13 +48,14 @@ export function createFormatRotationStrategy(options: FormatRotationOptions = {}
               format: request.format ?? formats[0] ?? 'json',
               host: request.host ?? context.host,
             }
+      const preferred = cache?.get(key)
       const combos = enumerateCombos({
         formats,
         // 默认域名（设置页可改）永远排在官方域名表前面
         hosts: [context.host, ...hosts],
         maxAttempts,
         ...(requested === undefined ? {} : { requested }),
-        ...(cache === undefined ? {} : { preferred: cache.get(key) }),
+        ...(preferred === undefined ? {} : { preferred }),
       })
 
       let transport = context.transport
@@ -73,7 +74,15 @@ export function createFormatRotationStrategy(options: FormatRotationOptions = {}
           cache?.remember(key, combo)
           return outcome
         }
+        // 缓存里那个组合当场失手就先摘掉：并发的同接口请求不该再从它开局，
+        // 而这一轮后面的组合成功了自然会把新的写回去
+        if (combo.format === preferred?.format && combo.host === preferred.host) cache?.forget(key)
         lastError = outcome.error
+        // 游客态的「未登录」：换域名救不了（哪个域名都没有 cookie），别白跑一整轮组合。
+        // 但错误本身仍然是可重试的，链上后面的网页兜底/帖子缓存还该拿到机会。
+        if (context.credentials === null && isAuthLevelServerError(outcome.error.message)) {
+          return outcome
+        }
         if (!outcome.error.retryable) {
           // 能解析出服务端语义错误 = 这个组合是通的，值得记住
           if (outcome.error.kind === 'server') cache?.remember(key, combo)

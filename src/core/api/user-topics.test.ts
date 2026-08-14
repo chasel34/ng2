@@ -135,6 +135,7 @@ describe('hasMoreUserPosts', () => {
     totalRows: count,
     rowsPerPage,
     totalPages: 1,
+    listStructure: true,
   })
 
   it('只认「这一页一条都没有」', () => {

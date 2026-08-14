@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { fetchTopicDetail, type Floor, type FloorUser, type TopicDetail } from '@/core/api';
@@ -122,7 +122,7 @@ export default function ChainScreen() {
   }, [wantedPage, loadingPage, topicId, fav, queryClient]);
 
   /** 「在原帖中查看」:回详情页那一页并定位那一楼(16 票的跳楼机制,详情页收 floor 参数)。 */
-  const openInTopic = (node: ChainNode) => {
+  const openInTopic = useCallback((node: ChainNode) => {
     const entry = merged.byPid.get(node.pid);
     const target =
       entry !== undefined
@@ -140,9 +140,62 @@ export default function ChainScreen() {
         ...(fav === undefined ? {} : { fav }),
       },
     });
-  };
+  }, [merged, router, topicId, fav]);
 
   const currentLou = merged.byPid.get(startPid)?.floor.lou;
+
+  /**
+   * 懒加载状态。原来是 `extraData={{ loadingPage, failedPages }}` 现建的对象——
+   * 每次渲染都是新引用,FlashList 会当成「外部数据变了」把所有单元格重画一遍,
+   * 等于把 ChainCard 的 memo 抵消掉。
+   */
+  const extraData = useMemo(
+    () => ({ loadingPage, failedPages, pages, merged }),
+    [loadingPage, failedPages, pages, merged],
+  );
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: ChainNode; index: number }) => {
+      const entry = merged.byPid.get(item.pid);
+      const indent = Math.min(index, MAX_INDENT_STEPS) * INDENT_STEP;
+      if (entry === undefined) {
+        return (
+          <MissingCard
+            node={item}
+            indent={indent}
+            loading={
+              item.ref?.page !== undefined &&
+              !failedPages.has(item.ref.page) &&
+              !pages.has(item.ref.page)
+            }
+            pageLoaded={item.ref?.page !== undefined && pages.has(item.ref.page)}
+            onRetry={() => {
+              const page = item.ref?.page;
+              if (page === undefined) return;
+              setFailedPages((prev) => {
+                const next = new Set(prev);
+                next.delete(page);
+                return next;
+              });
+            }}
+            onOpenInTopic={item.ref?.page === undefined ? undefined : () => openInTopic(item)}
+          />
+        );
+      }
+      return (
+        <ChainCard
+          entry={entry}
+          node={item}
+          current={item.role === 'current'}
+          indent={indent}
+          tid={topicId}
+          user={merged.users[entry.floor.authorKey]}
+          onOpenInTopic={openInTopic}
+        />
+      );
+    },
+    [merged, failedPages, pages, topicId, openInTopic],
+  );
 
   return (
     <View style={styles.root}>
@@ -167,7 +220,9 @@ export default function ChainScreen() {
       <FlashList
         data={chain}
         keyExtractor={(node) => String(node.pid)}
-        extraData={{ loadingPage, failedPages }}
+        extraData={extraData}
+        // 链上有两种形状差很远的行:已加载的楼层卡与降级占位卡
+        getItemType={(node) => (merged.byPid.has(node.pid) ? 'card' : 'missing')}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           currentLou === undefined ? null : (
@@ -176,44 +231,7 @@ export default function ChainScreen() {
             </Text>
           )
         }
-        renderItem={({ item, index }) => {
-          const entry = merged.byPid.get(item.pid);
-          const indent = Math.min(index, MAX_INDENT_STEPS) * INDENT_STEP;
-          if (entry === undefined) {
-            return (
-              <MissingCard
-                node={item}
-                indent={indent}
-                loading={
-                  item.ref?.page !== undefined &&
-                  !failedPages.has(item.ref.page) &&
-                  !pages.has(item.ref.page)
-                }
-                pageLoaded={item.ref?.page !== undefined && pages.has(item.ref.page)}
-                onRetry={() => {
-                  const page = item.ref?.page;
-                  if (page === undefined) return;
-                  setFailedPages((prev) => {
-                    const next = new Set(prev);
-                    next.delete(page);
-                    return next;
-                  });
-                }}
-                onOpenInTopic={item.ref?.page === undefined ? undefined : () => openInTopic(item)}
-              />
-            );
-          }
-          return (
-            <ChainCard
-              entry={entry}
-              current={item.role === 'current'}
-              indent={indent}
-              tid={topicId}
-              user={merged.users[entry.floor.authorKey]}
-              onOpenInTopic={() => openInTopic(item)}
-            />
-          );
-        }}
+        renderItem={renderItem}
       />
     </View>
   );
@@ -225,6 +243,7 @@ export default function ChainScreen() {
  */
 const ChainCard = memo(function ChainCard({
   entry,
+  node,
   current,
   indent,
   tid,
@@ -232,11 +251,13 @@ const ChainCard = memo(function ChainCard({
   onOpenInTopic,
 }: {
   entry: LoadedFloor;
+  /** 这一行对应的链节点。收它是为了让 `onOpenInTopic` 能是整屏共用的一个函数 */
+  node: ChainNode;
   current: boolean;
   indent: number;
   tid: number;
   user: FloorUser | undefined;
-  onOpenInTopic: () => void;
+  onOpenInTopic: (node: ChainNode) => void;
 }) {
   const styles = useStyles();
   const theme = useTheme();
@@ -245,6 +266,17 @@ const ChainCard = memo(function ChainCard({
   const dice = useMemo(
     () => resolveDice(nodes, { authorId: floor.authorId, tid, pid: floor.pid }),
     [nodes, floor.authorId, tid, floor.pid],
+  );
+  // BBCodeBody 是 memo 的,渲染参数每次新建就白包(同 `ui/floor-card.tsx` 的 renderOptions)
+  const options = useMemo(
+    () => ({
+      attachBase: entry.attachBase,
+      postedAt: floor.postedAt,
+      dice,
+      bodyFontSize: theme.typography.chainBody.fontSize,
+      bodyLineHeight: theme.typography.chainBody.lineHeight,
+    }),
+    [entry.attachBase, floor.postedAt, dice, theme.typography.chainBody],
   );
 
   const name = user?.name ?? '未知用户';
@@ -260,17 +292,7 @@ const ChainCard = memo(function ChainCard({
         </Text>
       </View>
       <View style={styles.cardBody}>
-        <BBCodeBody
-          nodes={nodes}
-          options={{
-            attachBase: entry.attachBase,
-            postedAt: floor.postedAt,
-            dice,
-            bodyFontSize: theme.typography.chainBody.fontSize,
-            bodyLineHeight: theme.typography.chainBody.lineHeight,
-          }}
-          style={styles.cardBodyText}
-        />
+        <BBCodeBody nodes={nodes} options={options} style={styles.cardBodyText} />
       </View>
       <View style={styles.cardFooter}>
         {current && <Text style={styles.badge}>当前楼层</Text>}
@@ -278,7 +300,11 @@ const ChainCard = memo(function ChainCard({
           <Icon name="thumb_up" size={14} color={theme.colors.meta} />
           <Text style={styles.likesCount}>{floor.score}</Text>
         </View>
-        <Pressable onPress={onOpenInTopic} hitSlop={8} accessibilityLabel="在原帖中查看">
+        <Pressable
+          onPress={() => onOpenInTopic(node)}
+          hitSlop={8}
+          accessibilityLabel="在原帖中查看"
+        >
           <Text style={styles.goFloor}>在原帖中查看</Text>
         </Pressable>
       </View>
@@ -313,7 +339,9 @@ function ChainAvatar({
       source={{ uri: avatarUrl }}
       style={styles.avatar}
       contentFit="cover"
-      cachePolicy="disk"
+      // memory-disk:头像最值得进内存缓存——一条链上同一个人常出现好几次,
+      // 而且和详情页楼层头像共用 Glide 的那份缓存,从详情页进来基本直接命中
+      cachePolicy="memory-disk"
       transition={120}
       recyclingKey={avatarKey}
       onError={() => setFailed(true)}

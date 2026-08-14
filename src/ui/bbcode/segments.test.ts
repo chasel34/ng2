@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseBBCode } from '@/core/bbcode';
+import { parseBBCode, type BBCodeNode } from '@/core/bbcode';
 
 import { containsBlock, splitIntoSegments } from './segments';
 
@@ -88,5 +88,31 @@ describe('containsBlock', () => {
   it('纯文字不算', () => {
     const [node] = parseBBCode('就是一段字');
     expect(containsBlock(node!)).toBe(false);
+  });
+
+  /**
+   * 记忆化的回归锁:嵌套引用/折叠里的同一棵子树会被渲染层反复问到(外层切一次段、
+   * 递归进去再切一次),每次都深度遍历一遍的话,楼层越深越贵。
+   *
+   * 用一个 `children` getter 数「子树被展开了几次」——`childNodeLists` 取的就是它。
+   */
+  it('同一棵子树重复问只遍历一次', () => {
+    let reads = 0;
+    const subtree = {
+      type: 'bold',
+      get children() {
+        reads += 1;
+        return [{ type: 'text', value: '字' }];
+      },
+    } as unknown as BBCodeNode;
+
+    expect(containsBlock(subtree)).toBe(false);
+    expect(containsBlock(subtree)).toBe(false);
+    expect(reads).toBe(1);
+
+    // 同一棵子树挂在两个不同的父节点下,也只遍历它一次
+    const wrapped = { type: 'italic', children: [subtree] } as unknown as BBCodeNode;
+    expect(containsBlock(wrapped)).toBe(false);
+    expect(reads).toBe(1);
   });
 });

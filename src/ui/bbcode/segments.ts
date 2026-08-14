@@ -35,14 +35,31 @@ const BLOCK_TYPES = new Set<BBCodeNode['type']>([
 export const isBlockNode = (node: BBCodeNode): boolean => BLOCK_TYPES.has(node.type);
 
 /**
+ * `containsBlock` 的记忆表。
+ *
+ * 这个判断是**整棵子树的深度遍历**,而同一棵子树会被反复问到:引用块、折叠块、
+ * 表格单元格里的内容由渲染层递归交回 `BBCodeBody` 再切一次段,外层已经走完的
+ * 节点在内层还要从头再走。嵌套引用深几层,最里面那段就被走几遍。
+ *
+ * 按节点身份缓存是安全的:AST 出自 `parseBBCode`,建好之后没人改它。用 WeakMap
+ * 是为了让整棵树随楼层一起被回收,不用自己管失效。
+ */
+const blockCache = new WeakMap<BBCodeNode, boolean>();
+
+/**
  * 一个节点里(含各层后代)有没有必须自己占一行的东西。
  *
  * 只看顶层是不够的:NGA 上 `[align=center][img]…[/img][/align]`、`[b][img]…[/b]`
  * 这种**图片裹在行内标签里**的写法极常见,漏判就会把那张图塞进 `<Text>` 然后整个消失。
  */
 export function containsBlock(node: BBCodeNode): boolean {
-  if (isBlockNode(node)) return true;
-  return childNodeLists(node).some((list) => list.some(containsBlock));
+  const cached = blockCache.get(node);
+  if (cached !== undefined) return cached;
+
+  const result =
+    isBlockNode(node) || childNodeLists(node).some((list) => list.some(containsBlock));
+  blockCache.set(node, result);
+  return result;
 }
 
 export type Segment =

@@ -152,9 +152,10 @@ describe('信封往返', () => {
   })
 
   it('存的是顶层 root:不套壳的响应还原后 data 仍然是它自己', () => {
-    // app_api 那种不套 data 壳的响应（envelope.ts：既没 data 也没 error 时顶层即 data）
-    const original = parseNgaJson('{"0":{"name":"网事杂谈"}}')
-    const restored = parseNgaJson(serializeEnvelope(original))
+    // 不套 data 壳的响应（顶层即 data）。这类接口要显式声明 bare——
+    // 默认档不再把陌生顶层当 data（见 envelope.ts）
+    const original = parseNgaJson('{"0":{"name":"网事杂谈"}}', undefined, 'bare')
+    const restored = parseNgaJson(serializeEnvelope(original), undefined, 'bare')
 
     expect(restored.data).toEqual(original.data)
   })

@@ -12,9 +12,10 @@
  * 主题结果与版块列表是同一形状（thread.php），解析全部复用 `parseTopicList`。
  */
 
+import { signedBoardId } from '../local'
 import { NgaError, gbk, isRecord, type NgaFetcher } from '../net'
 import { int, nonZero, orderedEntries, str } from './fields'
-import { parseTopicList } from './topic-list'
+import { TOPIC_LIST_REQUEST, parseTopicList, serverEmptyTopicList } from './topic-list'
 import type { Board, TopicList } from './types'
 
 /**
@@ -65,6 +66,9 @@ export async function fetchTopicSearch(
   const { key, page, boardId, kind, searchContent, signal } = options
 
   const result = await fetchNga({
+    // 和版块列表共用同一条 comboCache 记录，形状校验也必须是同一份，
+    // 否则搜索这条路照样能把坏组合喂进缓存
+    ...TOPIC_LIST_REQUEST,
     path: 'thread.php',
     query: {
       key,
@@ -80,7 +84,7 @@ export async function fetchTopicSearch(
   })
 
   if (!isRecord(result.data)) {
-    if (result.fakeError !== undefined) return parseTopicList({})
+    if (result.fakeError !== undefined) return serverEmptyTopicList()
     throw new NgaError({ kind: 'parse', message: '主题搜索响应里没有 data', via: result.via })
   }
   return withoutServerNotices(parseTopicList(result.data))
@@ -106,7 +110,7 @@ export function parseBoardSearch(data: unknown): BoardSearchItem[] {
     const name = str(raw, 'name')
     if (name === undefined) continue
 
-    const fid = nonZero(int(raw, 'fid'))
+    const fid = nonZero(signedBoardId(int(raw, 'fid')))
     const stid = nonZero(int(raw, 'stid'))
     const id = stid ?? fid
     if (id === undefined) continue

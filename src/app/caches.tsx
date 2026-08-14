@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 
 import {
@@ -32,23 +32,39 @@ export default function CachesScreen() {
   const now = useMinuteTick();
   const total = cacheTotalBytes(topics);
 
-  const openTopic = (topic: CachedTopic) => {
-    const first = topic.pages[0] ?? 1;
-    router.push({
-      pathname: '/topic/[tid]',
-      params: {
-        tid: String(topic.tid),
-        title: topic.subject,
-        page: String(first),
-        ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
-      },
-    });
-  };
+  const openTopic = useCallback(
+    (topic: CachedTopic) => {
+      const first = topic.pages[0] ?? 1;
+      router.push({
+        pathname: '/topic/[tid]',
+        params: {
+          tid: String(topic.tid),
+          title: topic.subject,
+          page: String(first),
+          ...(topic.favCode === undefined ? {} : { fav: topic.favCode }),
+        },
+      });
+    },
+    [router],
+  );
 
-  const removeTopic = (topic: CachedTopic) => {
+  const removeTopic = useCallback((topic: CachedTopic) => {
     deleteCachedTopic(topic.tid);
     showToast(`已删除「${topic.subject}」的缓存`);
-  };
+  }, []);
+
+  // renderItem / 头尾组件都稳住:元素每次渲染都新建的话,FlashList 每次都要重挂它们
+  const renderItem = useCallback(
+    ({ item }: { item: CachedTopic }) => (
+      <CacheRow topic={item} now={now} onPress={openTopic} onDelete={removeTopic} />
+    ),
+    [now, openTopic, removeTopic],
+  );
+  const header = useMemo(
+    () => <Text style={styles.subtitle}>离线可读 · 已占用 {formatCacheSize(total)}</Text>,
+    [styles.subtitle, total],
+  );
+  const footer = useMemo(() => <View style={styles.footerSpacer} />, [styles.footerSpacer]);
 
   const confirmClear = () => {
     if (topics.length === 0) return;
@@ -99,18 +115,10 @@ export default function CachesScreen() {
           <FlashList
             data={topics}
             keyExtractor={(topic) => String(topic.tid)}
-            renderItem={({ item }) => (
-              <CacheRow
-                topic={item}
-                now={now}
-                onPress={() => openTopic(item)}
-                onDelete={() => removeTopic(item)}
-              />
-            )}
-            ListHeaderComponent={
-              <Text style={styles.subtitle}>离线可读 · 已占用 {formatCacheSize(total)}</Text>
-            }
-            ListFooterComponent={<View style={styles.footerSpacer} />}
+            // 行是同构的(每行都是同一个 CacheRow),不需要 getItemType
+            renderItem={renderItem}
+            ListHeaderComponent={header}
+            ListFooterComponent={footer}
           />
         </View>
       )}
@@ -118,7 +126,11 @@ export default function CachesScreen() {
   );
 }
 
-function CacheRow({
+/**
+ * memo:两个回调都收「拿 topic 的函数」而不是现成的闭包——一行一个
+ * `() => open(item)` 的话 props 恒不等,memo 白包(和 `ui/topic-row.tsx` 同一套约定)。
+ */
+const CacheRow = memo(function CacheRow({
   topic,
   now,
   onPress,
@@ -126,14 +138,18 @@ function CacheRow({
 }: {
   topic: CachedTopic;
   now: number;
-  onPress: () => void;
-  onDelete: () => void;
+  onPress: (topic: CachedTopic) => void;
+  onDelete: (topic: CachedTopic) => void;
 }) {
   const styles = useStyles();
   const theme = useTheme();
 
   return (
-    <Pressable style={styles.row} onPress={onPress} android_ripple={{ color: theme.colors.divider }}>
+    <Pressable
+      style={styles.row}
+      onPress={() => onPress(topic)}
+      android_ripple={{ color: theme.colors.divider }}
+    >
       <View style={styles.rowBody}>
         <Text style={styles.title}>
           {topic.subject}
@@ -151,7 +167,7 @@ function CacheRow({
         </View>
       </View>
       <Pressable
-        onPress={onDelete}
+        onPress={() => onDelete(topic)}
         hitSlop={10}
         accessibilityLabel={`删除「${topic.subject}」的缓存`}
         style={styles.delete}
@@ -160,7 +176,7 @@ function CacheRow({
       </Pressable>
     </Pressable>
   );
-}
+});
 
 /** 每分钟走一格的时钟(秒)。只在整页级别订阅一次,行组件拿它当纯参数。 */
 function useMinuteTick(): number {

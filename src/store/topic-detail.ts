@@ -57,6 +57,22 @@ export function loadedTopicPages(
 }
 
 /**
+ * 一页帖子详情在缓存里算「新鲜」多久。
+ *
+ * 全局默认是 0(每次挂载都重打),对 `read.php` 这条路太激进了:退回主题列表再点进
+ * 同一个帖、从回复链页返回、深链来回跳——这些都是几秒内的事,内容不可能变,
+ * 却各打一发 NGA(ADR-0002:被封是常态,少打一发就少一分风险)。
+ *
+ * 2 分钟这一档是按「用户觉得内容该更新了没有」定的:更长会让人退出去再进来还看到
+ * 旧的一页(论坛帖几分钟内多几楼是常事);更短就吃不掉「来回进出」这个最常见的模式。
+ *
+ * 它**不会**挡住任何显式刷新——下拉刷新、FAB 的「刷新」、提示条的「重试原生」走的都是
+ * `refetch()`,`refetch` 无视 `staleTime`,一定真发请求。翻到没读过的页也一定发
+ * (新 queryKey 没有缓存条目)。被吃掉的只有「重新挂载一个已经在缓存里的页」。
+ */
+const TOPIC_DETAIL_STALE_MS = 2 * 60_000;
+
+/**
  * 一页帖子详情。
  *
  * 和主题列表不一样,这里是**按页取**而不是无限滚动:详情页有三种翻页入口
@@ -85,6 +101,7 @@ export function useTopicDetail(params: TopicDetailParams): UseQueryResult<TopicD
         onSnapshot: saveCachedPage,
       }),
     placeholderData: keepPreviousData,
+    staleTime: TOPIC_DETAIL_STALE_MS,
     enabled: Number.isFinite(tid) && tid > 0,
   });
 }

@@ -1,7 +1,13 @@
 import type { AuthMode, NgaCredentials } from './auth'
 import { createComboCache, type ComboCache } from './combo'
 import { DEFAULT_NGA_HOST, USER_AGENT_PROFILES, type UserAgentProfile } from './constants'
-import type { FetchAttemptLog, FetchDiagnostic } from './diagnostics'
+import {
+  formatOutcome,
+  summarizeEnvelopeData,
+  type FetchAttemptLog,
+  type FetchDiagnostic,
+  type FetchOutcomeSummary,
+} from './diagnostics'
 import { NgaError } from './errors'
 import { isGbkParam, type QueryParams } from './query'
 import { createDirectStrategy } from './strategies/direct'
@@ -23,7 +29,10 @@ export interface NgaFetcherOptions {
    * 给了它就盖过 `host`——设置页改完，下一个请求就发到新域名，不用重建 fetcher。
    */
   readonly getHost?: () => string
-  /** 默认认证方式（API 文档 §0.2 的两种等价方式） */
+  /**
+   * 默认认证方式（API 文档 §0.2 的两种等价方式），默认 `both`。
+   * 为什么不是 `cookie`：见 auth.ts 文件头的 okhttp cookie jar 取证。
+   */
   readonly authMode?: AuthMode
   /** 每次请求时取当前账号；返回 null 即游客 */
   readonly getCredentials?: () => NgaCredentials | null
@@ -119,13 +128,41 @@ export async function runStrategyChain(
     throw fail(new NgaError({ kind: 'unavailable', message: '没有可用的请求策略' }))
   }
 
+  /**
+   * 成功也留一条记录（H2）。以前只有整条链失败才有诊断，于是「链自认为成功、
+   * 拿回来的却是空数据」这种静默降级完全看不见——真出过这个事故。
+   */
+  const succeed = (result: NgaResult): NgaResult => {
+    const last = attempts.at(-1)
+    const { keys, rows } = summarizeEnvelopeData(result.data)
+    const success: FetchOutcomeSummary = {
+      strategy: result.via,
+      format: last?.format ?? '(未发请求)',
+      host: last?.host ?? '(未发请求)',
+      keys,
+      ...(rows === undefined ? {} : { rows }),
+    }
+    onEvent({
+      type: 'chain-success',
+      diagnostic: {
+        at: Date.now(),
+        path: request.path,
+        params: diagnosticParams(request.query),
+        message: formatOutcome(success),
+        attempts,
+        success,
+      },
+    })
+    return result
+  }
+
   let lastError: NgaError | undefined
   for (const strategy of strategies) {
     onEvent({ type: 'strategy-start', strategy: strategy.name, path: request.path })
     const outcome = await strategy.run(request, scoped)
     if (outcome.ok) {
       onEvent({ type: 'strategy-success', strategy: strategy.name, path: request.path })
-      return outcome.result
+      return succeed(outcome.result)
     }
     onEvent({
       type: 'strategy-failure',
@@ -166,7 +203,7 @@ export function createNgaFetcher(options: NgaFetcherOptions = {}): NgaFetcher {
     return runStrategyChain(strategies, request, {
       transport,
       host: options.getHost?.() ?? options.host ?? DEFAULT_NGA_HOST,
-      authMode: options.authMode ?? 'cookie',
+      authMode: options.authMode ?? 'both',
       credentials: options.getCredentials?.() ?? null,
       userAgents,
       comboCache,
@@ -176,7 +213,9 @@ export function createNgaFetcher(options: NgaFetcherOptions = {}): NgaFetcher {
         ? {}
         : {
             onEvent: (event: FetchEvent) => {
-              if (event.type === 'chain-failure') onDiagnostic?.(event.diagnostic)
+              if (event.type === 'chain-failure' || event.type === 'chain-success') {
+                onDiagnostic?.(event.diagnostic)
+              }
               outer?.(event)
             },
           }),

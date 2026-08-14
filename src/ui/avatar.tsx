@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import type { FloorUser } from '@/core/api';
@@ -28,18 +28,30 @@ export function avatarColorFor(key: string): string {
  *
  * 边长由「字体和头像大小」设置定(22 票),所以只能写成内联样式。
  */
-export function Avatar({ user }: { user: FloorUser | undefined }) {
+export const Avatar = memo(function Avatar({ user }: { user: FloorUser | undefined }) {
   const styles = useStyles();
-  const [failed, setFailed] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | undefined>(undefined);
   const size = useAvatarSize();
-  const box = { width: size, height: size, borderRadius: size / 2 };
+  // 内联样式对象每次渲染都新建的话,expo-image 那边 style prop 每次都是新的
+  const box = useMemo(
+    () => ({ width: size, height: size, borderRadius: size / 2 }),
+    [size],
+  );
 
   const name = user?.name ?? '?';
   const key = user?.key ?? name;
+  // 列表回收时同一个组件实例会换个人接着用,失败标志跟着地址记,不然新的人会顶着
+  // 上一个人的「加载失败」显示首字占位
+  const failed = failedUrl !== undefined && failedUrl === user?.avatarUrl;
+
+  const placeholderStyle = useMemo(
+    () => [box, styles.placeholder, { backgroundColor: avatarColorFor(key) }],
+    [box, styles.placeholder, key],
+  );
 
   if (user?.avatarUrl === undefined || failed) {
     return (
-      <View style={[box, styles.placeholder, { backgroundColor: avatarColorFor(key) }]}>
+      <View style={placeholderStyle}>
         <Text style={styles.initial} allowFontScaling={false}>
           {initialOf(name)}
         </Text>
@@ -47,20 +59,23 @@ export function Avatar({ user }: { user: FloorUser | undefined }) {
     );
   }
 
+  const avatarUrl = user.avatarUrl;
   return (
     <Image
-      source={{ uri: user.avatarUrl }}
+      source={{ uri: avatarUrl }}
       style={box}
       contentFit="cover"
-      cachePolicy="disk"
+      // memory-disk 而不是 disk:头像是最值得进内存缓存的一类图——同一页里同一个人
+      // 可能出现好多次,disk 档每次上屏都要重新读盘 + 解码
+      cachePolicy="memory-disk"
       transition={120}
       // 列表复用时换人就重新加载,不会串图
       recyclingKey={key}
-      onError={() => setFailed(true)}
+      onError={() => setFailedUrl(avatarUrl)}
       accessibilityIgnoresInvertColors
     />
   );
-}
+});
 
 const useStyles = createThemedStyles((theme) => ({
   placeholder: {

@@ -30,15 +30,56 @@ export interface FetchAttemptLog {
   readonly error?: FetchAttemptError
 }
 
+/**
+ * 成功那一次的落点摘要（2026-08-13，「版块全空」排查）。
+ *
+ * 以前只有整条链失败才留记录，于是**「链自认为成功、但拿回来的是一份空数据」
+ * 这种静默降级完全不可观测**——线上那次「所有版块都空」正是这种。这里记的是
+ * 纯结构信息（哪个组合、`data` 顶层有哪些键、列表有几条），不含任何正文与凭证。
+ */
+export interface FetchOutcomeSummary {
+  /** 产出结果的策略名 */
+  readonly strategy: string
+  /** 格式档位名，如 `json`（`__output=8`） */
+  readonly format: string
+  readonly host: string
+  /** `data` 顶层的键，超出上限就截断 */
+  readonly keys: readonly string[]
+  /** 列表类接口的条数（`__T` / `__R` 的元素个数），不是列表就没有 */
+  readonly rows?: number
+}
+
 export interface FetchDiagnostic {
   /** 记录时刻（ms since epoch） */
   readonly at: number
   readonly path: string
   /** 业务参数（tid/page/…），已归一化成字符串，`__` 开头的框架参数不计 */
   readonly params: Readonly<Record<string, string>>
-  /** 最终抛给调用方的错误说明 */
+  /** 最终抛给调用方的错误说明；成功记录里是落点的一句话 */
   readonly message: string
   readonly attempts: readonly FetchAttemptLog[]
+  /** 有它就是一条**成功**记录；没有就是整条链失败 */
+  readonly success?: FetchOutcomeSummary
+}
+
+/** 摘要里最多列几个 `data` 顶层键。 */
+const SUMMARY_KEY_LIMIT = 8
+
+/**
+ * 从一次成功的响应里抠出可记录的结构信息。
+ * 只看键名与条数——正文一律不进日志（这份日志是要导出发给别人看的）。
+ */
+export function summarizeEnvelopeData(data: unknown): { keys: readonly string[]; rows?: number } {
+  if (typeof data !== 'object' || data === null) return { keys: [] }
+  const record = data as Record<string, unknown>
+  const keys = Object.keys(record).slice(0, SUMMARY_KEY_LIMIT)
+  for (const listKey of ['__T', '__R']) {
+    const list = record[listKey]
+    if (typeof list === 'object' && list !== null) {
+      return { keys, rows: Object.keys(list as Record<string, unknown>).length }
+    }
+  }
+  return { keys }
 }
 
 /** 摘要里最多列几个业务参数——设计稿那一行只放得下 tid/page 这种量级。 */
@@ -67,8 +108,15 @@ function formatAttempt(attempt: FetchAttemptLog, index: number): string {
   return `  ${index + 1}. [${attempt.strategy}] ${combo} ua=${attempt.userAgent} ${who} → ${result}`
 }
 
+/** 成功记录的落点那一行：用了哪个组合、拿回来什么形状。 */
+export function formatOutcome(success: FetchOutcomeSummary): string {
+  const rows = success.rows === undefined ? '' : ` ${success.rows} 条`
+  const keys = success.keys.length === 0 ? '（无字段）' : success.keys.join(',')
+  return `[${success.strategy}] ${success.format} @ ${success.host} → data{${keys}}${rows}`
+}
+
 /**
- * 落本地日志的文本形态。一条记录多行：首行是请求与最终错误，其后每行一次尝试。
+ * 落本地日志的文本形态。一条记录多行：首行是请求与最终结果，其后每行一次尝试。
  * 存文本而不是 JSON：这份日志的唯一消费者是人（22 号票导出后发给自己看）。
  */
 export function formatDiagnostic(diagnostic: FetchDiagnostic): string {
@@ -76,7 +124,11 @@ export function formatDiagnostic(diagnostic: FetchDiagnostic): string {
     .map(([key, value]) => `${key}=${value}`)
     .join('&')
   const target = query === '' ? diagnostic.path : `${diagnostic.path}?${query}`
-  const head = `${new Date(diagnostic.at).toISOString()} ${target} 失败：${diagnostic.message}`
+  const verdict =
+    diagnostic.success === undefined
+      ? `失败：${diagnostic.message}`
+      : `成功：${formatOutcome(diagnostic.success)}`
+  const head = `${new Date(diagnostic.at).toISOString()} ${target} ${verdict}`
   return [head, ...diagnostic.attempts.map(formatAttempt)].join('\n')
 }
 

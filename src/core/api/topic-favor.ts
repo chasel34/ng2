@@ -17,7 +17,7 @@
 
 import { NgaError, isRecord, type NgaFetcher } from '../net'
 import { int, orderedValues, str } from './fields'
-import { parseTopicList } from './topic-list'
+import { TOPIC_LIST_REQUEST, parseTopicList } from './topic-list'
 import type { TopicList } from './types'
 
 /** 一个云端收藏夹。 */
@@ -85,6 +85,7 @@ export async function fetchFavoriteTopics(
 ): Promise<TopicList> {
   const { folderId, page, signal } = options
   const result = await fetchNga({
+    ...TOPIC_LIST_REQUEST,
     path: 'thread.php',
     query: { favor: folderId, page },
     ...(signal === undefined ? {} : { signal }),

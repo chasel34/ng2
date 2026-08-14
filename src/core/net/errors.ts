@@ -1,4 +1,4 @@
-import { FAKE_ERROR_MESSAGES } from './constants'
+import { AUTH_LEVEL_SERVER_MESSAGES, FAKE_ERROR_MESSAGES } from './constants'
 import type { FetchDiagnostic } from './diagnostics'
 import { isRecord } from './is-record'
 import { stripServerHtml } from './server-text'
@@ -79,6 +79,14 @@ export function isFakeError(message: string): boolean {
 }
 
 /**
+ * 这条服务端错误是不是「这一发没带上身份」而不是语义错误（API 文档 §0.7 之外的经验规则）。
+ * 命中的话值得换个组合再试一次，判据与出处见 `AUTH_LEVEL_SERVER_MESSAGES`。
+ */
+export function isAuthLevelServerError(message: string): boolean {
+  return AUTH_LEVEL_SERVER_MESSAGES.some((hint) => message.includes(hint))
+}
+
+/**
  * 从顶层响应对象里抽 JSON 错误（API 文档 §0.7）：
  * `{"error":{"0":"信息"}}` 或 `{"error":{"code":403,"0":"信息"}}`。
  * 没有错误时返回 null。
@@ -95,6 +103,18 @@ export function extractServerError(root: unknown): NgaServerError | null {
   if (typeof error === 'string') {
     // 剥完只剩空的（整条说明全是标签）仍然算错误——空说明比误判成功强
     return error === '' ? null : { code: '?', message: stripServerHtml(error) || unknownMessage('?') }
+  }
+  // 数组形态（`{"error":["访问速度过快"]}`）：`isRecord` 把数组排除在外，
+  // 不单独认一下的话服务端说的原话会被整条丢掉，用户看到的是「响应里没有 data」
+  // 这种毫无信息量的话（2026-08-13，「版块全空」排查）
+  if (Array.isArray(error)) {
+    const messages = error
+      .filter((item): item is string => typeof item === 'string')
+      .map(stripServerHtml)
+      .filter((message) => message !== '')
+    // 空数组不当错误：PHP 的空数组序列化出来就是 `[]`，和「这个字段没内容」分不开，
+    // 而对象形态那一档（有 error 对象但没有可读信息）仍然算错误——那是明确的结构
+    return messages.length === 0 ? null : { code: '?', message: messages.join('；') }
   }
   if (!isRecord(error)) return null
 

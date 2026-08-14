@@ -5,7 +5,8 @@ import { Share } from 'react-native';
 
 import { cacheTotalBytes, formatCacheSize } from '@/core/local';
 import type { WebFallbackMode } from '@/core/net';
-import { readDiagnosticLog } from '@/store/diagnostics';
+import { readDiagnosticLog, readRunLog } from '@/store/diagnostics';
+import { successfulCombos } from '@/store/nga-client';
 import { useNetSettings } from '@/store/net-settings';
 import { useSettings } from '@/store/settings';
 import { clearTopicCache, useCachedTopics } from '@/store/topic-cache';
@@ -35,6 +36,9 @@ const FALLBACK_LABELS: Readonly<Record<WebFallbackMode, string>> = {
 
 /** 一次分享出去的诊断条数上限。日志一条就是多行,整份几百条分享面板会塞不下。 */
 const EXPORT_LIMIT = 50;
+
+/** 「本次运行」里分享出去的请求条数。 */
+const RUN_LOG_EXPORT_LIMIT = 20;
 
 /** 设置 3 / 3 —— 实验室与存储(设计稿 `settings3` 屏)。 */
 export default function LabSettingsScreen() {
@@ -71,6 +75,41 @@ export default function LabSettingsScreen() {
     const header = `ng2 ${version} · 诊断日志 ${recent.length}/${log.length} 条`;
     Share.share({ title: '导出诊断日志', message: [header, ...recent].join('\n\n') }).catch(
       () => showToast('分享面板没打开'),
+    );
+  };
+
+  /**
+   * 「本次运行的组合」(2026-08-13「版块全空」排查)。
+   *
+   * 反封锁链把每个接口钉在「上次试通的格式 × 域名」上,这个状态只活在内存里,
+   * 出问题时(比如所有版块都空)最想知道的就是它——以前界面上完全看不见。
+   * 顺带把本次运行的请求落点也分享出去:成功的请求同样在里面,
+   * 「链自认为成功但拿回来 0 条」只有在这儿才看得出来。
+   */
+  const combos = successfulCombos();
+  const comboSummary =
+    combos.length === 0
+      ? '还没有成功的请求'
+      : combos.map(({ key, combo }) => `${key}: ${combo}`).join(' · ');
+
+  const shareRunLog = () => {
+    const runLog = readRunLog().slice(0, RUN_LOG_EXPORT_LIMIT);
+    const lines = [
+      `ng2 ${version} · 本次运行`,
+      '【当前组合】',
+      combos.length === 0 ? '(还没有成功的请求)' : comboSummary,
+      `【最近 ${runLog.length} 个请求】`,
+      ...runLog.map((entry) => {
+        const query = Object.entries(entry.params)
+          .map(([name, value]) => `${name}=${value}`)
+          .join('&');
+        const target = query === '' ? entry.path : `${entry.path}?${query}`;
+        const time = new Date(entry.at).toISOString().slice(11, 19);
+        return `${time} ${entry.ok ? '成功' : '失败'} ${target} (${entry.attempts} 次尝试) ${entry.message}`;
+      }),
+    ];
+    Share.share({ title: '本次运行', message: lines.join('\n') }).catch(() =>
+      showToast('分享面板没打开'),
     );
   };
 
@@ -119,6 +158,7 @@ export default function LabSettingsScreen() {
           setClearCacheOpen(true);
         }}
       />
+      <SettingsNavRow label="本次运行的组合" sub={comboSummary} onPress={shareRunLog} />
       <SettingsNavRow label="导出诊断日志" sub={`最近 ${EXPORT_LIMIT} 条`} onPress={exportLog} />
       <SettingsNavRow
         label="恢复默认设置"

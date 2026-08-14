@@ -16,6 +16,7 @@
  * 每一层的字段都可能缺、可能是别的类型，所以坏条目一律跳过而不是让整棵树炸掉。
  */
 
+import { signedBoardId } from '../local'
 import { NgaError, isRecord, type NgaFetcher } from '../net'
 import { int, nonZero, orderedEntries, orderedValues, str } from './fields'
 import type { Board, BoardCategory, BoardGroup, BoardTree, HomeAnnouncement } from './types'
@@ -82,7 +83,8 @@ function parseBoard(raw: unknown, table: IconTable): Board | undefined {
 
   // 0 不是有效 id：普通版块常见下发 stid:0 表示「不是合集」，
   // 当成真 stid 会把整个版块错判成合集，thread.php 也会拿 stid=0 去查
-  const fid = nonZero(int(raw, 'fid'))
+  // fid 可以是负数（-7 网事杂谈、个人版面），过一道符号还原；stid 是主题 id，不适用
+  const fid = nonZero(signedBoardId(int(raw, 'fid')))
   const stid = nonZero(int(raw, 'stid'))
   // stid 优先于 fid（CONTEXT.md「合集」）：合集与普通版块互斥，下游一律只认这一个 id
   const id = stid ?? fid
@@ -195,6 +197,10 @@ export async function fetchBoardTree(
   const result = await fetchNga({
     path: 'app_api.php',
     query: { __lib: 'home', __act: 'category' },
+    // 这个接口的数据横跨顶层的 `data` 与 `other`（图标清单、公告、推荐版块都在 other 里），
+    // 解析拿的是 `root` 而不是 `data`——所以它不该受「顶层必须有 data 壳」那条约束。
+    // 实测响应确实带 `data` 键，声明 bare 只是让「我们读的是顶层」这件事写在明面上
+    envelope: 'bare',
     ...(signal === undefined ? {} : { signal }),
   })
   return parseBoardTree(result.root)

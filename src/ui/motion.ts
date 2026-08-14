@@ -15,6 +15,7 @@
  */
 
 import { Easing } from 'react-native';
+import { Easing as ReanimatedEasing } from 'react-native-reanimated';
 
 /** CSS `ease`。设计稿里所有 `animation:… ease` 与未标缓动的 `transition` 都是它。 */
 export const easeStandard = Easing.bezier(0.25, 0.1, 0.25, 1);
@@ -25,6 +26,19 @@ export const easeStandard = Easing.bezier(0.25, 0.1, 0.25, 1);
  * 跟手势甩出去的手感配套,与入场用的 `ease` 不是同一条。
  */
 export const easeDecelerate = Easing.bezier(0.2, 0.8, 0.3, 1);
+
+/**
+ * 同一条 `cubic-bezier(.2,.8,.3,1)`,给 Reanimated 的 `withTiming` 用。
+ *
+ * **为什么要两份**:上面那条是 `react-native` 的 `Animated.Easing`,是一个跑在 JS 线程上的
+ * 普通闭包;Reanimated 的动画跑在 UI 线程,只吃自己那套 `EasingFunctionFactory`
+ * (能被序列化搬过去)。两者互不通用,拿错了会直接报 worklet 相关的运行时错。
+ * 所以这不是复制粘贴遗留,是两条运行时各要一份。
+ *
+ * **改控制点时两条一起改**——它们说的是设计稿里同一条曲线,分开漂了就没人发现。
+ * 详情页横滑翻页(`app/topic/[tid].tsx` 的 `useSwipePaging`)用的是这一条。
+ */
+export const easeDecelerateWorklet = ReanimatedEasing.bezier(0.2, 0.8, 0.3, 1);
 
 /**
  * 三种入场动效的时长。同一种动效在设计稿里按元素轻重分了几档:

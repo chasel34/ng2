@@ -140,6 +140,7 @@ export {
   PLAIN_TITLE_STYLE,
   decodeTitleStyle,
   parseTopicMisc,
+  signedBoardId,
   titleStyleFromMask,
   type TitleColor,
   type TitleStyle,

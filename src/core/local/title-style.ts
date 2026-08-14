@@ -80,6 +80,28 @@ export interface TopicMisc {
   readonly sfid?: number
 }
 
+const U32 = 0x1_0000_0000
+const INT32_MAX = 0x7fff_ffff
+
+/**
+ * 把「无符号 32 位形态的版块 ID」还原成负数。
+ *
+ * **NGA 的版块 ID 可以是负数**：`-7` 网事杂谈这类特殊版面，以及个人版面
+ * （实测 fid=-7955747 / -608808 / -522474 …，样本见 `thread-list-fid-7`）。
+ * JSON 里服务端老老实实发负号，但 `topic_misc` 那串 TLV 是 4 字节大端**裸整数**，
+ * 按无符号读出来 `-8725919` 就变成 `4286241377`，跳转过去服务端回
+ * 「56:版面ID4286241377不存在」（2026-08-13 走查实测，消费电子版「小窗视界 [版面镜像]」）。
+ *
+ * ⚠️ **只能用在 `fid`/`sfid` 上**。`stid`（合集）与 `tid` 都是**主题 id**——合集本身
+ * 就是一个主题，主题 id 是无上限的正整数（现在四千七百万量级），将来越过 2^31
+ * 时套上这条规则会被平白改成负数。版块 fid 的量级在十万级，落进 (2^31, 2^32)
+ * 只可能是符号丢了。
+ */
+export function signedBoardId(value: number | undefined): number | undefined {
+  if (value === undefined) return undefined
+  return value > INT32_MAX && value < U32 ? value - U32 : value
+}
+
 /**
  * 解 `topic_misc`。解不开、空、或以 `~` / `~1` 结尾（官方在这里直接返回空）都给空对象——
  * 这个字段坏掉不该连累整条主题。
@@ -100,9 +122,11 @@ export function parseTopicMisc(raw: unknown): TopicMisc {
       ((bytes[at + 3] as number) << 8) +
       (bytes[at + 4] as number)
 
+    // 掩码是位字段、stid 是主题 id，两者都按无符号读；
+    // 只有 sfid 是版块 id，可能是负数（见 signedBoardId）
     if (type === TLV_MASK) misc.mask = value
     else if (type === TLV_STID) misc.stid = value
-    else if (type === TLV_SFID) misc.sfid = value
+    else if (type === TLV_SFID) misc.sfid = signedBoardId(value)
     // 未知 type 照样按 5 字节跳过，官方也这么处理
   }
   return misc

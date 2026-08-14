@@ -99,4 +99,28 @@ describe('fetchTopicList', () => {
       fetchTopicList(createNgaFetcher({ transport }), { boardId: -7, kind: 'board', page: 1 }),
     ).rejects.toThrow(/没有 data/)
   })
+
+  it('data 在但不是主题列表的形状时报解析错，而不是「这个版块是空的」', async () => {
+    // 事故形态：能洗成 JSON、data 也是个对象，就是没有 __T/__F/__ROWS。
+    // 以前这里会安静地返回 0 条主题，UI 只能说「这个版块还没有主题」
+    const { transport } = fixtureTransport('{"data":{"__CU":{"uid":10000001}},"time":1}')
+
+    await expect(
+      fetchTopicList(createNgaFetcher({ transport }), { boardId: -7, kind: 'board', page: 1 }),
+    ).rejects.toThrow(/没有主题列表结构/)
+  })
+
+  it('真的空版块（__T 是空对象）仍然是成功的 0 条', async () => {
+    const { transport } = fixtureTransport(
+      '{"data":{"__T":{},"__F":{"fid":-7,"name":"网事杂谈"},"__ROWS":0},"time":1}',
+    )
+
+    const list = await fetchTopicList(createNgaFetcher({ transport }), {
+      boardId: -7,
+      kind: 'board',
+      page: 1,
+    })
+    expect(list.topics).toEqual([])
+    expect(list.listStructure).toBe(true)
+  })
 })

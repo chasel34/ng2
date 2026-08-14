@@ -16,6 +16,11 @@ import {
  * LRU/去重/进度规则全在 `core/local/history`(纯 TS,带单测),这里只做两件事:
  * 启动时把库里的行灌进 zustand,每次变更后把「动过的那一条 + 被挤出去的行」写回去。
  * 内存里的数组是唯一事实来源,SQLite 只是它的落盘影子——读永远走 store,不查库。
+ *
+ * 例外是滚动上报的阅读进度:它一秒能来十几次,而 `withTransactionSync` 是**同步磁盘写**,
+ * 直接落在滚动的那一帧上(M4 性能走查:详情页慢拖 54% janky frames)。所以进度先记在
+ * 内存里,按 `FLOOR_FLUSH_INTERVAL_MS` 节流落盘,退出这一屏/退到后台时由调用方兜底
+ * `flushReadFloor()`。语义没变:仍然只前进,仍然一定落盘,只是不在手指还按着的时候写。
  */
 
 interface HistoryState {
@@ -40,13 +45,69 @@ export function recordTopicVisit(visit: TopicVisit): void {
   apply(upsertHistory(useHistoryStore.getState().entries, visit, nowSec()));
 }
 
-/** 滚动时上报看到的楼层号。楼层没前进时是纯 no-op,不碰 SQLite。 */
+/** 阅读进度落盘的最小间隔。慢拖一秒能报十几次,这一档把磁盘写压到每秒一次。 */
+const FLOOR_FLUSH_INTERVAL_MS = 1000;
+
+/**
+ * 还没落盘的阅读进度。滚动只改它,不碰 SQLite 也不碰 zustand。
+ * `dirty` 为 false 表示已经落过盘了,水位线还留着是为了拦住重复上报。
+ */
+let pendingFloor: { tid: number; lou: number; dirty: boolean } | undefined;
+let lastFloorFlushAt = 0;
+let floorFlushTimer: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * 滚动时上报看到的楼层号。楼层没前进时是纯 no-op;前进了也只记在内存里,
+ * 距上次落盘不足 `FLOOR_FLUSH_INTERVAL_MS` 就挂个尾巴定时器等会儿再写。
+ */
 export function recordReadFloor(tid: number, lou: number): void {
-  apply(advanceHistoryFloor(useHistoryStore.getState().entries, tid, lou, nowSec()));
+  // 换主题(自动加载下一页不换,但从缓存/深链跳到别的帖会)先把上一条落定
+  if (pendingFloor !== undefined && pendingFloor.tid !== tid) flushReadFloor();
+  // 只前进:回头翻前几楼不该反复触发落盘(core/local/history 也会再拦一次)
+  if (pendingFloor !== undefined && pendingFloor.tid === tid && lou <= pendingFloor.lou) return;
+  pendingFloor = { tid, lou, dirty: true };
+
+  const elapsed = Date.now() - lastFloorFlushAt;
+  if (elapsed >= FLOOR_FLUSH_INTERVAL_MS) {
+    flushReadFloor();
+    return;
+  }
+  // 手指停在半路就不动了也得落盘,所以尾巴这一发不能省
+  floorFlushTimer ??= setTimeout(flushReadFloor, FLOOR_FLUSH_INTERVAL_MS - elapsed);
+}
+
+/**
+ * 把内存里攒着的阅读进度写下去。退出详情页、退到后台时必须调一次——
+ * 不然最后 1 秒读到的楼层会跟着页面一起丢。没有待落盘的东西时是纯 no-op。
+ */
+export function flushReadFloor(): void {
+  if (floorFlushTimer !== undefined) {
+    clearTimeout(floorFlushTimer);
+    floorFlushTimer = undefined;
+  }
+  if (pendingFloor === undefined || !pendingFloor.dirty) return;
+  const { tid, lou } = pendingFloor;
+  lastFloorFlushAt = Date.now();
+
+  const entries = useHistoryStore.getState().entries;
+  // 条目得先由 recordTopicVisit 建好,不然 core 层会原样丢弃这次上报。
+  // 那种情况下水位线也要一起丢,否则同一楼层再报进来会被上面的「只前进」拦掉
+  if (!entries.some((entry) => entry.tid === tid)) {
+    pendingFloor = undefined;
+    return;
+  }
+  pendingFloor = { tid, lou, dirty: false };
+  apply(advanceHistoryFloor(entries, tid, lou, nowSec()));
 }
 
 /** 清空浏览历史(历史页右上角 delete_sweep)。 */
 export function clearHistory(): void {
+  // 攒着的进度要丢掉而不是落盘:清完再写回去等于把删掉的条目又变出来
+  if (floorFlushTimer !== undefined) {
+    clearTimeout(floorFlushTimer);
+    floorFlushTimer = undefined;
+  }
+  pendingFloor = undefined;
   useHistoryStore.setState({ entries: [] });
   db().runSync('DELETE FROM browse_history');
 }

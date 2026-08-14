@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { PLAIN_TITLE_STYLE, decodeTitleStyle, parseTopicMisc } from './title-style'
+import { PLAIN_TITLE_STYLE, decodeTitleStyle, parseTopicMisc, signedBoardId } from './title-style'
 
 describe('parseTopicMisc', () => {
   it('拆 base64（无 padding）的 TLV：1 字节 type + 4 字节大端', () => {
@@ -26,6 +26,44 @@ describe('parseTopicMisc', () => {
   it('官方对以 ~ / ~1 结尾的值直接跳过', () => {
     expect(parseTopicMisc('AwAAA0MBAAAAIA~')).toEqual({})
     expect(parseTopicMisc('AwAAA0MBAAAAIA~1')).toEqual({})
+  })
+
+  // NGA 的版块 id 可以是负数（-7 网事杂谈、个人版面 -7955747…，样本见
+  // api/__fixtures__/thread-list-fid-7），而 TLV 里是 4 字节裸整数。
+  // 按无符号读会把 -8725919 读成 4286241377，点进去服务端回「版面ID…不存在」
+  // （2026-08-13 走查：消费电子版「小窗视界 [版面镜像]」）
+  it('高位为 1 的 sfid 是负数版块 id，不是四十亿', () => {
+    // 03 FF7ADA61（sfid）+ 01 00000020（掩码 32）
+    expect(parseTopicMisc('A/962mEBAAAAIA')).toEqual({ mask: 32, sfid: -8725919 })
+  })
+
+  it('stid 不适用这条规则：合集 id 是主题 id，不会是负数', () => {
+    expect(parseTopicMisc('Av962mE')).toEqual({ stid: 4286241377 })
+  })
+
+  it('掩码仍按无符号读（它是位字段，不是 id）', () => {
+    // 01 FF000021：高位置 1 的字体掩码不该变成负数
+    expect(parseTopicMisc('Af8AACE')).toEqual({ mask: 0xff000021 })
+  })
+})
+
+describe('signedBoardId', () => {
+  it('落在 (2^31-1, 2^32) 的值是丢了符号的版块 fid', () => {
+    expect(signedBoardId(4286241377)).toBe(-8725919)
+    expect(signedBoardId(4294967289)).toBe(-7)
+  })
+
+  it('正常范围的 id 原样返回', () => {
+    expect(signedBoardId(835)).toBe(835)
+    expect(signedBoardId(-7)).toBe(-7)
+    expect(signedBoardId(0)).toBe(0)
+    expect(signedBoardId(0x7fffffff)).toBe(0x7fffffff)
+    expect(signedBoardId(undefined)).toBeUndefined()
+  })
+
+  it('2^32 及以上不动：那不是 u32，硬减会把大 id 改坏', () => {
+    expect(signedBoardId(2 ** 32)).toBe(2 ** 32)
+    expect(signedBoardId(47_082_733)).toBe(47_082_733)
   })
 })
 

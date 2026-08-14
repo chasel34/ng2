@@ -10,7 +10,7 @@
  */
 
 import { NgaError, isRecord, type NgaFetcher } from '../net'
-import { parseTopicList } from './topic-list'
+import { TOPIC_LIST_REQUEST, parseTopicList, serverEmptyTopicList } from './topic-list'
 import type { Topic, TopicList } from './types'
 
 /** 抽屉里那两个入口：我发的主题 / 我发的回复。 */
@@ -37,6 +37,7 @@ export async function fetchUserTopics(
   const { uid, kind, page, signal } = options
 
   const result = await fetchNga({
+    ...TOPIC_LIST_REQUEST,
     path: 'thread.php',
     query: {
       authorid: uid,
@@ -49,7 +50,7 @@ export async function fetchUserTopics(
   if (!isRecord(result.data)) {
     // 翻过头时服务端回的是 error「2048:没有符合条件的结果」，那是假错误白名单里的一条
     // （core/net 的 FAKE_ERROR_MESSAGES），意思是「到底了」而不是「出错了」
-    if (result.fakeError !== undefined) return parseTopicList({})
+    if (result.fakeError !== undefined) return serverEmptyTopicList()
     throw new NgaError({ kind: 'parse', message: '用户主题列表响应里没有 data', via: result.via })
   }
   return parseTopicList(result.data)

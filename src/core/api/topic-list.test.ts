@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import { decodeGb18030 } from '../net'
 import { readFixtureBytes } from './__fixtures__'
-import { mergeTopicPages, parseTopicList } from './topic-list'
+import {
+  hasTopicListStructure,
+  mergeTopicPages,
+  parseTopicList,
+  rejectNonTopicList,
+  serverEmptyTopicList,
+} from './topic-list'
 import type { Topic, TopicList } from './types'
 
 /** 真实抓包样本解出来的整页，多个用例共用。 */
@@ -191,6 +197,41 @@ describe('parseTopicList（字段容错）', () => {
     expect(mirror.shortcut).toEqual({ kind: 'board', id: 835 })
   })
 
+  // 2026-08-13 走查：消费电子版「小窗视界 [版面镜像]」点进去是
+  // 「56:版面ID4286241377不存在」。4286241377 = -8725919 的无符号 32 位形态，
+  // 而 NGA 的版块 id 本来就可以是负数（-7 网事杂谈、个人版面）
+  it('负数子版块 fid 不能变成四十亿（两条来源都要还原符号）', () => {
+    const fromMisc = parseOne({ type: 2097152, topic_misc: 'A/962mEBAAAAIA', fid: 635 })
+    expect(fromMisc.shortcut).toEqual({ kind: 'board', id: -8725919 })
+
+    const fromVar = parseOne({
+      type: 2097152,
+      topic_misc: '',
+      topic_misc_var: { 3: 4286241377 },
+      fid: 635,
+    })
+    expect(fromVar.shortcut).toEqual({ kind: 'board', id: -8725919 })
+  })
+
+  it('正常范围的子版块 fid 不受影响', () => {
+    expect(parseOne({ type: 2097152, topic_misc: 'AwAAA0MBAAAAIA', fid: 635 }).shortcut).toEqual({
+      kind: 'board',
+      id: 835,
+    })
+    // 服务端本来就发负号的那条路也照旧
+    expect(
+      parseOne({ type: 2097152, topic_misc: '', topic_misc_var: { 3: -522474 }, fid: 635 }).shortcut,
+    ).toEqual({ kind: 'board', id: -522474 })
+  })
+
+  it('主题 id 不走这条规则：tid 是无上限的正整数', () => {
+    // 合集行的 shortcut 用的是 stid/tid，别被「版块 id 还原」误伤
+    expect(parseOne({ type: 32768, tid: 4286241377 }).shortcut).toEqual({
+      kind: 'collection',
+      id: 4286241377,
+    })
+  })
+
   it('数字字段是字符串照样收，坏了就给缺省值', () => {
     expect(parseOne({ replies: '52', postdate: '1786112241' })).toMatchObject({
       replies: 52,
@@ -220,6 +261,94 @@ describe('parseTopicList（字段容错）', () => {
     expect(parseTopicList(undefined).topics).toEqual([])
     expect(parseTopicList({ __T: '不是对象' }).topics).toEqual([])
     expect(parseTopicList({}).totalPages).toBe(1)
+  })
+
+  // 「这个版块真没帖」和「我们压根没拿到列表」当时共用同一句空态文案，
+  // 被限流的时候整个 app 看起来就像所有版块都空了（2026-08-13 排查）
+  describe('listStructure · 分清「没帖子」和「没拿到」', () => {
+    it('空版块也带结构：__T 是空对象照样算拿到了列表', () => {
+      const list = parseTopicList({ __T: {}, __F: { fid: 650, name: '原神' }, __ROWS: 0 })
+      expect(list.topics).toEqual([])
+      expect(list.listStructure).toBe(true)
+    })
+
+    it('三个结构键任意一个在场就算', () => {
+      expect(hasTopicListStructure({ __T: {} })).toBe(true)
+      expect(hasTopicListStructure({ __F: {} })).toBe(true)
+      expect(hasTopicListStructure({ __ROWS: 0 })).toBe(true)
+    })
+
+    it('一个都没有 = 这不是主题列表的响应', () => {
+      expect(hasTopicListStructure({ __CU: { uid: 1 } })).toBe(false)
+      expect(hasTopicListStructure({})).toBe(false)
+      expect(hasTopicListStructure(undefined)).toBe(false)
+      expect(parseTopicList({ __CU: { uid: 1 } }).listStructure).toBe(false)
+    })
+
+    it('服务端明说「没有符合条件的结果」时算拿到了（只是空的）', () => {
+      expect(serverEmptyTopicList().listStructure).toBe(true)
+      expect(serverEmptyTopicList().topics).toEqual([])
+    })
+  })
+
+  describe('rejectNonTopicList · 反封锁链的一票否决', () => {
+    const envelope = (data: unknown, fakeError?: { code: string; message: string }) => ({
+      root: {},
+      data,
+      ...(fakeError === undefined ? {} : { fakeError }),
+    })
+
+    it('形状对就放行', () => {
+      expect(rejectNonTopicList(envelope({ __T: {} }))).toBeUndefined()
+    })
+
+    it('形状不对就给出否决理由（链会当解析失败继续换组合）', () => {
+      expect(rejectNonTopicList(envelope({ __CU: {} }))).toMatch(/没有主题列表结构/)
+      expect(rejectNonTopicList(envelope(undefined))).toMatch(/没有 data/)
+    })
+
+    it('假错误（翻到底了）不是坏组合，照样放行', () => {
+      expect(
+        rejectNonTopicList(envelope(undefined, { code: '2048', message: '没有符合条件的结果' })),
+      ).toBeUndefined()
+    })
+  })
+})
+
+describe('fid=414：服务端在 __output=8 里返回坏字节，__output=11 是可用替身', () => {
+  // 2026-08-14 真机验收：这个版块在 app 里永远打不开，两轮都被误判成「服务端拦截」。
+  // 实际是 `__output=8` 的响应字节自己就坏（详见 __fixtures__/index.ts 的说明）。
+  it('__output=8 的样本解码后 JSON.parse 挂掉——这就是打不开的根因', () => {
+    const text = decodeGb18030(readFixtureBytes('threadListBusyBroken'))
+    // 解码器是宽容的（吐替换字符而不是抛），所以挂的是后面的 JSON.parse
+    expect(text).toContain('�')
+    expect(() => JSON.parse(text)).toThrow()
+  })
+
+  it('__output=11 的同一页解得干干净净，100 条主题', () => {
+    const list = parseTopicList(
+      JSON.parse(decodeGb18030(readFixtureBytes('threadListBusyVerbose'))).data,
+    )
+    expect(list.topics).toHaveLength(100)
+    expect(list.board?.id).toBe(414)
+  })
+
+  it('__output=11 解出来的主题字段与 __output=8 同构，core/api 不用改', () => {
+    const list = parseTopicList(
+      JSON.parse(decodeGb18030(readFixtureBytes('threadListBusyVerbose'))).data,
+    )
+    const topic = list.topics[0]
+    expect(topic).toBeDefined()
+    expect(topic?.tid).toBeTypeOf('number')
+    expect(topic?.subject).toBeTypeOf('string')
+    expect(topic?.subject.length).toBeGreaterThan(0)
+    expect(topic?.author).toBeTypeOf('string')
+    expect(topic?.replies).toBeTypeOf('number')
+  })
+
+  it('__output=11 的信封过得了链上那道形状校验', () => {
+    const envelope = JSON.parse(decodeGb18030(readFixtureBytes('threadListBusyVerbose')))
+    expect(hasTopicListStructure(envelope.data)).toBe(true)
   })
 })
 

@@ -214,3 +214,126 @@ describe('createFormatRotationStrategy · 格式参数 × 域名的组合枚举'
     expect(combos).toHaveLength(1)
   })
 })
+
+/**
+ * 「未登录」这一档单独测：它长得像服务端语义错误，实际是这一发请求没带上身份。
+ * 真机取证（2026-08-13，小米 25113PN0EC）：冷启动后第一个版块约 1/6 概率直接
+ * 报「1:未登录」，手点重试（= 忘掉组合重来）立刻就好——因为 okhttp 的 cookie jar
+ * 按域名存，换个域名我们自己拼的 Cookie 头就不会被顶掉（见 auth.ts 文件头）。
+ */
+describe('createFormatRotationStrategy · 服务端说「未登录」', () => {
+  const UNAUTHED = utf8('{"error":{"code":1,"0":"未登录"},"time":1}')
+  const CREDENTIALS = { uid: '10000001', token: 'cid-a' }
+
+  /** 只有 `only` 这个组合认得出身份，其余一律回「未登录」。 */
+  function onlyAuthed(only: string) {
+    return fakeTransport((combo) => (combo === only ? { body: OK } : { body: UNAUTHED }))
+  }
+
+  it('手上有凭证时继续换组合,直到某个域名认出身份', async () => {
+    const { transport, combos } = onlyAuthed('lite=js@https://ngabbs.com')
+    const fetchNga = createNgaFetcher({
+      transport,
+      host: HOSTS[0],
+      getCredentials: () => CREDENTIALS,
+      strategies: [createFormatRotationStrategy({ formats: FORMATS, hosts: HOSTS, maxAttempts: 10 })],
+    })
+
+    const result = await fetchNga({ path: 'thread.php', query: { fid: 650 } })
+
+    expect(result.via).toBe('format-rotation')
+    expect(combos).toEqual([
+      '__output=8@https://bbs.nga.cn',
+      'lite=js@https://bbs.nga.cn',
+      '__output=8@https://ngabbs.com',
+      'lite=js@https://ngabbs.com',
+    ])
+  })
+
+  it('丢身份的那个组合不会被记进缓存,下一次不从它开局', async () => {
+    const cache = createComboCache()
+    const { transport, combos } = onlyAuthed('lite=js@https://ngabbs.com')
+    const fetchNga = createNgaFetcher({
+      transport,
+      comboCache: cache,
+      host: HOSTS[0],
+      getCredentials: () => CREDENTIALS,
+      strategies: [createFormatRotationStrategy({ formats: FORMATS, hosts: HOSTS, maxAttempts: 10 })],
+    })
+    const request = { path: 'thread.php', query: { fid: 650 } }
+
+    await fetchNga(request)
+    expect(cache.get(interfaceKeyOf(request))).toEqual({
+      format: 'jsonLite',
+      host: 'https://ngabbs.com',
+    })
+
+    combos.length = 0
+    await fetchNga(request)
+    expect(combos).toEqual(['lite=js@https://ngabbs.com'])
+  })
+
+  it('游客态不换组合:哪个域名都没 cookie,白跑一整轮只会把错误页拖慢', async () => {
+    const { transport, combos } = onlyAuthed('lite=js@https://ngabbs.com')
+    const fetchNga = createNgaFetcher({
+      transport,
+      host: HOSTS[0],
+      getCredentials: () => null,
+      strategies: [createFormatRotationStrategy({ formats: FORMATS, hosts: HOSTS, maxAttempts: 10 })],
+    })
+
+    await expect(fetchNga({ path: 'thread.php', query: { fid: 650 } })).rejects.toMatchObject({
+      kind: 'server',
+      message: '未登录',
+    })
+    expect(combos).toEqual(['__output=8@https://bbs.nga.cn'])
+  })
+
+  /**
+   * 但「不换组合」不等于「掐死整条链」。真机取证（2026-08-13）：游客态打开帖子，
+   * 直连报未登录，而点「用网页版打开」正文完整渲染——网页兜底本来就能拿到这一页，
+   * 只是以前错误被判成不可重试，`runStrategyChain` 在轮到它之前就抛了。
+   */
+  it('游客态的未登录仍然可重试,好让链上后面的网页兜底接手', async () => {
+    const { transport, combos } = onlyAuthed('(没有能用的组合)')
+    const rescue = {
+      name: 'web-fallback',
+      run: () =>
+        Promise.resolve({
+          ok: true as const,
+          result: { root: { data: { rescued: true } }, data: { rescued: true }, via: 'web-fallback' },
+        }),
+    }
+    const fetchNga = createNgaFetcher({
+      transport,
+      host: HOSTS[0],
+      getCredentials: () => null,
+      strategies: [
+        createFormatRotationStrategy({ formats: FORMATS, hosts: HOSTS, maxAttempts: 10 }),
+        rescue,
+      ],
+    })
+
+    const result = await fetchNga({ path: 'read.php', query: { tid: 1 } })
+
+    expect(result.via).toBe('web-fallback')
+    // 只发了一次直连就让位给兜底,没有白跑一整轮组合
+    expect(combos).toEqual(['__output=8@https://bbs.nga.cn'])
+  })
+
+  it('所有组合都说未登录时,报给用户的仍是服务端原话', async () => {
+    const { transport, combos } = onlyAuthed('(没有能用的组合)')
+    const fetchNga = createNgaFetcher({
+      transport,
+      host: HOSTS[0],
+      getCredentials: () => CREDENTIALS,
+      strategies: [createFormatRotationStrategy({ formats: FORMATS, hosts: HOSTS, maxAttempts: 10 })],
+    })
+
+    await expect(fetchNga({ path: 'thread.php', query: { fid: 650 } })).rejects.toMatchObject({
+      kind: 'server',
+      message: '未登录',
+    })
+    expect(combos).toHaveLength(4)
+  })
+})

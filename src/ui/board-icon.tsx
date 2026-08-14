@@ -66,7 +66,9 @@ export function BoardIcon({ board }: { board: Board }) {
       source={{ uri: board.iconUrl }}
       style={styles.icon}
       contentFit="contain"
-      cachePolicy="disk"
+      // memory-disk 而不是 disk:32 见方的小图,一屏三十来个、切 tab 来回换,
+      // disk 档每次上屏都要重新读盘 + 解码。解码后一张才 4KB 上下,进内存很划算
+      cachePolicy="memory-disk"
       transition={120}
       // 列表复用时换 id 就重新走一遍加载,不会串图
       recyclingKey={String(board.id)}

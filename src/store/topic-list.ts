@@ -9,7 +9,7 @@ import { create } from 'zustand';
 
 import { fetchTopicList, type TopicList, type TopicSort } from '@/core/api';
 
-import { fetchNga } from './nga-client';
+import { fetchNga, forgetSuccessfulCombo } from './nga-client';
 
 export interface TopicListParams {
   /** 合集是 stid、普通版块是 fid(CONTEXT.md「合集」) */
@@ -77,6 +77,36 @@ export function useRefreshTopicList(params: TopicListParams): () => void {
         : { pages: loaded.pages.slice(0, 1), pageParams: loaded.pageParams.slice(0, 1) },
     );
     void queryClient.refetchQueries({ queryKey });
+  }, [queryClient, boardId, kind, sort, recommend]);
+}
+
+/**
+ * 「重试」:比下拉刷新更狠的一档,给空态/错误态那两个按钮用。
+ *
+ * 除了重新请求,还要**忘掉 `thread.php` 上次试通的格式 × 域名组合**
+ * (2026-08-13「版块全空」排查):用户按这个按钮的时候,恰恰是「拿回来的东西不对」
+ * 的时候,而反封锁链会优先复用上次成功的组合——不清掉的话按一百次也还是从
+ * 同一个坏组合开局。详情页的「重新联网获取」早就是这么做的,版块页当时漏了。
+ *
+ * 顺带把这条 query 手里的数据丢掉:空结果也是「成功」,会被 react-query 正常缓存,
+ * 只 refetch 的话屏上那份空数据还会先摆着。用 `resetQueries` 而不是 `removeQueries`:
+ * 这条 query 正被本屏观察着,`remove` 是给没有观察者的 query 用的,
+ * `reset` 才会「丢掉数据 + 让活着的观察者重新拉」。
+ */
+export function useRetryTopicList(params: TopicListParams): () => void {
+  const queryClient = useQueryClient();
+  const { boardId, kind, sort, recommend } = params;
+
+  return useCallback(() => {
+    forgetSuccessfulCombo('thread.php');
+    void queryClient.resetQueries({
+      queryKey: topicListQueryKey({
+        boardId,
+        kind,
+        sort,
+        ...(recommend === true ? { recommend } : {}),
+      }),
+    });
   }, [queryClient, boardId, kind, sort, recommend]);
 }
 

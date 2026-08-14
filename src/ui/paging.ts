@@ -6,6 +6,10 @@
  * 三个入口都从这里取值,一致性就是结构性的,不靠人盯。
  *
  * 纯函数、零 RN 依赖,所以能直接单测(组件本身在本仓库跑不了渲染测试)。
+ *
+ * 滑动那一路(`swipe*` + `clampPage`)标了 `'worklet'`:详情页的横滑翻页跑在
+ * Reanimated 的 UI 线程上,跨模块调用的函数不标就搬不过去。指令在 JS 线程上是
+ * 一句无害的字符串,页码条与跳页对话框照常直接调,单测也照跑。
  */
 
 /** 页码窗口:当前页前后各露几格。 */
@@ -19,6 +23,7 @@ export const SWIPE_HINT_DISTANCE = 40;
 
 /** 夹到 `1 – totalPages`。非法输入(NaN / 小数 / 负数)一律退到第 1 页。 */
 export function clampPage(page: number, totalPages: number): number {
+  'worklet';
   if (!Number.isFinite(page)) return 1;
   const total = Math.max(1, Math.trunc(totalPages));
   return Math.min(Math.max(1, Math.trunc(page)), total);
@@ -50,13 +55,17 @@ export function parseJumpTarget(input: string, totalPages: number): number | und
 }
 
 /** 手指往左划(dx < 0)是下一页,往右是上一页。 */
-export const swipeDirection = (dx: number): 1 | -1 => (dx < 0 ? 1 : -1);
+export const swipeDirection = (dx: number): 1 | -1 => {
+  'worklet';
+  return dx < 0 ? 1 : -1;
+};
 
 /**
  * 松手后该停在哪一页。没走够 `SWIPE_COMMIT_DISTANCE`、或者已经在头尾了,
  * 就返回原页码(调用方据此判断「要不要翻」)。
  */
 export function swipeTargetPage(page: number, dx: number, totalPages: number): number {
+  'worklet';
   if (Math.abs(dx) <= SWIPE_COMMIT_DISTANCE) return page;
   return clampPage(page + swipeDirection(dx), totalPages);
 }
@@ -71,6 +80,7 @@ export function swipeHintText(
   dx: number,
   totalPages: number,
 ): string | undefined {
+  'worklet';
   if (Math.abs(dx) <= SWIPE_HINT_DISTANCE) return undefined;
   const target = page + swipeDirection(dx);
   if (target < 1) return '已是第一页';
@@ -80,6 +90,7 @@ export function swipeHintText(
 
 /** 拖到头时给强阻尼,手感上"拉不动了"。返回内容实际跟手的位移。 */
 export function swipeOffset(page: number, dx: number, totalPages: number): number {
+  'worklet';
   const follow = 0.7;
   const edgeFollow = 0.25;
   const atEdge =

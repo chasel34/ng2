@@ -18,6 +18,22 @@ import { useSettings } from './settings';
 export const NOTIFICATION_POLL_MS = 60_000;
 
 /**
+ * 一直没有新通知时,跳过几格再拉。索引 = 连续拉空的次数。
+ *
+ * 前台常驻每分钟一发 `nuke.php`,和用户自己的浏览抢同一份服务端配额,而封第三方
+ * 客户端是常态(ADR-0002)——一个整天挂着、其实没人理的账号,一小时打 60 发
+ * 只为了一个角标,性价比太低。所以拉空就退避:60s → 120s → 180s → 300s。
+ *
+ * **退避靠跳格而不是改周期**:定时器仍然是稳稳的 60s 一格,只是到点了不一定发请求。
+ * 这样 start/stop 那套(退后台即停)一个字都不用动,也没有「改周期要重建定时器」
+ * 带来的竞态。
+ *
+ * 回到 60s 的条件有两个:拉到了新通知,或者 app 刚回到前台(那时用户大概率就是
+ * 冲着看消息来的)。另外通知页自己会主动拉一次,不受这里影响。
+ */
+const POLL_BACKOFF_SKIPS = [0, 1, 2, 4] as const;
+
+/**
  * 通知的设备侧落地:core/local 的已读模型进 Zustand,已读 ID 持久化 expo-sqlite
  * (spec §3:通知已读走 sqlite,不塞 MMKV)。
  *
@@ -171,6 +187,7 @@ export function useNotificationsUnread(): number {
 /**
  * 前台轮询(spec §4)。挂在根布局,登录后才转:
  * - 只在 app 前台(AppState active)起定时器,退后台立即停;
+ * - 一直拉空就退避(`POLL_BACKOFF_SKIPS`),回前台或拉到新通知就回到 60s;
  * - 切号/登出由 activate 重置状态并停掉旧账号的轮询;
  * - 关掉「被喷提示」(22 票)就整个不转——那一档要的正是「别再来打扰」。
  *   通知页自己进去还是会拉,那是用户主动看的。
@@ -184,9 +201,31 @@ export function useNotificationsPoller(): void {
     if (uid === null || !enabled) return;
 
     let timer: ReturnType<typeof setInterval> | null = null;
-    const tick = () => void useNotifications.getState().refresh();
+    // 退避状态:连续拉空的次数,以及这一格之后还要跳过几格
+    let idle = 0;
+    let skip = 0;
+
+    const tick = () => {
+      if (skip > 0) {
+        skip -= 1;
+        return;
+      }
+      const before = useNotifications.getState().items.length;
+      void useNotifications
+        .getState()
+        .refresh()
+        .then(() => {
+          // mergeNotifications 只增不覆盖,所以条数变多就是真拉到了新东西
+          const fresh = useNotifications.getState().items.length > before;
+          idle = fresh ? 0 : Math.min(idle + 1, POLL_BACKOFF_SKIPS.length - 1);
+          skip = POLL_BACKOFF_SKIPS[idle] ?? 0;
+        });
+    };
     const start = () => {
       if (timer !== null) return;
+      // 刚回到前台等于「用户现在就想看」:退避清零,先拉一发
+      idle = 0;
+      skip = 0;
       tick();
       timer = setInterval(tick, NOTIFICATION_POLL_MS);
     };

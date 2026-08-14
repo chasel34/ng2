@@ -243,6 +243,34 @@ export const API_FIXTURES = {
     file: 'thread-search-sixth-sense.gbk.bin',
     note: 'thread.php key=%E7%AC%AC%E5%85%AD%E6%84%9F(第六感 UTF-8) page=1 __output=8 __inchst=UTF8，登录态',
   },
+  /**
+   * thread.php?fid=414 `__output=8` —— **故意留着的坏样本**（2026-08-14 真机验收）。
+   *
+   * 游戏综合讨论第一页。声明 GBK，但某条主题的 `jdata.skw` 里塞的是 UTF-8 字节
+   * （原文「独立游戏」），另有 GBK / GB18030 都解不出的字节（0xac @21539、0x80 @27131）。
+   * 解码器只能吐 U+FFFD，替换字符又落在 `\"` 转义上，`JSON.parse` 必挂——
+   * 这就是「414 在 app 里永远打不开」的根因，别把它当损坏文件删掉。
+   *
+   * `lite=js` 档拿到的是**同一份字节**（只多包一层 `window.script_muti_get_var_store=`），
+   * 所以那一档救不了；能救的是下面的 `__output=11`。
+   */
+  threadListBusyBroken: {
+    contentType: 'text/html',
+    file: 'thread-list-fid-414-output8-broken.gbk.bin',
+    note: 'thread.php fid=414 page=1 __output=8，游客身份；服务端返回的字节本身就坏',
+  },
+  /**
+   * thread.php?fid=414 `__output=11` —— 上面那份的可用替身，同一页同一时刻抓的。
+   *
+   * 另一个序列化器（它转义 `/`），100 条主题解得干干净净；`__T` 记录的字段除了
+   * 少一个全仓库没人读的 `__TJ` 之外与 `__output=8` 完全同构，所以 core/api
+   * 一行都不用改。`DEFAULT_ROTATION_FORMATS` 把 `jsonVerbose` 放回轮换的依据就是这份。
+   */
+  threadListBusyVerbose: {
+    contentType: 'text/html',
+    file: 'thread-list-fid-414-output11.gbk.bin',
+    note: 'thread.php fid=414 page=1 __output=11，游客身份',
+  },
 } as const satisfies Record<string, ApiFixture>
 
 export type ApiFixtureName = keyof typeof API_FIXTURES

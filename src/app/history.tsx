@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 
 import { formatHistoryTime, historyProgressLabel, type HistoryEntry } from '@/core/local';
@@ -24,16 +24,32 @@ export default function HistoryScreen() {
   // 「N 分钟前」这类相对时间会过期,页面停留时每分钟刷一次基准
   const now = useMinuteTick();
 
-  const openEntry = (entry: HistoryEntry) => {
-    router.push({
-      pathname: '/topic/[tid]',
-      params: {
-        tid: String(entry.tid),
-        title: entry.subject,
-        ...(entry.favCode === undefined ? {} : { fav: entry.favCode }),
-      },
-    });
-  };
+  const openEntry = useCallback(
+    (entry: HistoryEntry) => {
+      router.push({
+        pathname: '/topic/[tid]',
+        params: {
+          tid: String(entry.tid),
+          title: entry.subject,
+          ...(entry.favCode === undefined ? {} : { fav: entry.favCode }),
+        },
+      });
+    },
+    [router],
+  );
+
+  // renderItem / 头尾组件都稳住:元素每次渲染都新建的话,FlashList 每次都要重挂它们
+  const renderItem = useCallback(
+    ({ item }: { item: HistoryEntry }) => (
+      <HistoryRow entry={item} now={now} onPress={openEntry} />
+    ),
+    [now, openEntry],
+  );
+  const header = useMemo(
+    () => <Text style={styles.subtitle}>本机记录 · 保留最近 200 条</Text>,
+    [styles.subtitle],
+  );
+  const footer = useMemo(() => <View style={styles.footerSpacer} />, [styles.footerSpacer]);
 
   const confirmClear = () => {
     if (entries.length === 0) return;
@@ -79,13 +95,10 @@ export default function HistoryScreen() {
           <FlashList
             data={entries}
             keyExtractor={(entry) => String(entry.tid)}
-            renderItem={({ item }) => (
-              <HistoryRow entry={item} now={now} onPress={() => openEntry(item)} />
-            )}
-            ListHeaderComponent={
-              <Text style={styles.subtitle}>本机记录 · 保留最近 200 条</Text>
-            }
-            ListFooterComponent={<View style={styles.footerSpacer} />}
+            // 行是同构的(每行都是同一个 HistoryRow),不需要 getItemType
+            renderItem={renderItem}
+            ListHeaderComponent={header}
+            ListFooterComponent={footer}
           />
         </View>
       )}
@@ -93,20 +106,29 @@ export default function HistoryScreen() {
   );
 }
 
-function HistoryRow({
+/**
+ * memo:`now` 每分钟才走一格,其余时候整屏重渲染(清空对话框、返回手势)不该
+ * 把每一行都重画一遍。`onPress` 收的是「拿 entry 的回调」而不是现成的闭包——
+ * 一行一个 `() => open(item)` 的话 props 恒不等,memo 白包。
+ */
+const HistoryRow = memo(function HistoryRow({
   entry,
   now,
   onPress,
 }: {
   entry: HistoryEntry;
   now: number;
-  onPress: () => void;
+  onPress: (entry: HistoryEntry) => void;
 }) {
   const styles = useStyles();
   const theme = useTheme();
 
   return (
-    <Pressable style={styles.row} onPress={onPress} android_ripple={{ color: theme.colors.divider }}>
+    <Pressable
+      style={styles.row}
+      onPress={() => onPress(entry)}
+      android_ripple={{ color: theme.colors.divider }}
+    >
       <Text style={styles.title}>
         {entry.subject}
         {entry.boardName !== undefined && (
@@ -124,7 +146,7 @@ function HistoryRow({
       </View>
     </Pressable>
   );
-}
+});
 
 /** 每分钟走一格的时钟(秒)。只在整页级别订阅一次,行组件拿它当纯参数。 */
 function useMinuteTick(): number {

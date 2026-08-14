@@ -304,6 +304,14 @@ export interface TopicList {
   readonly totalRows: number
   readonly rowsPerPage: number
   readonly totalPages: number
+  /**
+   * 服务端到底给没给「主题列表」这个结构（`__T`/`__F`/`__ROWS` 至少有一个）。
+   *
+   * **`topics` 为空时全靠它区分「这个版块真没帖」和「我们根本没拿到列表」**
+   * （2026-08-13，「版块全空」排查：这两种当时共用同一句空态文案，
+   * 用户没法从界面上看出自己是被限流了）。空版块服务端照样下发 `__T:{}` 与 `__F`。
+   */
+  readonly listStructure: boolean
 }
 
 /**

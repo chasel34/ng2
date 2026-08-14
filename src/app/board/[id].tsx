@@ -6,17 +6,23 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { mergeTopicPages, type Board, type Topic } from '@/core/api';
+import { NgaError } from '@/core/net';
 import { useAccounts } from '@/store/accounts';
 import { useBoardFavoriteMutations, useIsBoardFavored } from '@/store/board-favor';
 import { useTopicFilter } from '@/store/filters';
-import { useSettings } from '@/store/settings';
-import { useRefreshTopicList, useTopicList, useTopicSort } from '@/store/topic-list';
+import { currentHost, useSettings } from '@/store/settings';
+import {
+  useRefreshTopicList,
+  useRetryTopicList,
+  useTopicList,
+  useTopicSort,
+} from '@/store/topic-list';
 import { useLeftHanded } from '@/ui/appearance';
 import { Icon } from '@/ui/icon';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { showSnackbar } from '@/ui/snackbar';
-import { LoadFailedNotice, loadFailureCopy } from '@/ui/error-screen';
+import { LoadFailed, LoadFailedNotice, loadFailureCopy } from '@/ui/error-screen';
 import { EmptyState, LoadingFooter, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showNotAvailable } from '@/ui/toast';
@@ -58,10 +64,27 @@ export default function BoardScreen() {
     isRefetching,
     hasNextPage,
     fetchNextPage,
-    refetch,
   } = useTopicList({ boardId, kind: boardKind, sort });
 
   const refresh = useRefreshTopicList({ boardId, kind: boardKind, sort });
+  // 空态/错误态那两个按钮走「重试」而不是 refetch:它会先忘掉 thread.php 上次
+  // 试通的格式 × 域名组合。用户按这个按钮时正是「拿回来的东西不对」的时候
+  const retry = useRetryTopicList({ boardId, kind: boardKind, sort });
+
+  /**
+   * 「用网页版打开」:站内网页兜底页(19 票),不开系统浏览器。
+   * 域名走设置里选的那个(22 票)——原生被封往往是整个域名被封。
+   */
+  const openWeb = useCallback(() => {
+    const param = boardKind === 'collection' ? 'stid' : 'fid';
+    router.push({
+      pathname: '/web',
+      params: {
+        url: `${currentHost()}/thread.php?${param}=${boardId}`,
+        ...(name === undefined ? {} : { title: name }),
+      },
+    });
+  }, [router, boardId, boardKind, name]);
 
   // 置顶主题与镜像行每页都会再回来一次,拼页时按 tid 去重;
   // 之后再过一道屏蔽规则(21 票):命中标题关键词/作者/分类的主题直接不画这一行
@@ -189,22 +212,46 @@ export default function BoardScreen() {
 
   const body = () => {
     if (isPending) return <LoadingState />;
-    // 拉失败、版块真的空着、以及「拉到了但整页都被屏蔽规则藏掉」是三回事,
-    // 说成同一句话时用户会以为是被封了
+    // 「拿不到列表」「版块真的空着」「拉到了但整页都被屏蔽规则藏掉」是三回事,
+    // 说成同一句话时用户会以为版块是空的(2026-08-13:被限流时全站版块都显示
+    // 「这个版块还没有主题」,连我们自己都查了半天)
     if (topics.length === 0 && error !== null) {
-      return (
+      // 解析不了 / 没有兜底可用 = 多半是被拦了,给足三个出路(重试 / 网页版 / 重登)。
+      // 网络断了、服务端明说了理由这些不需要网页版,维持列表屏那个轻量形态
+      const blocked =
+        error instanceof NgaError && (error.kind === 'parse' || error.kind === 'unavailable');
+      return blocked ? (
+        <LoadFailed
+          error={error}
+          onRetry={retry}
+          onOpenWeb={openWeb}
+          onRelogin={() => router.push('/login')}
+        />
+      ) : (
         <View style={styles.center}>
-          <LoadFailedNotice error={error} onRetry={() => void refetch()} />
+          <LoadFailedNotice error={error} onRetry={retry} />
         </View>
       );
     }
     if (topics.length === 0) {
       const allFiltered = merged.length > 0;
+      // 服务端连「主题列表」这个结构都没给(`__T`/`__F`/`__ROWS` 一个都没有):
+      // 这不是空版块。正常情况下 core/api 已经把它变成错误了,这里是最后一道
+      // 防线——别再让「没拿到」和「没帖子」共用一句话
+      if (!allFiltered && data?.pages[0]?.listStructure === false) {
+        return (
+          <EmptyState
+            icon="cloud_off"
+            text={'没能拿到这个版块的主题列表\n多半是被论坛限流或拦下了'}
+            action={{ label: '重试', onPress: retry }}
+          />
+        );
+      }
       return (
         <EmptyState
           icon={allFiltered ? 'filter_alt' : 'article'}
           text={allFiltered ? '这一页的主题都被屏蔽规则挡住了' : '这个版块还没有主题'}
-          action={{ label: '刷新', onPress: () => void refetch() }}
+          action={{ label: '刷新', onPress: retry }}
         />
       );
     }

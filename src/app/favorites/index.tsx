@@ -89,6 +89,15 @@ export default function FavoriteTopicsScreen() {
     [router],
   );
 
+  // TopicRow 已经是 memo 的(`ui/topic-row.tsx`),但 renderItem 每次渲染都新建的话
+  // FlashList 拿不到稳定的行渲染器;`time` 是字符串,按值比较,不影响 memo
+  const renderItem = useCallback(
+    ({ item }: { item: Topic }) => (
+      <TopicRow topic={item} onPress={openTopic} time={dateText(item.postedAt)} />
+    ),
+    [openTopic],
+  );
+
   const body = () => {
     if (foldersPending || (folder !== undefined && isPending)) return <LoadingState />;
     if (folders === undefined) {
@@ -131,9 +140,8 @@ export default function FavoriteTopicsScreen() {
         <FlashList
           data={topics}
           keyExtractor={(topic) => String(topic.tid)}
-          renderItem={({ item }) => (
-            <TopicRow topic={item} onPress={openTopic} time={dateText(item.postedAt)} />
-          )}
+          // 行是同构的(每行都是同一个 TopicRow),不需要 getItemType
+          renderItem={renderItem}
           ListFooterComponent={
             <View>
               {isFetchingNextPage && <LoadingFooter text={`正在载入第 ${loadedPages + 1} 页…`} />}

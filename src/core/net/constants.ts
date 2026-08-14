@@ -77,3 +77,16 @@ export const FAKE_ERROR_MESSAGES = [
   '今天已经签到',
   '找不到用户',
 ] as const
+
+/**
+ * 「身份没带上」白名单：这些服务端错误说的不是「你要的这条数据有问题」，
+ * 而是「这一发请求没被认出身份」——换一个格式 × 域名组合往往就好了。
+ *
+ * 为什么和 host 强相关，见 `auth.ts` 文件头：okhttp 的 cookie jar 就是 WebView 的
+ * `CookieManager`，只要 jar 里对该域名有 cookie，我们自己拼的 `Cookie` 头就整条被顶掉；
+ * jar 是**按域名**存的，所以同一个凭证在 A 域名失效、在 B 域名照常能用。
+ *
+ * 只有「手上确实有凭证」时才按这个白名单放行重试（见 strategies/attempt.ts）：
+ * 游客本来就没登录，让他把所有组合白跑一遍只会把错误页拖慢十几秒。
+ */
+export const AUTH_LEVEL_SERVER_MESSAGES = ['未登录'] as const

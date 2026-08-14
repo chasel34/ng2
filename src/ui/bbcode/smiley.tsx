@@ -8,6 +8,23 @@ import { SMILEY_ASSETS } from '../smilies.generated';
 import { createThemedStyles } from '../theme';
 
 /**
+ * 随包表情的长宽比。`Image.resolveAssetSource` 每次都要过一遍资源注册表,
+ * 而一楼正文里同一个表情可能出现几十次、列表回收后还要再解一遍——
+ * 比例是打包期就定死的,按 assetId 记住即可。
+ */
+const aspectCache = new Map<number, number | undefined>();
+
+function aspectOf(asset: number): number | undefined {
+  if (aspectCache.has(asset)) return aspectCache.get(asset);
+
+  const source = Image.resolveAssetSource(asset);
+  const aspect =
+    source === undefined || source.height === 0 ? undefined : source.width / source.height;
+  aspectCache.set(asset, aspect);
+  return aspect;
+}
+
+/**
  * 按原图长宽比算出显示宽度。随包资源能同步拿到尺寸
  * (`Image.resolveAssetSource` 读的是打包期写进 bundle 的元数据);
  * 远程兜底时拿不到尺寸,只能按正方形占位。
@@ -16,9 +33,8 @@ import { createThemedStyles } from '../theme';
  */
 function widthOf(asset: number | undefined, height: number): number {
   if (asset === undefined) return height;
-  const source = Image.resolveAssetSource(asset);
-  if (source === undefined || source.height === 0) return height;
-  return Math.round((source.width / source.height) * height);
+  const aspect = aspectOf(asset);
+  return aspect === undefined ? height : Math.round(aspect * height);
 }
 
 /**
