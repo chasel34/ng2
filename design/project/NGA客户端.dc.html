@@ -46,7 +46,7 @@ a:hover{color:var(--primary)}
   <div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:22px">
     <div>
       <div style="font-size:20px;font-weight:650;letter-spacing:.2px">NGA 论坛客户端 · 交互原型</div>
-      <div style="font-size:13px;color:#918B79;margin-top:5px">墨绿 / 奶油配色 · Material 3 轻度翻新 · 390×844pt · 全部页面可点击</div>
+      <div style="font-size:13px;color:#918B79;margin-top:5px">墨绿 / 奶油配色 · Material 3 轻度翻新 · 390×844pt · 全部页面可点击 · 2026-08-15 与 app v1 实现同步</div>
     </div>
     <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
       <div onClick="{{ toggleTheme }}" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 15px;border-radius:18px;background:#33332B;cursor:pointer;font-size:13px;font-weight:600;user-select:none">
@@ -122,6 +122,11 @@ a:hover{color:var(--primary)}
                   <div onClick="{{ openListMenu }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer"><span class="ms" style="font-size:22px">more_vert</span></div>
                 </div>
                 <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
+                  <div onClick="{{ openBanner }}" style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--divider);cursor:pointer">
+                    <span class="ms" style="font-size:17px;color:var(--primary)">push_pin</span>
+                    <div style="flex:1;font-size:13.5px;color:var(--fg-2)">版头</div>
+                    <span class="ms" style="font-size:18px;color:var(--meta)">chevron_right</span>
+                  </div>
                   <div class="sc" style="display:flex;gap:8px;overflow-x:auto;padding:12px 14px;border-bottom:1px solid var(--divider)">
                     <sc-for list="{{ subTags }}" as="s" hint-placeholder-count="4">
                       <div style="flex:none;padding:6px 13px;border-radius:9px;background:var(--surface-2);border:1px solid var(--divider);font-size:12.5px;color:var(--fg-2);cursor:pointer;white-space:nowrap">{{ s }}</div>
@@ -184,6 +189,19 @@ a:hover{color:var(--primary)}
                       <div onClick="{{ clearOnlyUser }}" style="font-size:12.5px;font-weight:700;color:var(--primary);cursor:pointer">退出</div>
                     </div>
                   </sc-if>
+                  <sc-if value="{{ srcTip }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin:10px 12px 2px;padding:11px 12px 11px 14px;border-radius:12px;background:var(--primary-c);display:flex;align-items:center;gap:10px;animation:omup .28s ease">
+                      <span class="ms" style="font-size:19px;color:var(--primary)">info</span>
+                      <div style="font-size:12.5px;color:var(--fg);flex:1;line-height:1.45">原生解析失败，已切换为<b>网页数据源</b>显示</div>
+                      <div onClick="{{ retryNative }}" style="font-size:12.5px;font-weight:700;color:var(--primary);padding:4px 6px;cursor:pointer">重试原生</div>
+                      <span onClick="{{ hideSrcTip }}" class="ms" style="font-size:17px;color:var(--meta);cursor:pointer">close</span>
+                    </div>
+                  </sc-if>
+                  <div style="margin:10px 12px 2px;padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--divider);display:flex;align-items:center;gap:8px">
+                    <span class="ms" style="font-size:17px;color:var(--accent)">local_fire_department</span>
+                    <div style="font-size:12.5px;color:var(--fg-2);flex:1">热门回复（3）</div>
+                    <span class="ms" style="font-size:18px;color:var(--meta)">expand_more</span>
+                  </div>
 
                   <sc-for list="{{ floors }}" as="f" hint-placeholder-count="4">
                     <div style="padding:14px 16px 6px;border-bottom:1px solid var(--divider);background:{{ f.bg }}">
@@ -296,7 +314,7 @@ a:hover{color:var(--primary)}
               <div style="position:absolute;inset:0;display:flex;flex-direction:column">
                 <div style="flex:none;display:flex;align-items:center;height:54px;padding:0 4px;background:var(--topbar);color:var(--on-topbar)">
                   <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
-                  <div style="font-size:17px;font-weight:600;margin-left:4px">子板块 · 网事杂谈</div>
+                  <div style="font-size:17px;font-weight:600;margin-left:4px">子版块 · 网事杂谈</div>
                 </div>
                 <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:var(--bg)">
                   <sc-for list="{{ subRows }}" as="r" hint-placeholder-count="6">
@@ -306,9 +324,9 @@ a:hover{color:var(--primary)}
                         <div style="font-size:12px;color:var(--meta);margin-top:3px">{{ r.sub }}</div>
                       </div>
                       <div onClick="{{ r.sub1 }}" style="height:32px;padding:0 13px;border-radius:16px;border:1px solid {{ r.bd }};background:{{ r.bg }};color:{{ r.fg }};font-size:12.5px;font-weight:650;display:grid;place-items:center;cursor:pointer">{{ r.label }}</div>
-                      <span onClick="{{ r.block }}" class="ms" style="font-size:20px;color:{{ r.blockColor }};cursor:pointer">block</span>
                     </div>
                   </sc-for>
+                  <div style="padding:16px;font-size:12px;color:var(--meta);line-height:1.65">订阅后这个子版块的主题会出现在版块列表里，屏蔽则不再出现。</div>
                 </div>
               </div>
             </sc-if>
@@ -329,14 +347,14 @@ a:hover{color:var(--primary)}
                           <div style="font-size:15px;font-weight:600;color:var(--fg)">{{ f.name }}</div>
                           <div style="display:{{ f.defD }};font-size:10.5px;font-weight:700;color:var(--primary);background:var(--primary-c);padding:2px 7px;border-radius:6px">默认</div>
                         </div>
-                        <div style="font-size:12px;color:var(--meta);margin-top:4px">{{ f.count }} 个主题 · 最近 {{ f.when }}</div>
+                        <div style="font-size:12px;color:var(--meta);margin-top:4px">{{ f.count }} 个主题</div>
                       </div>
                       <span onClick="{{ f.rename }}" class="ms" style="font-size:20px;color:var(--meta);cursor:pointer">edit</span>
                       <span onClick="{{ f.setDefault }}" class="ms" style="font-size:20px;color:var(--meta);cursor:pointer">push_pin</span>
                       <span onClick="{{ f.del }}" class="ms" style="font-size:20px;color:var(--danger);cursor:pointer">delete</span>
                     </div>
                   </sc-for>
-                  <div style="font-size:12px;color:var(--meta);line-height:1.6;padding:6px 4px">收藏帖子时会弹出此列表，可多选归档；长按收藏夹可拖动排序。</div>
+                  <div style="font-size:12px;color:var(--meta);line-height:1.6;padding:6px 4px">收藏帖子时会弹出这份列表，一个主题可以同时归入多个收藏夹；删掉收藏夹会连同夹里的收藏一起删掉，删了找不回来。</div>
                 </div>
               </div>
             </sc-if>
@@ -347,8 +365,8 @@ a:hover{color:var(--primary)}
                   <div style="display:flex;align-items:center;height:54px;padding:0 4px">
                     <div onClick="{{ back }}" style="width:46px;height:46px;display:grid;place-items:center;border-radius:23px;cursor:pointer"><span class="ms" style="font-size:24px">arrow_back</span></div>
                     <div style="flex:1;display:flex;align-items:center;gap:9px;height:40px;padding:0 14px;margin:0 12px 0 4px;border-radius:6px;background:var(--surface);color:var(--fg)">
-                      <div style="font-size:15px">显卡 涨价<span style="color:var(--primary)">|</span></div>
-                      <span class="ms" style="font-size:18px;color:var(--meta);margin-left:auto;cursor:pointer">close</span>
+                      <div style="font-size:15px">{{ searchQ }}<span style="color:var(--primary)">|</span></div>
+                      <span onClick="{{ clearSearch }}" class="ms" style="font-size:18px;color:var(--meta);margin-left:auto;cursor:pointer">close</span>
                     </div>
                   </div>
                 </div>
@@ -358,28 +376,77 @@ a:hover{color:var(--primary)}
                       <div onClick="{{ t.pick }}" style="flex:1;height:48px;display:grid;place-items:center;font-size:15.5px;color:{{ t.fg }};box-shadow:{{ t.ind }};cursor:pointer">{{ t.name }}</div>
                     </sc-for>
                   </div>
-                  <div style="padding:16px 16px 10px;font-size:16px;font-weight:600;color:var(--fg)">搜索选项</div>
-                  <div style="display:flex;align-items:center;gap:8px;padding:0 16px 16px">
-                    <sc-for list="{{ searchOpts }}" as="o" hint-placeholder-count="3">
-                      <div onClick="{{ o.pick }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;padding-right:8px">
-                        <span class="ms" style="font-size:23px;color:{{ o.color }};font-variation-settings:'FILL' {{ o.fill }}">{{ o.icon }}</span>
-                        <span style="font-size:14.5px;color:var(--fg-2);white-space:nowrap">{{ o.label }}</span>
+                  <sc-if value="{{ searchIdle }}" hint-placeholder-val="{{ true }}">
+                    <div>
+                      <div style="display:{{ searchOptsD }}">
+                        <div style="padding:16px 16px 10px;font-size:16px;font-weight:600;color:var(--fg)">搜索选项</div>
+                        <div style="display:flex;align-items:center;gap:8px;padding:0 16px 16px">
+                          <sc-for list="{{ searchOpts }}" as="o" hint-placeholder-count="3">
+                            <div onClick="{{ o.pick }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;padding-right:8px">
+                              <span class="ms" style="font-size:23px;color:{{ o.color }};font-variation-settings:'FILL' {{ o.fill }}">{{ o.icon }}</span>
+                              <span style="font-size:14.5px;color:var(--fg-2);white-space:nowrap">{{ o.label }}</span>
+                            </div>
+                          </sc-for>
+                        </div>
+                        <div style="height:1px;background:var(--divider)"></div>
                       </div>
-                    </sc-for>
-                  </div>
-                  <div style="height:1px;background:var(--divider)"></div>
-                  <div style="display:flex;align-items:center;padding:16px 16px 8px">
-                    <div style="font-size:16px;font-weight:600;color:var(--fg);flex:1">搜索历史</div>
-                    <div onClick="{{ clearHistory }}" style="font-size:12.5px;color:var(--meta);cursor:pointer">清空</div>
-                  </div>
-                  <sc-for list="{{ searchHistory }}" as="h" hint-placeholder-count="6">
-                    <div onClick="{{ h.go }}" style="display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--divider);cursor:pointer">
-                      <span class="ms" style="font-size:19px;color:var(--meta)">history</span>
-                      <div style="flex:1;font-size:14.5px;color:var(--fg)">{{ h.q }}</div>
-                      <div style="font-size:11.5px;color:var(--meta)">{{ h.scope }}</div>
-                      <span class="ms" style="font-size:18px;color:var(--meta)">close</span>
+                      <div style="display:flex;align-items:center;padding:16px 16px 8px">
+                        <div style="font-size:16px;font-weight:600;color:var(--fg);flex:1">搜索历史</div>
+                        <div onClick="{{ clearHistory }}" style="font-size:12.5px;color:var(--meta);cursor:pointer">清空</div>
+                      </div>
+                      <sc-for list="{{ searchHistory }}" as="h" hint-placeholder-count="6">
+                        <div onClick="{{ h.go }}" style="display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--divider);cursor:pointer">
+                          <span class="ms" style="font-size:19px;color:var(--meta)">history</span>
+                          <div style="flex:1;font-size:14.5px;color:var(--fg)">{{ h.q }}</div>
+                          <div style="font-size:11.5px;color:var(--meta)">{{ h.scope }}</div>
+                          <span class="ms" style="font-size:18px;color:var(--meta)">close</span>
+                        </div>
+                      </sc-for>
                     </div>
-                  </sc-for>
+                  </sc-if>
+                  <sc-if value="{{ searchDone }}" hint-placeholder-val="{{ false }}">
+                    <div>
+                      <div style="padding:11px 16px;font-size:12px;color:var(--meta);background:var(--surface-2);border-bottom:1px solid var(--divider)">{{ searchStats }}</div>
+                      <sc-if value="{{ searchTopicsD }}" hint-placeholder-val="{{ true }}">
+                        <sc-for list="{{ searchTopicRows }}" as="r" hint-placeholder-count="4">
+                          <div onClick="{{ r.open }}" style="padding:14px 16px 12px;border-bottom:1px solid var(--divider);cursor:pointer">
+                            <div style="font-size:16px;line-height:1.45;color:var(--fg);text-wrap:pretty">{{ r.title }}<span style="color:var(--tag);display:{{ r.tagD }}">&nbsp;[{{ r.tag }}]</span></div>
+                            <div style="display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12.5px;color:var(--link)">
+                              <span class="ms" style="font-size:15px;color:var(--meta)">person</span>
+                              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:118px">{{ r.who }}</span>
+                              <span style="margin-left:auto;color:var(--meta);white-space:nowrap">{{ r.when }}</span>
+                              <span class="ms" style="font-size:14px;color:var(--meta)">chat_bubble</span>
+                              <span style="white-space:nowrap">{{ r.replies }}</span>
+                            </div>
+                          </div>
+                        </sc-for>
+                      </sc-if>
+                      <sc-if value="{{ searchBoardsD }}" hint-placeholder-val="{{ false }}">
+                        <sc-for list="{{ searchBoardRows }}" as="b" hint-placeholder-count="2">
+                          <div style="display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--divider);cursor:pointer">
+                            <div style="flex:none;width:32px;height:32px;border-radius:16px;border:1px solid var(--accent);background:repeating-linear-gradient(135deg,var(--surface-2) 0 5px,var(--surface) 5px 6px);display:grid;place-items:center;color:var(--fg-2);font-size:12px;font-weight:700">{{ b.ini }}</div>
+                            <div style="flex:1;min-width:0">
+                              <div style="font-size:15px;color:var(--fg)">{{ b.name }}</div>
+                              <div style="font-size:12px;color:var(--meta);margin-top:3px">{{ b.sub }}</div>
+                            </div>
+                            <span class="ms" style="font-size:21px;color:var(--meta)">star</span>
+                          </div>
+                        </sc-for>
+                      </sc-if>
+                      <sc-if value="{{ searchUsersD }}" hint-placeholder-val="{{ false }}">
+                        <sc-for list="{{ searchUserRows }}" as="u" hint-placeholder-count="2">
+                          <div onClick="{{ u.open }}" style="display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--divider);cursor:pointer">
+                            <div style="flex:none;width:40px;height:40px;border-radius:14px;background:{{ u.av }};display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700">{{ u.ini }}</div>
+                            <div style="flex:1;min-width:0">
+                              <div style="font-size:15px;font-weight:600;color:var(--fg)">{{ u.name }}</div>
+                              <div style="font-size:12px;color:var(--meta);margin-top:3px">{{ u.sub }}</div>
+                            </div>
+                            <span class="ms" style="font-size:20px;color:var(--meta)">chevron_right</span>
+                          </div>
+                        </sc-for>
+                      </sc-if>
+                    </div>
+                  </sc-if>
                   <div style="height:26px"></div>
                 </div>
               </div>
@@ -412,7 +479,10 @@ a:hover{color:var(--primary)}
                       </div>
                     </div>
                     <div style="background:var(--surface);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)">
-                      <div style="font-size:15.5px;font-weight:600;color:var(--accent);margin-bottom:12px">:: 签名 ::</div>
+                      <div style="display:flex;align-items:center;margin-bottom:12px">
+                        <div style="font-size:15.5px;font-weight:600;color:var(--accent);flex:1">:: 签名 ::</div>
+                        <div onClick="{{ editSign }}" style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:650;color:var(--primary);cursor:pointer"><span class="ms" style="font-size:16px">edit</span>编辑</div>
+                      </div>
                       <div style="border:1.5px solid var(--track);border-radius:8px;padding:11px 12px;font-size:13.5px;line-height:1.7;color:var(--fg-2);white-space:pre-line">—— 我从来不喝隔夜的茶，也不看隔夜的帖。
 [NGA @ 网事杂谈] 2019.03 至今</div>
                     </div>
@@ -767,7 +837,7 @@ a:hover{color:var(--primary)}
                   </sc-for>
                   <div style="height:80px"></div>
                 </div>
-                <div onClick="{{ addFilter }}" style="position:absolute;right:20px;bottom:24px;height:50px;padding:0 20px;border-radius:16px;background:var(--fab);color:#fff;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-2);cursor:pointer;font-size:14.5px;font-weight:650"><span class="ms" style="font-size:22px">add</span>新增规则</div>
+                <div onClick="{{ addFilter }}" style="position:absolute;right:20px;bottom:24px;height:50px;padding:0 20px;border-radius:16px;background:var(--fab);color:#fff;display:{{ addFilterD }};align-items:center;gap:8px;box-shadow:var(--shadow-2);cursor:pointer;font-size:14.5px;font-weight:650"><span class="ms" style="font-size:22px">add</span>新增规则</div>
               </div>
             </sc-if>
 
@@ -793,7 +863,7 @@ a:hover{color:var(--primary)}
                       <span class="ms" style="font-size:20px;color:var(--meta)">chevron_right</span>
                     </div>
                   </sc-for>
-                  <div style="padding:20px;font-size:11.5px;line-height:1.7;color:var(--meta);text-align:center">本客户端与 NGA 官方无关，所有内容版权归原作者所有。</div>
+                  <div style="padding:20px;font-size:11.5px;line-height:1.7;color:var(--meta);text-align:center">本客户端与 NGA 官方无关，仅供个人学习与自用。所有内容版权归原作者与 NGA 所有，不做任何分发。</div>
                 </div>
               </div>
             </sc-if>
@@ -833,14 +903,6 @@ a:hover{color:var(--primary)}
                   </div>
                   <div onClick="{{ openWebMenu }}" style="width:44px;height:44px;display:grid;place-items:center;border-radius:22px;cursor:pointer;margin-left:auto"><span class="ms" style="font-size:22px">more_vert</span></div>
                 </div>
-                <sc-if value="{{ fallbackBar }}" hint-placeholder-val="{{ true }}">
-                  <div style="flex:none;display:flex;align-items:center;gap:10px;padding:11px 12px 11px 14px;background:var(--primary-c);border-bottom:1px solid var(--divider)">
-                    <span class="ms" style="font-size:19px;color:var(--primary)">info</span>
-                    <div style="flex:1;font-size:12.5px;line-height:1.45;color:var(--fg)">原生解析失败，已切换为<b>网页数据源</b>显示</div>
-                    <div onClick="{{ doRetry }}" style="font-size:12.5px;font-weight:700;color:var(--primary);padding:4px 6px;cursor:pointer">重试原生</div>
-                    <span onClick="{{ hideBar }}" class="ms" style="font-size:17px;color:var(--meta);cursor:pointer">close</span>
-                  </div>
-                </sc-if>
                 <div class="sc" style="flex:1;min-height:0;overflow-y:auto;background:#F2EFE6">
                   <div style="background:#2C7A5B;color:#fff;padding:8px 12px;font-size:12px;display:flex;gap:14px">
                     <span>首页</span><span>版面</span><span style="opacity:.75">收藏</span><span style="opacity:.75">短信</span><span style="margin-left:auto;opacity:.75">登录</span>
@@ -863,7 +925,7 @@ a:hover{color:var(--primary)}
                   </div>
                   <div style="height:70px"></div>
                 </div>
-                <div onClick="{{ doRetry }}" style="position:absolute;left:16px;right:16px;bottom:20px;height:48px;border-radius:15px;background:var(--fab);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:650;box-shadow:var(--shadow-2);cursor:pointer"><span class="ms" style="font-size:21px">smartphone</span>用 APP 阅读这一页</div>
+                <div onClick="{{ goAppRead }}" style="position:absolute;left:16px;right:16px;bottom:20px;height:48px;border-radius:15px;background:var(--fab);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:650;box-shadow:var(--shadow-2);cursor:pointer"><span class="ms" style="font-size:21px">smartphone</span>用 APP 阅读这一页</div>
               </div>
             </sc-if>
 
@@ -919,7 +981,7 @@ a:hover{color:var(--primary)}
                   <div style="background:var(--primary);color:#fff;padding:22px 20px 18px">
                     <div style="display:flex;align-items:center;gap:14px">
                       <span class="ms" style="font-size:18px;opacity:.55;cursor:pointer">chevron_left</span>
-                      <div style="width:64px;height:64px;border-radius:22px;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:22px;font-weight:700">chas</div>
+                      <div onClick="{{ goProfile }}" style="width:64px;height:64px;border-radius:22px;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:22px;font-weight:700;cursor:pointer">chas</div>
                       <span class="ms" style="font-size:18px;opacity:.55;cursor:pointer">chevron_right</span>
                     </div>
                     <div style="font-size:12.5px;opacity:.8;margin-top:14px">已登录 2 个账号 · 左右滑动切换</div>
@@ -928,7 +990,10 @@ a:hover{color:var(--primary)}
                   <div style="padding:16px 20px 6px;font-size:12.5px;font-weight:700;color:var(--primary);letter-spacing:.4px">论坛功能</div>
                   <sc-for list="{{ drawerItems }}" as="d" hint-placeholder-count="6">
                     <div onClick="{{ d.go }}" style="display:flex;align-items:center;gap:18px;height:52px;padding:0 20px;cursor:pointer;font-size:15px;color:var(--fg)">
-                      <span class="ms" style="font-size:21px;color:var(--fg-2)">{{ d.icon }}</span>{{ d.label }}
+                      <span class="ms" style="font-size:21px;color:var(--fg-2)">{{ d.icon }}</span>
+                      <span style="flex:1">{{ d.label }}</span>
+                      <span style="font-size:12px;color:var(--meta);display:{{ d.trailD }}">{{ d.trail }}</span>
+                      <div style="min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--danger);color:#fff;font-size:11px;font-weight:700;place-items:center;display:{{ d.badgeD }}">{{ d.badge }}</div>
                     </div>
                   </sc-for>
                   <div style="height:20px"></div>
@@ -1145,6 +1210,7 @@ class Component extends DCLogic {
       op: n === s.page ? 1 : .62
     }));
     T.openJump = () => this.set({ dialog:'jump', menu:null });
+    T.openBanner = () => this.go('article');
 
     // 帖子详情：左右滑动翻页
     const MAXP = 7, swg = this._swg || (this._swg = {});
@@ -1211,17 +1277,21 @@ class Component extends DCLogic {
       };
     });
 
-    // drawer
+    // drawer（与 app ENTRIES 同序：src/ui/app-drawer.tsx）
     T.drawerItems = [
       { icon:'person_add', label:'登录账号', go:() => this.go('login') },
+      { icon:'workspace_premium', label:'每日签到', trail:'今天已签到', go:() => this.toast('今天已经签到过了') },
       { icon:'library_add', label:'添加版面 ID', go:() => this.set({ dialog:'addBoard', drawer:false }) },
       { icon:'arrow_forward', label:'由 URL 读取', go:() => this.set({ dialog:'url', drawer:false }) },
       { icon:'folder_special', label:'收藏夹管理', go:() => this.go('folders') },
       { icon:'warning', label:'清空我的收藏', go:() => { this.closeAll(); this.toast('已清空我的收藏', '撤销'); } },
-      { icon:'notifications_active', label:'最近被喷', go:() => this.go('notify') },
+      { icon:'article', label:'我的主题', go:() => this.go('myTopics') },
+      { icon:'reply', label:'我的回复', go:() => this.go('myReplies') },
+      { icon:'cached', label:'我的缓存', go:() => this.go('cache') },
+      { icon:'notifications_active', label:'最近被喷', badge:'6', go:() => this.go('notify') },
       { icon:'settings', label:'设置', go:() => this.go('settings') },
       { icon:'info', label:'关于', go:() => this.go('about') }
-    ];
+    ].map(d => ({ trail:'', badge:'', ...d, trailD: d.trail ? 'block' : 'none', badgeD: d.badge ? 'grid' : 'none' }));
 
     // menus
     const MENUS = {
@@ -1237,14 +1307,17 @@ class Component extends DCLogic {
         { icon:'local_fire_department', label:'24 小时热帖', go:() => this.go('hot') },
         { icon:'history', label:'浏览历史', go:() => this.go('history') },
         { icon:'workspace_premium', label:'精华区', go:() => this.go('recommended') },
-        { icon:'account_tree', label:'子板块', go:() => this.go('subboards') },
-        { icon:'star', label:'收藏夹', go:() => this.go('favorites') }
+        { icon:'account_tree', label:'子版块', go:() => this.go('subboards') },
+        { icon:'star', label:'收藏夹', go:() => this.go('favorites') },
+        { icon:'', label:'按最后回复排序', go:() => { this.closeAll(); this.toast('已按最后回复排序'); } },
+        { icon:'', label:'按发帖时间排序', go:() => { this.closeAll(); this.toast('已按发帖时间排序'); } }
       ],
       article: [
         { icon:'low_priority', label:'跳页', go:() => this.set({ dialog:'jump', menu:null }) },
         { icon:'content_copy', label:'复制链接', go:() => { this.closeAll(); this.toast('链接已复制到剪贴板'); } },
         { icon:'star', label:'收藏本帖', go:() => this.set({ dialog:'folder', menu:null }) },
         { icon:'download', label:'缓存本页', go:() => { this.closeAll(); this.toast('本页已缓存，可离线阅读', '查看'); } },
+        { icon:'download_for_offline', label:'缓存整帖', go:() => { this.closeAll(); this.toast('正在缓存整帖 1 / 7 页', '停止'); } },
         { icon:'share', label:'分享', go:() => { this.closeAll(); this.toast('已调起系统分享'); } },
         { icon:'dark_mode', label:'夜间模式', go:() => this.set({ theme: D ? 'light' : 'dark', menu:null }) }
       ],
@@ -1252,11 +1325,12 @@ class Component extends DCLogic {
         { icon:'', label:'保存到相册', go:() => { this.closeAll(); this.toast('已保存到 相册/NGA'); } },
         { icon:'', label:'复制图片地址', go:() => { this.closeAll(); this.toast('图片地址已复制'); } },
         { icon:'', label:'查看原图（2.4 MB）', go:() => { this.closeAll(); this.toast('正在加载原图…'); } },
-        { icon:'', label:'在浏览器中打开', go:() => { this.closeAll(); this.toast('已跳转系统浏览器'); } }
+        { icon:'', label:'在浏览器中打开', go:() => { this.closeAll(); this.toast('已跳转系统浏览器'); } },
+        { icon:'', label:'下载全部（3 张）', go:() => { this.closeAll(); this.toast('开始下载 3 张图片…'); } }
       ],
       web: [
         { icon:'refresh', label:'刷新页面', go:() => { this.closeAll(); this.toast('已刷新网页'); } },
-        { icon:'smartphone', label:'用 APP 阅读', go:() => { this.closeAll(); this.go('article'); } },
+        { icon:'smartphone', label:'用 APP 阅读', go:() => { this.closeAll(); this.set({ srcTip:true }); this.go('article'); } },
         { icon:'content_copy', label:'复制网址', go:() => { this.closeAll(); this.toast('网址已复制'); } },
         { icon:'open_in_browser', label:'在系统浏览器打开', go:() => { this.closeAll(); this.toast('已跳转系统浏览器'); } },
         { icon:'text_fields', label:'网页字号', go:() => { this.closeAll(); this.toast('网页字号 110%'); } }
@@ -1273,7 +1347,7 @@ class Component extends DCLogic {
       ]
     };
     T.menuOpen = !!s.menu;
-    const GAPS = { home:{ 3:'10px' }, article:{ 5:'10px' }, floor:{ 6:'10px' } };
+    const GAPS = { home:{ 3:'10px' }, list:{ 5:'10px' }, article:{ 6:'10px' }, viewer:{ 4:'10px' }, floor:{ 6:'10px' } };
     T.menuItems = (MENUS[s.menu] || []).map((m,i) => ({ ...m, gap: (GAPS[s.menu] || {})[i] || '0px' }));
     T.menuTop = s.menu === 'floor' ? '300px' : '6px';
     T.openHomeMenu = () => this.set({ menu:'home' });
@@ -1290,7 +1364,11 @@ class Component extends DCLogic {
       sign: { title:'查看签名', body:'—— 我从来不喝隔夜的茶，也不看隔夜的帖。\n\n[NGA @ 网事杂谈] 2019.03 至今', ok:'知道了' },
       folder: { title:'收藏到…', list:true, ok:'完成' },
       addFolder: { title:'新建收藏夹', input:'装机 / 硬件', hint:'最多 20 个收藏夹', ok:'创建' },
-      addFilter: { title:'新增屏蔽规则', input:'关键词：内部消息', hint:'支持 用户 / 关键词 / 分类，可用正则', ok:'保存' },
+      addFilter: { title:'新增屏蔽规则', list:true, input:'内部消息', hint:'命中标题或正文即屏蔽；关键词可勾选按正则匹配', ok:'保存' },
+      addKw: { title:'新增官方关键词', input:'私聊出', hint:'写入 NGA 账号云端，与网页版互通；中间不能有空格', ok:'保存' },
+      editSign: { title:'修改签名', input:'—— 我从来不喝隔夜的茶，也不看隔夜的帖。', hint:'支持 BBCode 与 emoji；留空即清除签名', ok:'保存' },
+      imgPolicy: { title:'图片加载策略', list:true, ok:'应用' },
+      fallback: { title:'网页数据源兜底', list:true, ok:'应用' },
       theme: { title:'主题风格', list:true, ok:'应用' }
     };
     const d = DLG[s.dialog] || {};
@@ -1299,18 +1377,38 @@ class Component extends DCLogic {
     T.dlgBody = d.body || ''; T.dlgBodyD = d.body ? 'block' : 'none';
     T.dlgInputD = d.input ? 'block' : 'none'; T.dlgInputVal = d.input || ''; T.dlgHint = d.hint || '';
     T.dlgListD = d.list ? 'block' : 'none';
-    T.dlgList = s.dialog === 'theme' ? [
-      { label:'墨绿（NGA 经典）', sub:'顶栏墨绿 + 奶油背景', icon:'radio_button_checked', color:'var(--primary)', trail:'' },
-      { label:'纯白', sub:'白底 + 深绿强调', icon:'radio_button_unchecked', color:'var(--meta)', trail:'' },
-      { label:'夜间近黑', sub:'跟随夜间模式开关', icon:'radio_button_unchecked', color:'var(--meta)', trail:'' }
-    ].map(o => ({ ...o, subD:'block', trailD:'none', pick: () => {} })) : d.list ? [
-      { label:'默认收藏夹', sub:'126 个主题', icon:'check_box', color:'var(--primary)', trail:'more_horiz' },
-      { label:'装机 / 硬件', sub:'34 个主题', icon:'check_box_outline_blank', color:'var(--meta)', trail:'more_horiz' },
-      { label:'以后再看', sub:'8 个主题', icon:'check_box_outline_blank', color:'var(--meta)', trail:'more_horiz' },
-      { label:'新建收藏夹…', sub:'', icon:'add', color:'var(--accent)', trail:'' }
-    ].map(o => ({ ...o, subD: o.sub ? 'block' : 'none', trailD: o.trail ? 'block' : 'none', pick: () => {} })) : [];
+    const DLGLISTS = {
+      theme: [
+        { label:'墨绿（NGA 经典）', sub:'顶栏墨绿 + 奶油背景', icon:'radio_button_checked', color:'var(--primary)' },
+        { label:'纯白', sub:'白底 + 深绿强调', icon:'radio_button_unchecked', color:'var(--meta)' },
+        { label:'夜间近黑', sub:'跟随夜间模式开关', icon:'radio_button_unchecked', color:'var(--meta)' }
+      ],
+      imgPolicy: [
+        { label:'总是原图', sub:'最清楚，也最费流量', icon:'radio_button_unchecked', color:'var(--meta)' },
+        { label:'智能（Wi-Fi 原图 / 流量缩略图）', sub:'按当前网络自动选', icon:'radio_button_checked', color:'var(--primary)' },
+        { label:'总是缩略图', sub:'省流量，点开大图才拉原图', icon:'radio_button_unchecked', color:'var(--meta)' }
+      ],
+      fallback: [
+        { label:'关闭', sub:'原生接口失败就直接报错', icon:'radio_button_unchecked', color:'var(--meta)' },
+        { label:'兜底（默认）', sub:'原生接口全垮了才去反解网页版', icon:'radio_button_checked', color:'var(--primary)' },
+        { label:'优先', sub:'先反解网页版，失败再走原生接口', icon:'radio_button_unchecked', color:'var(--meta)' },
+        { label:'只用网页', sub:'排查用：完全不走原生接口', icon:'radio_button_unchecked', color:'var(--meta)' }
+      ],
+      addFilter: [
+        { label:'用户', sub:'按用户名精确匹配，大小写不敏感', icon:'radio_button_unchecked', color:'var(--meta)' },
+        { label:'关键词', sub:'命中标题或正文即屏蔽', icon:'radio_button_checked', color:'var(--primary)' },
+        { label:'分类', sub:'匹配标题里方括号括起来的分类，如 [转帖]', icon:'radio_button_unchecked', color:'var(--meta)' }
+      ],
+      folder: [
+        { label:'默认收藏夹', sub:'126 个主题', icon:'check_box', color:'var(--primary)', trail:'more_horiz' },
+        { label:'装机 / 硬件', sub:'34 个主题', icon:'check_box_outline_blank', color:'var(--meta)', trail:'more_horiz' },
+        { label:'以后再看', sub:'8 个主题', icon:'check_box_outline_blank', color:'var(--meta)', trail:'more_horiz' },
+        { label:'新建收藏夹…', sub:'', icon:'add', color:'var(--accent)' }
+      ]
+    };
+    T.dlgList = (DLGLISTS[s.dialog] || []).map(o => ({ trail:'', ...o, subD: o.sub ? 'block' : 'none', trailD: o.trail ? 'block' : 'none', pick: () => {} }));
     T.dlgConfirm = () => {
-      const map = { jump:'已跳转到第 3 页', addBoard:'已添加版面到我的收藏', url:'正在解析链接…', report:'举报已提交，感谢反馈', note:'贴条成功', folder:'已收藏到「默认收藏夹」' };
+      const map = { jump:'已跳转到第 3 页', addBoard:'已添加「网事杂谈」到我的收藏', url:'正在解析链接…', report:'举报已提交，感谢反馈', note:'贴条成功', folder:'已收藏到「默认收藏夹」', editSign:'签名已保存', addKw:'已写入官方关键词', addFilter:'已保存屏蔽规则' };
       const msg = map[s.dialog];
       this.closeAll();
       if (msg) this.toast(msg, '好');
@@ -1357,9 +1455,9 @@ class Component extends DCLogic {
     // nav index
     const mk = (id,label) => ({ id, label, go: () => this.go(id) });
     T.nav = [
-      { group:'主线（可点击串联）', items:[mk('home','主页'),mk('list','主题列表'),mk('article','帖子详情'),mk('editor','回帖编辑器'),mk('editorNew','发新帖')] },
-      { group:'发现 / 列表', items:[mk('search','搜索'),mk('hot','24 小时热帖'),mk('recommended','精华区'),mk('subboards','子板块'),mk('history','浏览历史'),mk('favorites','我的收藏帖'),mk('folders','多收藏夹'),mk('myTopics','我的主题'),mk('myReplies','我的回复'),mk('cache','我的缓存')] },
-      { group:'账号 / 消息', items:[mk('profile','用户资料'),mk('messages','短消息列表'),mk('chat','会话详情'),mk('newMsg','新建短信'),mk('notify','最近被喷'),mk('login','登录页')] },
+      { group:'主线（可点击串联）', items:[mk('home','主页'),mk('list','主题列表'),mk('article','帖子详情'),mk('editor','回帖编辑器（v1 未开放）'),mk('editorNew','发新帖（v1 未开放）')] },
+      { group:'发现 / 列表', items:[mk('search','搜索'),mk('hot','24 小时热帖'),mk('recommended','精华区'),mk('subboards','子版块'),mk('history','浏览历史'),mk('favorites','我的收藏帖'),mk('folders','多收藏夹'),mk('myTopics','我的主题'),mk('myReplies','我的回复'),mk('cache','我的缓存')] },
+      { group:'账号 / 消息', items:[mk('profile','用户资料'),mk('messages','短消息列表（v1 未开放）'),mk('chat','会话详情（v1 未开放）'),mk('newMsg','新建短信（v1 未开放）'),mk('notify','最近被喷'),mk('login','登录页')] },
       { group:'设置', items:[mk('settings','设置 1'),mk('settings2','设置 2'),mk('settings3','设置 3'),mk('accounts','账号管理'),mk('fontSize','字号调节'),mk('filters','屏蔽规则'),mk('about','关于')] },
       { group:'增补 / 兜底', items:[mk('error','加载失败'),mk('webview','网页版兜底'),mk('chain','回复链视图'),mk('viewer','大图查看器')] }
     ].map(g => ({ group:g.group, items:g.items.map(i => ({
@@ -1371,7 +1469,7 @@ class Component extends DCLogic {
 
     // ---------- 列表类页面（共用一套行） ----------
     const LISTS = {
-      hot: { title:'24 小时热帖', sub:'按热度排序 · 每 10 分钟刷新', rows:[
+      hot: { title:'24 小时热帖', sub:'网事杂谈 · 近 24 小时 · 按回复数排序', rows:[
         ['显卡又开始涨价了，这波是矿还是内存？','海豚音一号','12 分钟前','842','硬件'],
         ['两轮车企的利润真高，感觉真闷声发大财','bunsion','28 分钟前','526','网事杂谈'],
         ['公司要求周报写到 800 字，我裂开了','打工人小陈','1 小时前','431','职场'],
@@ -1380,7 +1478,7 @@ class Component extends DCLogic {
         ['新版本奶萨手法讨论，求高手指点','奶到你哭','4 小时前','291','魔兽世界'],
         ['被老婆扇了一耳光，想离婚，兄弟们评评理','乙秦郝己','5 小时前','118','']
       ]},
-      recommended: { title:'精华区', sub:'版面推荐 · 共 148 篇', rows:[
+      recommended: { title:'精华区', sub:'网事杂谈 · 版面推荐 · 共 148 篇', rows:[
         ['[整理] 网事杂谈十年经典楼层合集（2015–2025）','版务组','2026-07-20','1204','合集'],
         ['[科普] 一篇看懂个人所得税专项附加扣除','会计小王','2026-06-11','863','科普'],
         ['[攻略] 从零开始搭建家庭 NAS 的十个坑','存储控','2026-05-28','692','硬件'],
@@ -1398,7 +1496,7 @@ class Component extends DCLogic {
         ['两轮车企的利润真高','bunsion','昨天 21:07','读到 12 楼',''],
         ['公司要求周报写到 800 字','打工人小陈','前天','读完','职场']
       ]},
-      favorites: { title:'已收藏的主题', sub:'默认收藏夹 · 126 个主题', rows:[
+      favorites: { title:'已收藏的主题', sub:'默认收藏夹 · 126 个主题 · 点此换收藏夹', rows:[
         ['[整理] 网事杂谈十年经典楼层合集','版务组','2026-07-20','默认','合集'],
         ['[攻略] 从零开始搭建家庭 NAS 的十个坑','存储控','2026-05-28','装机','硬件'],
         ['显卡又开始涨价了，这波是矿还是内存？','海豚音一号','12 分钟前','装机','硬件'],
@@ -1407,7 +1505,7 @@ class Component extends DCLogic {
         ['新版本奶萨手法讨论，求高手指点','奶到你哭','今天 18:02','默认','魔兽世界'],
         ['[科普] 二手显卡避坑指北','矿难倒霉蛋','2026-02-08','装机','硬件']
       ]},
-      myTopics: { title:'我的主题', sub:'共 37 篇 · 按最后回复排序', rows:[
+      myTopics: { title:'我的主题', sub:'阴阳师妄想(62544191) · 按最后回复排序', rows:[
         ['体感消费不一直这样吗？','最后回复 留白，嗯','今天 22:40','41','网事杂谈'],
         ['求推荐 3000 元档的显示器','最后回复 海豚音一号','昨天 19:22','28','硬件'],
         ['记录一下今年的减肥进度','最后回复 我不是猫奴','07-30','156','晴风村'],
@@ -1416,7 +1514,7 @@ class Component extends DCLogic {
         ['出个闲置机械键盘（已出）','最后回复 键圈萌新','06-02','7','交易'],
         ['第一次带父母出国，求建议','最后回复 旅行社老李','05-14','88','晴风村']
       ]},
-      myReplies: { title:'我的回复', sub:'共 1,284 条 · 点击跳到对应楼层', rows:[
+      myReplies: { title:'我的回复', sub:'阴阳师妄想(62544191) · 点击跳到对应楼层', rows:[
         ['显卡又开始涨价了，这波是矿还是内存？','我在 26 楼','12 分钟前','跳转','硬件'],
         ['[合集] 深夜食堂第 41 期','我在 96 楼','今天 20:15','跳转','晴风村'],
         ['老爸走了，但似乎不认为这是件坏事','我在 8 楼','今天 15:40','跳转',''],
@@ -1439,9 +1537,9 @@ class Component extends DCLogic {
       hot: { badge:(i)=>String(i+1), trail:'refresh', icon:'', act:() => this.toast('已刷新热帖榜') },
       recommended: { badge:()=>'精', trail:'filter_alt', icon:'', act:() => this.toast('已按板块筛选') },
       history: { badge:()=>'史', trail:'delete_sweep', icon:'', act:() => this.toast('已清空浏览历史','撤销') },
-      favorites: { badge:()=>'收', trail:'folder_open', icon:'', act:() => this.go('folders') },
-      myTopics: { badge:()=>'帖', trail:'', icon:'' },
-      myReplies: { badge:()=>'回', trail:'', icon:'north_east' },
+      favorites: { badge:()=>'收', trail:'folder_special', icon:'', act:() => this.go('folders') },
+      myTopics: { badge:()=>'帖', trail:'person', icon:'', act:() => this.go('profile') },
+      myReplies: { badge:()=>'回', trail:'person', icon:'north_east', act:() => this.go('profile') },
       cache: { badge:()=>'离', trail:'delete_sweep', icon:'delete', act:() => this.toast('已清空全部缓存','撤销') }
     };
     T.isSimpleList = !!LISTS[s.screen];
@@ -1456,21 +1554,22 @@ class Component extends DCLogic {
       open: () => this.go('article')
     })) : [];
 
-    // 子板块
+    // 子版块（issue 23：单个状态按钮，订阅 / 已订阅 / 已屏蔽 / 不可更改）
     T.isSubboards = s.screen === 'subboards';
     T.subRows = [
-      ['影音讨论区','日更 1.2k 帖 · 已订阅',true],
-      ['晴风村','日更 860 帖 · 已订阅',true],
-      ['视频与主播讨论','日更 430 帖',false],
-      ['深水区','需 30 天注册时长',false],
-      ['国际新闻','镜像板块',false],
-      ['职场生存','日更 210 帖',false]
-    ].map(([name,sub,on]) => ({
-      name, sub, label: on ? '已订阅' : '订阅',
-      bg: on ? 'var(--primary)' : 'transparent', fg: on ? '#fff' : 'var(--primary)',
-      bd: 'var(--primary)', blockColor:'var(--meta)',
-      sub1: () => this.toast(on ? '已取消订阅 ' + name : '已订阅 ' + name),
-      block: () => this.toast('已屏蔽 ' + name + ' 的主题','撤销')
+      ['影音讨论区','日更 1.2k 帖','sub'],
+      ['晴风村','日更 860 帖','sub'],
+      ['视频与主播讨论','日更 430 帖',''],
+      ['深水区','需 30 天注册时长','lock'],
+      ['国际新闻','镜像板块 · 已屏蔽','block'],
+      ['职场生存','日更 210 帖','']
+    ].map(([name,sub,st]) => ({
+      name, sub,
+      label: st === 'sub' ? '已订阅' : st === 'block' ? '已屏蔽' : st === 'lock' ? '不可更改' : '订阅',
+      bg: st === 'sub' ? 'var(--primary)' : 'transparent',
+      fg: st === 'sub' ? '#fff' : st === 'block' ? 'var(--danger)' : st === 'lock' ? 'var(--meta)' : 'var(--primary)',
+      bd: st === 'block' ? 'var(--danger)' : st === 'lock' ? 'var(--divider)' : 'var(--primary)',
+      sub1: () => this.toast(st === 'sub' ? '已屏蔽「' + name + '」' : st === 'lock' ? '这个子版块不可更改' : '已订阅「' + name + '」')
     }));
 
     // 多收藏夹管理
@@ -1509,7 +1608,33 @@ class Component extends DCLogic {
     T.searchHistory = [
       ['显卡 涨价','当前板块'],['NAS 折腾','全部板块'],['留白，嗯','用户'],
       ['深夜食堂','当前板块'],['奶萨 手法','魔兽世界'],['周报 800 字','包括正文']
-    ].map(([q,scope]) => ({ q, scope, go: () => this.toast('搜索「' + q + '」') }));
+    ].map(([q,scope]) => ({ q, scope, go: () => this.set({ searchDone:true, searchQ:q }) }));
+    // 搜索结果（ticket 15：三 tab 各自的结果视图）
+    T.searchQ = s.searchQ || '显卡 涨价';
+    T.searchIdle = !s.searchDone;
+    T.searchDone = !!s.searchDone;
+    T.clearSearch = () => this.set({ searchDone:false, searchQ:'' });
+    T.searchOptsD = (s.searchTab || 0) === 0 ? 'block' : 'none';
+    const stab = s.searchTab || 0;
+    T.searchTopicsD = stab === 0; T.searchBoardsD = stab === 1; T.searchUsersD = stab === 2;
+    T.searchStats = stab === 0
+      ? (s.searchScope === 'all' ? '全部板块' : '网事杂谈') + (s.searchBody ? ' · 包括正文' : '') + ' · 约 128 条结果'
+      : stab === 1 ? '找到 2 个版块' : '找到 1 个用户';
+    T.searchTopicRows = [
+      ['显卡又开始涨价了，这波是矿还是内存？','海豚音一号','12 分钟前',842,'硬件'],
+      ['[科普] 二手显卡避坑指北','矿难倒霉蛋','2026-02-08',744,'硬件'],
+      ['显卡涨价潮下，整机是不是更划算？','装机猿','昨天',96,''],
+      ['求推荐 3000 元档的显示器（显卡刚涨完价）','阴阳师妄想','昨天 19:22',28,'']
+    ].map(([title,who,when,replies,tag]) => ({
+      title, who, when, replies, tag, tagD: tag ? 'inline' : 'none', open: () => this.go('article')
+    }));
+    T.searchBoardRows = [
+      { ini:'硬', name:'电脑硬件', sub:'游戏综合讨论 · 日更 2.4k 帖' },
+      { ini:'显', name:'显卡专区', sub:'电脑硬件 · 日更 860 帖' }
+    ];
+    T.searchUserRows = [
+      { ini:'留', name:'留白，嗯', sub:'UID 60123441 · 精英 · 发帖 20881', av: AV[3], open: () => this.go('profile') }
+    ];
 
     // 用户资料
     T.isProfile = s.screen === 'profile';
@@ -1519,9 +1644,11 @@ class Component extends DCLogic {
     T.profileBasic = [
       ['邮箱','N/A','left'],['Tel','N/A','right'],
       ['用户组','学徒','left'],['发帖数','5075','right'],
-      ['金钱','0.0.0','left'],['状态','已激活','right','#2E9E5B'],
-      ['注册日期','2020-10-03','left'],['属地','河北省','right']
+      ['金钱','0.0.0','left'],['威望','1.0','right'],
+      ['状态','已激活','left','#2E9E5B'],['注册日期','2020-10-03','right'],
+      ['属地','河北省','left']
     ].map(([k,v,align,color]) => ({ k, v, align, color: color || 'var(--fg)' }));
+    T.editSign = () => this.set({ dialog:'editSign' });
     T.profileRoles = ['网事杂谈 · 版面观察员','硬件区 · 荣誉会员'];
     T.profileRep = [
       { board:'网事杂谈', value:'+42', pct:'86%' },
@@ -1609,21 +1736,30 @@ class Component extends DCLogic {
     T.clearNotify = () => { this.toast('已清空全部通知','撤销'); };
     T.notifyGroups = [
       { name:'回复我的', icon:'reply', items:[
-        ['留白，嗯','回复了你的主题','同行，我们这边今年砍了两条线。','体感消费不一直这样吗？','3 分钟前'],
-        ['Invisibl','回复了你的楼层','有功夫天天发帖说明不是什么卖苦力的厂。','体感消费不一直这样吗？','23 分钟前']
+        ['留白，嗯','回复了你的主题','体感消费不一直这样吗？','1','3 分钟前'],
+        ['Invisibl','回复了你的楼层','体感消费不一直这样吗？','1','23 分钟前']
       ]},
       { name:'@ 我的', icon:'alternate_email', items:[
-        ['海豚音一号','在帖子里 @ 了你','@阴阳师妄想 你之前说的那家店我去了','显卡又开始涨价了','1 小时前'],
-        ['存储控','在帖子里 @ 了你','@阴阳师妄想 后续我补在 71 楼','从零开始搭建家庭 NAS','昨天']
+        ['海豚音一号','在帖子里 @ 了你','显卡又开始涨价了，这波是矿还是内存？','3','1 小时前'],
+        ['存储控','在帖子里 @ 了你','[攻略] 从零开始搭建家庭 NAS 的十个坑','2','昨天']
       ]},
       { name:'给我贴条的', icon:'sticky_note_2', items:[
-        ['无知器','给你的 8 楼贴条','说得好，但我还是要吐槽物价','老爸走了，但似乎…','昨天'],
-        ['我不是猫奴','给你的 26 楼贴条','这个价我上周刚踩坑','显卡又开始涨价了','前天']
+        ['无知器','给你的楼层贴条','老爸走了，但似乎不认为这是件坏事','1','昨天'],
+        ['我不是猫奴','给你的楼层贴条','显卡又开始涨价了，这波是矿还是内存？','2','前天']
+      ]},
+      { name:'收到的评价', icon:'thumb_up', items:[
+        ['深水区的郭敬明','评价了你的帖子','体感消费不一直这样吗？','1','昨天']
+      ]},
+      { name:'短消息', icon:'sms', items:[
+        ['留白，嗯','发来一条短消息','外贸那段我们私下聊聊','1','今天 22:41']
+      ]},
+      { name:'其他通知', icon:'notifications_active', items:[
+        ['版务组','发来一条通知','你举报的楼层已处理','1','昨天']
       ]}
     ].map(g => ({
       name:g.name, icon:g.icon, count:g.items.length,
-      items: g.items.map(([who,verb,text,where,when],i) => ({
-        who, verb, text, where, when, ini: who.slice(0,1), av: AV[i % AV.length],
+      items: g.items.map(([who,verb,text,page,when],i) => ({
+        who, verb, text, where:'第 ' + page + ' 页', when, ini: who.slice(0,1), av: AV[i % AV.length],
         open: () => this.go('article')
       }))
     }));
@@ -1631,12 +1767,15 @@ class Component extends DCLogic {
     T.isLogin = s.screen === 'login';
     T.goLogin = () => this.go('login');
     T.doRetry = () => { this.go('article'); this.toast('已用原生解析重新加载','好'); };
-    T.hideBar = () => this.set({ fallbackBar:false });
+    T.goAppRead = () => { this.set({ srcTip:true }); this.go('article'); };
+    T.srcTip = !!s.srcTip && s.screen === 'article';
+    T.retryNative = () => { this.set({ srcTip:false }); this.toast('已用原生解析重新加载'); };
+    T.hideSrcTip = () => this.set({ srcTip:false });
     T.openWebMenu = () => this.set({ menu:'web' });
 
     // ---------- 设置三屏 ----------
     const SW = (k) => s['sw_' + k] !== undefined ? s['sw_' + k] : SWDEF[k];
-    const SWDEF = { night: D, followSys: false, lefty: false, solid: true, spray: true, sound: true, autoLoad: true, wifiImg: true, bottomTab: false, sign: true, rainbow: false, lab: false, preload: true, gesture: true, keepScreen: false };
+    const SWDEF = { night: D, followSys: false, lefty: false, solid: true, spray: true, sound: true, autoLoad: true, wifiImg: true, bottomTab: false, sign: true, wpua: true, gesture: true, keepScreen: false };
     const sw = (k) => {
       const on = s['sw_' + k] !== undefined ? s['sw_' + k] : SWDEF[k];
       return { on, tap: () => { if (k === 'night') { this.set({ theme: on ? 'light' : 'dark', ['sw_night']: !on }); } else { this.set({ ['sw_' + k]: !on }); } } };
@@ -1644,42 +1783,38 @@ class Component extends DCLogic {
     const SETS = {
       settings: { title:'设置', page:'1 / 3', rows:[
         ['section','通用设置'],
-        ['nav','NGA 域名','https://bbs.nga.cn', () => this.toast('可切换 nga.178.com / ngabbs.com')],
+        ['nav','NGA 域名','https://bbs.nga.cn', () => this.toast('被封时换一个域名常常就通了；可选 nga.178.com / ngabbs.com')],
         ['nav','账号管理','已登录 2 个账号', () => this.go('accounts')],
         ['switch','夜间模式','', 'night'],
         ['switch','夜间模式跟随系统','', 'followSys'],
         ['switch','左手模式','FAB 与菜单移到左侧', 'lefty'],
         ['switch','使用纯色背景','主题列表和详情页使用纯色背景', 'solid'],
-        ['switch','启用被喷提示','', 'spray'],
+        ['switch','启用被喷提示','关掉后不再轮询通知，抽屉也不显示未读角标', 'spray'],
         ['switch','提示声音','', 'sound'],
         ['nav','主题风格','墨绿（NGA 经典）', () => this.set({ dialog:'theme' })],
-        ['nav','调整字体和头像大小','列表字体 18 · 头像 104 · 表情 150', () => this.go('fontSize')],
-        ['nav','屏蔽规则','本地 6 条 · 官方同步开启', () => this.go('filters')]
+        ['nav','调整字体和头像大小','列表字体 18 · 头像 104% · 表情 150%', () => this.go('fontSize')],
+        ['nav','屏蔽规则','本地 6 条', () => this.go('filters')]
       ]},
       settings2: { title:'设置', page:'2 / 3', rows:[
         ['section','主题详情设置'],
         ['switch','自动加载下一页','滚动到底部时自动翻页', 'autoLoad'],
         ['switch','仅 Wi-Fi 下加载图片','移动网络显示「点击显示附件」', 'wifiImg'],
-        ['switch','显示签名档','', 'sign'],
+        ['switch','显示签名档','在楼层正文下面显示作者签名', 'sign'],
         ['switch','底部标签页','把页码条移到屏幕底部', 'bottomTab'],
-        ['nav','图片加载策略','智能（Wi-Fi 原图 / 流量缩略图）', () => this.toast('已切换图片加载策略')],
-        ['nav','阅读进度记录','记录最近 50 个帖子', () => this.toast('已清空阅读进度')],
-        ['section','发帖设置'],
-        ['switch','彩虹模式','随机给自己的发言上色', 'rainbow'],
-        ['nav','默认签名','—— 我从来不喝隔夜的茶…', () => this.toast('编辑默认签名')],
-        ['nav','水印','关闭', () => this.toast('已开启图片水印')],
-        ['nav','草稿箱','2 篇未发布', () => this.toast('打开草稿箱')]
+        ['nav','图片加载策略','智能（Wi-Fi 原图 / 流量缩略图）', () => this.set({ dialog:'imgPolicy' })],
+        ['nav','阅读进度记录','已记录 37 个主题 · 点此清空', () => this.toast('已清空阅读进度记录，浏览历史一并清空','撤销')]
       ]},
       settings3: { title:'设置', page:'3 / 3', rows:[
         ['section','实验室'],
-        ['switch','网页数据源兜底','原生解析失败时自动切换', 'preload'],
+        ['nav','网页数据源兜底','兜底（默认） · 原生接口全垮了才去反解网页版', () => this.set({ dialog:'fallback' })],
+        ['switch','帖子接口使用 Windows Phone UA','实测更不容易被封；被封表现变了可以关掉试试', 'wpua'],
         ['switch','手势返回','从左边缘右滑返回上一页', 'gesture'],
-        ['switch','阅读时常亮','', 'keepScreen'],
-        ['switch','实验室功能','开启后可能不稳定', 'lab'],
+        ['switch','阅读时常亮','看帖子详情时屏幕不自动熄灭', 'keepScreen'],
         ['section','存储与诊断'],
-        ['nav','清理缓存','已占用 42.6 MB', () => this.toast('已清理 42.6 MB 缓存')],
-        ['nav','导出诊断日志','最近 7 天', () => this.toast('日志已导出到 Download/')],
-        ['nav','恢复默认设置','', () => this.toast('已恢复默认设置','撤销')],
+        ['nav','清理缓存','7 个主题 · 已占用 42.6 MB', () => this.toast('已清理 42.6 MB 缓存')],
+        ['nav','本次运行的组合','key: combo · 域名 bbs.nga.cn · UA wp', () => this.toast('已调起系统分享')],
+        ['nav','导出诊断日志','最近 50 条', () => this.toast('日志已导出到 Download/')],
+        ['nav','恢复默认设置','三屏全部设置回默认值，不动账号与缓存', () => this.toast('已恢复默认设置','撤销')],
         ['section','关于'],
         ['nav','关于本客户端','v1.0.0 (build 1)', () => this.go('about')]
       ]}
@@ -1754,44 +1889,44 @@ class Component extends DCLogic {
       pick: () => this.set({ filterTab:i })
     }));
     const FILTERS = [
-      { hint:'仅存在本机，卸载即丢失；命中后楼层折叠为一行灰字。', rows:[
-        ['person_off','用户：xtl150ok','2026-07-11 添加 · 已折叠 42 层'],
-        ['person_off','用户：呜哇哇哇哇','2026-06-02 添加 · 已折叠 8 层'],
-        ['text_fields','关键词：搬运工','命中标题与正文'],
-        ['text_fields','关键词：内部消息','仅命中标题'],
-        ['tag','分类：转帖','网事杂谈'],
-        ['tag','分类：广告','全部板块']
+      { hint:'仅存在本机，卸载即丢失；命中的主题在列表里隐藏，命中的楼层折叠成一行。', rows:[
+        ['person_off','用户：xtl150ok','2026-07-11 添加 · 按用户名匹配'],
+        ['person_off','用户：呜哇哇哇哇','2026-06-02 添加 · 按用户名匹配'],
+        ['text_fields','关键词：搬运工','命中标题或正文'],
+        ['text_fields','关键词：内部消息','正则 · 命中标题或正文'],
+        ['bookmark','分类：转帖','网事杂谈'],
+        ['bookmark','分类：广告','全部版块']
       ]},
-      { hint:'与 NGA 账号云端同步，最多 200 人。', rows:[
-        ['person_off','用户：gerraerd','云端 · 2026-05-20'],
-        ['person_off','用户：Apprivorisor','云端 · 2026-04-02'],
-        ['person_off','用户：s18867719083','云端 · 2026-03-15']
+      { hint:'与 NGA 账号云端同步，可在这里解除。', rows:[
+        ['person_off','用户：gerraerd','云端 · uid 60011223'],
+        ['person_off','用户：Apprivorisor','云端 · uid 61847212'],
+        ['person_off','用户：s18867719083','云端 · uid 42918860']
       ]},
-      { hint:'与 NGA 账号云端同步；支持正则，一行一条。', rows:[
-        ['text_fields','关键词：加密货币','云端 · 命中正文'],
-        ['text_fields','关键词：^\\[水\\]','云端 · 正则 · 命中标题'],
-        ['text_fields','关键词：私聊出','云端 · 命中正文']
+      { hint:'与 NGA 账号云端同步，和网页版「控制面板 → 屏蔽」是同一份数据。', rows:[
+        ['text_fields','关键词：加密货币','云端 · 命中标题或正文'],
+        ['text_fields','关键词：^\\[水\\]','云端 · 命中标题或正文'],
+        ['text_fields','关键词：私聊出','云端 · 命中标题或正文']
       ]}
     ];
     const FT = FILTERS[s.filterTab || 0];
     T.filterHint = FT.hint;
     T.filterRows = FT.rows.map(([icon,text,sub]) => ({ icon, text, sub, del: () => this.toast('已删除规则：' + text,'撤销') }));
-    T.addFilter = () => this.set({ dialog:'addFilter' });
+    T.addFilterD = (s.filterTab || 0) === 1 ? 'none' : 'flex';
+    T.addFilter = () => this.set({ dialog: (s.filterTab || 0) === 2 ? 'addKw' : 'addFilter' });
 
     // 关于
     T.isAbout = s.screen === 'about';
     T.aboutRows = [
-      ['update','检查更新','当前已是最新版本'],
-      ['code','开源地址','GitHub · MIT 许可'],
-      ['bug_report','反馈问题','提交 issue 或站内短信'],
-      ['description','开源许可','OkHttp · Jsoup · Coil'],
+      ['code','数据来源','直接读 NGA 官方接口，不经任何中转服务'],
+      ['update','系统设置','开「打开支持的链接」后，NGA 链接才会跳进本 app'],
+      ['bug_report','诊断日志','接口失败的记录在「设置 · 实验室」里导出'],
+      ['description','开源许可','React Native · Expo · TanStack Query · Legend List 等'],
       ['gavel','免责声明','']
     ].map(([icon,label,sub]) => ({ icon, label, sub, subD: sub ? 'block' : 'none' }));
 
     // 加载失败 / 网页兜底
     T.isError = s.screen === 'error';
     T.isWebview = s.screen === 'webview';
-    T.fallbackBar = s.fallbackBar !== false;
     T.webFloors = [
       { name:'疯狂星期四本人', time:'2026-08-06 20:12', no:0, body:'v 我 50，明天带你们看真正的沙拉刺客。楼下别急，先看图。' },
       { name:'路过的骑士', time:'2026-08-06 20:31', no:1, body:'这个价位在我们这已经能吃两顿了，物价差异真的大。' },
@@ -1823,7 +1958,7 @@ class Component extends DCLogic {
 
     T.screenLabel = ({
       home:'主页 · 我的收藏', list:'主题列表 · 网事杂谈', article:'帖子详情', editor:'回帖编辑器', editorNew:'发新帖',
-      search:'搜索', hot:'24 小时热帖', recommended:'精华区', subboards:'子板块', history:'浏览历史',
+      search:'搜索', hot:'24 小时热帖', recommended:'精华区', subboards:'子版块', history:'浏览历史',
       favorites:'收藏的主题', folders:'多收藏夹管理（新增）', myTopics:'我的主题', myReplies:'我的回复', cache:'我的缓存',
       profile:'用户资料', messages:'短消息列表', chat:'会话详情', newMsg:'新建短消息', notify:'最近被喷', login:'WebView 登录',
       settings:'设置 1 / 3', settings2:'设置 2 / 3', settings3:'设置 3 / 3', accounts:'账号管理', fontSize:'字号调节',
