@@ -1,4 +1,4 @@
-import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo, useState } from 'react';
@@ -178,8 +178,8 @@ export default function BoardScreen() {
     [router, openBoard],
   );
 
-  const renderTopic = useCallback<ListRenderItem<Topic>>(
-    ({ item }) => <TopicRow topic={item} onPress={openTopic} />,
+  const renderTopic = useCallback(
+    ({ item }: LegendListRenderItemProps<Topic>) => <TopicRow topic={item} onPress={openTopic} />,
     [openTopic],
   );
 
@@ -321,16 +321,16 @@ export default function BoardScreen() {
       );
     }
     return (
-      // FlashList 要一个高度确定的父容器才算得出可视区
+      // LegendList 实验分支:recycleItems 对齐 FlashList 的回收行为
       <View style={styles.body}>
-        <FlashList
+        <LegendList
           data={shownTopics}
           keyExtractor={(topic) => String(topic.tid)}
           renderItem={renderTopic}
           ListHeaderComponent={listHeader}
           ListFooterComponent={listFooter}
+          recycleItems
           drawDistance={TOPIC_LIST_DRAW_DISTANCE}
-          maintainVisibleContentPosition={{ disabled: true }}
           onEndReachedThreshold={0.6}
           onEndReached={loadNextPage}
           // 翻下一页时 isRefetching 不会亮,不然底部转圈会连带把顶部也拽出来
