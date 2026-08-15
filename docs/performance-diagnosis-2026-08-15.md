@@ -389,3 +389,29 @@ Perfetto(profileable 包)拖拽中取证:
 这是当前 RN/FlashList 在 120Hz 上的结构性余量问题:重绑成本下限 ~2-4ms/批,
 慢性满队列不可从 app 层解除。要继续压需要上游动作(FlashList 手势期暂停
 premount、或 RN 队列深度控制);单次甩动的常见路径已与 anzong 无感知差异。
+
+### 第五轮:列表引擎更换(FlashList → LegendList)
+
+第四轮结论认为「连续猛甩中段一簇 drop」是 FlashList 重绑节奏 × 慢性满队列的
+结构性问题,app 层无解。本轮改为直接换引擎验证:`@legendapp/list` 3.3.5
+(纯 TS,FlatList 风格 API,`recycleItems` 开启回收),先在 board 屏 A/B,
+后全量迁移并移除 `@shopify/flash-list`。
+
+对拍(同 trace7.cfg、同三甩协议 `input swipe 610 2200 610 700 120` ×3、
+1.7s 间隔、同版块、release 包,数 `actual_frame_timeline_slice` 中
+`present_type='Dropped Frame'`):
+
+| 包 | Dropped Frame / 三甩 | 分布 |
+|---|---|---|
+| FlashList 修复后(fix.ptrace) | 9 | 8 个集中在 170ms 内成簇(可见停格+双倍跳) |
+| LegendList board 屏实验 | 1 / 1 / 3(三轮) | 全部孤立单帧,部分落在甩动前静置段 |
+| LegendList 全量迁移复测 | 2 / 1 / 3(三轮) | 同上,无簇 |
+
+成簇消失 = 肉眼伪影消失;真机主观确认「流畅很多」。迁移覆盖 10 个屏,
+详情页 ref/viewability/scrollToIndex 全部有等价 API;
+`maintainVisibleContentPosition` LegendList 默认即关,与原 `{disabled:true}`
+一致。typecheck / 1107 测试 / lint(112 存量)均与迁移前持平。
+
+坑位记录:perfetto 配置与输出受 SELinux 限制,配置走 stdin(`cat cfg |
+perfetto -c -`)、输出必须放 `/data/misc/perfetto-traces/`;gradle daemon
+2G 堆在 `:app:packageRelease` 会 OOM,需 `-Dorg.gradle.jvmargs=-Xmx4096m`。
