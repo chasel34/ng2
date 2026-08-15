@@ -5,7 +5,8 @@
  * 认这几种写法：
  * ```
  * https://bbs.nga.cn/read.php?tid=123&page=2#pid456Anchor
- * ng2://read.php?tid=123          自定义 scheme（spec §2）
+ * ng2://read.php?tid=123          release 自定义 scheme（spec §2）
+ * ng2-dev://read.php?tid=123      development 自定义 scheme
  * bbs.nga.cn/read.php?tid=123     手粘时常见的省略 scheme
  * /thread.php?fid=650             同上，只剩路径
  * ```
@@ -16,8 +17,10 @@
 
 import { NGA_HOSTS } from '../net/constants'
 
-/** 自定义 scheme，与 app.json 的 `expo.scheme` 一致（spec §2）。 */
+/** release 自定义 scheme；development 另用 ng2-dev，避免并装时互相抢链接。 */
 export const APP_SCHEME = 'ng2'
+export const APP_DEV_SCHEME = 'ng2-dev'
+const APP_SCHEMES: readonly string[] = [APP_SCHEME, APP_DEV_SCHEME]
 
 /** 能接管的域名 = 官方域名清单（API 文档 §0.1），去掉协议头。 */
 const NGA_HOSTNAMES: readonly string[] = NGA_HOSTS.map((origin) =>
@@ -84,7 +87,9 @@ export function parseNgaLink(input: string): NgaLinkResult {
 
   const { scheme, host: rawHost, path, query, fragment } = splitLocation(trimmed)
   const web = scheme === 'http' || scheme === 'https'
-  if (scheme !== undefined && !web && scheme !== APP_SCHEME) return fail('unsupported-scheme')
+  if (scheme !== undefined && !web && !APP_SCHEMES.includes(scheme)) {
+    return fail('unsupported-scheme')
+  }
 
   const host = normalizeHost(rawHost)
   // `ng2://read.php?tid=1` 与手粘的 `read.php?tid=1` 在 host 的位置上放的是端点而不是域名；

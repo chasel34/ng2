@@ -160,6 +160,7 @@ describe('parseNgaLink：scheme 与域名', () => {
       boardKind: 'board',
     })
     expect(link('ng2://bbs.nga.cn/read.php?tid=1')).toEqual({ kind: 'topic', tid: 1 })
+    expect(link('ng2-dev://read.php?tid=1')).toEqual({ kind: 'topic', tid: 1 })
   })
 
   it('手粘时省了 scheme 也认', () => {

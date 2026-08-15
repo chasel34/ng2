@@ -1,0 +1,74 @@
+{
+  "sourceConcept": "assets/images/concepts/jade-foot-dialogue.png",
+  "generator": "scripts/make-app-icons.mjs",
+  "palette": {
+    "cream": "#FCF4E1",
+    "creamDark": "#1C1C1B",
+    "jade": "#14796B",
+    "jadeDark": "#0F5D53",
+    "jadeOnDark": "#1E9384",
+    "vermilion": "#E4512E"
+  },
+  "variants": {
+    "release": [
+      {
+        "file": "icon.png",
+        "size": 1024
+      },
+      {
+        "file": "android-icon-background.png",
+        "size": 1024
+      },
+      {
+        "file": "android-icon-foreground.png",
+        "size": 1024
+      },
+      {
+        "file": "android-icon-monochrome.png",
+        "size": 1024
+      },
+      {
+        "file": "splash-icon.png",
+        "size": 512
+      },
+      {
+        "file": "splash-icon-dark.png",
+        "size": 512
+      },
+      {
+        "file": "favicon.png",
+        "size": 48
+      }
+    ],
+    "development": [
+      {
+        "file": "icon-dev.png",
+        "size": 1024
+      },
+      {
+        "file": "android-icon-background-dev.png",
+        "size": 1024
+      },
+      {
+        "file": "android-icon-foreground-dev.png",
+        "size": 1024
+      },
+      {
+        "file": "android-icon-monochrome-dev.png",
+        "size": 1024
+      },
+      {
+        "file": "splash-icon-dev.png",
+        "size": 512
+      },
+      {
+        "file": "splash-icon-dark-dev.png",
+        "size": 512
+      },
+      {
+        "file": "favicon-dev.png",
+        "size": 48
+      }
+    ]
+  }
+}
