@@ -1,8 +1,14 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Reanimated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { useLeftHanded } from './appearance';
-import { duration, easeStandard, POP_SCALE } from './motion';
+import { duration, easeStandardWorklet, POP_SCALE } from './motion';
 import { createThemedStyles, useTheme } from './theme';
 
 export interface MenuItem {
@@ -33,40 +39,28 @@ export function OverflowMenu({ open, onClose, items, top }: OverflowMenuProps) {
   const styles = useStyles();
   const theme = useTheme();
   const leftHanded = useLeftHanded();
-  const progress = useRef(new Animated.Value(0)).current;
+  const progress = useSharedValue(0);
 
   useEffect(() => {
     if (!open) {
-      progress.setValue(0);
+      progress.value = 0;
       return;
     }
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration: duration.menu,
-      easing: easeStandard,
-      useNativeDriver: true,
-    });
-    animation.start();
-    return () => animation.stop();
+    progress.value = withTiming(1, { duration: duration.menu, easing: easeStandardWorklet });
   }, [open, progress]);
+
+  const popStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ scale: interpolate(progress.value, [0, 1], [POP_SCALE, 1]) }],
+  }));
 
   if (!open) return null;
 
   return (
     <View style={StyleSheet.absoluteFill}>
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="关闭菜单" />
-      <Animated.View
-        style={[
-          styles.panel,
-          leftHanded ? styles.panelLeft : styles.panelRight,
-          {
-            top,
-            opacity: progress,
-            transform: [
-              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [POP_SCALE, 1] }) },
-            ],
-          },
-        ]}
+      <Reanimated.View
+        style={[styles.panel, leftHanded ? styles.panelLeft : styles.panelRight, { top }, popStyle]}
       >
         {/* 设计稿给面板设了 max-height 520 + overflow-y:auto——条目多到顶格时要能滚,
             不然最下面几条够不着(收藏夹切换菜单的夹数是用户定的) */}
@@ -84,7 +78,7 @@ export function OverflowMenu({ open, onClose, items, top }: OverflowMenuProps) {
             </Pressable>
           ))}
         </ScrollView>
-      </Animated.View>
+      </Reanimated.View>
     </View>
   );
 }

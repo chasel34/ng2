@@ -1,8 +1,15 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import Reanimated, {
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { Icon } from './icon';
-import { duration, easeStandard } from './motion';
+import { duration, easeStandardWorklet } from './motion';
 import { createThemedStyles, useTheme } from './theme';
 
 /**
@@ -96,49 +103,37 @@ function RowText({ label, sub }: { label: string; sub?: string }) {
 export function SettingsSwitch({ value }: { value: boolean }) {
   const styles = useStyles();
   const theme = useTheme();
-  const progress = useRef(new Animated.Value(value ? 1 : 0)).current;
+  const progress = useSharedValue(value ? 1 : 0);
 
   useEffect(() => {
-    const animation = Animated.timing(progress, {
-      toValue: value ? 1 : 0,
+    progress.value = withTiming(value ? 1 : 0, {
       duration: TOGGLE_MS,
-      easing: easeStandard,
-      // 轨道底色要动,颜色插值走不了原生驱动
-      useNativeDriver: false,
+      easing: easeStandardWorklet,
     });
-    animation.start();
-    return () => animation.stop();
   }, [value, progress]);
 
+  // 轨道底色的颜色插值在 RN Animated 里走不了原生驱动,Reanimated 没这个限制
+  const trackStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [theme.colors.track, theme.colors.primary],
+    ),
+  }));
+  const knobStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(progress.value, [0, 1], [0, KNOB_TRAVEL]) }],
+  }));
+
   return (
-    <Animated.View
-      style={[
-        styles.track,
-        {
-          backgroundColor: progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [theme.colors.track, theme.colors.primary],
-          }),
-        },
-      ]}
-    >
-      <Animated.View
+    <Reanimated.View style={[styles.track, trackStyle]}>
+      <Reanimated.View
         style={[
           styles.knob,
-          {
-            backgroundColor: value ? theme.colors.onPrimary : theme.colors.surface,
-            transform: [
-              {
-                translateX: progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, KNOB_TRAVEL],
-                }),
-              },
-            ],
-          },
+          { backgroundColor: value ? theme.colors.onPrimary : theme.colors.surface },
+          knobStyle,
         ]}
       />
-    </Animated.View>
+    </Reanimated.View>
   );
 }
 

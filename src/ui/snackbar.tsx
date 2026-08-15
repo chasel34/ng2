@@ -1,8 +1,14 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import Reanimated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { create } from 'zustand';
 
-import { duration, easeStandard, RISE_OFFSET } from './motion';
+import { duration, easeStandardWorklet, RISE_OFFSET } from './motion';
 import { createThemedStyles, useTheme } from './theme';
 import { snackbarColors } from './tokens';
 
@@ -57,24 +63,20 @@ export function SnackbarHost() {
   const theme = useTheme();
   const current = useSnackbar((state) => state.current);
   const hide = useSnackbar((state) => state.hide);
-  const progress = useRef(new Animated.Value(0)).current;
+  const progress = useSharedValue(0);
 
   useEffect(() => {
     if (current === null) return;
-    progress.setValue(0);
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration: SHOW_DURATION,
-      easing: easeStandard,
-      useNativeDriver: true,
-    });
-    animation.start();
+    progress.value = 0;
+    progress.value = withTiming(1, { duration: SHOW_DURATION, easing: easeStandardWorklet });
     const timer = setTimeout(hide, AUTO_DISMISS_MS);
-    return () => {
-      animation.stop();
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, [current, progress, hide]);
+
+  const riseStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ translateY: interpolate(progress.value, [0, 1], [RISE_OFFSET, 0]) }],
+  }));
 
   if (current === null) return null;
 
@@ -82,18 +84,7 @@ export function SnackbarHost() {
 
   return (
     <View style={styles.root} pointerEvents="box-none">
-      <Animated.View
-        style={[
-          styles.panel,
-          { backgroundColor: bg },
-          {
-            opacity: progress,
-            transform: [
-              { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [RISE_OFFSET, 0] }) },
-            ],
-          },
-        ]}
-      >
+      <Reanimated.View style={[styles.panel, { backgroundColor: bg }, riseStyle]}>
         <Text style={styles.text}>{current.text}</Text>
         {current.action !== undefined && (
           <Pressable
@@ -108,7 +99,7 @@ export function SnackbarHost() {
             <Text style={styles.action}>{current.action.label}</Text>
           </Pressable>
         )}
-      </Animated.View>
+      </Reanimated.View>
     </View>
   );
 }

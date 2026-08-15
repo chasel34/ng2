@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Animated, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { diffFolderSelection } from '@/core/local';
 import {
@@ -11,7 +11,9 @@ import {
 
 import { Icon } from './icon';
 import { InputDialog } from './input-dialog';
-import { useOverlayAnimation, OverlayScrim, popStyle } from './overlay';
+import Reanimated from 'react-native-reanimated';
+
+import { useOverlayAnimation, OverlayScrim } from './overlay';
 import { createThemedStyles, useTheme } from './theme';
 import { showToast } from './toast';
 
@@ -45,7 +47,7 @@ function FolderPicker({ tid, onClose }: { tid: number; onClose: () => void }) {
   const styles = useStyles();
   const theme = useTheme();
   // 这棵子树只在开着的时候挂载,所以入场动画一挂上就跑
-  const { scrim, panel } = useOverlayAnimation(true);
+  const { scrimStyle, panelStyle } = useOverlayAnimation(true);
 
   const { data: folders, error, isPending, refetch } = useFavoriteFolders();
   const known = useTopicFolderIds(tid);
@@ -202,8 +204,8 @@ function FolderPicker({ tid, onClose }: { tid: number; onClose: () => void }) {
 
   return (
     <View style={styles.root}>
-      <OverlayScrim progress={scrim} onPress={onClose} />
-      <Animated.View style={[styles.panel, popStyle(panel)]}>
+      <OverlayScrim style={scrimStyle} onPress={onClose} />
+      <Reanimated.View style={[styles.panel, panelStyle]}>
         <Text style={styles.title}>收藏到…</Text>
         {list()}
         <View style={styles.actions}>
@@ -218,7 +220,7 @@ function FolderPicker({ tid, onClose }: { tid: number; onClose: () => void }) {
             <Text style={styles.confirmLabel}>{apply.isPending ? '保存中…' : '完成'}</Text>
           </Pressable>
         </View>
-      </Animated.View>
+      </Reanimated.View>
     </View>
   );
 }

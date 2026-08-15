@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Animated,
-  Keyboard,
+import { Keyboard,
   Pressable,
   Text,
   TextInput,
@@ -16,7 +14,9 @@ import {
 } from '@/core/local';
 
 import { Icon } from './icon';
-import { useOverlayAnimation, OverlayScrim, popStyle } from './overlay';
+import Reanimated from 'react-native-reanimated';
+
+import { useOverlayAnimation, OverlayScrim } from './overlay';
 import { createThemedStyles, useTheme } from './theme';
 
 /** 三类规则的顺序照设计稿对话框提示语「支持 用户 / 关键词 / 分类」。 */
@@ -50,7 +50,7 @@ export function FilterRuleDialog({ open, onCancel, onConfirm }: FilterRuleDialog
   const [regex, setRegex] = useState(false);
   // 提交过一次才显示错误:一进来就红着说「请输入关键词」太凶
   const [submitted, setSubmitted] = useState(false);
-  const { scrim, panel } = useOverlayAnimation(open);
+  const { scrimStyle, panelStyle } = useOverlayAnimation(open);
 
   // 每次打开都回到空白表单,不留上一次的残留
   useEffect(() => {
@@ -76,8 +76,8 @@ export function FilterRuleDialog({ open, onCancel, onConfirm }: FilterRuleDialog
 
   return (
     <View style={styles.root}>
-      <OverlayScrim progress={scrim} onPress={onCancel} />
-      <Animated.View style={[styles.panel, popStyle(panel)]}>
+      <OverlayScrim style={scrimStyle} onPress={onCancel} />
+      <Reanimated.View style={[styles.panel, panelStyle]}>
         <Text style={styles.title}>新增屏蔽规则</Text>
 
         <View style={styles.kindRow}>
@@ -148,7 +148,7 @@ export function FilterRuleDialog({ open, onCancel, onConfirm }: FilterRuleDialog
             <Text style={styles.confirmLabel}>保存</Text>
           </Pressable>
         </View>
-      </Animated.View>
+      </Reanimated.View>
     </View>
   );
 }

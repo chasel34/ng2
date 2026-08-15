@@ -16,9 +16,10 @@ import {
   type Ref,
   type RefObject,
 } from 'react';
-import { Animated, AppState, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, {
+  interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -68,7 +69,7 @@ import { InputDialog } from '@/ui/input-dialog';
 import { useLeftHanded } from '@/ui/appearance';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
-import { duration, easeDecelerateWorklet, easeStandard, RISE_OFFSET } from '@/ui/motion';
+import { duration, easeDecelerateWorklet, easeStandardWorklet, RISE_OFFSET } from '@/ui/motion';
 import { PageBar } from '@/ui/page-bar';
 import { useProgressiveReveal } from '@/ui/progressive';
 import { showSnackbar } from '@/ui/snackbar';
@@ -109,46 +110,25 @@ const HISTORY_VISIT_DELAY_MS = 96;
  * FAB 的两段动效(设计稿 isArticle 256 / 261 行):
  * 展开的动作列走 omup `.18s`,FAB 自己的 `add` 转 45° 变成 `×`,`.2s`。
  */
-function useFabAnimation(open: boolean): {
-  menuStyle: { opacity: Animated.Value; transform: { translateY: Animated.AnimatedInterpolation<number> }[] };
-  iconStyle: { transform: { rotate: Animated.AnimatedInterpolation<string> }[] };
-} {
-  const rise = useRef(new Animated.Value(0)).current;
-  const spin = useRef(new Animated.Value(0)).current;
+function useFabAnimation(open: boolean) {
+  const rise = useSharedValue(0);
+  const spin = useSharedValue(0);
 
   useEffect(() => {
-    if (open) rise.setValue(0);
-    const animation = Animated.parallel([
-      Animated.timing(rise, {
-        toValue: open ? 1 : 0,
-        duration: duration.quick,
-        easing: easeStandard,
-        useNativeDriver: true,
-      }),
-      Animated.timing(spin, {
-        toValue: open ? 1 : 0,
-        duration: duration.base,
-        easing: easeStandard,
-        useNativeDriver: true,
-      }),
-    ]);
-    animation.start();
-    return () => animation.stop();
+    if (open) rise.value = 0;
+    rise.value = withTiming(open ? 1 : 0, { duration: duration.quick, easing: easeStandardWorklet });
+    spin.value = withTiming(open ? 1 : 0, { duration: duration.base, easing: easeStandardWorklet });
   }, [open, rise, spin]);
 
-  return {
-    menuStyle: {
-      opacity: rise,
-      transform: [
-        { translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [RISE_OFFSET, 0] }) },
-      ],
-    },
-    iconStyle: {
-      transform: [
-        { rotate: spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] }) },
-      ],
-    },
-  };
+  const menuStyle = useAnimatedStyle(() => ({
+    opacity: rise.value,
+    transform: [{ translateY: interpolate(rise.value, [0, 1], [RISE_OFFSET, 0]) }],
+  }));
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(spin.value, [0, 1], [0, 45])}deg` }],
+  }));
+
+  return { menuStyle, iconStyle };
 }
 
 /**
@@ -865,7 +845,7 @@ export default function TopicScreen() {
       <SwipeHint ref={swipe.hintRef} />
 
       {fabOpen && (
-        <Animated.View
+        <Reanimated.View
           style={[
             styles.fabMenu,
             leftHanded ? styles.fabMenuLeft : styles.fabMenuRight,
@@ -893,7 +873,7 @@ export default function TopicScreen() {
             <Icon name="refresh" size={19} color={theme.colors.primary} />
             <Text style={styles.fabItemLabel}>刷新</Text>
           </Pressable>
-        </Animated.View>
+        </Reanimated.View>
       )}
 
       <Pressable
@@ -902,9 +882,9 @@ export default function TopicScreen() {
         accessibilityLabel={fabOpen ? '收起操作' : '展开操作'}
       >
         {/* 设计稿是同一枚 add 转 45° 变成 ×,不是换字形 */}
-        <Animated.View style={fabIconStyle}>
+        <Reanimated.View style={fabIconStyle}>
           <Icon name="add" size={27} color={theme.colors.onFab} />
-        </Animated.View>
+        </Reanimated.View>
       </Pressable>
 
       <InputDialog
@@ -1115,31 +1095,19 @@ function ResumeBanner({
 }) {
   const styles = useStyles();
   const theme = useTheme();
-  const progress = useRef(new Animated.Value(0)).current;
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    const animation = Animated.timing(progress, {
-      toValue: 1,
-      duration: duration.notice,
-      easing: easeStandard,
-      useNativeDriver: true,
-    });
-    animation.start();
-    return () => animation.stop();
+    progress.value = withTiming(1, { duration: duration.notice, easing: easeStandardWorklet });
   }, [progress]);
 
+  const riseStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ translateY: interpolate(progress.value, [0, 1], [14, 0]) }],
+  }));
+
   return (
-    <Animated.View
-      style={[
-        styles.resumeBanner,
-        {
-          opacity: progress,
-          transform: [
-            { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) },
-          ],
-        },
-      ]}
-    >
+    <Reanimated.View style={[styles.resumeBanner, riseStyle]}>
       <Icon name="bookmark" size={19} color={theme.colors.primary} />
       <Text style={styles.resumeText}>
         上次读到 <Text style={styles.resumeStrong}>第 {floor} 楼</Text>
@@ -1150,7 +1118,7 @@ function ResumeBanner({
       <Pressable onPress={onClose} accessibilityLabel="关闭提示" hitSlop={8}>
         <Icon name="close" size={17} color={theme.colors.meta} />
       </Pressable>
-    </Animated.View>
+    </Reanimated.View>
   );
 }
 

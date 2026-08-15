@@ -1,6 +1,8 @@
-import { Animated, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { useOverlayAnimation, OverlayScrim, popStyle } from './overlay';
+import Reanimated from 'react-native-reanimated';
+
+import { useOverlayAnimation, OverlayScrim } from './overlay';
 import { createThemedStyles } from './theme';
 
 export interface ConfirmDialogProps {
@@ -31,14 +33,14 @@ export function ConfirmDialog({
   onConfirm,
 }: ConfirmDialogProps) {
   const styles = useStyles();
-  const { scrim, panel } = useOverlayAnimation(open);
+  const { scrimStyle, panelStyle } = useOverlayAnimation(open);
 
   if (!open) return null;
 
   return (
     <View style={styles.root}>
-      <OverlayScrim progress={scrim} onPress={onCancel} />
-      <Animated.View style={[styles.panel, popStyle(panel)]}>
+      <OverlayScrim style={scrimStyle} onPress={onCancel} />
+      <Reanimated.View style={[styles.panel, panelStyle]}>
         <Text style={styles.title}>{title}</Text>
         {message !== undefined && <Text style={styles.message}>{message}</Text>}
         <View style={styles.actions}>
@@ -52,7 +54,7 @@ export function ConfirmDialog({
             <Text style={styles.confirmLabel}>{confirmLabel}</Text>
           </Pressable>
         </View>
-      </Animated.View>
+      </Reanimated.View>
     </View>
   );
 }

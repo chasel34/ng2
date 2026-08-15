@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Animated,
-  Keyboard,
+import { Keyboard,
   Pressable,
   Text,
   TextInput,
@@ -9,7 +7,9 @@ import {
   type KeyboardTypeOptions,
 } from 'react-native';
 
-import { useOverlayAnimation, OverlayScrim, popStyle } from './overlay';
+import Reanimated from 'react-native-reanimated';
+
+import { useOverlayAnimation, OverlayScrim } from './overlay';
 import { createThemedStyles, useTheme } from './theme';
 
 export interface InputDialogProps {
@@ -59,7 +59,7 @@ export function InputDialog({
   const styles = useStyles();
   const theme = useTheme();
   const [value, setValue] = useState(initialValue);
-  const { scrim, panel } = useOverlayAnimation(open);
+  const { scrimStyle, panelStyle } = useOverlayAnimation(open);
 
   // 每次打开都回到调用方给的初始值,不留上一次的残留
   useEffect(() => {
@@ -75,8 +75,8 @@ export function InputDialog({
 
   return (
     <View style={styles.root}>
-      <OverlayScrim progress={scrim} onPress={onCancel} />
-      <Animated.View style={[styles.panel, popStyle(panel)]}>
+      <OverlayScrim style={scrimStyle} onPress={onCancel} />
+      <Reanimated.View style={[styles.panel, panelStyle]}>
         <Text style={styles.title}>{title}</Text>
         <View style={styles.field}>
           <TextInput
@@ -109,7 +109,7 @@ export function InputDialog({
             <Text style={styles.confirmLabel}>{confirmLabel}</Text>
           </Pressable>
         </View>
-      </Animated.View>
+      </Reanimated.View>
     </View>
   );
 }
