@@ -1,9 +1,9 @@
 import {
-  FlashList,
-  type FlashListRef,
-  type ListRenderItem,
+  LegendList,
+  type LegendListRef,
+  type LegendListRenderItemProps,
   type ViewToken,
-} from '@shopify/flash-list';
+} from '@legendapp/list/react-native';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -238,7 +238,7 @@ export default function TopicScreen() {
   const pageBeforeFilter = useRef(1);
   // 被屏蔽规则折起来、又被用户手动点开的楼层(21 票);只活在这次停留里
   const [unfolded, setUnfolded] = useState<readonly number[]>([]);
-  const listRef = useRef<FlashListRef<Floor>>(null);
+  const listRef = useRef<LegendListRef>(null);
   // 本页内用户是否亲手滚动过。跳楼/回到上次读到用 scrollToIndex 滚到页尾时
   // 也会触发 onEndReached,不区分的话「自动加载下一页」会把定位好的楼直接翻走
   const userScrolled = useRef(false);
@@ -478,7 +478,7 @@ export default function TopicScreen() {
   /**
    * 这一楼是不是被屏蔽规则挡下的(21 票)。`renderItem` 与 `getItemType` 必须
    * 给出同一个答案——折叠行只有一行高、楼层卡片动辄大半屏,混进同一个回收池
-   * 会让 FlashList 反复重量。
+   * 会让列表反复重量。
    */
   const blockedRuleOf = useCallback(
     (floor: Floor): FilterRule | undefined =>
@@ -487,8 +487,8 @@ export default function TopicScreen() {
     [unfolded, matchFloorFilter, users],
   );
 
-  const renderFloor = useCallback<ListRenderItem<Floor>>(
-    ({ item }) => {
+  const renderFloor = useCallback(
+    ({ item }: LegendListRenderItemProps<Floor>) => {
       const rule = blockedRuleOf(item);
       if (rule !== undefined) {
         return (
@@ -684,7 +684,7 @@ export default function TopicScreen() {
     return (
       <GestureDetector gesture={swipe.gesture}>
         <Reanimated.View style={[styles.body, swipe.style]}>
-          <FlashList
+          <LegendList
             ref={listRef}
             data={
               revealFloors && floorReveal < data.floors.length
@@ -692,12 +692,10 @@ export default function TopicScreen() {
                 : data.floors
             }
             keyExtractor={(floor) => String(floor.pid)}
+            recycleItems
             // 屏蔽规则命中的楼层折成一行灰字(21 票),点一下就地展开
             renderItem={renderFloor}
             getItemType={floorItemType}
-            // 详情是普通自上而下阅读流，不是聊天列表。图片/折叠块高度变化时固定锚点
-            // 会主动修正 contentOffset，肉眼就是“抖一下”；关掉后布局变化留在原位置。
-            maintainVisibleContentPosition={{ disabled: true }}
             ListHeaderComponent={
               <>
                 {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走。
@@ -745,7 +743,7 @@ export default function TopicScreen() {
                   }
                 : undefined
             }
-            // 阅读进度:哪些楼层在屏上由 FlashList 报,记「看到过的最高楼层」(ticket 16)
+            // 阅读进度:哪些楼层在屏上由列表报,记「看到过的最高楼层」(ticket 16)
             viewabilityConfig={resume.viewabilityConfig}
             onViewableItemsChanged={resume.onViewableItemsChanged}
             // 翻页时 isPlaceholderData 为真(屏上还是上一页的内容),那种情况下
@@ -965,7 +963,7 @@ interface ReadingProgressOptions {
   topicId: number;
   fav: string | undefined;
   data: ReturnType<typeof useTopicDetail>['data'];
-  listRef: RefObject<FlashListRef<Floor> | null>;
+  listRef: RefObject<LegendListRef | null>;
   goToPage: (page: number) => void;
   /** 只看此人期间为 true:那时的楼号/总数是过滤后的口径,不能写进历史 */
   paused: boolean;
@@ -999,7 +997,7 @@ function useReadingProgress({
   // 回复链带着楼号进场(jumpToFloor)走的也是这条兑现路径——两处只能有一套滚动逻辑
   const [pendingFloor, setPendingFloor] = useState<number | undefined>(jumpToFloor);
 
-  // viewability 回调终生不变(FlashList 要求),暂停信号只能从 ref 里透进去
+  // viewability 回调终生不变(避免列表反复重建观察器),暂停信号只能从 ref 里透进去
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
 
@@ -1047,7 +1045,7 @@ function useReadingProgress({
     ),
   );
 
-  // FlashList 要求 viewability 回调终生不变,所以塞进 ref;
+  // viewability 回调保持终生不变,所以塞进 ref;
   // topicId 是路由参数,这个屏活着期间不会变,闭包捕获是安全的
   const viewability = useRef({
     viewabilityConfig: { itemVisiblePercentThreshold: 20 },
@@ -1087,7 +1085,7 @@ function useReadingProgress({
       }
     };
     scroll(true);
-    // FlashList 对还没量过高的楼层按估算滚,目标离得远时会短滚停在前几楼
+    // 列表对还没量过高的楼层按估算滚,目标离得远时会短滚停在前几楼
     // (M4 复验 R-H5):首滚把沿途的行都量完,动画结束后补一脚就停准。
     // 不能挂在 effect 清理里——上面 setPendingFloor 会立刻触发重跑把它清掉
     setTimeout(() => scroll(false), 700);

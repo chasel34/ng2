@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
@@ -53,7 +53,7 @@ export default function CachesScreen() {
     showToast(`已删除「${topic.subject}」的缓存`);
   }, []);
 
-  // renderItem / 头尾组件都稳住:元素每次渲染都新建的话,FlashList 每次都要重挂它们
+  // renderItem / 头尾组件都稳住:元素每次渲染都新建的话,列表每次都要重挂它们
   const renderItem = useCallback(
     ({ item }: { item: CachedTopic }) => (
       <CacheRow topic={item} now={now} onPress={openTopic} onDelete={removeTopic} />
@@ -112,9 +112,10 @@ export default function CachesScreen() {
         />
       ) : (
         <View style={styles.body}>
-          <FlashList
+          <LegendList
             data={topics}
             keyExtractor={(topic) => String(topic.tid)}
+            recycleItems
             // 行是同构的(每行都是同一个 CacheRow),不需要 getItemType
             renderItem={renderItem}
             ListHeaderComponent={header}

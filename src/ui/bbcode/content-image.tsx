@@ -39,7 +39,7 @@ export interface ContentImageProps {
  * 服务端不给图片尺寸,所以先按 4:3 占位,`onLoad` 拿到真实尺寸再改比例。
  * 一次性给个固定高度会让长截图糊成一条,而不给高度 expo-image 干脆不显示。
  * 量到的尺寸进 `./image-size` 的模块级缓存:同一张图再次上屏(列表回收、翻页回来)
- * 首帧就是对的比例,不再「先 4:3 再跳一下」把 FlashList 的量算带崩。
+ * 首帧就是对的比例,不再「先 4:3 再跳一下」把 列表的量算带崩。
  * 首次尺寸变化由 Reanimated 在 UI 线程平滑过渡；详情列表同时关闭锚点偏移修正，
  * 所以图片只在原位置展开，不会再把正在阅读的内容瞬移一截。
  *
@@ -49,7 +49,7 @@ export interface ContentImageProps {
 export function ContentImage({ uri, thumbnailUri, onPress, style }: ContentImageProps) {
   const styles = useStyles();
   const theme = useTheme();
-  // 状态跟着地址一起记:FlashList 回收时组件实例会被换一张图接着用,
+  // 状态跟着地址一起记:列表回收时组件实例会被换一张图接着用,
   // 只存尺寸/失败标志的话,新的那张会顶着上一张的比例(或者上一张的「加载失败」)画
   const [loaded, setLoaded] = useState<{ uri: string; size: ImageSize } | undefined>(undefined);
   const [failedUri, setFailedUri] = useState<string | undefined>(undefined);

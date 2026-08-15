@@ -31,11 +31,11 @@ import { TopicRow } from '@/ui/topic-row';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
 
 /**
- * FlashList Android 默认只在视口外画 250px，约一条主题行；高速甩动会持续追着回收池跑。
- * 取约一个物理屏的余量:FlashList 会在静止/间歇期用 premountViews 把这段慢慢预绑,
- * 单次拖拽(~1500px)基本落在预绑区内——拖拽中不再出现行重绑帧。重绑帧(2.4~4.9ms)
- * 与轻帧交替会让 RenderThread 生产时序摆动 ±3ms,在慢性满队列(零余量)下周期性
- * 越过 SF latch 边界 → Dropped Frame → 肉眼可见的"停格+双倍跳"(第四轮排查)。
+ * 列表默认只在视口外画 250px,约一条主题行;高速甩动会持续追着回收池跑。
+ * 取约一个物理屏的余量,单次拖拽(~1500px)基本落在预渲染区内——拖拽中不再
+ * 出现行重绑帧。历史背景:FlashList 时代重绑帧(2.4~4.9ms)与轻帧交替曾让
+ * RenderThread 生产时序摆动 ±3ms,慢性满队列下周期性越过 SF latch 边界 →
+ * Dropped Frame(第四轮排查);换 LegendList 后该簇消失,余量仍保留。
  */
 const TOPIC_LIST_DRAW_DISTANCE = 2400;
 
@@ -321,7 +321,7 @@ export default function BoardScreen() {
       );
     }
     return (
-      // LegendList 实验分支:recycleItems 对齐 FlashList 的回收行为
+      // 列表要一个高度确定的父容器才算得出可视区;recycleItems 开启行回收
       <View style={styles.body}>
         <LegendList
           data={shownTopics}

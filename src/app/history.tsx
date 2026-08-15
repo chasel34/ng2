@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
@@ -38,7 +38,7 @@ export default function HistoryScreen() {
     [router],
   );
 
-  // renderItem / 头尾组件都稳住:元素每次渲染都新建的话,FlashList 每次都要重挂它们
+  // renderItem / 头尾组件都稳住:元素每次渲染都新建的话,列表每次都要重挂它们
   const renderItem = useCallback(
     ({ item }: { item: HistoryEntry }) => (
       <HistoryRow entry={item} now={now} onPress={openEntry} />
@@ -92,9 +92,10 @@ export default function HistoryScreen() {
         <EmptyState icon="history" text={'还没有浏览记录\n看过的主题会自动出现在这里'} />
       ) : (
         <View style={styles.body}>
-          <FlashList
+          <LegendList
             data={entries}
             keyExtractor={(entry) => String(entry.tid)}
+            recycleItems
             // 行是同构的(每行都是同一个 HistoryRow),不需要 getItemType
             renderItem={renderItem}
             ListHeaderComponent={header}

@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo } from 'react';
@@ -109,11 +109,12 @@ export default function RecommendScreen() {
       );
     }
     return (
-      // FlashList 要一个高度确定的父容器才算得出可视区
+      // 列表要一个高度确定的父容器才算得出可视区
       <View style={styles.body}>
-        <FlashList
+        <LegendList
           data={topics}
           keyExtractor={(topic) => String(topic.tid)}
+          recycleItems
           renderItem={({ item }) => (
             <TopicRow topic={item} onPress={openTopic} time={dateText(item.postedAt)} />
           )}

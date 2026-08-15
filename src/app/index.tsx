@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useRouter, type Href } from 'expo-router';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -62,7 +62,7 @@ const BUILTIN_ANNOUNCEMENT: HomeAnnouncement = {
 /**
  * 首页正文按行虚拟化:最大的分类(手机游戏)有 300 多个版块,
  * 一次铺完会连带发出三百多个图标请求,所以摊平成
- * 「公告条 / 分组标题 / 一行三个版块」交给 FlashList。
+ * 「公告条 / 分组标题 / 一行三个版块」交给 LegendList。
  */
 type HomeRow =
   | { readonly kind: 'announcement'; readonly key: string; readonly announcement: HomeAnnouncement }
@@ -420,11 +420,12 @@ export default function HomeScreen() {
           <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       ) : (
-        // FlashList 要一个高度确定的父容器才算得出可视区
+        // 列表要一个高度确定的父容器才算得出可视区
         <View style={styles.body}>
-          <FlashList
+          <LegendList
             data={rows}
             keyExtractor={(row) => row.key}
+            recycleItems
             // 行是异构的:公告条、分组标题、一行三个版块的宫格、空态说明、错误块,
             // 高度差好几倍。不给 getItemType 的话它们混在同一个回收池里,
             // 复用到形状完全不同的行就得重新量一次
