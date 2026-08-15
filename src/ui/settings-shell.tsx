@@ -2,6 +2,7 @@ import { useRouter, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+import { ProgressiveChildren } from './progressive';
 import { createThemedStyles } from './theme';
 import { TopBar, TopBarButton, TopBarTitle } from './top-bar';
 
@@ -58,7 +59,11 @@ export function SettingsShell({ index, children }: SettingsShellProps) {
 
       {/* 页脚自带 30 的下留白,滚动容器不再另加,否则底部空出 38 */}
       <ScrollView style={styles.body}>
-        {children}
+        {/* 分帧揭示:一屏十几行(自绘开关每行好几个视图)同步挂载要 16~19ms,
+            push 动画第 1 帧就掉帧。行成本 ~2.5ms(自绘开关):首帧 2 行、之后每帧 +3,动画走完前全就位 */}
+        <ProgressiveChildren initial={2} step={3}>
+          {children}
+        </ProgressiveChildren>
         <View style={styles.footer}>
           <Pressable style={styles.prev} onPress={goPrev}>
             <Text style={styles.prevLabel}>{first ? '返回' : '上一屏'}</Text>

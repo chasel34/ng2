@@ -27,7 +27,6 @@ import { showNotAvailable } from './toast';
 import { VoteBlock } from './vote';
 
 /** 设计稿:附件宫格三列、格间距 6、方格圆角 10。 */
-const ATTACH_COLUMNS = 3;
 const ATTACH_GAP = 6;
 
 /** 发帖设备图标(设计稿 `f.plat`)。认不出设备时用通用的 devices。 */
@@ -376,7 +375,6 @@ const AttachmentGrid = memo(function AttachmentGrid({
   const styles = useStyles();
   const theme = useTheme();
   const [open, setOpen] = useState(false);
-  const [gridWidth, setGridWidth] = useState(0);
   const unlocked = useImagesUnlocked();
 
   if (!open) {
@@ -392,10 +390,6 @@ const AttachmentGrid = memo(function AttachmentGrid({
     );
   }
 
-  // RN 没有 calc(),等分列宽只能自己算:量出可用宽度再扣掉列间距
-  const cellSize =
-    gridWidth === 0 ? 0 : (gridWidth - ATTACH_GAP * (ATTACH_COLUMNS - 1)) / ATTACH_COLUMNS;
-
   // 只有图片进宫格。附件里也会有压缩包、种子这类东西,当图片渲染就是一格加载失败,
   // 所以另起一行按「文件名 · 大小」列出来。
   const images = attachments.filter((attachment) => attachment.kind === 'img');
@@ -403,15 +397,12 @@ const AttachmentGrid = memo(function AttachmentGrid({
 
   return (
     <View style={styles.attachOpen}>
-      <View
-        style={styles.attachGrid}
-        onLayout={(event) => setGridWidth(event.nativeEvent.layout.width)}
-      >
+      <View style={styles.attachGrid}>
         {images.map((attachment) => (
           <Pressable
             key={attachment.url}
-            // 三列等分的边长量出来才知道,只能写成内联样式
-            style={{ width: cellSize, height: cellSize }}
+            // 百分比宽 + aspectRatio 首帧就有稳定几何，不再先画 0×0、onLayout 后整块跳高。
+            style={styles.attachCell}
             onPress={() => onOpenImage?.(attachment.url)}
           >
             {/* 宫格里用缩略图,点开大图才拉原图 */}
@@ -604,6 +595,10 @@ const useStyles = createThemedStyles((theme) => ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: ATTACH_GAP,
+  },
+  attachCell: {
+    width: '32%',
+    aspectRatio: 1,
   },
   /**
    * 圆角与底色都落在图片自己身上,而不是靠外面那层 `overflow: 'hidden'` 裁——

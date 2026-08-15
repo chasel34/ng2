@@ -8,7 +8,7 @@ import {
 import { fetchTopicDetail, type TopicDetail } from '@/core/api';
 
 import { fetchNga } from './nga-client';
-import { saveCachedPage } from './topic-cache';
+import { deferCachedPage } from './topic-cache';
 
 export interface TopicDetailParams {
   tid: number;
@@ -98,7 +98,7 @@ export function useTopicDetail(params: TopicDetailParams): UseQueryResult<TopicD
         ...(pid === undefined ? {} : { pid }),
         ...(authorId === undefined ? {} : { authorId }),
         signal,
-        onSnapshot: saveCachedPage,
+        deferSnapshot: deferCachedPage,
       }),
     placeholderData: keepPreviousData,
     staleTime: TOPIC_DETAIL_STALE_MS,

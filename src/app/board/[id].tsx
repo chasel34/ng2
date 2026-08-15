@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useMemo, useState } from 'react';
@@ -26,8 +26,18 @@ import { LoadFailed, LoadFailedNotice, loadFailureCopy } from '@/ui/error-screen
 import { EmptyState, LoadingFooter, LoadingState } from '@/ui/state-view';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showNotAvailable } from '@/ui/toast';
+import { useProgressiveReveal } from '@/ui/progressive';
 import { TopicRow } from '@/ui/topic-row';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
+
+/**
+ * FlashList Android 默认只在视口外画 250px，约一条主题行；高速甩动会持续追着回收池跑。
+ * 取约一个物理屏的余量:FlashList 会在静止/间歇期用 premountViews 把这段慢慢预绑,
+ * 单次拖拽(~1500px)基本落在预绑区内——拖拽中不再出现行重绑帧。重绑帧(2.4~4.9ms)
+ * 与轻帧交替会让 RenderThread 生产时序摆动 ±3ms,在慢性满队列(零余量)下周期性
+ * 越过 SF latch 边界 → Dropped Frame → 肉眼可见的"停格+双倍跳"(第四轮排查)。
+ */
+const TOPIC_LIST_DRAW_DISTANCE = 2400;
 
 /**
  * 主题列表页。
@@ -91,8 +101,12 @@ export default function BoardScreen() {
   const filterTopics = useTopicFilter();
   const merged = useMemo(() => mergeTopicPages(data?.pages ?? []), [data?.pages]);
   const topics = useMemo(() => filterTopics(merged), [merged, filterTopics]);
+  // 分帧揭示:整页 ~13 行一次性挂载要 31~35ms,横推动画起步直接掉帧;
+  // 数据到达帧只挂 listHeader(版头行+chips)与列表壳(~18ms 已是该帧下限),行从下一帧起每帧 +3,动画走完前全部就位(useProgressiveReveal 的文档)
+  const revealed = useProgressiveReveal(topics.length, { initial: 0, step: 3 });
+  const revealDone = revealed >= topics.length;
+  const shownTopics = revealDone ? topics : topics.slice(0, revealed);
   const loadedPages = data?.pages.length ?? 0;
-  const subBoards = data?.pages[0]?.subBoards ?? [];
   // 版头(CONTEXT.md):__F.topped_topic 带 tid 时在列表顶上给一条置顶入口,普通详情页打开
   const headTid = data?.pages[0]?.board?.head;
 
@@ -163,6 +177,57 @@ export default function BoardScreen() {
     },
     [router, openBoard],
   );
+
+  const renderTopic = useCallback<ListRenderItem<Topic>>(
+    ({ item }) => <TopicRow topic={item} onPress={openTopic} />,
+    [openTopic],
+  );
+
+  const listHeader = useMemo(() => {
+    const subBoards = data?.pages[0]?.subBoards ?? [];
+    return (
+      <View>
+        {headTid !== undefined && (
+          <Pressable
+            style={styles.headRow}
+            android_ripple={{ color: theme.colors.divider }}
+            onPress={() =>
+              router.push({
+                pathname: '/topic/[tid]',
+                params: { tid: String(headTid), title: '版头' },
+              })
+            }
+            accessibilityLabel="打开版头"
+          >
+            <Icon name="push_pin" size={16} color={theme.colors.accent} />
+            <Text style={styles.headLabel}>版头</Text>
+            <Icon name="chevron_right" size={18} color={theme.colors.meta} />
+          </Pressable>
+        )}
+        {subBoards.length > 0 && <SubBoardBar boards={subBoards} onPress={openBoard} />}
+      </View>
+    );
+  }, [data?.pages, headTid, openBoard, router, styles, theme]);
+
+  const listFooter = useMemo(
+    () => (
+      <View>
+        {isFetchingNextPage && <LoadingFooter text={`正在载入第 ${loadedPages + 1} 页…`} />}
+        {!isFetchingNextPage && error !== null && (
+          <Text style={styles.footerText}>{loadFailureCopy(error).headline}</Text>
+        )}
+        <View style={styles.footerSpacer} />
+      </View>
+    ),
+    [error, isFetchingNextPage, loadedPages, styles],
+  );
+
+  const loadNextPage = useCallback(() => {
+    // 揭示没追平时列表还是切片,contentSize 偏小会让 onEndReached 立刻误触发;
+    // 放行的话每次进版块都会白拉一次第二页(NGA 对请求频率敏感)
+    if (!revealDone) return;
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, revealDone]);
 
   const menuItems: readonly MenuItem[] = useMemo(() => {
     // 热帖/精华区(17 票)、浏览历史(16 票)、子版块(23 票)都复用本页的路由参数;
@@ -259,46 +324,15 @@ export default function BoardScreen() {
       // FlashList 要一个高度确定的父容器才算得出可视区
       <View style={styles.body}>
         <FlashList
-          data={topics}
+          data={shownTopics}
           keyExtractor={(topic) => String(topic.tid)}
-          renderItem={({ item }) => <TopicRow topic={item} onPress={openTopic} />}
-          ListHeaderComponent={
-            <View>
-              {headTid !== undefined && (
-                <Pressable
-                  style={styles.headRow}
-                  android_ripple={{ color: theme.colors.divider }}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/topic/[tid]',
-                      params: { tid: String(headTid), title: '版头' },
-                    })
-                  }
-                  accessibilityLabel="打开版头"
-                >
-                  <Icon name="push_pin" size={16} color={theme.colors.accent} />
-                  <Text style={styles.headLabel}>版头</Text>
-                  <Icon name="chevron_right" size={18} color={theme.colors.meta} />
-                </Pressable>
-              )}
-              {subBoards.length > 0 && <SubBoardBar boards={subBoards} onPress={openBoard} />}
-            </View>
-          }
-          ListFooterComponent={
-            <View>
-              {isFetchingNextPage && <LoadingFooter text={`正在载入第 ${loadedPages + 1} 页…`} />}
-              {/* 翻页失败别闷着:列表照旧,底下把原因说出来 */}
-              {!isFetchingNextPage && error !== null && (
-                <Text style={styles.footerText}>{loadFailureCopy(error).headline}</Text>
-              )}
-              {/* 设计稿在列表末尾留了 70 给 FAB 让路 */}
-              <View style={styles.footerSpacer} />
-            </View>
-          }
+          renderItem={renderTopic}
+          ListHeaderComponent={listHeader}
+          ListFooterComponent={listFooter}
+          drawDistance={TOPIC_LIST_DRAW_DISTANCE}
+          maintainVisibleContentPosition={{ disabled: true }}
           onEndReachedThreshold={0.6}
-          onEndReached={() => {
-            if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-          }}
+          onEndReached={loadNextPage}
           // 翻下一页时 isRefetching 不会亮,不然底部转圈会连带把顶部也拽出来
           refreshing={isRefetching && !isFetchingNextPage}
           onRefresh={refresh}

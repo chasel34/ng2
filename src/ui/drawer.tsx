@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, BackHandler, PanResponder, Pressable, StyleSheet, View } from 'react-native';
 
 import { duration, easeStandard } from './motion';
@@ -38,21 +38,16 @@ export interface DrawerProps {
 export function Drawer({ open, onClose, children }: DrawerProps) {
   const styles = useStyles();
   // 0 = 全关,1 = 全开
-  const progress = useRef(new Animated.Value(0)).current;
-  const [mounted, setMounted] = useState(open);
+  const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
 
   useEffect(() => {
-    if (open) setMounted(true);
     const animation = Animated.timing(progress, {
       toValue: open ? 1 : 0,
       duration: open ? OPEN_DURATION : CLOSE_DURATION,
       easing: easeStandard,
       useNativeDriver: true,
     });
-    animation.start(({ finished }) => {
-      // 关完再卸载,否则收起动画会被打断成瞬移
-      if (finished && !open) setMounted(false);
-    });
+    animation.start();
     return () => animation.stop();
   }, [open, progress]);
 
@@ -90,15 +85,19 @@ export function Drawer({ open, onClose, children }: DrawerProps) {
     }),
   ).current;
 
-  if (!mounted) return null;
-
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents={open ? 'auto' : 'none'}
+      accessibilityElementsHidden={!open}
+      importantForAccessibility={open ? 'yes' : 'no-hide-descendants'}
+    >
       <Animated.View style={[styles.scrim, { opacity: progress }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="关闭抽屉" />
       </Animated.View>
       <Animated.View
         {...panResponder.panHandlers}
+        renderToHardwareTextureAndroid
         style={[
           styles.panel,
           {

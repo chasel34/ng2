@@ -16,7 +16,7 @@ import {
   type ChainNode,
 } from '@/core/local';
 import { fetchNga } from '@/store/nga-client';
-import { saveCachedPage } from '@/store/topic-cache';
+import { deferCachedPage } from '@/store/topic-cache';
 import { loadedTopicPages, topicDetailQueryKey } from '@/store/topic-detail';
 import { avatarColorFor } from '@/ui/avatar';
 import { BBCodeBody } from '@/ui/bbcode';
@@ -110,7 +110,7 @@ export default function ChainScreen() {
       .fetchQuery({
         queryKey: topicDetailQueryKey(params),
         queryFn: ({ signal }) =>
-          fetchTopicDetail(fetchNga, { ...params, signal, onSnapshot: saveCachedPage }),
+          fetchTopicDetail(fetchNga, { ...params, signal, deferSnapshot: deferCachedPage }),
         // 详情页刚看过的页直接用缓存,不再打一次 read.php(ADR-0002 的封号风险)
         staleTime: Infinity,
       })

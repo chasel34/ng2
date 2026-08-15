@@ -120,6 +120,19 @@ export function saveCachedPage(snapshot: CachedPageSnapshot): void {
   }
 }
 
+/**
+ * 前台阅读页的自动缓存写入。
+ *
+ * 页面横推只有 220ms；网络若在转场中返回，立即序列化整页并同步写 SQLite 会与首屏
+ * Fabric 提交抢同一段时间。延后到转场结束后再创建快照，连序列化成本也一并移走。
+ * 定时器属于模块，不跟页面卸载：用户很快返回时这页仍会正常落盘。
+ */
+const FOREGROUND_CACHE_DELAY_MS = 320;
+
+export function deferCachedPage(createSnapshot: () => CachedPageSnapshot): void {
+  setTimeout(() => saveCachedPage(createSnapshot()), FOREGROUND_CACHE_DELAY_MS);
+}
+
 /** 删掉一个主题的全部缓存页(缓存页行尾的删除钮)。 */
 export function deleteCachedTopic(tid: number): void {
   db().runSync('DELETE FROM topic_cache WHERE tid = ?', [tid]);

@@ -44,6 +44,8 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/with-high-refresh-rate",
+      "./plugins/with-profileable",
       [
         "expo-splash-screen",
         {

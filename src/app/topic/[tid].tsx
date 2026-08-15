@@ -70,6 +70,7 @@ import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { duration, easeDecelerateWorklet, easeStandard, RISE_OFFSET } from '@/ui/motion';
 import { PageBar } from '@/ui/page-bar';
+import { useProgressiveReveal } from '@/ui/progressive';
 import { showSnackbar } from '@/ui/snackbar';
 import {
   clampPage,
@@ -97,6 +98,12 @@ const NO_USERS: Readonly<Record<string, FloorUser>> = {};
 
 /** 屏幕常亮锁的标签。只有详情页申请这把锁,退出这一屏就还回去。 */
 const KEEP_AWAKE_TAG = 'ng2-topic';
+
+/** 页面横推结束后再挂完整楼层树，留一帧给原生导航提交最终位置。 */
+const CONTENT_MOUNT_DELAY_MS = duration.panel + 32;
+
+/** 首屏楼层提交完成后再登记历史，避免同步 SQLite 写回头挤占同一帧。 */
+const HISTORY_VISIT_DELAY_MS = 96;
 
 /**
  * FAB 的两段动效(设计稿 isArticle 256 / 261 行):
@@ -236,6 +243,14 @@ export default function TopicScreen() {
   // 也会触发 onEndReached,不区分的话「自动加载下一页」会把定位好的楼直接翻走
   const userScrolled = useRef(false);
 
+  // 转场期间只画顶栏与轻量 loading。楼层 BBCode、图片、投票等完整树等横推结束再挂，
+  // 网络命中缓存再快也不会把重负载提交塞进那 220ms 动画里。
+  const [contentReady, setContentReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setContentReady(true), CONTENT_MOUNT_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data, error, isPending, isFetching, isPlaceholderData, refetch } = useTopicDetail({
     tid: topicId,
     page,
@@ -246,6 +261,12 @@ export default function TopicScreen() {
 
   const totalPages = data?.totalPages ?? 1;
 
+  // 分帧揭示:转场后的整页楼层单次提交仍要 ~28ms(楼层卡重)。楼层卡单张 ~5.5ms,首帧 1 楼、每帧 +1;
+  // 视口外的切片增长不产生挂载,追平只是解除切片。带楼号进场(回复链「在原帖中查看」)要 scrollToIndex 到任意楼,
+  // 切片会让目标楼不存在,该场景整页直挂
+  const floorReveal = useProgressiveReveal(data?.floors.length ?? 0, { initial: 1, step: 1 });
+  const revealFloors = jumpFloor === undefined;
+
   const queryClient = useQueryClient();
 
   /**
@@ -253,21 +274,27 @@ export default function TopicScreen() {
    * 不只当前页)建索引,引用块上「查看对话链(N 层)」的 N 就从它来。
    * 依赖挂在 data 上:每拿到新一页数据都重建,索引随浏览越扫越全。
    */
-  const chainIndex = useMemo(() => {
-    if (data === undefined) return undefined;
-    const floors = new Map<number, Floor>();
-    for (const detail of loadedTopicPages(queryClient, topicId, fav)) {
-      for (const floor of [...detail.floors, ...detail.hotReplies]) {
+  const [chainIndex, setChainIndex] = useState<ReturnType<typeof buildQuoteIndex> | undefined>();
+  useEffect(() => {
+    if (!contentReady || data === undefined) return;
+
+    // buildQuoteIndex 会给所有已加载楼层再解析一次 BBCode。先让首屏列表提交完成，
+    // 下一拍再补回复链；FloorCard 内部的 BBCode useMemo 会保住已经解析好的正文。
+    const timer = setTimeout(() => {
+      const floors = new Map<number, Floor>();
+      for (const detail of loadedTopicPages(queryClient, topicId, fav)) {
+        for (const floor of [...detail.floors, ...detail.hotReplies]) {
+          if (!floors.has(floor.pid)) floors.set(floor.pid, floor);
+        }
+      }
+      // 过滤视图不在 loadedTopicPages 里，当前屏上的楼层单独补进去。
+      for (const floor of [...data.floors, ...data.hotReplies]) {
         if (!floors.has(floor.pid)) floors.set(floor.pid, floor);
       }
-    }
-    // 只看该楼/只看某人的过滤视图不在 loadedTopicPages 里,当前屏上的楼层单独补进去,
-    // 过滤视图下引用块也能出链入口
-    for (const floor of [...data.floors, ...data.hotReplies]) {
-      if (!floors.has(floor.pid)) floors.set(floor.pid, floor);
-    }
-    return buildQuoteIndex([...floors.values()], { tid: topicId });
-  }, [data, queryClient, topicId, fav]);
+      setChainIndex(buildQuoteIndex([...floors.values()], { tid: topicId }));
+    }, HISTORY_VISIT_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [contentReady, data, queryClient, topicId, fav]);
 
   // 页码条、跳页、滑动三个入口都收敛到这里,页码规则只有一套(ui/paging)
   const goToPage = (next: number) => {
@@ -333,7 +360,7 @@ export default function TopicScreen() {
   const resume = useReadingProgress({
     topicId,
     fav,
-    data: onlyPid === undefined ? data : undefined,
+    data: contentReady && onlyPid === undefined ? data : undefined,
     listRef,
     goToPage,
     paused: onlyUser !== undefined,
@@ -630,7 +657,7 @@ export default function TopicScreen() {
   };
 
   const body = () => {
-    if (isPending) return <LoadingState />;
+    if (!contentReady || isPending) return <LoadingState />;
     // 反封锁链(ADR-0002)全档跑完还是没拿到数据 → 设计稿的「加载失败」页
     if (error !== null && data === undefined) {
       return (
@@ -659,11 +686,18 @@ export default function TopicScreen() {
         <Reanimated.View style={[styles.body, swipe.style]}>
           <FlashList
             ref={listRef}
-            data={data.floors}
+            data={
+              revealFloors && floorReveal < data.floors.length
+                ? data.floors.slice(0, floorReveal)
+                : data.floors
+            }
             keyExtractor={(floor) => String(floor.pid)}
             // 屏蔽规则命中的楼层折成一行灰字(21 票),点一下就地展开
             renderItem={renderFloor}
             getItemType={floorItemType}
+            // 详情是普通自上而下阅读流，不是聊天列表。图片/折叠块高度变化时固定锚点
+            // 会主动修正 contentOffset，肉眼就是“抖一下”；关掉后布局变化留在原位置。
+            maintainVisibleContentPosition={{ disabled: true }}
             ListHeaderComponent={
               <>
                 {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走。
@@ -973,17 +1007,20 @@ function useReadingProgress({
   useEffect(() => {
     if (paused) return;
     if (data === undefined || !Number.isFinite(topicId) || topicId <= 0) return;
-    // 楼主名只有主楼在场的那页(第 1 页)拿得到;缺席时 core 层会保留旧值
-    const starter = data.floors.find((floor) => floor.isStarter);
-    const author = starter === undefined ? undefined : data.users[starter.authorKey]?.name;
-    recordTopicVisit({
-      tid: topicId,
-      subject: data.subject,
-      maxFloor: Math.max(0, data.totalRows - 1),
-      ...(author === undefined ? {} : { author }),
-      ...(data.boardName === undefined ? {} : { boardName: data.boardName }),
-      ...(fav === undefined ? {} : { favCode: fav }),
-    });
+    const timer = setTimeout(() => {
+      // 楼主名只有主楼在场的那页(第 1 页)拿得到;缺席时 core 层会保留旧值
+      const starter = data.floors.find((floor) => floor.isStarter);
+      const author = starter === undefined ? undefined : data.users[starter.authorKey]?.name;
+      recordTopicVisit({
+        tid: topicId,
+        subject: data.subject,
+        maxFloor: Math.max(0, data.totalRows - 1),
+        ...(author === undefined ? {} : { author }),
+        ...(data.boardName === undefined ? {} : { boardName: data.boardName }),
+        ...(fav === undefined ? {} : { favCode: fav }),
+      });
+    }, HISTORY_VISIT_DELAY_MS);
+    return () => clearTimeout(timer);
   }, [data, topicId, fav, paused]);
 
   /**

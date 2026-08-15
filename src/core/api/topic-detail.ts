@@ -332,6 +332,13 @@ export interface FetchTopicDetailOptions {
    * （标题/版块名/楼数/总页数）分别只有请求侧和解析结果知道，这是唯一同时握着两者的地方。
    */
   readonly onSnapshot?: (snapshot: CachedPageSnapshot) => void
+  /**
+   * 前台阅读页用的延迟缓存入口。回调拿到的是“创建快照”的惰性函数，调用它时才会
+   * `serializeEnvelope`；这样页面转场期间既不做大字符串序列化，也不碰 SQLite。
+   *
+   * 后台“缓存整帖”仍使用上面的 `onSnapshot` 立即写入。两者同时传时优先延迟入口。
+   */
+  readonly deferSnapshot?: (createSnapshot: () => CachedPageSnapshot) => void
 }
 
 /** 一页缓存的全部内容：正文（序列化信封）+ 列表页要显示的元数据。 */
@@ -398,8 +405,8 @@ export async function fetchTopicDetail(
   // 缓存档自己吐出来的那份不必再存一次（内容一模一样）；
   // 只看该楼/只看某人这类过滤视图 `topicCacheKeyOf` 会挡掉
   const key = result.via === TOPIC_CACHE_STRATEGY_NAME ? undefined : topicCacheKeyOf(request)
-  if (options.onSnapshot !== undefined && key !== undefined) {
-    options.onSnapshot({
+  if ((options.deferSnapshot !== undefined || options.onSnapshot !== undefined) && key !== undefined) {
+    const createSnapshot = (): CachedPageSnapshot => ({
       tid: key.tid,
       page: key.page,
       subject: detail.subject,
@@ -409,6 +416,8 @@ export async function fetchTopicDetail(
       ...(detail.boardName === undefined ? {} : { boardName: detail.boardName }),
       ...(favCode === undefined ? {} : { favCode }),
     })
+    if (options.deferSnapshot !== undefined) options.deferSnapshot(createSnapshot)
+    else options.onSnapshot?.(createSnapshot())
   }
   return detail
 }

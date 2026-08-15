@@ -68,6 +68,25 @@ describe('自动缓存写入', () => {
     expect(JSON.parse(snapshots[0]?.payload ?? '')).toBeTypeOf('object')
   })
 
+  it('前台阅读可以把快照序列化延迟到转场结束后', async () => {
+    let createSnapshot: (() => CachedPageSnapshot) | undefined
+    const detail = await fetchTopicDetail(onlineFetcher('readAttachments'), {
+      tid: TID,
+      page: 1,
+      deferSnapshot: (create) => {
+        createSnapshot = create
+      },
+    })
+
+    expect(createSnapshot).toBeTypeOf('function')
+    expect(createSnapshot?.()).toMatchObject({
+      tid: TID,
+      page: 1,
+      subject: detail.subject,
+      floors: detail.floors.length,
+    })
+  })
+
   it('只看该楼 / 只看某人是过滤视图，不写缓存', async () => {
     const snapshots: CachedPageSnapshot[] = []
     const onSnapshot = (snapshot: CachedPageSnapshot) => snapshots.push(snapshot)
