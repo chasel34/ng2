@@ -1,6 +1,12 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { clearImageSizes, imageSizeOf, rememberImageSize } from './image-size';
+import {
+  attachImageSizePersistence,
+  clearImageSizes,
+  imageSizeOf,
+  rememberImageSize,
+  type ImageSize,
+} from './image-size';
 
 describe('图片尺寸缓存', () => {
   beforeEach(() => {
@@ -45,5 +51,45 @@ describe('图片尺寸缓存', () => {
       rememberImageSize('a.jpg', { width: 200, height: 100 });
     }
     expect(imageSizeOf('a.jpg')).toEqual({ width: 200, height: 100 });
+  });
+});
+
+describe('持久化挂接', () => {
+  beforeEach(() => {
+    clearImageSizes();
+  });
+
+  it('attach 时回灌存量,本会话已量到的优先', () => {
+    rememberImageSize('fresh.jpg', { width: 300, height: 300 });
+    attachImageSizePersistence({
+      load: () => [
+        ['old.jpg', { width: 100, height: 200 }],
+        ['fresh.jpg', { width: 1, height: 1 }],
+        ['broken.jpg', { width: 0, height: 5 }],
+      ],
+      save: () => undefined,
+    });
+    expect(imageSizeOf('old.jpg')).toEqual({ width: 100, height: 200 });
+    expect(imageSizeOf('fresh.jpg')).toEqual({ width: 300, height: 300 });
+    expect(imageSizeOf('broken.jpg')).toBeUndefined();
+  });
+
+  it('记尺寸后延迟合并写回,一秒内多次只写一次', () => {
+    vi.useFakeTimers();
+    const saved: (readonly [string, ImageSize])[][] = [];
+    attachImageSizePersistence({
+      load: () => [],
+      save: (entries) => saved.push([...entries]),
+    });
+    rememberImageSize('a.jpg', { width: 10, height: 10 });
+    rememberImageSize('b.jpg', { width: 20, height: 20 });
+    expect(saved).toHaveLength(0);
+    vi.advanceTimersByTime(1100);
+    expect(saved).toHaveLength(1);
+    expect(saved[0]).toEqual([
+      ['a.jpg', { width: 10, height: 10 }],
+      ['b.jpg', { width: 20, height: 20 }],
+    ]);
+    vi.useRealTimers();
   });
 });

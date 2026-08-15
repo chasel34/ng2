@@ -8,7 +8,10 @@
  *
  * 记下来之后第二次起首帧就按真实比例画,不再跳。
  *
- * 纯函数模块、不碰组件,这样能单测——本仓库跑不了组件渲染测试。
+ * 会话内是 Map;持久化(跨启动)通过 `attachImageSizePersistence` 注入——
+ * 「首次进入帖子的比例跳变」大头在**下次启动重看同一批图**,不落盘每次冷启动
+ * 都要重跳一遍。存储实现(MMKV)在 `./image-size.persist.ts`,这里不 import RN,
+ * 保持纯函数模块可单测——本仓库跑不了组件渲染测试。
  */
 
 export interface ImageSize {
@@ -24,6 +27,37 @@ const LIMIT = 512;
 
 const sizes = new Map<string, ImageSize>();
 
+export interface ImageSizePersistence {
+  /** 启动时读出上次存的全部条目;坏数据返回空数组即可 */
+  load(): readonly (readonly [string, ImageSize])[];
+  /** 全量覆盖写入(条目数被 LIMIT 钳住,整包也就几十 KB) */
+  save(entries: readonly (readonly [string, ImageSize])[]): void;
+}
+
+let persistence: ImageSizePersistence | undefined;
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** 图片是成批加载的,攒一秒一起写,别每张图都撞一次存储。 */
+const SAVE_DEBOUNCE_MS = 1000;
+
+/** 接上持久层并回灌缓存。本会话已量到的条目优先(它们更新)。 */
+export function attachImageSizePersistence(store: ImageSizePersistence): void {
+  persistence = store;
+  for (const [uri, size] of store.load()) {
+    if (!sizes.has(uri) && sizes.size < LIMIT && size.width > 0 && size.height > 0) {
+      sizes.set(uri, size);
+    }
+  }
+}
+
+function scheduleSave(): void {
+  if (persistence === undefined || saveTimer !== undefined) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = undefined;
+    persistence?.save([...sizes.entries()]);
+  }, SAVE_DEBOUNCE_MS);
+}
+
 /** 记下一张图的真实像素尺寸。宽高有一边是 0(解码失败)的不记。 */
 export function rememberImageSize(uri: string, size: ImageSize): void {
   if (size.width <= 0 || size.height <= 0) return;
@@ -33,6 +67,7 @@ export function rememberImageSize(uri: string, size: ImageSize): void {
     if (!oldest.done) sizes.delete(oldest.value);
   }
   sizes.set(uri, { width: size.width, height: size.height });
+  scheduleSave();
 }
 
 /**
@@ -43,5 +78,12 @@ export function rememberImageSize(uri: string, size: ImageSize): void {
  */
 export const imageSizeOf = (uri: string): ImageSize | undefined => sizes.get(uri);
 
-/** 只给测试用:清空,免得用例之间互相影响。 */
-export const clearImageSizes = (): void => sizes.clear();
+/** 只给测试用:清空缓存与持久层挂接,免得用例之间互相影响。 */
+export const clearImageSizes = (): void => {
+  sizes.clear();
+  persistence = undefined;
+  if (saveTimer !== undefined) {
+    clearTimeout(saveTimer);
+    saveTimer = undefined;
+  }
+};

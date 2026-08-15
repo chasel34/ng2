@@ -21,6 +21,16 @@ import { Easing as ReanimatedEasing } from 'react-native-reanimated';
 export const easeStandard = Easing.bezier(0.25, 0.1, 0.25, 1);
 
 /**
+ * 同一条 CSS `ease`,给 Reanimated 用(两份并存的原因见 `easeDecelerateWorklet`)。
+ *
+ * 抽屉从 RN `Animated.timing` 迁到 Reanimated 就是为了它:RN 的 timing 在 JS 侧
+ * 把缓动曲线预采样成 **60fps 关键帧数组**,原生驱动按 16.67ms 桶取值不插值,
+ * 120Hz 屏上每两个 vsync 才前进一步(实测面板位移与遮罩透明度成对重复)。
+ * Reanimated 的 `withTiming` 每个 vsync 现算曲线,才是真 120Hz。
+ */
+export const easeStandardWorklet = ReanimatedEasing.bezier(0.25, 0.1, 0.25, 1);
+
+/**
  * 列表/详情横滑翻页松手后的回弹。设计稿在 support.js 里给的是
  * `transition:transform .22s cubic-bezier(.2,.8,.3,1)` —— 一条起步快、尾段极缓的曲线,
  * 跟手势甩出去的手感配套,与入场用的 `ease` 不是同一条。

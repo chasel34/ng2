@@ -1,7 +1,6 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import Reanimated, { LinearTransition } from 'react-native-reanimated';
 
 import { Icon } from '../icon';
 import { useImagesUnlocked, usePreferThumbnail } from '../network';
@@ -38,10 +37,11 @@ export interface ContentImageProps {
  *
  * 服务端不给图片尺寸,所以先按 4:3 占位,`onLoad` 拿到真实尺寸再改比例。
  * 一次性给个固定高度会让长截图糊成一条,而不给高度 expo-image 干脆不显示。
- * 量到的尺寸进 `./image-size` 的模块级缓存:同一张图再次上屏(列表回收、翻页回来)
- * 首帧就是对的比例,不再「先 4:3 再跳一下」把 列表的量算带崩。
- * 首次尺寸变化由 Reanimated 在 UI 线程平滑过渡；详情列表同时关闭锚点偏移修正，
- * 所以图片只在原位置展开，不会再把正在阅读的内容瞬移一截。
+ * 量到的尺寸进 `./image-size` 的缓存(会话内 + MMKV 持久化):同一张图再次上屏
+ * (列表回收、翻页回来、下次启动)首帧就是对的比例,不再「先 4:3 再跳一下」。
+ * 首见图片的比例修正是**一帧内的整体重排**——之前给图片框单独挂
+ * `LinearTransition` 布局动画,结果框自己滑 180ms、下方兄弟内容却瞬移,
+ * 实测(2026-08-15 录屏逐帧)就是「进详情闪一下」的主体,拆掉后全卡片一次到位。
  *
  * 「仅 Wi-Fi 下加载图片」(22 票)在移动网络下把图收成一条占位,点一下照样展开;
  * 展开后拉哪一档清晰度由「图片加载策略」决定。
@@ -98,10 +98,7 @@ export function ContentImage({ uri, thumbnailUri, onPress, style }: ContentImage
 
   return (
     <Pressable style={style} onPress={onPress === undefined ? undefined : () => onPress(uri)}>
-      <Reanimated.View
-        layout={LinearTransition.duration(180)}
-        style={[styles.imageFrame, sizeStyle]}
-      >
+      <View style={[styles.imageFrame, sizeStyle]}>
         <Image
           source={{ uri: source }}
           style={styles.image}
@@ -122,7 +119,7 @@ export function ContentImage({ uri, thumbnailUri, onPress, style }: ContentImage
           onError={() => setFailedUri(source)}
           accessibilityIgnoresInvertColors
         />
-      </Reanimated.View>
+      </View>
     </Pressable>
   );
 }

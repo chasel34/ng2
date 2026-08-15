@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useNotificationsPoller } from '@/store/notifications';
+import { attachPersistedImageSizes } from '@/ui/bbcode/image-size.persist';
 import { useAppSettings } from '@/store/settings';
 import { useIconFont } from '@/ui/icon';
 import { duration, screenTransition } from '@/ui/motion';
@@ -24,6 +25,10 @@ export const unstable_settings = { anchor: 'index' };
 // 深色模式冷启动(M4 验收缺陷 A5):窗口背景色是构建期资源、只有浅色一档,
 // 启动屏一撤就露出奶油底。把启动屏(带深色档)按住,等首帧真正能画了再放
 void SplashScreen.preventAutoHideAsync();
+
+// 正文图片尺寸缓存接上 MMKV:上次启动量过的图,这次首帧就是真实比例,
+// 不再「4:3 占位 → 整卡跳变」(详情页闪烁诊断,2026-08-15)
+attachPersistedImageSizes();
 
 function createQueryClient() {
   return new QueryClient({

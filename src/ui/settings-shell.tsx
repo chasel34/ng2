@@ -60,8 +60,11 @@ export function SettingsShell({ index, children }: SettingsShellProps) {
       {/* 页脚自带 30 的下留白,滚动容器不再另加,否则底部空出 38 */}
       <ScrollView style={styles.body}>
         {/* 分帧揭示:一屏十几行(自绘开关每行好几个视图)同步挂载要 16~19ms,
-            push 动画第 1 帧就掉帧。行成本 ~2.5ms(自绘开关):首帧 2 行、之后每帧 +3,动画走完前全就位 */}
-        <ProgressiveChildren initial={2} step={3}>
+            push 动画第 1 帧就掉帧。行成本 ~2.5ms:2026-08-15 atrace 实测 step=3 时
+            每帧 mount 3~6.5ms + traversal ~3ms,压着 120Hz 的 8.3ms 预算线仍偶发丢帧;
+            降到首帧 1 行、每帧 +2(~5+3ms)才留得出余量。14 行也只要 7 帧 ≈ 58ms,
+            远在 220ms 动画走完之前全就位 */}
+        <ProgressiveChildren initial={1} step={2}>
           {children}
         </ProgressiveChildren>
         <View style={styles.footer}>
