@@ -2,7 +2,7 @@
  * 「手指正落在一个能横向滚的东西上」这一个事实。
  *
  * 详情页的左右滑动翻页(`Gesture.Pan`)是祖先手势:楼层里那张能横向滚的表格
- * 隔着 FlashList 与渲染器好几层,子孙层面无论怎么写都抢不回来,拖十几像素就翻页了。
+ * 隔着列表与渲染器好几层,子孙层面无论怎么写都抢不回来,拖十几像素就翻页了。
  * gesture-handler 原生的表达方式是 `blocksExternalGesture`,但那要拿到表格那个
  * ScrollView 的 ref(`ui/bbcode/blocks.tsx`),跨这么多层传 ref 反而更脆。
  *

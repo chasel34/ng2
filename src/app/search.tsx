@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { LegendList } from '@legendapp/list/react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -352,9 +352,10 @@ function TopicResults({
         {scope === undefined ? '全部板块' : scope.name}
         {content ? ' · 包括正文' : ''} · 约 {totalRows} 条结果
       </Text>
-      <FlashList
+      <LegendList
         data={topics}
         keyExtractor={(topic) => String(topic.tid)}
+        recycleItems
         renderItem={({ item }) => <TopicRow topic={item} onPress={openTopic} />}
         ListFooterComponent={
           <View>
@@ -395,9 +396,10 @@ function BoardResults({ query }: { query: string }) {
   return (
     <View style={styles.body}>
       <Text style={styles.resultSub}>找到 {data.length} 个版块</Text>
-      <FlashList
+      <LegendList
         data={data}
         keyExtractor={(item) => `${item.board.kind}/${item.board.id}`}
+        recycleItems
         renderItem={({ item }) => <BoardResultRow item={item} />}
         ListFooterComponent={<View style={styles.bottomSpacer} />}
       />

@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "0.1.0",
   "dependencies": {
-    "@shopify/flash-list": "2.0.2",
+    "@legendapp/list": "^3.3.5",
     "@tanstack/react-query": "^5.101.4",
     "expo": "~57.0.10",
     "expo-clipboard": "~57.0.1",

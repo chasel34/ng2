@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { Text, View } from 'react-native';
@@ -106,10 +106,11 @@ export default function UserPostsScreen() {
     }
 
     return (
-      // FlashList 要一个高度确定的父容器才算得出可视区
+      // 列表要一个高度确定的父容器才算得出可视区
       <View style={styles.body}>
-        <FlashList
+        <LegendList
           data={items}
+          recycleItems
           keyExtractor={(topic) =>
             // 回复列表里同一个 tid 会出现很多次,key 必须落在 pid 上
             topic.reply === undefined ? `t${topic.tid}` : `p${topic.reply.pid}`

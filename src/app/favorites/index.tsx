@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -90,7 +90,7 @@ export default function FavoriteTopicsScreen() {
   );
 
   // TopicRow 已经是 memo 的(`ui/topic-row.tsx`),但 renderItem 每次渲染都新建的话
-  // FlashList 拿不到稳定的行渲染器;`time` 是字符串,按值比较,不影响 memo
+  // 列表拿不到稳定的行渲染器;`time` 是字符串,按值比较,不影响 memo
   const renderItem = useCallback(
     ({ item }: { item: Topic }) => (
       <TopicRow topic={item} onPress={openTopic} time={dateText(item.postedAt)} />
@@ -135,11 +135,12 @@ export default function FavoriteTopicsScreen() {
     }
 
     return (
-      // FlashList 要一个高度确定的父容器才算得出可视区
+      // 列表要一个高度确定的父容器才算得出可视区
       <View style={styles.body}>
-        <FlashList
+        <LegendList
           data={topics}
           keyExtractor={(topic) => String(topic.tid)}
+          recycleItems
           // 行是同构的(每行都是同一个 TopicRow),不需要 getItemType
           renderItem={renderItem}
           ListFooterComponent={

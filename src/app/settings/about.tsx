@@ -35,7 +35,7 @@ const DISCLAIMER_DETAIL =
 /** 打包进 APK 的第三方组件,都是 package.json 里实际在用的。 */
 const LICENSES = [
   'React Native · Expo SDK — MIT',
-  'TanStack Query · Zustand · FlashList — MIT',
+  'TanStack Query · Zustand · Legend List — MIT',
   'react-native-mmkv · reanimated · gesture-handler — MIT',
   'Material Icons Outlined — Apache-2.0',
 ] as const;

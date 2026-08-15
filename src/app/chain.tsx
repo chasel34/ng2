@@ -1,4 +1,4 @@
-import { FlashList } from '@shopify/flash-list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -146,7 +146,7 @@ export default function ChainScreen() {
 
   /**
    * 懒加载状态。原来是 `extraData={{ loadingPage, failedPages }}` 现建的对象——
-   * 每次渲染都是新引用,FlashList 会当成「外部数据变了」把所有单元格重画一遍,
+   * 每次渲染都是新引用,列表会当成「外部数据变了」把所有单元格重画一遍,
    * 等于把 ChainCard 的 memo 抵消掉。
    */
   const extraData = useMemo(
@@ -217,9 +217,10 @@ export default function ChainScreen() {
           style={topBarSpacer}
         />
       </TopBar>
-      <FlashList
+      <LegendList
         data={chain}
         keyExtractor={(node) => String(node.pid)}
+        recycleItems
         extraData={extraData}
         // 链上有两种形状差很远的行:已加载的楼层卡与降级占位卡
         getItemType={(node) => (merged.byPid.has(node.pid) ? 'card' : 'missing')}
