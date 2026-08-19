@@ -85,8 +85,26 @@ const TOPIC_DETAIL_STALE_MS = 2 * 60_000;
  * `onSnapshot` 是 20 票的自动缓存:浏览过的整帖页顺手写进 SQLite,
  * 断网时反封锁链的缓存档就是从那儿把这一页还回来的(过滤视图 core 层会挡掉)。
  */
-export function useTopicDetail(params: TopicDetailParams): UseQueryResult<TopicDetail> {
+export interface TopicDetailOptions {
+  /**
+   * 关掉就只读缓存、不发请求(横滑翻页时的**上一页**:几乎总是刚看过的那一页,
+   * 缓存里有就直接画出来,没有也不值得为了「可能会往回翻」再打一发 read.php——
+   * ADR-0002,少打一发就少一分被封的风险)。
+   */
+  enabled?: boolean;
+  /**
+   * 换页时先留着上一页的内容(设计上是给屏幕正中那一页用的)。
+   * 相邻页必须关掉:它要么画自己那一页,要么画占位,画成别人的内容就穿帮了。
+   */
+  keepPrevious?: boolean;
+}
+
+export function useTopicDetail(
+  params: TopicDetailParams,
+  options: TopicDetailOptions = {},
+): UseQueryResult<TopicDetail> {
   const { tid, page, favCode, pid, authorId } = params;
+  const { enabled = true, keepPrevious = true } = options;
 
   return useQuery({
     queryKey: topicDetailQueryKey(params),
@@ -100,8 +118,8 @@ export function useTopicDetail(params: TopicDetailParams): UseQueryResult<TopicD
         signal,
         deferSnapshot: deferCachedPage,
       }),
-    placeholderData: keepPreviousData,
+    ...(keepPrevious ? { placeholderData: keepPreviousData } : {}),
     staleTime: TOPIC_DETAIL_STALE_MS,
-    enabled: Number.isFinite(tid) && tid > 0,
+    enabled: enabled && Number.isFinite(tid) && tid > 0,
   });
 }

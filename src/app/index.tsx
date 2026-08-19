@@ -1,7 +1,8 @@
 import { LegendList } from '@legendapp/list/react-native';
 import { useRouter, type Href } from 'expo-router';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import Reanimated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -22,7 +23,7 @@ import { useBoardTree, useDismissedAnnouncements } from '@/store/board-tree';
 import { AppDrawerContent } from '@/ui/app-drawer';
 import { BoardIcon } from '@/ui/board-icon';
 import { ConfirmDialog } from '@/ui/confirm-dialog';
-import { Drawer, DrawerEdgeHandle } from '@/ui/drawer';
+import { Drawer, DrawerEdgeHandle, DRAWER_EDGE_WIDTH } from '@/ui/drawer';
 import { LoadFailedNotice } from '@/ui/error-screen';
 import { LoadingState } from '@/ui/state-view';
 import { Icon, type IconName } from '@/ui/icon';
@@ -31,12 +32,16 @@ import { InputDialog } from '@/ui/input-dialog';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { showSnackbar } from '@/ui/snackbar';
+import { SwipePager } from '@/ui/swipe-pager';
 import { createThemedStyles, useTheme } from '@/ui/theme';
 import { showNotAvailable } from '@/ui/toast';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
 
 /** 设计稿:tab 44 高、版块宫格三列。 */
 const TAB_BAR_HEIGHT = 44;
+
+/** 横滑换分类时把选中的那格滚进视野,左边留出这么多,免得它永远贴在最左边。 */
+const TAB_SCROLL_LEAD = 56;
 const GRID_COLUMNS = 3;
 
 /**
@@ -168,6 +173,40 @@ export default function HomeScreen() {
   const [urlError, setUrlError] = useState<string | undefined>(undefined);
   // tab 认分类 id 而不是下标:服务端加减分类时,选中的还是原来那个分类
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  // tab 条现在也能被横滑改选中项,选中的那一格得自己滚进视野
+  const tabScrollRef = useRef<ScrollView>(null);
+  // 格子不等宽(分类名长短不一),按格数估位置会越估越偏,所以量实际布局
+  const tabOffsets = useRef(new Map<string, number>()).current;
+  // 下划线跟手的两样原料:pager 的连续页位(UI 线程直喂),和每格 tab 的实测几何。
+  // 几何先攒在普通 ref 里、每次整体拷贝赋给共享值——9 个 onLayout 各自对共享值
+  // 读改写会互相覆盖(JS 侧读不保证反映同一拍里的前一次写),最后只剩一格,
+  // 下划线查到 undefined 就永远隐身。真机上栽过
+  const pagerProgress = useSharedValue(0);
+  const tabLayoutList = useRef<{ x: number; w: number }[]>([]).current;
+  const tabLayouts = useSharedValue<readonly { x: number; w: number }[]>([]);
+  // 松手那一刻就把高亮切过去(ViewPager2 onPageSelected 的时机);真正的窗口
+  // 挪动等动画停稳。清账在下面的 effect:category 追上来就归还给它
+  const [inFlightCategoryId, setInFlightCategoryId] = useState<string | null>(null);
+
+  /**
+   * 下划线钉在两格 tab 几何量的插值上,进度走到哪儿画到哪儿——与内容同帧,
+   * 不等 React 的 commit。头尾越界(边缘阻尼拖出去的那点)夹回来。
+   */
+  const tabIndicatorStyle = useAnimatedStyle(() => {
+    const layouts = tabLayouts.value;
+    if (layouts.length === 0) return { opacity: 0 };
+    const position = Math.min(Math.max(pagerProgress.value, 0), layouts.length - 1);
+    const index = Math.floor(position);
+    const fraction = position - index;
+    const from = layouts[index];
+    const to = layouts[index + 1] ?? from;
+    if (from === undefined || to === undefined) return { opacity: 0 };
+    return {
+      opacity: 1,
+      width: from.w + (to.w - from.w) * fraction,
+      transform: [{ translateX: from.x + (to.x - from.x) * fraction }],
+    };
+  });
 
   const { data, isPending, error, refetch } = useBoardTree();
 
@@ -190,6 +229,13 @@ export default function HomeScreen() {
   const defaultCategory = signedIn ? categories[0] : (categories[1] ?? categories[0]);
   const category =
     categories.find((item) => item.id === activeCategoryId) ?? defaultCategory;
+  /** tab 高亮认它:横滑松手先行一步,commit 落地后归还给 category */
+  const shownCategoryId = inFlightCategoryId ?? category?.id;
+  useEffect(() => {
+    if (inFlightCategoryId !== null && inFlightCategoryId === category?.id) {
+      setInFlightCategoryId(null);
+    }
+  }, [inFlightCategoryId, category?.id]);
 
   const dismissedIds = useDismissedAnnouncements((state) => state.ids);
   const dismiss = useDismissedAnnouncements((state) => state.dismiss);
@@ -233,13 +279,36 @@ export default function HomeScreen() {
     };
   }, [signedIn, favorites.isPending, favorites.error, favorites.refetch, router]);
 
-  const rows = useMemo(() => {
-    if (category === undefined) return [];
-    if (category.id === FAVORITES_CATEGORY_ID) {
-      return buildFavoriteRows(announcement, favoriteBoards, favoritesPlaceholder);
-    }
-    return buildRows(category, announcement);
-  }, [category, announcement, favoriteBoards, favoritesPlaceholder]);
+  // 分类在列表里的位置。横滑翻的就是它,tab 条也照它高亮
+  const activeIndex = Math.max(
+    0,
+    categories.findIndex((item) => item.id === category?.id),
+  );
+
+  /**
+   * 行数组按分类 id 缓存,**不挂在 activeIndex 上**:横滑 commit 后可见分类拿到的
+   * 还是同一个数组引用,整屏列表一行都不用重画(翻页停稳那一拍不卡的关键一环)。
+   * 只有内容真变了(分类树、公告、收藏)才整个换掉。仍然按需建:最大的分类
+   * (手机游戏)摊开一百多行,面板没轮到它就不白烧。
+   */
+  const rowsCache = useMemo(
+    () => new Map<string, readonly HomeRow[]>(),
+    [categories, announcement, favoriteBoards, favoritesPlaceholder],
+  );
+  const rowsFor = useCallback(
+    (item: (typeof categories)[number]): readonly HomeRow[] => {
+      let rows = rowsCache.get(item.id);
+      if (rows === undefined) {
+        rows =
+          item.id === FAVORITES_CATEGORY_ID
+            ? buildFavoriteRows(announcement, favoriteBoards, favoritesPlaceholder)
+            : buildRows(item, announcement);
+        rowsCache.set(item.id, rows);
+      }
+      return rows;
+    },
+    [rowsCache, announcement, favoriteBoards, favoritesPlaceholder],
+  );
 
   const menuItems: readonly MenuItem[] = useMemo(
     () =>
@@ -257,6 +326,13 @@ export default function HomeScreen() {
       })),
     [router],
   );
+
+  // 横滑换了分类之后,选中的那一格可能在 tab 条视野外
+  useEffect(() => {
+    const x = tabOffsets.get(shownCategoryId ?? '');
+    if (x === undefined) return;
+    tabScrollRef.current?.scrollTo({ x: Math.max(0, x - TAB_SCROLL_LEAD), animated: true });
+  }, [shownCategoryId, tabOffsets]);
 
   const openBoard = useCallback(
     (board: Board) => {
@@ -363,29 +439,83 @@ export default function HomeScreen() {
     [openBoard, dismiss],
   );
 
+  /** 横滑落到第几个分类(`SwipePager` 的「页」从 1 起,这里的下标从 0 起)。 */
+  const pickCategoryAt = useCallback(
+    (position: number) => {
+      const next = categories[position - 1];
+      if (next !== undefined) setActiveCategoryId(next.id);
+    },
+    [categories],
+  );
+
+  /** 松手即定向:tab 高亮与 tab 条滚动先行,窗口挪动等 `onChange`(动画停稳)。 */
+  const markCategoryAt = useCallback(
+    (position: number) => {
+      const next = categories[position - 1];
+      if (next !== undefined) setInFlightCategoryId(next.id);
+    },
+    [categories],
+  );
+
+  /**
+   * 一个分类的一屏。相邻两块也会被画出来(这就是横滑跟手的来源),
+   * 但只有屏幕正中那一块能滚——两边接了纵向滚动会跟横滑抢手势。
+   */
+  const renderCategory = useCallback(
+    (position: number) => {
+      const item = categories[position - 1];
+      if (item === undefined) return null;
+      return (
+        // 列表要一个高度确定的父容器才算得出可视区
+        <View style={styles.body}>
+          <LegendList
+            data={rowsFor(item)}
+            keyExtractor={(row) => row.key}
+            recycleItems
+            // 行是异构的:公告条、分组标题、一行三个版块的宫格、空态说明、错误块,
+            // 高度差好几倍。不给 getItemType 的话它们混在同一个回收池里,
+            // 复用到形状完全不同的行就得重新量一次
+            getItemType={(row) => row.kind}
+            contentContainerStyle={styles.bodyContent}
+            renderItem={renderRow}
+            scrollEnabled={position - 1 === activeIndex}
+          />
+        </View>
+      );
+    },
+    [categories, rowsFor, renderRow, activeIndex, styles],
+  );
+
   return (
     <View style={styles.root}>
       <TopBar
         below={
           <ScrollView
+            ref={tabScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tabBar}
           >
-            {categories.map((item) => (
+            {categories.map((item, index) => (
               <Pressable
                 key={item.id}
                 onPress={() => setActiveCategoryId(item.id)}
+                onLayout={(event) => {
+                  const { x, width } = event.nativeEvent.layout;
+                  tabOffsets.set(item.id, x);
+                  tabLayoutList[index] = { x, w: width };
+                  tabLayouts.value = [...tabLayoutList];
+                }}
                 style={styles.tab}
               >
                 <Text
-                  style={[styles.tabLabel, item.id !== category?.id && styles.tabLabelInactive]}
+                  style={[styles.tabLabel, item.id !== shownCategoryId && styles.tabLabelInactive]}
                 >
                   {item.name}
                 </Text>
-                {item.id === category?.id && <View style={styles.tabIndicator} />}
               </Pressable>
             ))}
+            <Reanimated.View pointerEvents="none" style={[styles.tabIndicator, tabIndicatorStyle]} />
           </ScrollView>
         }
       >
@@ -420,20 +550,17 @@ export default function HomeScreen() {
           <LoadFailedNotice error={error} onRetry={() => void refetch()} />
         </View>
       ) : (
-        // 列表要一个高度确定的父容器才算得出可视区
-        <View style={styles.body}>
-          <LegendList
-            data={rows}
-            keyExtractor={(row) => row.key}
-            recycleItems
-            // 行是异构的:公告条、分组标题、一行三个版块的宫格、空态说明、错误块,
-            // 高度差好几倍。不给 getItemType 的话它们混在同一个回收池里,
-            // 复用到形状完全不同的行就得重新量一次
-            getItemType={(row) => row.kind}
-            contentContainerStyle={styles.bodyContent}
-            renderItem={renderRow}
-          />
-        </View>
+        <SwipePager
+          page={activeIndex + 1}
+          count={categories.length}
+          onChange={pickCategoryAt}
+          onTarget={markCategoryAt}
+          renderPage={renderCategory}
+          progress={pagerProgress}
+          // 左边缘那一条是抽屉的地盘:从那儿右滑是「拉抽屉」,不是「翻上一个分类」
+          edgeGuard={DRAWER_EDGE_WIDTH}
+          style={styles.body}
+        />
       )}
 
       <DrawerEdgeHandle onOpen={() => setDrawerOpen(true)} />
@@ -580,11 +707,11 @@ const useStyles = createThemedStyles((theme) => ({
     paddingHorizontal: theme.spacing.lg,
     justifyContent: 'center',
   },
-  // 设计稿用的是 inset box-shadow,不占布局;所以下划线绝对定位,不能用 border
+  // 设计稿用的是 inset box-shadow,不占布局;所以下划线绝对定位,不能用 border。
+  // 单条浮动线,位置与宽度由 pager 进度驱动(tabIndicatorStyle),跟手不等 commit
   tabIndicator: {
     position: 'absolute',
     left: 0,
-    right: 0,
     bottom: 0,
     height: 3,
     backgroundColor: theme.colors.onTopbar,

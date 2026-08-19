@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  SWIPE_COMMIT_DISTANCE,
-  SWIPE_HINT_DISTANCE,
+  SWIPE_COMMIT_RATIO,
+  SWIPE_FLING_DISTANCE,
+  SWIPE_FLING_VELOCITY,
   clampPage,
   parseJumpTarget,
-  swipeHintText,
+  swipeCommitDistance,
   swipeOffset,
   swipeTargetPage,
   visiblePages,
@@ -79,40 +80,73 @@ describe('parseJumpTarget', () => {
 });
 
 describe('滑动翻页', () => {
+  /** 一块 390dp 宽的屏,门槛 = 390 × 0.28 ≈ 109.2 */
+  const W = 390;
+  const commit = swipeCommitDistance(W);
+  /** 慢慢拖到手停住:速度那一路不该掺进来 */
+  const slow = 0;
+
   it('往左划下一页、往右划上一页', () => {
-    expect(swipeTargetPage(5, -100, 13)).toBe(6);
-    expect(swipeTargetPage(5, 100, 13)).toBe(4);
+    expect(swipeTargetPage(5, -commit, -commit, 13, W, slow)).toBe(6);
+    expect(swipeTargetPage(5, commit, commit, 13, W, slow)).toBe(4);
   });
 
-  it('没走够阈值就不翻', () => {
-    expect(swipeTargetPage(5, -SWIPE_COMMIT_DISTANCE, 13)).toBe(5);
-    expect(swipeTargetPage(5, 10, 13)).toBe(5);
+  it('没走够阈值又没甩起来就不翻', () => {
+    expect(swipeTargetPage(5, -commit + 1, -commit + 1, 13, W, slow)).toBe(5);
+    expect(swipeTargetPage(5, 10, 10, 13, W, slow)).toBe(5);
+  });
+
+  it('门槛跟着屏宽走:同样的 80px 在小屏上够、在大屏上不够', () => {
+    expect(swipeTargetPage(5, -80, -80, 13, 240, slow)).toBe(6);
+    expect(swipeTargetPage(5, -80, -80, 13, 800, slow)).toBe(5);
+  });
+
+  it('甩得够快就不必走满小半屏', () => {
+    expect(
+      swipeTargetPage(5, -SWIPE_FLING_DISTANCE, -SWIPE_FLING_DISTANCE, 13, W, -SWIPE_FLING_VELOCITY),
+    ).toBe(6);
+    expect(
+      swipeTargetPage(5, SWIPE_FLING_DISTANCE, SWIPE_FLING_DISTANCE, 13, W, SWIPE_FLING_VELOCITY),
+    ).toBe(4);
+  });
+
+  it('甩得快但几乎没动 = 手抖,不算', () => {
+    expect(swipeTargetPage(5, -3, -3, 13, W, -2)).toBe(5);
+  });
+
+  it('接管收尾动画后连甩:余位方向相反也按甩动方向翻,不许判成往回', () => {
+    // 上一把翻到第 5 页、收尾还剩 +0.3 屏余位时又往左甩了 40px:
+    // 视觉位移(reach)还是正的,但这一把是明确的向前甩
+    expect(swipeTargetPage(5, W * 0.3 - 40, -40, 13, W, -SWIPE_FLING_VELOCITY)).toBe(6);
+  });
+
+  it('接管后慢拖看的是视觉位置,不是这一把的手指位移', () => {
+    // 余位 +0.2 屏,手指只拖了 -0.1 屏就停住:视觉上没过线,不翻
+    expect(swipeTargetPage(5, W * 0.1, -W * 0.1, 13, W, slow)).toBe(5);
+    // 余位 +0.2 屏,手指往回拖到视觉位移超过 +0.28 屏:翻回上一页
+    expect(swipeTargetPage(5, commit, commit - W * 0.2, 13, W, slow)).toBe(4);
   });
 
   it('到头翻不动', () => {
-    expect(swipeTargetPage(1, 200, 13)).toBe(1);
-    expect(swipeTargetPage(13, -200, 13)).toBe(13);
+    expect(swipeTargetPage(1, 300, 300, 13, W, 2)).toBe(1);
+    expect(swipeTargetPage(13, -300, -300, 13, W, -2)).toBe(13);
   });
 
   it('结果与页码条、跳页夹的是同一个范围', () => {
     for (const dx of [-300, -80, 0, 80, 300]) {
-      const target = swipeTargetPage(1, dx, 13);
+      const target = swipeTargetPage(1, dx, dx, 13, W, slow);
       expect(target).toBe(clampPage(target, 13));
     }
   });
 
-  it('提示文案:够远才出,到头明说', () => {
-    expect(swipeHintText(5, -10, 13)).toBeUndefined();
-    expect(swipeHintText(5, -SWIPE_HINT_DISTANCE, 13)).toBeUndefined();
-    expect(swipeHintText(5, -50, 13)).toBe('第 6 页');
-    expect(swipeHintText(5, 50, 13)).toBe('第 4 页');
-    expect(swipeHintText(1, 50, 13)).toBe('已是第一页');
-    expect(swipeHintText(13, -50, 13)).toBe('已是最后一页');
+  it('门槛就是屏宽的 SWIPE_COMMIT_RATIO,宽度非法时不塌成 0', () => {
+    expect(swipeCommitDistance(W)).toBeCloseTo(W * SWIPE_COMMIT_RATIO);
+    expect(swipeCommitDistance(0)).toBeGreaterThan(0);
   });
 
-  it('到头时内容跟手的距离明显变小(阻尼)', () => {
-    expect(swipeOffset(5, 100, 13)).toBe(70);
-    expect(swipeOffset(1, 100, 13)).toBe(25);
-    expect(swipeOffset(13, -100, 13)).toBe(-25);
+  it('中段 1:1 跟手,到头才打折', () => {
+    expect(swipeOffset(5, 100, 13)).toBe(100);
+    expect(swipeOffset(1, 100, 13)).toBe(22);
+    expect(swipeOffset(13, -100, 13)).toBe(-22);
   });
 });

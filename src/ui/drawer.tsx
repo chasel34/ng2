@@ -26,8 +26,12 @@ import { createThemedStyles } from './theme';
 const DRAWER_WIDTH = 300;
 const OPEN_DURATION = duration.panel;
 const CLOSE_DURATION = duration.base;
-/** 左边缘多宽的一条可以拉出抽屉 */
-const EDGE_WIDTH = 22;
+/**
+ * 左边缘多宽的一条可以拉出抽屉。
+ * 导出是给首页的分类横滑用的:那一屏要把这条让给抽屉,不然边缘右滑到底是
+ * 「拉抽屉」还是「翻上一个分类」全看谁先认领,两边都不稳。
+ */
+export const DRAWER_EDGE_WIDTH = 22;
 /** 手势判定:横向位移超过这个值才认,免得和纵向滚动打架 */
 const GESTURE_SLOP = 12;
 /** 松手时超过这个比例(或甩得够快)就完成动作 */
@@ -124,7 +128,7 @@ export function DrawerEdgeHandle({ onOpen }: { onOpen: () => void }) {
       onMoveShouldSetPanResponder: (_event, gesture) =>
         gesture.dx > GESTURE_SLOP && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.3,
       onPanResponderRelease: (_event, gesture) => {
-        if (gesture.dx > EDGE_WIDTH || gesture.vx > COMMIT_VELOCITY) onOpen();
+        if (gesture.dx > DRAWER_EDGE_WIDTH || gesture.vx > COMMIT_VELOCITY) onOpen();
       },
     }),
   ).current;
@@ -155,6 +159,6 @@ const useStyles = createThemedStyles((theme) => ({
     left: 0,
     top: 0,
     bottom: 0,
-    width: EDGE_WIDTH,
+    width: DRAWER_EDGE_WIDTH,
   },
 }));
