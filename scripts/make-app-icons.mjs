@@ -24,6 +24,11 @@ const JADE_ON_DARK = '#1E9384'
 const VERMILION = '#E4512E'
 const WHITE = '#FFFFFF'
 
+// 标识相对上一版缩小约 30%，并顺时针旋转 30°，让脚趾朝向右上方。
+const MARK_SCALE = 0.7
+const MARK_ROTATION = 30
+const MARK_SOURCE_CENTER = { x: 518, y: 500 }
+
 function svg(content, defs = '') {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${CANVAS}" height="${CANVAS}" viewBox="0 0 ${CANVAS} ${CANVAS}">
     <defs>${defs}</defs>${content}
@@ -82,16 +87,22 @@ function footprint(fill, accent = VERMILION, withShadow = true) {
     <circle cx="518" cy="558" r="18" fill="${accent}"/>`
 }
 
+function orientMark(content) {
+  return `<g transform="translate(${CANVAS / 2} ${CANVAS / 2}) rotate(${MARK_ROTATION}) scale(${MARK_SCALE}) translate(-${MARK_SOURCE_CENTER.x} -${MARK_SOURCE_CENTER.y})">
+    ${content}
+  </g>`
+}
+
 function devBadge(monochrome = false) {
   const fill = monochrome ? '#000000' : VERMILION
   const text = monochrome
-    ? '<path d="M730 706 h22 v70 h-22 z M730 706 h42 c30 0 47 14 47 35 s-17 35-47 35 h-20 v-18 h18 c17 0 25-6 25-17 s-8-17-25-17 h-18 v-18 h-18 z" fill="#000000"/>'
-    : `<text x="768" y="746" text-anchor="middle" dominant-baseline="central"
+    ? '<path d="M716 668 h16 v52 h-16 z M716 668 h30 c23 0 36 10 36 26 s-13 26-36 26 h-14 v-14 h13 c12 0 18-4 18-12 s-6-12-18-12 h-13 v-14 h-16 z" fill="#000000"/>'
+    : `<text x="744" y="693" text-anchor="middle" dominant-baseline="central"
         font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="800"
-        font-size="44" letter-spacing="1" fill="${WHITE}">DEV</text>`
+        font-size="32" letter-spacing="1" fill="${WHITE}">DEV</text>`
   return `<g>
-    <circle cx="768" cy="742" r="82" fill="${CREAM}"/>
-    <circle cx="768" cy="742" r="68" fill="${fill}"/>
+    <circle cx="744" cy="690" r="62" fill="${CREAM}"/>
+    <circle cx="744" cy="690" r="51" fill="${fill}"/>
     ${text}
   </g>`
 }
@@ -101,23 +112,26 @@ function background(fill = CREAM) {
 }
 
 function fullIcon(development) {
-  return svg(`${background()}${footprint(JADE)}${development ? devBadge() : ''}`, `${paper}${shadow}${channelMask}`)
+  return svg(
+    `${background()}${orientMark(footprint(JADE))}${development ? devBadge() : ''}`,
+    `${paper}${shadow}${channelMask}`,
+  )
 }
 
 function foreground(development) {
-  return svg(`${footprint(JADE)}${development ? devBadge() : ''}`, `${shadow}${channelMask}`)
+  return svg(`${orientMark(footprint(JADE))}${development ? devBadge() : ''}`, `${shadow}${channelMask}`)
 }
 
 function monochrome(development) {
   return svg(
-    `<g fill="#000000"><path d="${solePath}" mask="url(#channel-mask)"/>${toeShapes()}</g>${development ? devBadge(true) : ''}`,
+    `${orientMark(`<g fill="#000000"><path d="${solePath}" mask="url(#channel-mask)"/>${toeShapes()}</g>`)}${development ? devBadge(true) : ''}`,
     channelMask,
   )
 }
 
 function splash(fill, development) {
   return svg(
-    `<g transform="translate(102 102) scale(0.8) translate(-102 -102)">${footprint(fill, VERMILION, false)}${development ? devBadge() : ''}</g>`,
+    `${orientMark(footprint(fill, VERMILION, false))}${development ? devBadge() : ''}`,
     channelMask,
   )
 }
@@ -168,6 +182,11 @@ async function main() {
   const manifest = {
     sourceConcept: 'assets/images/concepts/jade-foot-dialogue.png',
     generator: 'scripts/make-app-icons.mjs',
+    markTransform: {
+      scale: MARK_SCALE,
+      rotationDegrees: MARK_ROTATION,
+      toeDirection: 'upper-right',
+    },
     palette: {
       cream: CREAM,
       creamDark: CREAM_DARK,
