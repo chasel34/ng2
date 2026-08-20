@@ -24,3 +24,11 @@ visited 集合掐环;自引/跨帖引用不进索引。详情页扫 Query 缓存
 失败/页里没有那楼/引用缺页码三种情况分别降级占位不阻塞;卡片正文
 `stripQuoteMarkup` 剥掉引用容器(上一层就画在上面);「在原帖中查看」给详情页
 新收的 `floor` 参数,复用 16 票 pendingFloor 兑现滚动。缩进每层 14、封顶 8 层。
+
+### 修:回复头没画成引用卡片(2026-08-20)
+
+`[b]Reply to [pid=…]Reply[/pid] Post by 谁 (时间)[/b]` 这种没有 `[quote]` 容器的引用写法
+(NGA「回复」按钮的产物),索引一直认,渲染层却只按节点类型分派 → 落进普通 `[b]`,
+正文顶上一行加粗英文,且拿不到「查看对话链」入口(那行只画在 `quote` 节点上)。
+现在 `isReplyHeaderNode`/`replyHeaderRefOf` 提到 `core/local` 对外,`segments` 把回复头
+升格成块,`render.tsx` 抽出 `QuoteCard` 给两种写法共用。样例:47406116 第 2 页 25/27 楼。

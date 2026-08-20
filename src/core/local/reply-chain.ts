@@ -98,6 +98,24 @@ export function quoteRefOf(node: QuoteNode): QuoteRef | undefined {
   return firstFloorRef(node.children)
 }
 
+/**
+ * 一个节点是不是 `[b]Reply to [pid=…]…[/b]` 回复头。
+ *
+ * 渲染层拿它把回复头画成引用卡片:这种写法没有 `[quote]` 容器,只按节点类型分派的话
+ * 它就是正文顶上突兀的一行加粗英文,跟楼主自己说的话糊在一起。
+ */
+export function isReplyHeaderNode(node: BBCodeNode): boolean {
+  return node.type === 'bold' && isReplyHeader(node)
+}
+
+/**
+ * 回复头指向哪一楼。不是回复头、或头里认不出 `[pid]`(手打的)时返回 undefined——
+ * 跟 `quoteRefOf` 一样,渲染层用它决定「查看对话链」入口画不画。
+ */
+export function replyHeaderRefOf(node: BBCodeNode): QuoteRef | undefined {
+  return isReplyHeaderNode(node) && 'children' in node ? firstFloorRef(node.children) : undefined
+}
+
 /** `[b]Reply to [pid=…]…[/b]` 的回复头:粗体、第一段文字以 Reply to 开头。 */
 function isReplyHeader(node: StyleNode): boolean {
   const firstText = (nodes: readonly BBCodeNode[]): string | undefined => {
@@ -126,8 +144,8 @@ export function extractQuoteRefs(nodes: readonly BBCodeNode[]): readonly QuoteRe
         if (ref !== undefined) refs.push(ref)
         continue
       }
-      if (node.type === 'bold' && isReplyHeader(node)) {
-        const ref = firstFloorRef(node.children)
+      if (isReplyHeaderNode(node)) {
+        const ref = replyHeaderRefOf(node)
         if (ref !== undefined) refs.push(ref)
         continue
       }
@@ -241,9 +259,7 @@ export function chainDepthOf(index: QuoteIndex, pid: number): number {
  * 剥的就是建索引认的那两种容器:顶层的 `[quote]` 与 `[b]Reply to …[/b]` 回复头。
  */
 export function stripQuoteMarkup(nodes: readonly BBCodeNode[]): readonly BBCodeNode[] {
-  const stripped = nodes.filter(
-    (node) => node.type !== 'quote' && !(node.type === 'bold' && isReplyHeader(node)),
-  )
+  const stripped = nodes.filter((node) => node.type !== 'quote' && !isReplyHeaderNode(node))
   // 剥完开头常剩一两个空行(引用块与正文之间的换行),顺手掐掉
   let start = 0
   while (start < stripped.length && stripped[start]?.type === 'linebreak') start += 1

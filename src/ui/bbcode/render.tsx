@@ -3,7 +3,7 @@ import { Linking, Pressable, Text, View, type StyleProp, type TextStyle } from '
 
 import { attachmentUrl, thumbnailUrl } from '@/core/api';
 import type { BBCodeNode } from '@/core/bbcode';
-import { quoteRefOf } from '@/core/local';
+import { isReplyHeaderNode, quoteRefOf, replyHeaderRefOf } from '@/core/local';
 
 import { Icon } from '../icon';
 import { createThemedStyles, useTheme, type Theme } from '../theme';
@@ -185,35 +185,33 @@ function BlockNode({
   style?: StyleProp<TextStyle>;
 }) {
   const styles = useStyles();
-  const theme = useTheme();
   const body = (nodes: readonly BBCodeNode[], extra?: StyleProp<TextStyle>) => (
     <BBCodeBody nodes={nodes} options={options} style={extra === undefined ? style : [style, extra]} />
   );
+
+  // 引用的另一种写法(CONTEXT.md「回复链」):快速回复给正文开头塞一段
+  // `[b]Reply to [pid=…]Reply[/pid] Post by 谁 (时间)[/b]`,没有 [quote] 容器。
+  // 只按节点类型分派的话它就落进 `[b]` 分支,变成正文顶上一行加粗英文,
+  // 跟这一楼自己说的话糊成一片——它跟引用块是一回事,画成同一张卡片。
+  if (isReplyHeaderNode(node) && 'children' in node) {
+    return (
+      <QuoteCard chain={replyHeaderRefOf(node) === undefined ? undefined : options.quoteChain}>
+        {body(node.children, styles.quoteText)}
+      </QuoteCard>
+    );
+  }
 
   switch (node.type) {
     case 'quote': {
       // 「查看对话链(N 层)」入口(26 票,设计稿 f.quote 里的 openChain 行):
       // 只有调用方给了链信息、且这个引用块认得出 [pid] 引用时才画——
       // 手打的 [quote](没有 pid 标记)追不了链,画了也是死入口
-      const chain = options.quoteChain !== undefined && quoteRefOf(node) !== undefined
-        ? options.quoteChain
-        : undefined;
       return (
-        <View style={styles.quote}>
+        <QuoteCard chain={quoteRefOf(node) === undefined ? undefined : options.quoteChain}>
           {/* 引用块里那句「Post by 谁 (时间)」是服务端塞在 BBCode 里的,
               原样渲染就够,不另外合成一行标题——合成的话作者名会重复出现两遍 */}
           {body(node.children, styles.quoteText)}
-          {chain !== undefined && (
-            <Pressable
-              style={styles.chainEntry}
-              onPress={chain.onOpen}
-              accessibilityLabel={`查看对话链(${chain.depth} 层)`}
-            >
-              <Icon name="account_tree" size={15} color={theme.colors.primary} />
-              <Text style={styles.chainEntryLabel}>查看对话链({chain.depth} 层)</Text>
-            </Pressable>
-          )}
-        </View>
+        </QuoteCard>
       );
     }
     case 'image': {
@@ -275,6 +273,32 @@ function BlockNode({
       ) : null;
   }
 }
+
+/**
+ * 引用卡片的外框:`[quote]` 与 `Reply to` 回复头共用——两者都是「这一楼在回谁」,
+ * 差别只在服务端有没有给容器,视觉上没道理分成两样。
+ */
+function QuoteCard({ chain, children }: { chain?: QuoteChain; children: ReactNode }) {
+  const styles = useStyles();
+  const theme = useTheme();
+  return (
+    <View style={styles.quote}>
+      {children}
+      {chain !== undefined && (
+        <Pressable
+          style={styles.chainEntry}
+          onPress={chain.onOpen}
+          accessibilityLabel={`查看对话链(${chain.depth} 层)`}
+        >
+          <Icon name="account_tree" size={15} color={theme.colors.primary} />
+          <Text style={styles.chainEntryLabel}>查看对话链({chain.depth} 层)</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
+type QuoteChain = NonNullable<BBCodeRenderOptions['quoteChain']>;
 
 /** 一个行内容器节点自己贡献的文字样式(往块级内容里递的那份)。 */
 function inlineStyleOf(

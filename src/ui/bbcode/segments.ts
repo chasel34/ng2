@@ -1,4 +1,5 @@
 import { childNodeLists, type BBCodeNode } from '@/core/bbcode';
+import { isReplyHeaderNode } from '@/core/local';
 
 /**
  * 排版分段:把一串 AST 节点切成「行内段」与「块级节点」交替的序列。
@@ -32,7 +33,13 @@ const BLOCK_TYPES = new Set<BBCodeNode['type']>([
   'album',
 ]);
 
-export const isBlockNode = (node: BBCodeNode): boolean => BLOCK_TYPES.has(node.type);
+/**
+ * 块级判断。除了 `BLOCK_TYPES`,还有一种「按内容认」的:NGA 快速回复塞在正文开头的
+ * `[b]Reply to [pid=…]Reply[/pid] Post by 谁 (时间)[/b]` 回复头——BBCode 上它只是个
+ * `[b]`,渲染上却跟 `[quote]` 一样是张引用卡片(见 `render.tsx`),所以得单独占一块。
+ */
+export const isBlockNode = (node: BBCodeNode): boolean =>
+  BLOCK_TYPES.has(node.type) || isReplyHeaderNode(node);
 
 /**
  * `containsBlock` 的记忆表。

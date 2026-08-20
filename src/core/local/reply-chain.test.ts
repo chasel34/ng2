@@ -6,7 +6,9 @@ import {
   buildReplyChain,
   chainDepthOf,
   extractQuoteRefs,
+  isReplyHeaderNode,
   quoteRefOf,
+  replyHeaderRefOf,
   stripQuoteMarkup,
 } from './reply-chain'
 
@@ -184,5 +186,26 @@ describe('stripQuoteMarkup', () => {
   it('普通粗体不剥,只剥 Reply to 回复头', () => {
     const nodes = parseBBCode('[b]重点[/b]内容')
     expect(stripQuoteMarkup(nodes)).toEqual(nodes)
+  })
+})
+
+/** 渲染层靠这两个把回复头画成引用卡片(没有 quote 容器的那种引用)。 */
+describe('isReplyHeaderNode / replyHeaderRefOf', () => {
+  it('回复头认得出来,并给出它指向的楼', () => {
+    const node = parseBBCode(replyTo(777, 2) + '同意楼上')[0]!
+    expect(isReplyHeaderNode(node)).toBe(true)
+    expect(replyHeaderRefOf(node)).toEqual({ pid: 777, tid: TID, page: 2 })
+  })
+
+  it('普通粗体不是回复头', () => {
+    const node = parseBBCode('[b]重点[/b]')[0]!
+    expect(isReplyHeaderNode(node)).toBe(false)
+    expect(replyHeaderRefOf(node)).toBeUndefined()
+  })
+
+  it('手打的回复头(没有 [pid])仍是回复头,但追不到楼', () => {
+    const node = parseBBCode('[b]Reply to 楼上[/b]')[0]!
+    expect(isReplyHeaderNode(node)).toBe(true)
+    expect(replyHeaderRefOf(node)).toBeUndefined()
   })
 })

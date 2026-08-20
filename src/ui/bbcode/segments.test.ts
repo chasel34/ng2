@@ -23,6 +23,21 @@ describe('splitIntoSegments', () => {
     expect(segmentsOf('======')[0]?.kind).toBe('block');
   });
 
+  /**
+   * 回归锁:回复头(NGA「回复」按钮的产物,没有 quote 容器)要跟引用块一样单独成块,
+   * 不然它会被当成普通 `[b]` 塞进正文那个 `<Text>`,画不成引用卡片。
+   */
+  it('Reply to 回复头单独成块,后面的正文另起一段', () => {
+    const segments = segmentsOf(
+      '[b]Reply to [pid=879039681,47406116,1]Reply[/pid] Post by [uid=64858574]开始了吗还没[/uid] (2026-08-20 15:13)[/b]<br/>也就治治马保国了',
+    );
+    expect(segments.map((segment) => segment.kind)).toEqual(['block', 'inline']);
+  });
+
+  it('普通粗体还是行内', () => {
+    expect(segmentsOf('[b]重点[/b]内容')[0]?.kind).toBe('inline');
+  });
+
   it('只有换行的段不单独成段', () => {
     const segments = segmentsOf('[img]./a.jpg[/img]<br/><br/>[img]./b.jpg[/img]');
     expect(segments.map((segment) => segment.kind)).toEqual(['block', 'block']);
@@ -95,11 +110,13 @@ describe('containsBlock', () => {
    * 递归进去再切一次),每次都深度遍历一遍的话,楼层越深越贵。
    *
    * 用一个 `children` getter 数「子树被展开了几次」——`childNodeLists` 取的就是它。
+   * 拿 `[i]` 当样本是有意的:`[b]` 还要多被回复头判据看一眼(见 `isBlockNode`),
+   * 数出来的次数就不再只反映记忆化了。
    */
   it('同一棵子树重复问只遍历一次', () => {
     let reads = 0;
     const subtree = {
-      type: 'bold',
+      type: 'italic',
       get children() {
         reads += 1;
         return [{ type: 'text', value: '字' }];
@@ -111,7 +128,7 @@ describe('containsBlock', () => {
     expect(reads).toBe(1);
 
     // 同一棵子树挂在两个不同的父节点下,也只遍历它一次
-    const wrapped = { type: 'italic', children: [subtree] } as unknown as BBCodeNode;
+    const wrapped = { type: 'underline', children: [subtree] } as unknown as BBCodeNode;
     expect(containsBlock(wrapped)).toBe(false);
     expect(reads).toBe(1);
   });
