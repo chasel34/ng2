@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #3A5A7A; } a:hover { color: #14796B; }
+    code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+  </style>
+</helmet>
+
+<div style="width: 640px; min-height: 800px; background: #FFFBF0; color: #1E1C19; padding: 34px 36px 40px; box-sizing: border-box">
+
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <div style="font-size: 12.5px; font-weight: 700; letter-spacing: 0.4px; color: #14796B">方案 A · 已落地</div>
+    <div style="font-size: 26px; font-weight: 700; line-height: 1.3">无缝分页:帖子详情 + 首页分类</div>
+  </div>
+
+  <div style="display: flex; gap: 12px; margin-top: 20px; padding: 14px 16px; border-radius: 12px; background: #F5F0E0">
+    <div style="flex: 1; min-width: 0; font-size: 13.5px; line-height: 21.6px; color: #57534A">
+      原来的判定是<strong style="color: #1E1C19">手指走满 60px 就翻页</strong>(屏上只跟出 42px,约屏宽 11%),
+      竖着滚楼层带出的那点横向位移就够了。现在门槛按屏宽取,相邻页真的贴着当前页一起走;
+      同一条轨道也接到了首页——横滑切分类。
+    </div>
+  </div>
+
+  <div style="margin-top: 28px; font-size: 16px; font-weight: 600">改了哪些文件</div>
+  <div style="display: flex; flex-direction: column; gap: 1px; margin-top: 12px; background: #EBE3CE; border: 1px solid #EBE3CE; border-radius: 12px; overflow: hidden">
+    <sc-for list="{{files}}" as="f" hint-placeholder-count="6">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: center; gap: 12px; background: #FFFBF0; padding: 11px 14px">
+        <div style="font-size: 13px"><code>{{f.path}}</code></div>
+        <div style="font-size: 12.5px; line-height: 19px; color: #57534A">{{f.what}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="margin-top: 28px; font-size: 16px; font-weight: 600">最终数值</div>
+  <div style="display: flex; flex-direction: column; gap: 1px; margin-top: 12px; background: #EBE3CE; border: 1px solid #EBE3CE; border-radius: 12px; overflow: hidden">
+    <sc-for list="{{params}}" as="p" hint-placeholder-count="7">
+      <div style="display: grid; grid-template-columns: minmax(0, 1.5fr) 96px 20px minmax(0, 1.1fr); align-items: center; gap: 10px; background: #FFFBF0; padding: 11px 14px">
+        <div style="min-width: 0">
+          <div style="font-size: 13.5px"><code>{{p.name}}</code></div>
+          <div style="font-size: 12px; color: #A39D8E; margin-top: 3px">{{p.note}}</div>
+        </div>
+        <div style="font-size: 13px; color: #A39D8E; text-decoration: line-through">{{p.from}}</div>
+        <div style="color: #A39D8E; display: flex; align-items: center; justify-content: center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="M14 7l5 5-5 5"/></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; color: #14796B">{{p.to}}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="margin-top: 10px; font-size: 12px; color: #A39D8E; line-height: 19px">
+    常量与夹逼仍然只放 <code>src/ui/paging.ts</code>:页码条、跳页对话框、详情横滑、首页横滑,
+    四个入口一套规则。
+  </div>
+
+  <div style="margin-top: 28px; font-size: 16px; font-weight: 600">连带的行为变化 · 还没验的事</div>
+  <div style="display: flex; flex-direction: column; gap: 9px; margin-top: 12px">
+    <sc-for list="{{costs}}" as="c" hint-placeholder-count="5">
+      <div style="display: flex; gap: 10px; align-items: flex-start">
+        <div style="width: 6px; height: 6px; border-radius: 3px; background: #E09A2A; margin-top: 7px; flex: 0 0 6px"></div>
+        <div style="font-size: 13.5px; line-height: 21.6px; color: #57534A">{{c.text}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "$preview": {"width": 640, "height": 800}
+}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      files: [
+        { path: 'src/ui/paging.ts', what: '门槛改成屏宽比例,加甩动判定;手势认领的两个常量也收进来' },
+        { path: 'src/ui/swipe-pager.tsx', what: '新:三面板轨道,两块屏共用' },
+        { path: 'src/app/topic/[tid].tsx', what: '接轨道 + 相邻页 + 骨架页;删掉浮层提示' },
+        { path: 'src/store/topic-detail.ts', what: 'useTopicDetail 加 enabled / keepPrevious,给相邻页用' },
+        { path: 'src/app/index.tsx', what: '分类横滑;tab 条自动滚到选中格' },
+        { path: 'src/ui/drawer.tsx', what: '导出边缘宽度,首页把左边缘让给抽屉' },
+      ],
+      params: [
+        { name: 'SWIPE_COMMIT_RATIO', note: '松手翻页的门槛,顶掉写死的 60px', from: '60px', to: '屏宽 × 0.28' },
+        { name: 'SWIPE_FLING_VELOCITY', note: '甩动门槛,配最小位移 24px', from: '无', to: '0.4 px/ms' },
+        { name: 'swipeOffset 跟手系数', note: '相邻页贴着一起走,打折就穿帮', from: '0.7', to: '1.0' },
+        { name: 'swipeOffset 边缘阻尼', note: '到头拉不动,是「已是第一页」的唯一反馈', from: '0.25', to: '0.22' },
+        { name: '翻页 / 回弹时长', note: 'easeDecelerateWorklet 不变', from: '220ms', to: '260ms' },
+        { name: 'SWIPE_ACTIVATE / AXIS_RATIO', note: '认领保持灵敏,翻不翻由上面两条说了算', from: '12 / 1.3', to: '不动' },
+        { name: 'SWIPE_HINT_DISTANCE', note: '浮层提示与 swipeHintText 一并删除', from: '40px', to: '删除' },
+      ],
+      costs: [
+        { text: '跳页跳到没缓存的一页,现在画骨架,不再留着上一页的内容顶着——相邻页已经真的跟出来了,把上一页摆回正中就是穿帮。' },
+        { text: '「第 N 页」浮层和「已是第一页 / 最后一页」文案没了,到头改用强阻尼说话。' },
+        { text: '每看一页会多预取下一页(一次 read.php),上一页只读缓存不发请求。按页顺着读总请求数不变,只是提前;停下不看就白取一发。' },
+        { text: '同屏三个 LegendList:真机上的内存与掉帧还没量,M4 那套走查脚本可以直接复用。' },
+        { text: '手感本身只能在真机上认——typecheck、1112 条单测、Android 打包都过了,这些都证明不了跟手。' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
