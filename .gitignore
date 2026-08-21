@@ -40,3 +40,8 @@ yarn-error.*
 
 # agent worktrees
 .claude/worktrees/
+
+# 设计稿画布的产物:2M 起,里面绝大部分是画布编辑器自己的压缩代码。
+# 源文件是同目录的 *.dc.html 与 canvas.json,产物随时能从它们重新 seed 出来
+.scratch/*/*.html
+!.scratch/*/*.dc.html
