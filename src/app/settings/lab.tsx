@@ -1,16 +1,11 @@
 import Constants from 'expo-constants';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Share } from 'react-native';
 
-import { cacheTotalBytes, formatCacheSize } from '@/core/local';
 import type { WebFallbackMode } from '@/core/net';
 import { readDiagnosticLog, readRunLog } from '@/store/diagnostics';
 import { successfulCombos } from '@/store/nga-client';
 import { useNetSettings } from '@/store/net-settings';
-import { useSettings } from '@/store/settings';
-import { clearTopicCache, useCachedTopics } from '@/store/topic-cache';
-import { ConfirmDialog } from '@/ui/confirm-dialog';
 import { OptionDialog, type DialogOption } from '@/ui/option-dialog';
 import { SettingsNavRow, SettingsSection, SettingsSwitchRow } from '@/ui/settings-row';
 import { SettingsShell } from '@/ui/settings-shell';
@@ -40,24 +35,20 @@ const EXPORT_LIMIT = 50;
 /** 「本次运行」里分享出去的请求条数。 */
 const RUN_LOG_EXPORT_LIMIT = 20;
 
-/** 设置 3 / 3 —— 实验室与存储(设计稿 `settings3` 屏)。 */
+/**
+ * 实验室与诊断(`/settings` 的二级页)。
+ *
+ * 这一页只收「排查时才会用到」的四条:两档改反封锁链行为的开关,两个把内存里的
+ * 链路状态倒出来的入口。原先这屏还挂着「手势返回」「阅读时常亮」「清理缓存」
+ * 「恢复默认设置」「关于」,它们跟反封锁没关系,已经归回设置一级页。
+ */
 export default function LabSettingsScreen() {
-  const router = useRouter();
-  const settings = useSettings((state) => state.settings);
-  const setSetting = useSettings((state) => state.set);
-  const resetAll = useSettings((state) => state.resetAll);
-
   const webFallbackMode = useNetSettings((state) => state.webFallbackMode);
   const setWebFallbackMode = useNetSettings((state) => state.setWebFallbackMode);
   const windowsPhoneUa = useNetSettings((state) => state.readPhpWindowsPhoneUa);
   const setWindowsPhoneUa = useNetSettings((state) => state.setReadPhpWindowsPhoneUa);
 
-  const topics = useCachedTopics();
-  const cacheBytes = cacheTotalBytes(topics);
-
   const [fallbackOpen, setFallbackOpen] = useState(false);
-  const [clearCacheOpen, setClearCacheOpen] = useState(false);
-  const [resetOpen, setResetOpen] = useState(false);
 
   const version = Constants.expoConfig?.version ?? '0.1.0';
 
@@ -113,8 +104,23 @@ export default function LabSettingsScreen() {
     );
   };
 
+  const dialogs = (
+    <OptionDialog
+      open={fallbackOpen}
+      title="网页数据源兜底"
+      options={FALLBACK_OPTIONS}
+      value={webFallbackMode}
+      hint="原生接口被封时,从网页版 HTML 里反解出同样的数据。改的是它在反封锁链上的位置。"
+      onCancel={() => setFallbackOpen(false)}
+      onConfirm={(mode) => {
+        setFallbackOpen(false);
+        setWebFallbackMode(mode);
+      }}
+    />
+  );
+
   return (
-    <SettingsShell index={2}>
+    <SettingsShell title="实验室与诊断" overlays={dialogs}>
       <SettingsSection>实验室</SettingsSection>
 
       <SettingsNavRow
@@ -128,93 +134,11 @@ export default function LabSettingsScreen() {
         value={windowsPhoneUa}
         onChange={setWindowsPhoneUa}
       />
-      <SettingsSwitchRow
-        label="手势返回"
-        sub="从左边缘右滑返回上一页"
-        value={settings.gestureBack}
-        onChange={(next) => setSetting('gestureBack', next)}
-      />
-      <SettingsSwitchRow
-        label="阅读时常亮"
-        sub="看帖子详情时屏幕不自动熄灭"
-        value={settings.keepScreenOn}
-        onChange={(next) => setSetting('keepScreenOn', next)}
-      />
 
-      <SettingsSection>存储与诊断</SettingsSection>
+      <SettingsSection>诊断</SettingsSection>
 
-      <SettingsNavRow
-        label="清理缓存"
-        sub={
-          topics.length === 0
-            ? '还没有缓存的帖子'
-            : `${topics.length} 个主题 · 已占用 ${formatCacheSize(cacheBytes)}`
-        }
-        onPress={() => {
-          if (topics.length === 0) {
-            showToast('还没有缓存可清');
-            return;
-          }
-          setClearCacheOpen(true);
-        }}
-      />
       <SettingsNavRow label="本次运行的组合" sub={comboSummary} onPress={shareRunLog} />
       <SettingsNavRow label="导出诊断日志" sub={`最近 ${EXPORT_LIMIT} 条`} onPress={exportLog} />
-      <SettingsNavRow
-        label="恢复默认设置"
-        sub="三屏全部设置回默认值,不动账号与缓存"
-        onPress={() => setResetOpen(true)}
-      />
-
-      <SettingsSection>关于</SettingsSection>
-
-      <SettingsNavRow
-        label="关于本客户端"
-        sub={`v${version}`}
-        onPress={() => router.push('/settings/about')}
-      />
-
-      <OptionDialog
-        open={fallbackOpen}
-        title="网页数据源兜底"
-        options={FALLBACK_OPTIONS}
-        value={webFallbackMode}
-        hint="原生接口被封时,从网页版 HTML 里反解出同样的数据。改的是它在反封锁链上的位置。"
-        onCancel={() => setFallbackOpen(false)}
-        onConfirm={(mode) => {
-          setFallbackOpen(false);
-          setWebFallbackMode(mode);
-        }}
-      />
-
-      <ConfirmDialog
-        open={clearCacheOpen}
-        title="清理缓存"
-        message={`${topics.length} 个主题、共 ${formatCacheSize(cacheBytes)} 的离线数据将被删除。`}
-        confirmLabel="清理"
-        destructive
-        onCancel={() => setClearCacheOpen(false)}
-        onConfirm={() => {
-          setClearCacheOpen(false);
-          const freed = formatCacheSize(cacheBytes);
-          clearTopicCache();
-          showToast(`已清理 ${freed} 缓存`);
-        }}
-      />
-
-      <ConfirmDialog
-        open={resetOpen}
-        title="恢复默认设置"
-        message="三屏的全部开关、域名、字号与主题风格都会回到默认值。账号、收藏、缓存与屏蔽规则不受影响。"
-        confirmLabel="恢复"
-        destructive
-        onCancel={() => setResetOpen(false)}
-        onConfirm={() => {
-          setResetOpen(false);
-          resetAll();
-          showToast('已恢复默认设置');
-        }}
-      />
     </SettingsShell>
   );
 }

@@ -83,7 +83,7 @@ export default function AboutScreen() {
       key: 'diagnostic',
       icon: 'bug_report',
       label: '诊断日志',
-      sub: '接口失败的记录在「设置 · 实验室」里导出',
+      sub: '接口失败的记录在「设置 · 实验室与诊断」里导出',
       onPress: () => router.push('/settings/lab'),
     },
     {

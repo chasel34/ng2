@@ -1,45 +1,38 @@
-import { useRouter, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { ProgressiveChildren } from './progressive';
 import { createThemedStyles } from './theme';
 import { TopBar, TopBarButton, TopBarTitle } from './top-bar';
 
-/** 三屏的顺序即设计稿 `order`,页脚的「上一屏/下一屏」按它走。 */
-export const SETTINGS_SCREENS: readonly Href[] = ['/settings', '/settings/reading', '/settings/lab'];
-
 export interface SettingsShellProps {
-  /** 本屏在三屏里的序号(0 起) */
-  index: number;
+  /** 顶栏标题 */
+  title: string;
   children: ReactNode;
+  /**
+   * 本屏的对话框。单开一个口子而不是混在 `children` 里,是因为对话框的根容器是
+   * `position:absolute` 四边贴 0——贴的是**父容器**。混在行里它就贴着滚动内容,
+   * 居中的面板会被摆到内容中段(一屏到底之后是 1850dp 的中间),滚到别处就看不见,
+   * 只剩铺满的遮罩。放在滚动容器外面才是贴着视口。
+   */
+  overlays?: ReactNode;
 }
 
 /**
- * 设置三屏共用的外壳(设计稿 `isSettings`):顶栏「设置 + N / 3」、可滚的行区、
- * 底部一对「上一屏 / 下一屏」按钮。
+ * 设置页的外壳:顶栏「← 标题」+ 一列可滚的行。
  *
- * 屏与屏之间用 `replace` 而不是 `push`:设计稿这三屏是同一页的三页翻页,
- * push 会把返回栈堆成「设置 → 设置 → 设置」,退出时要按三次返回。
+ * 这里原本是个三屏向导(顶栏右上角 N/3、页脚一对「上一屏 / 下一屏」、屏间 `replace`)。
+ * 拆掉的理由:向导是给「按顺序走完才算数」的流程用的,而设置是随机访问的——
+ * 用户带着「我要关签名档」进来,要的是滚+找,不是猜它排在第几屏;而且屏间用
+ * `replace` 拍平返回栈之后,从第 3 屏按系统返回会直接退出设置而不是回第 2 屏
+ * (用 `push` 则堆成三层设置,退出要按三次)。这个两难是向导模型套在设置上必然
+ * 产生的,一屏到底就没有。页脚那对按钮同时也是冗余:顶栏返回箭头 + 系统返回手势
+ * 已经两个入口,而设置项即时生效,没有「完成」这一步。
  */
-export function SettingsShell({ index, children }: SettingsShellProps) {
+export function SettingsShell({ title, children, overlays }: SettingsShellProps) {
   const styles = useStyles();
   const router = useRouter();
-
-  const total = SETTINGS_SCREENS.length;
-  const first = index === 0;
-  const last = index === total - 1;
-
-  const goPrev = () => {
-    const target = SETTINGS_SCREENS[index - 1];
-    if (target === undefined) router.back();
-    else router.replace(target);
-  };
-  const goNext = () => {
-    const target = SETTINGS_SCREENS[index + 1];
-    if (target === undefined) router.back();
-    else router.replace(target);
-  };
 
   return (
     <View style={styles.root}>
@@ -51,33 +44,21 @@ export function SettingsShell({ index, children }: SettingsShellProps) {
           onPress={() => router.back()}
           accessibilityLabel="返回"
         />
-        <TopBarTitle variant="sub">设置</TopBarTitle>
-        <Text style={styles.page}>
-          {index + 1} / {total}
-        </Text>
+        <TopBarTitle variant="sub">{title}</TopBarTitle>
       </TopBar>
 
-      {/* 页脚自带 30 的下留白,滚动容器不再另加,否则底部空出 38 */}
-      <ScrollView style={styles.body}>
-        {/* 分帧揭示:一屏十几行(自绘开关每行好几个视图)同步挂载要 16~19ms,
+      <ScrollView style={styles.body} contentContainerStyle={styles.content}>
+        {/* 分帧揭示:一屏二十几行(自绘开关每行好几个视图)同步挂载要 16~19ms,
             push 动画第 1 帧就掉帧。行成本 ~2.5ms:2026-08-15 atrace 实测 step=3 时
             每帧 mount 3~6.5ms + traversal ~3ms,压着 120Hz 的 8.3ms 预算线仍偶发丢帧;
-            降到首帧 1 行、每帧 +2(~5+3ms)才留得出余量。14 行也只要 7 帧 ≈ 58ms,
-            远在 220ms 动画走完之前全就位 */}
+            降到首帧 1 行、每帧 +2(~5+3ms)才留得出余量。合并成一屏后是 26 个子节点、
+            13 帧 ≈ 108ms,仍在 220ms 动画走完之前全就位 */}
         <ProgressiveChildren initial={1} step={2}>
           {children}
         </ProgressiveChildren>
-        <View style={styles.footer}>
-          <Pressable style={styles.prev} onPress={goPrev}>
-            <Text style={styles.prevLabel}>{first ? '返回' : '上一屏'}</Text>
-          </Pressable>
-          <Pressable style={styles.next} onPress={goNext}>
-            <Text style={styles.nextLabel}>
-              {last ? '完成' : `下一屏 · ${index + 2} / ${total}`}
-            </Text>
-          </Pressable>
-        </View>
       </ScrollView>
+
+      {overlays}
     </View>
   );
 }
@@ -87,47 +68,11 @@ const useStyles = createThemedStyles((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.bg,
   },
-  // 设计稿:页码在顶栏最右,压到 70% 不透明度
-  page: {
-    ...theme.typography.cardMeta,
-    color: theme.colors.onTopbar,
-    opacity: 0.7,
-    marginLeft: 'auto',
-    paddingRight: theme.spacing.row,
-  },
   body: {
     flex: 1,
   },
-  footer: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: theme.spacing.page,
-    paddingTop: theme.spacing.xl,
+  // 最后一行的分隔线不该贴着屏幕底边
+  content: {
     paddingBottom: 30,
-  },
-  prev: {
-    flex: 1,
-    height: 44,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.divider,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  prevLabel: {
-    ...theme.typography.dialogAction,
-    color: theme.colors.fg2,
-  },
-  next: {
-    flex: 1,
-    height: 44,
-    borderRadius: theme.radius.lg,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nextLabel: {
-    ...theme.typography.dialogAction,
-    color: theme.colors.onPrimary,
   },
 }));

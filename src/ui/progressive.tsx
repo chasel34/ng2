@@ -50,7 +50,7 @@ export interface ProgressiveChildrenProps extends RevealOptions {
 }
 
 /**
- * 静态内容版(设置三屏这类「一列固定行」):子元素按序分帧挂载。
+ * 静态内容版(设置页这类「一列固定行」):子元素按序分帧挂载。
  * 行数固定、无重排,`Children.toArray` 的顺位 key 足够稳定。
  */
 export function ProgressiveChildren({ initial, step, children }: ProgressiveChildrenProps) {

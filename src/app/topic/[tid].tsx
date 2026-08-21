@@ -779,9 +779,8 @@ export default function TopicScreen() {
     );
   };
 
-  // 「底部标签页」(22 票):同一条页码条,只是挂在屏幕底部而不是顶栏下面。
-  // 高亮认 `pageInFlight ?? page`:横滑松手那一刻页码就先切过去(对齐原生 pager
-  // 的 onPageSelected 时机),真正的数据/窗口挪动等动画停稳后的 onChange
+  // 页码条挂在顶栏下面。高亮认 `pageInFlight ?? page`:横滑松手那一刻页码就先切过去
+  // (对齐原生 pager 的 onPageSelected 时机),真正的数据/窗口挪动等动画停稳后的 onChange
   const pageBar = (
     <PageBar
       page={pageInFlight ?? page}
@@ -793,10 +792,7 @@ export default function TopicScreen() {
 
   return (
     <View style={[styles.root, settings.solidBackground && styles.rootSolid]}>
-      <TopBar
-        paddingHorizontal={4}
-        {...(settings.bottomPageBar ? {} : { below: pageBar })}
-      >
+      <TopBar paddingHorizontal={4} below={pageBar}>
         <TopBarButton
           icon="arrow_back"
           box={46}
@@ -896,11 +892,6 @@ export default function TopicScreen() {
           />
         )}
       </View>
-
-      {/* 「底部标签页」:页码条挪到屏幕底部,底色仍是顶栏那一档(格子是浅字) */}
-      {settings.bottomPageBar && (
-        <View style={[styles.bottomPageBar, { paddingBottom: insets.bottom }]}>{pageBar}</View>
-      )}
 
       {fabOpen && (
         <Reanimated.View
@@ -1461,10 +1452,6 @@ const useStyles = createThemedStyles((theme) => ({
   /** 「使用纯色背景」(22 票):把奶油底换成卡片那一档纯色 */
   rootSolid: {
     backgroundColor: theme.colors.surface,
-  },
-  bottomPageBar: {
-    backgroundColor: theme.colors.topbar,
-    paddingTop: theme.spacing.sm,
   },
   body: {
     flex: 1,

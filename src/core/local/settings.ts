@@ -51,7 +51,7 @@ export interface AppearanceSettings {
 export interface AppSettings {
   /** 请求用的 NGA 域名，必须是 `NGA_HOSTS` 里的一个 */
   host: string
-  /** 左手模式：FAB 与菜单移到左侧。22 票只存值（见票面 Comments） */
+  /** 左手模式：FAB 与菜单移到左侧（`ui/appearance.ts` 的 `useLeftHanded`） */
   leftHanded: boolean
   /** 主题列表与详情页用纯色底（surface）而不是奶油底（bg） */
   solidBackground: boolean
@@ -66,8 +66,6 @@ export interface AppSettings {
   wifiOnlyImages: boolean
   /** 楼层里显示签名档 */
   showSignature: boolean
-  /** 页码条移到屏幕底部 */
-  bottomPageBar: boolean
   imageQuality: ImageQuality
   /** 从左边缘右滑返回上一页 */
   gestureBack: boolean
@@ -95,7 +93,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoLoadNextPage: true,
   wifiOnlyImages: true,
   showSignature: true,
-  bottomPageBar: false,
   imageQuality: 'smart',
   gestureBack: true,
   keepScreenOn: false,
@@ -196,7 +193,6 @@ export function parseSettings(raw: unknown): AppSettings {
     autoLoadNextPage: pickBoolean(raw, 'autoLoadNextPage', DEFAULT_SETTINGS.autoLoadNextPage),
     wifiOnlyImages: pickBoolean(raw, 'wifiOnlyImages', DEFAULT_SETTINGS.wifiOnlyImages),
     showSignature: pickBoolean(raw, 'showSignature', DEFAULT_SETTINGS.showSignature),
-    bottomPageBar: pickBoolean(raw, 'bottomPageBar', DEFAULT_SETTINGS.bottomPageBar),
     imageQuality:
       imageQuality === 'original' || imageQuality === 'smart' || imageQuality === 'thumbnail'
         ? imageQuality

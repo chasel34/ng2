@@ -9,8 +9,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useNotificationsPoller } from '@/store/notifications';
-import { attachPersistedImageSizes } from '@/ui/bbcode/image-size.persist';
 import { useAppSettings } from '@/store/settings';
+import { attachPersistedImageSizes } from '@/ui/bbcode/image-size.persist';
 import { useIconFont } from '@/ui/icon';
 import { duration, screenTransition } from '@/ui/motion';
 import { SnackbarHost } from '@/ui/snackbar';
