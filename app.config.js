@@ -7,7 +7,7 @@ module.exports = function appConfig(_context) {
 
   return {
     ...base,
-    name: development ? 'NGA 阅读器 Dev' : base.name,
+    name: development ? 'NG2 Dev' : base.name,
     scheme: development ? 'ng2-dev' : base.scheme,
     icon: `./assets/images/icon${suffix}.png`,
     android: {
