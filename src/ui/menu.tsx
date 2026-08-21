@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Fragment, useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Reanimated, {
   interpolate,
@@ -14,7 +14,7 @@ import { createThemedStyles, useTheme } from './theme';
 export interface MenuItem {
   key: string;
   label: string;
-  /** 设计稿里菜单分组之间空 10pt */
+  /** 这一条起一个新分组:上面画一条分割线(设计稿是空 10pt 的留白,见 `separator`) */
   gapBefore?: boolean;
   /** 一组互斥选项里当前生效的那条(排序切换),用主题色 + 加粗标出来 */
   selected?: boolean;
@@ -65,17 +65,23 @@ export function OverflowMenu({ open, onClose, items, top }: OverflowMenuProps) {
         {/* 设计稿给面板设了 max-height 520 + overflow-y:auto——条目多到顶格时要能滚,
             不然最下面几条够不着(收藏夹切换菜单的夹数是用户定的) */}
         <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
-          {items.map((item) => (
-            <Pressable
-              key={item.key}
-              onPress={item.onPress}
-              android_ripple={{ color: theme.colors.divider }}
-              style={[styles.item, item.gapBefore === true && styles.itemGap]}
-            >
-              <Text style={[styles.label, item.selected === true && styles.labelSelected]}>
-                {item.label}
-              </Text>
-            </Pressable>
+          {items.map((item, index) => (
+            <Fragment key={item.key}>
+              {/* 第一条上面不画:面板顶上贴着一条线没有分组意义,还会怼到圆角上
+                  (版块菜单的排序组在没有待办条目时正好落在第一条) */}
+              {item.gapBefore === true && index > 0 && (
+                <View style={styles.separator} pointerEvents="none" />
+              )}
+              <Pressable
+                onPress={item.onPress}
+                android_ripple={{ color: theme.colors.divider }}
+                style={styles.item}
+              >
+                <Text style={[styles.label, item.selected === true && styles.labelSelected]}>
+                  {item.label}
+                </Text>
+              </Pressable>
+            </Fragment>
           ))}
         </ScrollView>
       </Reanimated.View>
@@ -106,8 +112,15 @@ const useStyles = createThemedStyles((theme) => ({
     justifyContent: 'center',
     paddingHorizontal: 22,
   },
-  itemGap: {
-    marginTop: 10,
+  /**
+   * 分组分割线。设计稿在分组之间空 10pt,但菜单本身没有分隔线,那段留白看着
+   * 就是「间距做错了」(用户两次都是这么报的)——所以把留白整个换成一条 hairline:
+   * **不留外距**,条目还是一条挨一条(间距全齐),分组靠线本身表达,不靠空隙。
+   * 线不吃点击(hairline 进不了热区),两侧条目的 50 高热区也不受影响。
+   */
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: theme.colors.divider,
   },
   label: {
     ...theme.typography.menuItem,

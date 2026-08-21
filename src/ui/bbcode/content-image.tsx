@@ -5,13 +5,31 @@ import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-nat
 import { Icon } from '../icon';
 import { useImagesUnlocked, usePreferThumbnail } from '../network';
 import { createThemedStyles, useTheme } from '../theme';
-import { imageSizeOf, rememberImageSize, type ImageSize } from './image-size';
+import {
+  CONTENT_IMAGE_MIN_ASPECT,
+  imageSizeOf,
+  isLongImage,
+  rememberImageSize,
+  type ImageSize,
+} from './image-size';
 
 /** 拿到真实尺寸之前的占位比例。取 4:3,比 16:9 更接近论坛里手机截图的常见比例。 */
 const INITIAL_ASPECT = 4 / 3;
 
-/** 竖长图(手机长截图)按整屏高展开会把楼层撑成一屏一张,压到这个比例封顶。 */
-const MIN_ASPECT = 0.6;
+/**
+ * 渐隐蒙层的高度与层数。项目没装渐变库,照 `board-icon.tsx` 的做法用多层 View 手搓:
+ * 96 高分 12 层,每层 8 —— 层高小于 8 的话层数上去了、每层透明度差反而不够,
+ * 还是会看出台阶;96 够放下角标又不至于吃掉半张图。
+ */
+const FADE_HEIGHT = 96;
+const FADE_BANDS = 12;
+
+/**
+ * 第 index 层(0 = 最上面那层)的不透明度。用平方而不是线性:线性叠出来上半段
+ * 一上来就发白、下半段又迟迟不到底,平方更接近真渐变的观感。最底一层实心,
+ * 图就是「化」进页面背景里的。
+ */
+const fadeOpacity = (index: number): number => ((index + 1) / FADE_BANDS) ** 2;
 
 /**
  * 不足这个宽度(原始像素)的算小图:按原尺寸摆,不铺满卡宽——
@@ -45,6 +63,10 @@ export interface ContentImageProps {
  *
  * 「仅 Wi-Fi 下加载图片」(22 票)在移动网络下把图收成一条占位,点一下照样展开;
  * 展开后拉哪一档清晰度由「图片加载策略」决定。
+ *
+ * 聊天记录、账单这类瘦长图会被比例封顶裁掉一截(不裁的话一楼能撑出好几屏,
+ * LegendList 的行高估算也跟着抖)。裁可以,但不能不吭声:被裁的图底部加一段
+ * 渐隐 + 一枚「点击查看完整」角标(`LongImageHint`),点开还是走大图查看器。
  */
 export function ContentImage({ uri, thumbnailUri, onPress, style }: ContentImageProps) {
   const styles = useStyles();
@@ -81,7 +103,7 @@ export function ContentImage({ uri, thumbnailUri, onPress, style }: ContentImage
   const natural = loaded?.uri === source ? loaded.size : imageSizeOf(source);
 
   // 小图按原尺寸(px 当 dp)靠左摆;大图照旧铺满卡宽、按真实比例给高,
-  // 竖长图压 MIN_ASPECT 封顶。小图不套这个封顶——16×64 的竖条原样放着就好
+  // 竖长图压 CONTENT_IMAGE_MIN_ASPECT 封顶。小图不套这个封顶——16×64 的竖条原样放着就好
   const small = natural !== undefined && natural.width <= SMALL_IMAGE_WIDTH;
   const sizeStyle = small
     ? {
@@ -93,8 +115,11 @@ export function ContentImage({ uri, thumbnailUri, onPress, style }: ContentImage
         aspectRatio:
           natural === undefined
             ? INITIAL_ASPECT
-            : Math.max(MIN_ASPECT, natural.width / Math.max(1, natural.height)),
+            : Math.max(CONTENT_IMAGE_MIN_ASPECT, natural.width / Math.max(1, natural.height)),
       };
+
+  // 只有走封顶那条路的大图才会被裁;小图按原尺寸摆,一个像素都没少
+  const long = !small && natural !== undefined && isLongImage(natural);
 
   return (
     <Pressable style={style} onPress={onPress === undefined ? undefined : () => onPress(uri)}>
@@ -103,6 +128,9 @@ export function ContentImage({ uri, thumbnailUri, onPress, style }: ContentImage
           source={{ uri: source }}
           style={styles.image}
           contentFit="cover"
+          // cover 默认居中裁,长图会上下各切一半:蒙层说「下面还有」,顶上却也少了
+          // 一截,对不上。长图改成贴顶,裁掉的部分全在下面,和提示是一回事
+          contentPosition={long ? 'top' : 'center'}
           // memory-disk 而不是 disk:disk 档没有内存缓存,列表回收后同一张图重新上屏
           // 要再从磁盘读一遍、再解码一遍,来回滚就是反复付解码钱
           cachePolicy="memory-disk"
@@ -119,8 +147,43 @@ export function ContentImage({ uri, thumbnailUri, onPress, style }: ContentImage
           onError={() => setFailedUri(source)}
           accessibilityIgnoresInvertColors
         />
+        {long && <LongImageHint openable={onPress !== undefined} />}
       </View>
     </Pressable>
+  );
+}
+
+/**
+ * 长图底部的「下面还有」提示:一段自下而上的渐隐 + 一枚胶囊角标。
+ *
+ * 只是提示,不吃点击(`pointerEvents:'none'`)——点哪儿都还是打开大图查看器,
+ * 在那儿能完整上下滚。渐隐取正文背景色,图看着是化进页面而不是被切了一刀。
+ */
+function LongImageHint({ openable }: { openable: boolean }) {
+  const styles = useStyles();
+  const theme = useTheme();
+
+  return (
+    <View style={styles.fade} pointerEvents="none">
+      {Array.from({ length: FADE_BANDS }, (_, index) => (
+        <View
+          key={index}
+          style={{
+            flex: 1,
+            backgroundColor: theme.colors.bg,
+            opacity: fadeOpacity(index),
+          }}
+        />
+      ))}
+      <View style={styles.badgeRow}>
+        <View style={styles.badge}>
+          <Icon name="expand_more" size={13} color={theme.colors.primary} />
+          <Text style={styles.badgeText}>
+            {openable ? '长图 · 点击查看完整' : '长图 · 已截断'}
+          </Text>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -134,6 +197,41 @@ const useStyles = createThemedStyles((theme) => ({
     width: '100%',
     height: '100%',
     borderRadius: theme.radius.md,
+  },
+  // 底部圆角要自己裁一遍:蒙层是方的,不裁会从图片的圆角外面探出两只角
+  fade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: FADE_HEIGHT,
+    borderBottomLeftRadius: theme.radius.md,
+    borderBottomRightRadius: theme.radius.md,
+    overflow: 'hidden',
+  },
+  // 角标单独一行居中:绝对定位的子节点不靠 alignSelf 摆,免得各版本 Yoga 行为不一
+  badgeRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 10,
+    alignItems: 'center',
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    height: 24,
+    paddingLeft: theme.spacing.sm,
+    paddingRight: theme.spacing.md,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.primaryContainer,
+  },
+  badgeText: {
+    ...theme.typography.cardMeta,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    includeFontPadding: false,
   },
   // 折叠态与「加载失败」同一个形状,只是文案与图标不同
   locked: {

@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   attachImageSizePersistence,
   clearImageSizes,
+  CONTENT_IMAGE_MIN_ASPECT,
   imageSizeOf,
+  isLongImage,
   rememberImageSize,
   type ImageSize,
 } from './image-size';
@@ -51,6 +53,36 @@ describe('图片尺寸缓存', () => {
       rememberImageSize('a.jpg', { width: 200, height: 100 });
     }
     expect(imageSizeOf('a.jpg')).toEqual({ width: 200, height: 100 });
+  });
+});
+
+describe('长图判据', () => {
+  it('横图和方图都不算', () => {
+    expect(isLongImage({ width: 1200, height: 800 })).toBe(false);
+    expect(isLongImage({ width: 800, height: 800 })).toBe(false);
+  });
+
+  it('竖一点但没到封顶的不算(这张不会被裁)', () => {
+    // 0.75 > 0.6:铺满卡宽后按真实比例给高,一个像素没少
+    expect(isLongImage({ width: 900, height: 1200 })).toBe(false);
+  });
+
+  it('1:2 的账单截图算——原案的 1:3 会把它漏掉', () => {
+    expect(isLongImage({ width: 750, height: 1500 })).toBe(true);
+  });
+
+  it('1:10 的聊天记录长截图算', () => {
+    expect(isLongImage({ width: 750, height: 7500 })).toBe(true);
+  });
+
+  it('阈值就在封顶那一刀上:正好等于封顶的不算,瘦一点点就算', () => {
+    expect(isLongImage({ width: CONTENT_IMAGE_MIN_ASPECT * 1000, height: 1000 })).toBe(false);
+    expect(isLongImage({ width: CONTENT_IMAGE_MIN_ASPECT * 1000 - 1, height: 1000 })).toBe(true);
+  });
+
+  it('宽高有一边是 0(解码失败)不当长图', () => {
+    expect(isLongImage({ width: 0, height: 1000 })).toBe(false);
+    expect(isLongImage({ width: 100, height: 0 })).toBe(false);
   });
 });
 

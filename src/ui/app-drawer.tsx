@@ -60,6 +60,9 @@ const ENTRIES: readonly DrawerEntry[] = [
   { key: 'check-in', icon: 'workspace_premium', label: '每日签到', status: 'check-in' },
   { key: 'add-board', icon: 'library_add', label: '添加版面 ID' },
   { key: 'from-url', icon: 'arrow_forward', label: '由 URL 读取' },
+  // 收藏夹(收藏的主题)与收藏夹管理(新建/改名/设默认)是两屏,顶栏 kebab 撤掉后
+  // 前者只剩这一个入口,两条挨着放
+  { key: 'favorites', icon: 'bookmark', label: '收藏夹', href: '/favorites' },
   { key: 'folders', icon: 'folder_special', label: '收藏夹管理', href: '/favorites/folders' },
   { key: 'clear-favor', icon: 'warning', label: '清空我的收藏' },
   // 我的主题/我的回复是同一个屏,只差一个 kind(14 票)
@@ -68,6 +71,9 @@ const ENTRIES: readonly DrawerEntry[] = [
   // 设计稿把「我的缓存」放在首页菜单里(MENUS.home),抽屉这条是顺手的第二入口——
   // 抽屉在每一屏都拉得出来,不必先退回首页再开菜单
   { key: 'caches', icon: 'cached', label: '我的缓存', href: '/caches' },
+  // 短消息整块不在 v1(spec §1、CONTEXT.md「短消息」),入口留着走「本版本未开放」——
+  // 顶栏 kebab 里原本就有这一条,撤 kebab 时一并搬过来,和通知凑成消息类的一组
+  { key: 'messages', icon: 'sms', label: '短消息' },
   {
     key: 'notifications',
     icon: 'notifications_active',

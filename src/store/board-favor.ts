@@ -4,6 +4,7 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import {
   addBoardFavorite,
@@ -11,9 +12,11 @@ import {
   fetchBoardFavorites,
   removeBoardFavorite,
   type Board,
+  type BoardTree,
 } from '@/core/api';
 
 import { useAccounts } from './accounts';
+import { useBoardTree } from './board-tree';
 import { fetchNga } from './nga-client';
 
 /**
@@ -38,6 +41,56 @@ export function useBoardFavorites(): UseQueryResult<Board[]> {
     // 接口(ADR-0002:能少打就少打)。改动都走 invalidate,不靠这个 TTL 保新。
     staleTime: 5 * 60 * 1000,
   });
+}
+
+/** 收藏还没拉回来时的空列表。用常量而不是每次 `?? []`,免得每次渲染都换个引用把下游 memo 打穿。 */
+const NO_BOARDS: readonly Board[] = [];
+
+/**
+ * 版块 id → 图标地址。
+ *
+ * 图标地址只有分类树接口给得出来(`other.forum_icon_list` 的前缀 + id + 后缀,
+ * 见 core/api/board-tree.ts),forum_favor2 的条目只有 id/name/info。
+ */
+function iconIndexOf(tree: BoardTree | undefined): ReadonlyMap<number, string> {
+  const index = new Map<number, string>();
+  for (const category of tree?.categories ?? []) {
+    for (const group of category.groups) {
+      for (const board of group.boards) {
+        if (board.iconUrl !== undefined) index.set(board.id, board.iconUrl);
+      }
+    }
+  }
+  return index;
+}
+
+/**
+ * 云端收藏列表,图标按 id 从分类树认领。
+ *
+ * 收藏接口不下发图标,原样画出来整屏都是「斜纹圆底 + 首字」的占位;而分类树
+ * (`useBoardTree`,冷启动就有 MMKV 里那份缓存)里同一个 id 的版块带着地址。
+ * 认不到的(手输 id 加的冷门版块、树里没有的合集)保持占位,下次分类树更新后自动补上。
+ *
+ * 返回的数组引用只随「收藏列表」或「分类树」变化,首页那个按分类缓存的行数组才不会被打穿。
+ */
+export function useFavoriteBoards(): readonly Board[] {
+  const { data } = useBoardFavorites();
+  const tree = useBoardTree().data?.tree;
+  const icons = useMemo(() => iconIndexOf(tree), [tree]);
+  return useMemo(() => {
+    const boards = data ?? NO_BOARDS;
+    if (icons.size === 0) return boards;
+    let patched = false;
+    const next = boards.map((board) => {
+      if (board.iconUrl !== undefined) return board;
+      const iconUrl = icons.get(board.id);
+      if (iconUrl === undefined) return board;
+      patched = true;
+      return { ...board, iconUrl };
+    });
+    // 一个都没补到就把原数组还回去,省掉一次无谓的引用变化
+    return patched ? next : boards;
+  }, [data, icons]);
 }
 
 /** 某个版块当前是否已收藏。列表还没拉回来时按「未收藏」画,回来后自动纠正。 */

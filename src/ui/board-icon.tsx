@@ -48,9 +48,11 @@ const StripedBackground = memo(function StripedBackground({ color }: { color: st
 export function BoardIcon({ board }: { board: Board }) {
   const styles = useStyles();
   const theme = useTheme();
-  const [failed, setFailed] = useState(false);
+  // 记的是「哪个版块的图挂了」而不是一个布尔:列表回收时同一个组件会换到别的版块上,
+  // 布尔会把上一个版块的失败带过去,让本来有图的格子也画成占位
+  const [failedId, setFailedId] = useState<number | null>(null);
 
-  if (board.iconUrl === undefined || failed) {
+  if (board.iconUrl === undefined || failedId === board.id) {
     return (
       <View style={styles.placeholder}>
         <StripedBackground color={theme.colors.surface} />
@@ -72,7 +74,7 @@ export function BoardIcon({ board }: { board: Board }) {
       transition={120}
       // 列表复用时换 id 就重新走一遍加载,不会串图
       recyclingKey={String(board.id)}
-      onError={() => setFailed(true)}
+      onError={() => setFailedId(board.id)}
       accessibilityIgnoresInvertColors
     />
   );

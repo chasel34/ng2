@@ -12,6 +12,9 @@
  * 「首次进入帖子的比例跳变」大头在**下次启动重看同一批图**,不落盘每次冷启动
  * 都要重跳一遍。存储实现(MMKV)在 `./image-size.persist.ts`,这里不 import RN,
  * 保持纯函数模块可单测——本仓库跑不了组件渲染测试。
+ *
+ * 「尺寸 → 怎么摆」的判断(显示比例封顶、长图判据)也放这儿,同样是不碰 RN 的
+ * 纯计算:阈值是这次唯一值得写用例的东西,搁在组件里就测不到了。
  */
 
 export interface ImageSize {
@@ -77,6 +80,32 @@ export function rememberImageSize(uri: string, size: ImageSize): void {
  * 跟原图不是一回事,混在一起会让「小图按原尺寸摆」的判断认错。
  */
 export const imageSizeOf = (uri: string): ImageSize | undefined => sizes.get(uri);
+
+/**
+ * 正文大图的显示比例封顶(width / height)。
+ *
+ * 竖长图(手机长截图)按真实比例展开会把楼层撑成一屏一张,所以铺满卡宽 W 之后
+ * 高度封在 W / 0.6 ≈ 1.67W —— 比这更瘦的图会被 `contentFit` 裁掉一截。
+ */
+export const CONTENT_IMAGE_MIN_ASPECT = 0.6;
+
+/**
+ * 这张图会不会被封顶裁掉一截(=「长图」,要给用户提示的那种)。
+ *
+ * 原案给的判据是「渲染高度 > 视口高 × 1.6,或宽高比瘦过 1:3,取先触发的」。
+ * 落到这套渲染上,这两条都比封顶本身更严,中间那段会漏:
+ *
+ * - 1:3   → 比 1:1.67 的封顶晚触发,1:2 的账单截图照样被吃掉 17% 却没有提示;
+ * - 1.6 屏 → 更晚:封顶后的显示高只有 1.67W ≈ 0.7 屏(412×915 的机器上 634 vs 1464),
+ *   永远够不到,这条在手机上根本不可能先触发。
+ *
+ * 所以「先触发的那个」就是封顶自己:判据直接绑在实际裁切点上——被裁的一张不漏,
+ * 没被裁的一张不冤(角标写着「点击查看完整」,画在没裁的图上就是骗人)。
+ */
+export function isLongImage(size: ImageSize): boolean {
+  if (size.width <= 0 || size.height <= 0) return false;
+  return size.width / size.height < CONTENT_IMAGE_MIN_ASPECT;
+}
 
 /** 只给测试用:清空缓存与持久层挂接,免得用例之间互相影响。 */
 export const clearImageSizes = (): void => {

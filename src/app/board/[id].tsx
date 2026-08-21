@@ -421,8 +421,14 @@ function SubBoardBar({
       style={styles.subBoardBar}
       contentContainerStyle={styles.subBoardBarContent}
     >
+      {/* key 用 kind+id:合集与版块各自编号(stid vs fid),只用 id 有撞车的可能;
+          和子版块页(sub-boards.tsx)保持同一条规则 */}
       {boards.map((board) => (
-        <Pressable key={board.id} style={styles.subBoardTag} onPress={() => onPress(board)}>
+        <Pressable
+          key={`${board.kind}/${board.id}`}
+          style={styles.subBoardTag}
+          onPress={() => onPress(board)}
+        >
           <Text style={styles.subBoardLabel} numberOfLines={1}>
             {board.name}
           </Text>

@@ -70,6 +70,7 @@ import { FloorCard, type FloorContext } from '@/ui/floor-card';
 import { Icon } from '@/ui/icon';
 import { stageImageViewer, type ImageViewerRequest } from '@/ui/image-viewer-request';
 import { InputDialog } from '@/ui/input-dialog';
+import { LastReadBanner } from '@/ui/last-read-banner';
 import { useLeftHanded } from '@/ui/appearance';
 import { showLoginPrompt } from '@/ui/login-prompt';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
@@ -100,6 +101,12 @@ const CONTENT_MOUNT_DELAY_MS = duration.panel + 32;
 
 /** 首屏楼层提交完成后再登记历史，避免同步 SQLite 写回头挤占同一帧。 */
 const HISTORY_VISIT_DELAY_MS = 96;
+
+/**
+ * 「上次读到第 N 楼」浮层的兜底寿命。它盖在楼层上,不该一直杵着;
+ * 5s 足够看清一句话并决定要不要点,再久就只剩碍事了。
+ */
+const RESUME_AUTO_HIDE_MS = 5000;
 
 /**
  * FAB 的两段动效(设计稿 isArticle 256 / 261 行):
@@ -371,6 +378,7 @@ export default function TopicScreen() {
     data: contentReady && onlyPid === undefined ? data : undefined,
     listRef,
     goToPage,
+    page,
     paused: onlyUser !== undefined,
     ...(jumpFloor === undefined ? {} : { jumpToFloor: jumpFloor }),
   });
@@ -381,30 +389,19 @@ export default function TopicScreen() {
   const download = useCacheDownloadProgress();
 
   /**
-   * 赞/踩一层(卡片钮与楼层菜单共用,状态天然同一份)。
-   * 未登录先引导登录;乐观更新与失败回滚在 store 层,这里只管吐提示。
+   * 赞/踩一层。入口只有楼层卡片上的 👍/👎 两个钮:楼层菜单里原本还有一组
+   * 「支持/反对」,和钮打的是同一个 `recommend.toggle`,纯重复(且菜单那份还多吐一句
+   * toast,同一个动作两套反馈)——已删,反馈统一由钮自己的变色 + 计数给。
+   * 未登录先引导登录;乐观更新与失败回滚在 store 层,这里只管报错。
    */
-  const runRecommend = (floor: Floor, action: RecommendAction, notify: boolean) => {
+  const runRecommend = (floor: Floor, action: RecommendAction) => {
     if (currentAccount() === null) {
       showLoginPrompt(router, '登录后才能点赞点踩');
       return;
     }
-    recommend
-      .toggle(recommendPidOf(floor), action)
-      .then((outcome) => {
-        if (outcome === undefined || !notify) return;
-        // 菜单入口照设计稿吐一句;取消也说一声,不然按了没反馈
-        showToast(
-          outcome.state === 'liked'
-            ? '已支持 +1'
-            : outcome.state === 'disliked'
-              ? '已反对 -1'
-              : '已取消',
-        );
-      })
-      .catch((cause: unknown) => {
-        showToast(cause instanceof Error ? cause.message : '操作失败,稍后再试');
-      });
+    recommend.toggle(recommendPidOf(floor), action).catch((cause: unknown) => {
+      showToast(cause instanceof Error ? cause.message : '操作失败,稍后再试');
+    });
   };
 
   const removeLocalRule = useLocalFilters((state) => state.remove);
@@ -430,9 +427,9 @@ export default function TopicScreen() {
     latest.current.router.push('/image-viewer');
   }, []);
 
-  // 赞踩(12 票):卡片钮不吐 toast,变色计数本身就是反馈
+  // 赞踩(12 票):不吐 toast,变色计数本身就是反馈
   const recommendFloor = useCallback((floor: Floor, action: RecommendAction) => {
-    latest.current.runRecommend(floor, action, false);
+    latest.current.runRecommend(floor, action);
   }, []);
 
   const openChain = useCallback((floor: Floor) => {
@@ -536,7 +533,9 @@ export default function TopicScreen() {
   };
 
   /**
-   * 楼层菜单,条目与顺序照设计稿 `MENUS.floor`(分组空隙在「只看此人」前)。
+   * 楼层菜单,条目与顺序照设计稿 `MENUS.floor`(分组线在「只看此人」前)。
+   * 设计稿里还有「支持/反对」两条,这里不放:同一张卡片上方就是 👍/👎 两个钮,
+   * 打的是同一个动作——菜单只留卡片上没有的入口。
    * 贴条/举报是本版本未开放的占位(spec §1);收藏直接复用 11 票的对话框。
    */
   const floorMenuItems = (): readonly MenuItem[] => {
@@ -547,12 +546,6 @@ export default function TopicScreen() {
     };
     return [
       { key: 'note', label: '贴条', onPress: pick(showNotAvailable) },
-      { key: 'like', label: '支持', onPress: pick(() => runRecommend(menuFloor, 'like', true)) },
-      {
-        key: 'dislike',
-        label: '反对',
-        onPress: pick(() => runRecommend(menuFloor, 'dislike', true)),
-      },
       { key: 'report', label: '举报', onPress: pick(showNotAvailable) },
       {
         key: 'sign',
@@ -670,11 +663,8 @@ export default function TopicScreen() {
         : (data?.floors ?? []),
     header: (
       <>
-        {/* 「上次读到第 N 楼」提示条(设计稿 progressTip):跟内容一起滚走。
-            只看此人期间楼号是过滤后的口径,跳过去会落错地方,先藏起来 */}
-        {onlyUser === undefined && resume.floor !== undefined && (
-          <ResumeBanner floor={resume.floor} onJump={resume.jump} onClose={resume.dismiss} />
-        )}
+        {/* 「上次读到第 N 楼」提示条不在这儿了:它现在是压在列表上方的浮层
+            (`LastReadBanner`),不占列表的布局,见下面 `styles.bodyArea` 那一层 */}
         {/* 只看此人过滤条(设计稿 onlyUser):退出即恢复全楼 */}
         {onlyUser !== undefined && (
           <View style={styles.onlyUserBar}>
@@ -704,6 +694,10 @@ export default function TopicScreen() {
     ),
     onScrollBeginDrag: () => {
       userScrolled.current = true;
+      // 手指刚一拖就把「上次读到」浮层淡掉:它盖在楼层上,用户开始读了就该让路。
+      // 接 begin-drag 而不是 momentum-end,是为了「一滚就走」而不是「停下才走」;
+      // 跳楼那种程序化滚动不走这个回调,浮层不会被自己的跳转提前收掉
+      resume.dismiss();
     },
     // 「自动加载下一页」(22 票)。翻页中(isPlaceholderData)不再触发,
     // 不然一口气能把好几页跳过去
@@ -774,7 +768,11 @@ export default function TopicScreen() {
         page={page}
         count={totalPages}
         onChange={goToPage}
-        onTarget={setPageInFlight}
+        onTarget={(target) => {
+          setPageInFlight(target);
+          // 横滑松手就定向了(只有真翻页才会回调),浮层不等 commit,当场淡出
+          resume.dismiss();
+        }}
         renderPage={renderPagerPage}
         style={styles.body}
       />
@@ -882,7 +880,22 @@ export default function TopicScreen() {
         </Pressable>
       )}
 
-      {body()}
+      {/* 列表区。包一层是为了给「上次读到」浮层一个定位容器:它绝对定位贴这一层的
+          顶边(也就是页码条/数据源提示条底下),而这一层是 flex:1 的整块列表区——
+          浮层不会因为父容器只有一条那么高而被裁掉(踩过的坑,见 memory) */}
+      <View style={styles.bodyArea}>
+        {body()}
+        {/* 只看某一楼/只看此人期间楼号是过滤后的口径,跳过去会落错地方,一律不放 */}
+        {resume.floor !== undefined && onlyPid === undefined && (
+          <LastReadBanner
+            floor={resume.floor}
+            visible={resume.visible}
+            onShown={resume.markShown}
+            onJump={resume.jump}
+            onClose={resume.dismiss}
+          />
+        )}
+      </View>
 
       {/* 「底部标签页」:页码条挪到屏幕底部,底色仍是顶栏那一档(格子是浅字) */}
       {settings.bottomPageBar && (
@@ -990,6 +1003,8 @@ interface ReadingProgressOptions {
   data: ReturnType<typeof useTopicDetail>['data'];
   listRef: RefObject<LegendListRef | null>;
   goToPage: (page: number) => void;
+  /** 屏上正看着的页码。翻页(页码条/跳页/横滑/自动翻页)一律收走提示条 */
+  page: number;
   /** 只看此人期间为 true:那时的楼号/总数是过滤后的口径,不能写进历史 */
   paused: boolean;
   /** 进场就要定位到的楼号(26 回复链的「在原帖中查看」);目标页数据到位后滚过去 */
@@ -1009,15 +1024,29 @@ function useReadingProgress({
   data,
   listRef,
   goToPage,
+  page,
   paused,
   jumpToFloor,
 }: ReadingProgressOptions) {
   // 进场那一刻的存档楼层。之后的滚动会推着进度涨,但提示条要说的是「上次」,
-  // 所以只在挂载时读一次;主楼都没读过(lastFloor 0)就不打扰
-  const [resumeFloor, setResumeFloor] = useState<number | undefined>(() => {
+  // 所以只在挂载时读一次;主楼都没读过(lastFloor 0)就不打扰。
+  // 注意这里**不会**因为提示条消失而被清空:淡出的那 200ms 里楼号还要接着显示
+  const [resumeFloor] = useState<number | undefined>(() => {
     const entry = peekHistoryEntry(topicId);
     return entry !== undefined && entry.lastFloor >= 1 ? entry.lastFloor : undefined;
   });
+  /**
+   * 提示条是不是已经收走了。**单向**:一旦为真,这次停留里就不再回到 false——
+   * 「消失」的语义是「我知道了」,不该因为翻回原来那页、或者退出只看此人就又冒出来。
+   */
+  const [resumeDismissed, setResumeDismissed] = useState(false);
+  const dismiss = useCallback(() => setResumeDismissed(true), []);
+  /**
+   * 提示条的进场动画已经在屏幕上跑完了(由 `LastReadBanner` 回报)。
+   * 5 秒兜底只能从这里起算,不能从「拿到 data」起算——见下面 auto-hide 那段注释。
+   */
+  const [resumeShown, setResumeShown] = useState(false);
+  const markShown = useCallback(() => setResumeShown(true), []);
   // 点了「回到那里」之后待兑现的目标楼层:目标页的数据到了才能滚过去。
   // 回复链带着楼号进场(jumpToFloor)走的也是这条兑现路径——两处只能有一套滚动逻辑
   const [pendingFloor, setPendingFloor] = useState<number | undefined>(jumpToFloor);
@@ -1088,11 +1117,41 @@ function useReadingProgress({
   const jump = () => {
     if (resumeFloor === undefined || data === undefined) return;
     // 设计稿 jumpToLast:提示条随即消失 + toast「已跳转到第 N 楼」
-    setResumeFloor(undefined);
+    dismiss();
     setPendingFloor(resumeFloor);
     showToast(`已跳转到第 ${resumeFloor} 楼`);
     goToPage(pageOfFloor(resumeFloor, data.rowsPerPage));
   };
+
+  /**
+   * 提示条该不该在场。数据没到位时先不放出来:那会儿还在骨架/转场,
+   * 「回到那里」也点不动(`jump` 要 `data.rowsPerPage` 才算得出页码)。
+   */
+  const resumeVisible =
+    resumeFloor !== undefined && !resumeDismissed && !paused && data !== undefined;
+
+  // 翻页即收走:横滑/页码条/跳页/自动翻页最终都落到 `page` 上,盯它一个就够
+  const pageAtMount = useRef(page);
+  useEffect(() => {
+    if (page !== pageAtMount.current) dismiss();
+  }, [page, dismiss]);
+
+  /**
+   * 兜底:亮够 RESUME_AUTO_HIDE_MS 还没人理就自己走。
+   *
+   * 判据是 `resumeShown`(提示条的进场动画在 UI 线程上跑完了),不是 `resumeVisible`
+   * (React 这边算出「该显示了」)。两者平时只差一帧,但首屏重的时候能差出好几秒:
+   * `resumeVisible` 只说明 JS 提交了这一帧,而首页主楼那种长图长文会把 UI 线程堵住,
+   * 卡片要等挂载排完队才真的亮出来。按 `resumeVisible` 起算的话,那几秒是从用户的
+   * 5 秒里白扣的——真机上抓到过只亮 0.8 秒就走的一次(2026-08-20 录屏)。
+   * Reanimated 的动画跟着 UI 线程的帧回调走,线程堵着它就不前进,所以「进场动画跑完」
+   * 正好是「这张卡确实亮在屏上」的判据。
+   */
+  useEffect(() => {
+    if (!resumeVisible || !resumeShown) return;
+    const timer = setTimeout(dismiss, RESUME_AUTO_HIDE_MS);
+    return () => clearTimeout(timer);
+  }, [resumeVisible, resumeShown, dismiss]);
 
   // 目标页的数据到位后滚到那一楼。翻页期间 keepPreviousData 还在展示旧页,
   // 必须核对 data.page,不然会拿旧页的楼层号错滚一通
@@ -1118,53 +1177,15 @@ function useReadingProgress({
 
   return {
     floor: resumeFloor,
-    dismiss: () => setResumeFloor(undefined),
+    /** 提示条此刻该不该在场;退场动画由 `LastReadBanner` 自己跑完再下场 */
+    visible: resumeVisible,
+    /** 提示条回报「进场动画跑完了」的入口:5 秒兜底从这一刻起算 */
+    markShown,
+    dismiss,
     jump,
     viewabilityConfig: viewability.viewabilityConfig,
     onViewableItemsChanged: viewability.onViewableItemsChanged,
   };
-}
-
-/**
- * 「上次读到第 N 楼」提示条。样式与出现动画照设计稿 progressTip:
- * primary-c 底、圆角 12,进场 .28s 上浮淡入(omup);关闭/跳转即消失,无退场动画。
- */
-function ResumeBanner({
-  floor,
-  onJump,
-  onClose,
-}: {
-  floor: number;
-  onJump: () => void;
-  onClose: () => void;
-}) {
-  const styles = useStyles();
-  const theme = useTheme();
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    progress.value = withTiming(1, { duration: duration.notice, easing: easeStandardWorklet });
-  }, [progress]);
-
-  const riseStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    transform: [{ translateY: interpolate(progress.value, [0, 1], [14, 0]) }],
-  }));
-
-  return (
-    <Reanimated.View style={[styles.resumeBanner, riseStyle]}>
-      <Icon name="bookmark" size={19} color={theme.colors.primary} />
-      <Text style={styles.resumeText}>
-        上次读到 <Text style={styles.resumeStrong}>第 {floor} 楼</Text>
-      </Text>
-      <Pressable onPress={onJump} accessibilityLabel={`回到第 ${floor} 楼`}>
-        <Text style={styles.resumeAction}>回到那里</Text>
-      </Pressable>
-      <Pressable onPress={onClose} accessibilityLabel="关闭提示" hitSlop={8}>
-        <Icon name="close" size={17} color={theme.colors.meta} />
-      </Pressable>
-    </Reanimated.View>
-  );
 }
 
 /**
@@ -1448,6 +1469,10 @@ const useStyles = createThemedStyles((theme) => ({
   body: {
     flex: 1,
   },
+  /** 列表区 + 压在它上面的浮层(「上次读到」)的定位容器 */
+  bodyArea: {
+    flex: 1,
+  },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -1472,35 +1497,6 @@ const useStyles = createThemedStyles((theme) => ({
     ...theme.typography.drawerItem,
     fontWeight: '600',
     color: theme.colors.onPrimary,
-  },
-  /** 设计稿 progressTip:外距 10 12 2、内距 11 12 11 14、圆角 12、primary-c 底 */
-  resumeBanner: {
-    marginTop: 10,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: 2,
-    paddingVertical: 11,
-    paddingLeft: theme.spacing.row,
-    paddingRight: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.primaryContainer,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  resumeText: {
-    ...theme.typography.resumeTip,
-    color: theme.colors.fg,
-    flex: 1,
-  },
-  resumeStrong: {
-    fontWeight: '700',
-  },
-  resumeAction: {
-    ...theme.typography.resumeTip,
-    fontWeight: '700',
-    color: theme.colors.primary,
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: 6,
   },
   /** 设计稿 onlyUser 过滤条:外距 10 12 2、内距 10 14、圆角 12、surface-2 底加 divider 描边 */
   onlyUserBar: {

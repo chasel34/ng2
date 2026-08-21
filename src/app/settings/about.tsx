@@ -122,7 +122,7 @@ export default function AboutScreen() {
               NG
             </Text>
           </View>
-          <Text style={styles.name}>NGA 阅读器</Text>
+          <Text style={styles.name}>NG2</Text>
           <Text style={styles.version}>
             v{version} (build {build}) · 第三方客户端
           </Text>

@@ -3,7 +3,6 @@ import { useRouter, type Href } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Reanimated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   parseBoardIdInput,
@@ -18,6 +17,7 @@ import {
   useAddBoardFavoriteById,
   useBoardFavoriteMutations,
   useBoardFavorites,
+  useFavoriteBoards,
 } from '@/store/board-favor';
 import { useBoardTree, useDismissedAnnouncements } from '@/store/board-tree';
 import { AppDrawerContent } from '@/ui/app-drawer';
@@ -30,11 +30,9 @@ import { Icon, type IconName } from '@/ui/icon';
 import { initialOf } from '@/ui/initial';
 import { InputDialog } from '@/ui/input-dialog';
 import { showLoginPrompt } from '@/ui/login-prompt';
-import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { showSnackbar } from '@/ui/snackbar';
 import { SwipePager } from '@/ui/swipe-pager';
 import { createThemedStyles, useTheme } from '@/ui/theme';
-import { showNotAvailable } from '@/ui/toast';
 import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
 
 /** 设计稿:tab 44 高、版块宫格三列。 */
@@ -52,8 +50,6 @@ const GRID_COLUMNS = 3;
 const FAVORITES_CATEGORY_ID = 'favorites/mine';
 /** 设计稿这一组的圆章写的是「收」,不是组名首字「我」。 */
 const FAVORITES_INITIAL = '收';
-/** 收藏还没拉回来时的空列表。用常量而不是 `?? []`,免得每次渲染都换一个引用把 memo 打穿。 */
-const NO_BOARDS: readonly Board[] = [];
 
 /**
  * 服务端没有生效中的公告时显示的常驻提示——文案取自设计稿首页。
@@ -161,11 +157,9 @@ function buildFavoriteRows(
 export default function HomeScreen() {
   const styles = useStyles();
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [addBoardOpen, setAddBoardOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [urlOpen, setUrlOpen] = useState(false);
@@ -212,7 +206,8 @@ export default function HomeScreen() {
 
   const signedIn = useAccounts((state) => state.currentUid) !== null;
   const favorites = useBoardFavorites();
-  const favoriteBoards = favorites.data ?? NO_BOARDS;
+  // 收藏接口不下发图标,列表在 store 里按 id 从分类树认领过一遍才交给宫格
+  const favoriteBoards = useFavoriteBoards();
   const { clear: clearFavorites, restore: restoreFavorites } = useBoardFavoriteMutations();
   const addFavoriteById = useAddBoardFavoriteById();
 
@@ -308,23 +303,6 @@ export default function HomeScreen() {
       return rows;
     },
     [rowsCache, announcement, favoriteBoards, favoritesPlaceholder],
-  );
-
-  const menuItems: readonly MenuItem[] = useMemo(
-    () =>
-      // 还没做:我的主题/我的回复 14、设置 22;短消息整块不做(spec §1)
-      ['我的主题', '我的回复', '我的缓存', '短消息', '收藏夹', '设置'].map((label, index) => ({
-        key: label,
-        label,
-        gapBefore: index === 3,
-        onPress: () => {
-          setMenuOpen(false);
-          if (label === '收藏夹') router.push('/favorites');
-          else if (label === '我的缓存') router.push('/caches');
-          else showNotAvailable();
-        },
-      })),
-    [router],
   );
 
   // 横滑换了分类之后,选中的那一格可能在 tab 条视野外
@@ -526,19 +504,15 @@ export default function HomeScreen() {
           onPress={() => setDrawerOpen(true)}
           accessibilityLabel="打开抽屉"
         />
-        <TopBarTitle>NGA 阅读器</TopBarTitle>
+        <TopBarTitle>NG2</TopBarTitle>
+        {/* 原先右边还有个「更多」kebab,条目全部并进了左侧抽屉(它在每一屏都拉得出来,
+            不必先退回首页),顶栏只留搜索 */}
         <TopBarButton
           icon="search"
           size={23}
           onPress={() => router.push('/search')}
           accessibilityLabel="搜索"
           style={topBarSpacer}
-        />
-        <TopBarButton
-          icon="more_vert"
-          size={23}
-          onPress={() => setMenuOpen(true)}
-          accessibilityLabel="更多"
         />
       </TopBar>
 
@@ -572,12 +546,6 @@ export default function HomeScreen() {
           onOpenUrl={openFromUrl}
         />
       </Drawer>
-      <OverflowMenu
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        items={menuItems}
-        top={insets.top + 6}
-      />
       {/* 抽屉的两个收藏入口,对话框归宿主页面(设计稿:关抽屉 → 弹框) */}
       <InputDialog
         open={addBoardOpen}
@@ -686,7 +654,10 @@ const HomeRowView = memo(function HomeRowView({
               <View style={styles.cellIcon}>
                 <BoardIcon board={board} />
               </View>
-              <Text style={styles.cellLabel}>{board.name}</Text>
+              {/* 版块名长了要么折行要么打省略号,不能在半路被裁掉(「网事杂谈」→「网事杂」) */}
+              <Text style={styles.cellLabel} numberOfLines={2} ellipsizeMode="tail">
+                {board.name}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -828,5 +799,8 @@ const useStyles = createThemedStyles((theme) => ({
     ...theme.typography.gridLabel,
     color: theme.colors.fg,
     textAlign: 'center',
+    // 撑满格子而不是让 Text 自己量:父容器 alignItems 是 center,
+    // 交给它量宽度时长名字容易被算窄一截,折行位置跟着往前跑
+    alignSelf: 'stretch',
   },
 }));

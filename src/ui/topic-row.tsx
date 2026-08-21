@@ -13,6 +13,13 @@ import { createThemedStyles, useTheme, type Theme } from './theme';
 const NBSP = ' ';
 
 /**
+ * meta 行的行高与图标字号(取值推导见样式表里 `metaText` / `metaIcon` 的注释)。
+ * 行高要 ≥ 图标字号,不然 Android 会按图标把行盒撑开,写死行高就白写了。
+ */
+const META_LINE_HEIGHT = 17;
+const META_ICON_SIZE = 9;
+
+/**
  * 昵称截断(原 maxWidth:130 像素截断的近似):9 个全角字符 ≈ 117px。
  * 合并后的右侧 Text 只能整体加 numberOfLines,像素截断会把回复数一起省略掉,
  * 所以名字这段在 JS 里截。
@@ -101,7 +108,7 @@ export const TopicRow = memo(function TopicRow({ topic, onPress, time }: TopicRo
             numberOfLines 的省略号——那会连图标和回复数一起吃掉 */}
         <Text style={time === undefined ? styles.lastPoster : styles.time} numberOfLines={1}>
           {clipName(time ?? topic.lastPoster ?? '')}
-          <Text style={styles.metaIconSmall}>{`  ${ICON_GLYPHS.chat_bubble} `}</Text>
+          <Text style={styles.metaIcon}>{`  ${ICON_GLYPHS.chat_bubble} `}</Text>
           <Text style={styles.replies}>{topic.replies}</Text>
         </Text>
       </View>
@@ -109,81 +116,99 @@ export const TopicRow = memo(function TopicRow({ topic, onPress, time }: TopicRo
   );
 });
 
-const useStyles = createThemedStyles((theme) => ({
-  // 设计稿:14/16/12 的行内边距 + 1px 分隔线
-  row: {
-    paddingTop: theme.spacing.row,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
-  },
-  // 二级列表(simple-list)的标题是 16 档,比主题列表页的 17 小一号
-  titleLineSimple: {
-    ...theme.typography.listTitle,
-  },
-  titleCollection: {
-    fontWeight: '600',
-  },
-  // 标记 span 会继承外层标题的彩色样式(粗/斜/下划线),这里逐项写死抵消——
-  // 旧结构里它们是彩色 span 的兄弟节点,本来就不吃标题样式
-  locked: {
-    color: theme.colors.danger,
-    fontWeight: '600',
-    fontStyle: 'normal',
-    textDecorationLine: 'none',
-  },
-  attachment: {
-    color: theme.colors.accent,
-    fontWeight: '700',
-    fontStyle: 'normal',
-    textDecorationLine: 'none',
-  },
-  tag: {
-    color: theme.colors.tag,
-    fontWeight: '400',
-    fontStyle: 'normal',
-    textDecorationLine: 'none',
-  },
-  metaLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 9,
-  },
-  author: {
+const useStyles = createThemedStyles((theme) => {
+  /**
+   * meta 行两侧文字的共同底子。行高写死 + 去掉 Android 的字体上下留白,是为了让
+   * 左右两个 Text 的盒子**一样高**:盒高不等时 `alignItems:'center'` 是各自居中,
+   * 两边的基线就错开了——作者名和回复数一高一低就是这么来的(内联的图标字形
+   * 大小原本还不一样,15 vs 14,正好把两个盒子撑成不同高度)。
+   * 摊进每条样式而不是在 JSX 里拼数组:行样式保持单个稳定对象,回收重绑少 diff 一层。
+   */
+  const metaText = {
     ...theme.typography.listMeta,
-    color: theme.colors.link,
-    // 原 Icon(15) + gap(6) + 名字(118)的总宽,内联字形后收进同一个 Text
-    maxWidth: 139,
-  },
-  // 昵称的宽度控制在 clipName 里(JS 截断),这里不能再限 maxWidth——
-  // 合并后的 Text 还装着图标和回复数,像素截断会把它们剪掉
-  lastPoster: {
-    ...theme.typography.listMeta,
-    color: theme.colors.link,
-    marginLeft: 'auto',
-  },
-  // simple-list 的 when 槽:同一位置,但用 meta 色(设计稿 color:var(--meta))
-  time: {
-    ...theme.typography.listMeta,
-    color: theme.colors.meta,
-    marginLeft: 'auto',
-  },
-  // 图标字形 span:垂直对齐靠字号贴近文字字号,不再有独立视图的 alignItems
-  metaIcon: {
-    fontFamily: ICON_FONT_FAMILY,
-    fontSize: 15,
-    color: theme.colors.meta,
-  },
-  metaIconSmall: {
-    fontFamily: ICON_FONT_FAMILY,
-    fontSize: 14,
-    color: theme.colors.meta,
-  },
-  // span 里只有文字样式生效(minWidth/textAlign 这类布局属性在 span 上无效)
-  replies: {
-    ...theme.typography.listMeta,
-    color: theme.colors.link,
-  },
-}));
+    lineHeight: META_LINE_HEIGHT,
+    includeFontPadding: false,
+  };
+
+  return {
+    // 设计稿:14/16/12 的行内边距 + 1px 分隔线
+    row: {
+      paddingTop: theme.spacing.row,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.divider,
+    },
+    // 二级列表(simple-list)的标题是 16 档,比主题列表页的 17 小一号
+    titleLineSimple: {
+      ...theme.typography.listTitle,
+    },
+    titleCollection: {
+      fontWeight: '600',
+    },
+    // 标记 span 会继承外层标题的彩色样式(粗/斜/下划线),这里逐项写死抵消——
+    // 旧结构里它们是彩色 span 的兄弟节点,本来就不吃标题样式
+    locked: {
+      color: theme.colors.danger,
+      fontWeight: '600',
+      fontStyle: 'normal',
+      textDecorationLine: 'none',
+    },
+    attachment: {
+      color: theme.colors.accent,
+      fontWeight: '700',
+      fontStyle: 'normal',
+      textDecorationLine: 'none',
+    },
+    tag: {
+      color: theme.colors.tag,
+      fontWeight: '400',
+      fontStyle: 'normal',
+      textDecorationLine: 'none',
+    },
+    metaLine: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 9,
+    },
+    author: {
+      ...metaText,
+      color: theme.colors.link,
+      // 原 Icon(15) + gap(6) + 名字(118)的总宽,内联字形后收进同一个 Text
+      maxWidth: 139,
+    },
+    // 昵称的宽度控制在 clipName 里(JS 截断),这里不能再限 maxWidth——
+    // 合并后的 Text 还装着图标和回复数,像素截断会把它们剪掉
+    lastPoster: {
+      ...metaText,
+      color: theme.colors.link,
+      marginLeft: 'auto',
+    },
+    // simple-list 的 when 槽:同一位置,但用 meta 色(设计稿 color:var(--meta))
+    time: {
+      ...metaText,
+      color: theme.colors.meta,
+      marginLeft: 'auto',
+    },
+    /**
+     * 图标字形 span。设计稿那两个图标(15 / 14)是 flex 子元素、由 `align-items:center`
+     * 摆正的;这里它们是 `<Text>` 里的 span,只能按**基线**对齐,所以尺寸得重算:
+     * 图标字体的 em 盒是 0…1em(实测 head/hhea:upem 512、bbox 0–512、descent 0),
+     * 字号 S 的图标视觉中心就在基线上方 S/2;而 12.5 的正文视觉中心只在基线上方
+     * 约 4.5(数字取 cap 高一半 ≈0.36em,汉字 ≈0.38em)。15px 的图标中心高出 3pt,
+     * 就是「图标偏上、数字偏下」。取 S=11 让中心落在 5.5,残差不到 1pt,同时图标
+     * 的墨迹高度(≈0.83S≈9.1)和正文 cap 高(≈8.9)基本齐平。
+     * 两个图标统一到同一档,免得左右两个 Text 的行盒又不一样高。
+     */
+    metaIcon: {
+      fontFamily: ICON_FONT_FAMILY,
+      fontSize: META_ICON_SIZE,
+      color: theme.colors.meta,
+    },
+    // span 里只有文字样式生效(minWidth/textAlign 这类布局属性在 span 上无效)
+    replies: {
+      color: theme.colors.link,
+    },
+  };
+});
