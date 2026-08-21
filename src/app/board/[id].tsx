@@ -1,7 +1,7 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,6 +20,7 @@ import {
 import { useLeftHanded } from '@/ui/appearance';
 import { Icon } from '@/ui/icon';
 import { showLoginPrompt } from '@/ui/login-prompt';
+import { duration } from '@/ui/motion';
 import { OverflowMenu, type MenuItem } from '@/ui/menu';
 import { showSnackbar } from '@/ui/snackbar';
 import { LoadFailed, LoadFailedNotice, loadFailureCopy } from '@/ui/error-screen';
@@ -38,6 +39,14 @@ import { TopBar, TopBarButton, TopBarTitle, topBarSpacer } from '@/ui/top-bar';
  * Dropped Frame(第四轮排查);换 LegendList 后该簇消失,余量仍保留。
  */
 const TOPIC_LIST_DRAW_DISTANCE = 2400;
+
+/**
+ * 转场期间只画顶栏与 loading,数据到达帧(列表壳,冷态实测 25~30ms)推到横推
+ * 动画停稳后再挂——落在动画窗口里就是「转场末尾卡一下」(2026-08-21 真机);
+ * 之后的分帧揭示发生在静止画面上,单 vsync 的调度滑帧不可感知。
+ * 取值与 topic 屏的 CONTENT_MOUNT_DELAY_MS 同源:push 动画时长 + 2 帧余量。
+ */
+const CONTENT_MOUNT_DELAY_MS = duration.panel + 32;
 
 /**
  * 主题列表页。
@@ -65,6 +74,13 @@ export default function BoardScreen() {
   const sort = useTopicSort((state) => state.sort);
   const setSort = useTopicSort((state) => state.setSort);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // 见 CONTENT_MOUNT_DELAY_MS:数据(含缓存命中)一律等横推动画停稳再挂
+  const [contentReady, setContentReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setContentReady(true), CONTENT_MOUNT_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   const {
     data,
@@ -102,9 +118,20 @@ export default function BoardScreen() {
   const merged = useMemo(() => mergeTopicPages(data?.pages ?? []), [data?.pages]);
   const topics = useMemo(() => filterTopics(merged), [merged, filterTopics]);
   // 分帧揭示:整页 ~13 行一次性挂载要 31~35ms,横推动画起步直接掉帧;
-  // 数据到达帧只挂 listHeader(版头行+chips)与列表壳(~18ms 已是该帧下限),行从下一帧起每帧 +3,动画走完前全部就位(useProgressiveReveal 的文档)
-  const revealed = useProgressiveReveal(topics.length, { initial: 0, step: 3 });
-  const revealDone = revealed >= topics.length;
+  // 到达帧只挂列表壳,版头行、chips 条各占一帧(合在到达帧里实测 18~24ms,
+  // 正是 2026-08-21 真机抓到的「转场末尾卡一下」;版头+chips 同帧冷态 13.9ms
+  // 仍超 8.3ms 预算,故再拆),行按每帧 +2(冷态单行 ~3.5ms)跟上,
+  // 动画走完前全部就位(useProgressiveReveal 的文档)
+  const headerRevealed = useProgressiveReveal(!contentReady || data === undefined ? 0 : 2, {
+    initial: 0,
+    step: 1,
+  });
+  const headerShown = headerRevealed >= 1;
+  const revealed = useProgressiveReveal(headerRevealed >= 2 ? topics.length : 0, {
+    initial: 0,
+    step: 2,
+  });
+  const revealDone = headerRevealed >= 2 && revealed >= topics.length;
   const shownTopics = revealDone ? topics : topics.slice(0, revealed);
   const loadedPages = data?.pages.length ?? 0;
   // 版头(CONTEXT.md):__F.topped_topic 带 tid 时在列表顶上给一条置顶入口,普通详情页打开
@@ -184,7 +211,8 @@ export default function BoardScreen() {
   );
 
   const listHeader = useMemo(() => {
-    const subBoards = data?.pages[0]?.subBoards ?? [];
+    // 揭示第 1 档只有版头行,chips 条(~10 个可点标签,比版头行重)等下一帧
+    const subBoards = headerRevealed >= 2 ? (data?.pages[0]?.subBoards ?? []) : [];
     return (
       <View>
         {headTid !== undefined && (
@@ -207,7 +235,7 @@ export default function BoardScreen() {
         {subBoards.length > 0 && <SubBoardBar boards={subBoards} onPress={openBoard} />}
       </View>
     );
-  }, [data?.pages, headTid, openBoard, router, styles, theme]);
+  }, [data?.pages, headTid, headerRevealed, openBoard, router, styles, theme]);
 
   const listFooter = useMemo(
     () => (
@@ -276,7 +304,7 @@ export default function BoardScreen() {
   }, [sort, setSort, boardId, boardKind, name, router]);
 
   const body = () => {
-    if (isPending) return <LoadingState />;
+    if (!contentReady || isPending) return <LoadingState />;
     // 「拿不到列表」「版块真的空着」「拉到了但整页都被屏蔽规则藏掉」是三回事,
     // 说成同一句话时用户会以为版块是空的(2026-08-13:被限流时全站版块都显示
     // 「这个版块还没有主题」,连我们自己都查了半天)
@@ -327,7 +355,7 @@ export default function BoardScreen() {
           data={shownTopics}
           keyExtractor={(topic) => String(topic.tid)}
           renderItem={renderTopic}
-          ListHeaderComponent={listHeader}
+          ListHeaderComponent={headerShown ? listHeader : null}
           ListFooterComponent={listFooter}
           recycleItems
           drawDistance={TOPIC_LIST_DRAW_DISTANCE}

@@ -103,6 +103,14 @@ const CONTENT_MOUNT_DELAY_MS = duration.panel + 32;
 const HISTORY_VISIT_DELAY_MS = 96;
 
 /**
+ * 回复链索引的起跑延迟。buildQuoteIndex 要把已加载楼层的 BBCode 全部重新解析
+ * 一遍(JS 线程一口气 20~40ms),放在数据到达后 96ms 会正撞上楼层分帧流入的
+ * rAF 步进——真机录屏抓到内容流入中段 24~44ms 的停顿(2026-08-21)。链深计数
+ * 只是引用块上的次要标注,晚一秒出现无感,等流入(约 20 楼 × 8.3ms + 余量)结束再算。
+ */
+const CHAIN_INDEX_DELAY_MS = 1500;
+
+/**
  * 「上次读到第 N 楼」浮层的兜底寿命。它盖在楼层上,不该一直杵着;
  * 5s 足够看清一句话并决定要不要点,再久就只剩碍事了。
  */
@@ -150,6 +158,63 @@ function useKeepScreenOn(enabled: boolean): void {
 }
 
 /**
+ * FAB 及其展开菜单。独立成组件是入场首帧瘦身的一部分(2026-08-21):
+ * useFabAnimation 的共享值/动画样式初始化与这块 JSX 不再算进 TopicScreen 首帧,
+ * chromeReady 后才挂;开合状态也整个收在这里,开合不再重渲染整屏
+ * (楼层渲染契约那条老账的同款问题)。
+ */
+function TopicFab({ onRefresh }: { onRefresh: () => void }) {
+  const styles = useStyles();
+  const theme = useTheme();
+  const leftHanded = useLeftHanded();
+  const [open, setOpen] = useState(false);
+  const { menuStyle, iconStyle } = useFabAnimation(open);
+
+  return (
+    <>
+      {open && (
+        <Reanimated.View
+          style={[styles.fabMenu, leftHanded ? styles.fabMenuLeft : styles.fabMenuRight, menuStyle]}
+        >
+          {/* 回帖是 v1 排除项(spec §1),入口保留 */}
+          <Pressable
+            style={styles.fabItem}
+            onPress={() => {
+              setOpen(false);
+              showNotAvailable();
+            }}
+          >
+            <Icon name="reply" size={19} color={theme.colors.primary} />
+            <Text style={styles.fabItemLabel}>回复</Text>
+          </Pressable>
+          <Pressable
+            style={styles.fabItem}
+            onPress={() => {
+              setOpen(false);
+              onRefresh();
+            }}
+          >
+            <Icon name="refresh" size={19} color={theme.colors.primary} />
+            <Text style={styles.fabItemLabel}>刷新</Text>
+          </Pressable>
+        </Reanimated.View>
+      )}
+
+      <Pressable
+        style={[styles.fab, leftHanded ? styles.fabLeft : styles.fabRight]}
+        onPress={() => setOpen((value) => !value)}
+        accessibilityLabel={open ? '收起操作' : '展开操作'}
+      >
+        {/* 设计稿是同一枚 add 转 45° 变成 ×,不是换字形 */}
+        <Reanimated.View style={iconStyle}>
+          <Icon name="add" size={27} color={theme.colors.onFab} />
+        </Reanimated.View>
+      </Pressable>
+    </>
+  );
+}
+
+/**
  * 帖子详情(CONTEXT.md:主题里的楼层流)。
  *
  * 路由参数由 05 定好:`tid` 是真实 tid、`fav` 是 fav 码、`title` 免得等 read.php 才有标题。
@@ -163,7 +228,6 @@ export default function TopicScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const settings = useAppSettings();
-  const leftHanded = useLeftHanded();
 
   useKeepScreenOn(settings.keepScreenOn);
 
@@ -206,8 +270,6 @@ export default function TopicScreen() {
   // 每次重试原生都放回来,不然重试失败了用户看不出还在兜底
   const [sourceNoticeDismissed, setSourceNoticeDismissed] = useState(false);
   const [jumpOpen, setJumpOpen] = useState(false);
-  const [fabOpen, setFabOpen] = useState(false);
-  const { menuStyle: fabMenuStyle, iconStyle: fabIconStyle } = useFabAnimation(fabOpen);
   const [menuOpen, setMenuOpen] = useState(false);
   const [favorOpen, setFavorOpen] = useState(false);
   // 楼层菜单开在哪一楼(长按或菜单钮,ticket 12);undefined = 关着
@@ -233,6 +295,15 @@ export default function TopicScreen() {
     return () => clearTimeout(timer);
   }, []);
 
+  // 入场首帧再瘦一档(2026-08-21 探针:press→首帧 26~33ms 全冻在转场起手上,
+  // 其中本屏自己的渲染+挂载约占一半):页码条、FAB、「上次读到」浮层都等第 2 帧,
+  // 转场头几帧新屏还基本在画面外,晚一帧挂载不可见
+  const [chromeReady, setChromeReady] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setChromeReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const { data, error, isPending, isFetching, isPlaceholderData, refetch } = useTopicDetail({
     tid: topicId,
     page,
@@ -243,11 +314,10 @@ export default function TopicScreen() {
 
   const totalPages = data?.totalPages ?? 1;
 
-  // 分帧揭示:转场后的整页楼层单次提交仍要 ~28ms(楼层卡重)。楼层卡单张 ~5.5ms,首帧 1 楼、每帧 +1;
-  // 视口外的切片增长不产生挂载,追平只是解除切片。带楼号进场(回复链「在原帖中查看」)要 scrollToIndex 到任意楼,
-  // 切片会让目标楼不存在,该场景整页直挂
-  const floorReveal = useProgressiveReveal(data?.floors.length ?? 0, { initial: 1, step: 1 });
-  const revealFloors = jumpFloor === undefined;
+  // 楼层的分帧揭示在 TopicPageView 里按面板各自管(resetKey=detail.page):
+  // 屏级揭示只前进,翻页后 revealed 早已 ≥ 新页楼层数,新页 20 楼在一帧里
+  // 全量挂载——2026-08-21 真机抓到的翻页 40ms 大帧就是它。下沉后相邻页的
+  // 预挂载、跳页骨架换真数据也一并走分帧。
 
   const queryClient = useQueryClient();
 
@@ -274,7 +344,7 @@ export default function TopicScreen() {
         if (!floors.has(floor.pid)) floors.set(floor.pid, floor);
       }
       setChainIndex(buildQuoteIndex([...floors.values()], { tid: topicId }));
-    }, HISTORY_VISIT_DELAY_MS);
+    }, CHAIN_INDEX_DELAY_MS);
     return () => clearTimeout(timer);
   }, [contentReady, data, queryClient, topicId, fav]);
 
@@ -657,10 +727,6 @@ export default function TopicScreen() {
     // `keepPreviousData` 留下的上一页内容:相邻页已经真的跟着手指走出来了,
     // 松手之后再把上一页摆回屏幕正中,看上去就是「白划了一下」
     placeholder: isPlaceholderData,
-    floors:
-      data !== undefined && revealFloors && floorReveal < data.floors.length
-        ? data.floors.slice(0, floorReveal)
-        : (data?.floors ?? []),
     header: (
       <>
         {/* 「上次读到第 N 楼」提示条不在这儿了:它现在是压在列表上方的浮层
@@ -734,6 +800,8 @@ export default function TopicScreen() {
           onExpand={expandFloor}
           viewabilityConfig={resume.viewabilityConfig}
           live={liveWiring}
+          // scrollToIndex 要求任意楼都在场:带楼号进场与「回到那里」期间整页直挂
+          instantReveal={resume.pendingScroll}
         />
       );
     }
@@ -792,7 +860,7 @@ export default function TopicScreen() {
 
   return (
     <View style={[styles.root, settings.solidBackground && styles.rootSolid]}>
-      <TopBar paddingHorizontal={4} below={pageBar}>
+      <TopBar paddingHorizontal={4} below={chromeReady ? pageBar : undefined}>
         <TopBarButton
           icon="arrow_back"
           box={46}
@@ -882,7 +950,7 @@ export default function TopicScreen() {
       <View style={styles.bodyArea}>
         {body()}
         {/* 只看某一楼/只看此人期间楼号是过滤后的口径,跳过去会落错地方,一律不放 */}
-        {resume.floor !== undefined && onlyPid === undefined && (
+        {chromeReady && resume.floor !== undefined && onlyPid === undefined && (
           <LastReadBanner
             floor={resume.floor}
             visible={resume.visible}
@@ -893,48 +961,7 @@ export default function TopicScreen() {
         )}
       </View>
 
-      {fabOpen && (
-        <Reanimated.View
-          style={[
-            styles.fabMenu,
-            leftHanded ? styles.fabMenuLeft : styles.fabMenuRight,
-            fabMenuStyle,
-          ]}
-        >
-          {/* 回帖是 v1 排除项(spec §1),入口保留 */}
-          <Pressable
-            style={styles.fabItem}
-            onPress={() => {
-              setFabOpen(false);
-              showNotAvailable();
-            }}
-          >
-            <Icon name="reply" size={19} color={theme.colors.primary} />
-            <Text style={styles.fabItemLabel}>回复</Text>
-          </Pressable>
-          <Pressable
-            style={styles.fabItem}
-            onPress={() => {
-              setFabOpen(false);
-              void refetch();
-            }}
-          >
-            <Icon name="refresh" size={19} color={theme.colors.primary} />
-            <Text style={styles.fabItemLabel}>刷新</Text>
-          </Pressable>
-        </Reanimated.View>
-      )}
-
-      <Pressable
-        style={[styles.fab, leftHanded ? styles.fabLeft : styles.fabRight]}
-        onPress={() => setFabOpen((open) => !open)}
-        accessibilityLabel={fabOpen ? '收起操作' : '展开操作'}
-      >
-        {/* 设计稿是同一枚 add 转 45° 变成 ×,不是换字形 */}
-        <Reanimated.View style={fabIconStyle}>
-          <Icon name="add" size={27} color={theme.colors.onFab} />
-        </Reanimated.View>
-      </Pressable>
+      {chromeReady && <TopicFab onRefresh={() => void refetch()} />}
 
       <InputDialog
         open={jumpOpen}
@@ -1168,6 +1195,8 @@ function useReadingProgress({
 
   return {
     floor: resumeFloor,
+    /** 还有没兑现的 scrollToIndex 目标:此间楼层列表不能分帧切片(目标楼要在场) */
+    pendingScroll: pendingFloor !== undefined,
     /** 提示条此刻该不该在场;退场动画由 `LastReadBanner` 自己跑完再下场 */
     visible: resumeVisible,
     /** 提示条回报「进场动画跑完了」的入口:5 秒兜底从这一刻起算 */
@@ -1228,8 +1257,6 @@ interface LivePageWiring {
   listRef: RefObject<LegendListRef | null>;
   /** 这一页的数据还没到位(正显示着骨架的场合) */
   placeholder: boolean;
-  /** 分帧揭示切片后的楼层 */
-  floors: readonly Floor[];
   header: ReactElement;
   empty: ReactNode;
   onScrollBeginDrag: () => void;
@@ -1265,6 +1292,7 @@ const TopicPageView = memo(function TopicPageView({
   onExpand,
   viewabilityConfig,
   live,
+  instantReveal,
 }: {
   page: number;
   detail: TopicDetail | undefined;
@@ -1273,10 +1301,28 @@ const TopicPageView = memo(function TopicPageView({
   onExpand: (pid: number) => void;
   viewabilityConfig: { itemVisiblePercentThreshold: number };
   live?: LivePageWiring;
+  /** scrollToIndex 在途(带楼号进场/「回到那里」):任意楼都得在场,整页直挂 */
+  instantReveal?: boolean;
 }) {
   const styles = useStyles();
   const matchFloorFilter = useFloorFilter();
   const users = detail?.users;
+
+  /**
+   * 楼层的分帧揭示,按面板实例各自记账(2026-08-21 真机排查):楼层卡单张
+   * ~5.5ms,整页一帧挂完 40ms+。resetKey 用 `detail.page`——跳页时本面板先拿着
+   * 上一页的 placeholder 数据画骨架,真数据到了 page 才变,进度回到 1 重新逐帧追;
+   * 同一页下拉刷新时 page 不变,不重置,已挂载的楼不收回。相邻页面板在屏外
+   * 同样逐帧,预挂载不再产生大帧。
+   */
+  const floorReveal = useProgressiveReveal(detail?.floors.length ?? 0, {
+    // 主动页首帧就要给出 1 楼(用户正看着);相邻页在屏外,数据到达帧只挂列表壳
+    // (到达帧实测 23ms,壳+首楼同帧是大头),楼层从下一帧起逐帧跟上
+    initial: live !== undefined ? 1 : 0,
+    step: 1,
+    resetKey: detail?.page,
+    skip: instantReveal === true,
+  });
 
   const liveRef = useRef(live);
   liveRef.current = live;
@@ -1331,11 +1377,14 @@ const TopicPageView = memo(function TopicPageView({
   if (live?.placeholder === true || detail === undefined) return <PageSkeleton page={page} />;
   if (live !== undefined && detail.floors.length === 0) return <>{live.empty}</>;
 
+  const floors =
+    floorReveal >= detail.floors.length ? detail.floors : detail.floors.slice(0, floorReveal);
+
   return (
     <View style={styles.body}>
       <LegendList
         ref={live?.listRef}
-        data={live?.floors ?? detail.floors}
+        data={floors}
         keyExtractor={floorKey}
         recycleItems
         // 屏蔽规则命中的楼层折成一行灰字(21 票),点一下就地展开

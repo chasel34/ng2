@@ -6,6 +6,7 @@ import type { BBCodeNode } from '@/core/bbcode';
 import { isReplyHeaderNode, quoteRefOf, replyHeaderRefOf } from '@/core/local';
 
 import { Icon } from '../icon';
+import { useProgressiveReveal } from '../progressive';
 import { createThemedStyles, useTheme, type Theme } from '../theme';
 import { alignStyles, BoxBlock, CollapseBlock, ListBlock, TableBlock } from './blocks';
 import { resolveBBColor, resolveBBSizeScale } from './colors';
@@ -28,6 +29,15 @@ import { Smiley } from './smiley';
  */
 
 export type { BBCodeRenderOptions } from './options';
+
+/**
+ * 段级分帧的参数(useProgressiveReveal)。段的成本悬殊(纯文本段 <1ms,
+ * 图片/表格段几 ms),按「一帧 6 段」压在 ~8ms 预算附近;首帧同样 6 段,
+ * 视口第一屏的内容尽快可读。阈值取 12:典型楼层根本到不了,只有长文楼层进分帧。
+ */
+const SEGMENT_REVEAL_MIN = 8;
+const SEGMENT_REVEAL_INITIAL = 4;
+const SEGMENT_REVEAL_STEP = 4;
 
 interface InlineProps {
   nodes: readonly BBCodeNode[];
@@ -146,22 +156,37 @@ export const BBCodeBody = memo(function BBCodeBody({
   nodes,
   options,
   style,
+  progressiveKey,
 }: {
   nodes: readonly BBCodeNode[];
   options: BBCodeRenderOptions;
   style?: StyleProp<TextStyle>;
+  /**
+   * 给了就按段分帧挂载(超长楼层单帧挂 100ms+,2026-08-21 真机实锤),
+   * key 变化(回收行重绑到另一楼)时进度重置。只给楼层顶层正文——
+   * 签名档和嵌套在引用块里的正文别传:小块内容分帧只会让引用卡先空一拍。
+   */
+  progressiveKey?: unknown;
 }) {
   const styles = useStyles();
   const theme = useTheme();
   // 分段只跟 AST 有关,跟主题/字号/回调都无关。AST 是 `parseBBCode` 缓好的稳定对象,
   // 所以按它缓存——不然每次重渲染都要把整棵树重新切一遍段
   const segments = useMemo(() => splitIntoSegments(nodes), [nodes]);
+  // 段数不多时不启用:典型楼层 1~5 段,一帧挂完本来就在预算内,分帧反而多几趟提交
+  const chunked = progressiveKey !== undefined && segments.length > SEGMENT_REVEAL_MIN;
+  const revealed = useProgressiveReveal(chunked ? segments.length : 0, {
+    initial: SEGMENT_REVEAL_INITIAL,
+    step: SEGMENT_REVEAL_STEP,
+    resetKey: progressiveKey,
+  });
+  const shown = !chunked || revealed >= segments.length ? segments : segments.slice(0, revealed);
   // 每个行内段的 <Text> 都是同一份样式,一段一个新数组没必要
   const bodyStyle = useMemo(() => [styles.body, style], [styles.body, style]);
 
   return (
     <>
-      {segments.map((segment, index) => {
+      {shown.map((segment, index) => {
         if (segment.kind === 'inline') {
           return (
             <Text key={index} style={bodyStyle}>

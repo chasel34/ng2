@@ -75,6 +75,11 @@ export default function RootLayout() {
     if (iconFontLoaded) void SplashScreen.hideAsync();
   }, [iconFontLoaded]);
 
+  // 备考(2026-08-21 入场首帧排查):试过启动后空闲时 `import()` 预热 board/topic
+  // 路由模块,冷态首次进帖子的起手停顿(~31ms)纹丝不动——那笔账不在模块加载,
+  // 在 Hermes 首次执行该屏的路径上(同会话第二次进同类屏就只要一半),已撤。
+  // 真正生效的是屏内的 chromeReady/contentReady 分帧(见 topic 屏)。
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* 大图查看器(25)用 react-native-gesture-handler,它要求根上有这一层 */}

@@ -220,7 +220,9 @@ export const FloorCard = memo(function FloorCard({ floor, context }: FloorCardPr
       )}
 
       <View style={styles.body}>
-        <BBCodeBody nodes={nodes} options={bodyOptions} style={bodyStyle} />
+        {/* progressiveKey:长文楼层按段分帧挂载(单帧 100ms+ 的大楼实锤),
+            回收行重绑到另一楼时按 pid 重置进度 */}
+        <BBCodeBody nodes={nodes} options={bodyOptions} style={bodyStyle} progressiveKey={floor.pid} />
       </View>
 
       {/* 签名档(22 票的「显示签名档」)。签名也是 BBCode,但它是「附在正文后面的一小块」,

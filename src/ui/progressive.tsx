@@ -18,6 +18,19 @@ export interface RevealOptions {
   initial: number;
   /** 之后每帧追加的条数,按单条挂载成本控制在 ~8ms 预算内 */
   step: number;
+  /**
+   * 变化时进度回到 `initial` 重新追赶。给「同一个实例先后装不同数据」的场合用
+   * (翻页面板从骨架换成真数据、回收行重绑):不带它时揭示只前进,数据整换后
+   * 仍是全量透传,新内容在同一帧里全部挂载——正是 2026-08-21 真机抓到的
+   * 翻页 40ms 大帧。选 key 要避开「同一份内容原地刷新」(那时重置会把已挂载的
+   * 行收回去再挂一遍,画面闪)。
+   */
+  resetKey?: unknown;
+  /**
+   * 为 true 时直接全量透传(scrollToIndex 这类要求任意行都在场的场合)。
+   * 内部进度同步拉满:之后回到 false 也不会把已经挂出去的行收回去。
+   */
+  skip?: boolean;
 }
 
 /** 纯推进逻辑,单独抽出来给测试用:一步从 `revealed` 走到哪。 */
@@ -30,17 +43,32 @@ export function nextRevealCount(revealed: number, total: number, step: number): 
  * 返回当前应当渲染的条数,每帧向 `total` 追赶一步。
  * 调用方用它 slice 数据;追平后请直接透传原数组,保持引用稳定。
  */
-export function useProgressiveReveal(total: number, { initial, step }: RevealOptions): number {
-  const [revealed, setRevealed] = useState(initial);
+export function useProgressiveReveal(
+  total: number,
+  { initial, step, resetKey, skip }: RevealOptions,
+): number {
+  const [state, setState] = useState({ key: resetKey, revealed: skip === true ? total : initial });
+  // resetKey 变了 = 同一个实例装上了另一份数据:渲染期重置(React 认可的
+  // derived-state 写法,这一趟渲染随即被丢弃重来),本帧就按新进度算
+  let current = state;
+  if (!Object.is(state.key, resetKey)) {
+    current = { key: resetKey, revealed: skip === true ? total : initial };
+    setState(current);
+  } else if (skip === true && current.revealed < total) {
+    // skip 期间进度同步拉满(同样是渲染期重置):skip 撤掉后不回退,已挂载的行不收回
+    current = { ...current, revealed: total };
+    setState(current);
+  }
+  const revealed = current.revealed;
   const done = revealed >= total;
 
   useEffect(() => {
-    if (done) return;
+    if (done || skip === true) return;
     const id = requestAnimationFrame(() => {
-      setRevealed((current) => nextRevealCount(current, total, step));
+      setState((prev) => ({ ...prev, revealed: nextRevealCount(prev.revealed, total, step) }));
     });
     return () => cancelAnimationFrame(id);
-  }, [done, total, step, revealed]);
+  }, [done, total, step, revealed, skip]);
 
   return done ? total : revealed;
 }
