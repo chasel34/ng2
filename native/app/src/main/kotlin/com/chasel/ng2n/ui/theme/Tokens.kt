@@ -178,10 +178,96 @@ object Typo {
   val meta: TypeToken = TypeToken(11.5.sp, 16.sp)
   /** 抽屉分区小标题 / 骰子 ROLL 角标 12.5 · 700 */
   val caption: TypeToken = TypeToken(12.5.sp, 18.sp)
+
+  // ---- 票 16 追加(RN 侧 `src/ui/tokens.ts` 同名档,值一字未改)----
+
+  /** 顶栏标题 18 · 600 · letterSpacing 0.2 */
+  val title: TypeToken = TypeToken(18.sp, 26.sp)
+  /** 二级页顶栏标题 / 分组标题 17(= [section]) */
+  val subTitle: TypeToken = TypeToken(17.sp, 24.65.sp)
+  /** Tab / 分段控件 15 · 600 */
+  val tab: TypeToken = TypeToken(15.sp, 21.sp)
+  /** 列表主题标题 16 · 1.45(热帖 / 精华区那类二级列表) */
+  val listTitle: TypeToken = TypeToken(16.sp, 23.2.sp)
+  /** 主题列表屏(设计稿 `isList`)的标题 17 · 1.45 */
+  val topicTitle: TypeToken = TypeToken(17.sp, 24.65.sp)
+  /** 版块宫格里的版块名 14.5 · 1.35 */
+  val gridLabel: TypeToken = TypeToken(14.5.sp, 19.58.sp)
+  /** 抽屉条目 15 */
+  val drawerItem: TypeToken = TypeToken(15.sp, 21.sp)
+  /** 弹出菜单条目 15.5 */
+  val menuItem: TypeToken = TypeToken(15.5.sp, 22.sp)
+  /** 版块图标的首字占位 12 · 700 */
+  val initial: TypeToken = TypeToken(12.sp, 14.sp)
+  /** 分组标题前的圆形角标 9 · 700 */
+  val badge: TypeToken = TypeToken(9.sp, 10.sp)
+  /** 未读数角标 11 · 700 */
+  val unreadBadge: TypeToken = TypeToken(11.sp, 13.sp)
+  /** 对话框标题 18 · 600 */
+  val dialogTitle: TypeToken = TypeToken(18.sp, 25.sp)
+  /** 对话框正文 13.5 · 1.6 */
+  val dialogBody: TypeToken = TypeToken(13.5.sp, 21.6.sp)
+  /** 对话框按钮 14 · 600 */
+  val dialogAction: TypeToken = TypeToken(14.sp, 20.sp)
+  /** 二级列表页副标题条 12 / 卡片副行 12 */
+  val listSubtitle: TypeToken = TypeToken(12.sp, 17.sp)
+  /** 账号头像里的缩写 22 · 700(设计稿抽屉账号头) */
+  val avatarAbbrev: TypeToken = TypeToken(22.sp, 26.sp)
 }
 
 /** 等宽字体。设计稿用 `ui-monospace,Menlo,monospace`,Android 侧就是系统 monospace。 */
 val MonoFontFamily: FontFamily = FontFamily.Monospace
+
+/**
+ * 彩色标题(CONTEXT.md「彩色标题」)的五档色。掩码 → 档位在
+ * [com.chasel.ng2n.core.local.TitleStyle],这里只管画成什么颜色。
+ * 值照抄 RN 侧 `tokens.ts` 的 `lightTitleColors` / `darkTitleColors`。
+ */
+@Immutable
+data class Ng2nTitleColors(
+  val red: Color,
+  val blue: Color,
+  val green: Color,
+  val orange: Color,
+  val silver: Color,
+)
+
+val LightTitleColors: Ng2nTitleColors = Ng2nTitleColors(
+  red = LightColors.danger,
+  blue = LightColors.link,
+  green = Color(0xFF3F8F5B),
+  orange = LightColors.accent,
+  silver = LightColors.meta,
+)
+
+val DarkTitleColors: Ng2nTitleColors = Ng2nTitleColors(
+  red = DarkColors.danger,
+  blue = DarkColors.link,
+  green = Color(0xFF5FB27C),
+  orange = DarkColors.accent,
+  silver = DarkColors.meta,
+)
+
+fun titleColorsOf(dark: Boolean): Ng2nTitleColors = if (dark) DarkTitleColors else LightTitleColors
+
+/**
+ * 顶栏上「当前选中」那一格的底色(设计稿页码格与抽屉当前账号都用它)。
+ * 不进 [Ng2nColors]:它不是 `:root` 里声明的一档色,而是压在顶栏上的一层半透明白,
+ * 浅深两套配色下都是同一个值 —— 顶栏本身已经分别是墨绿和近黑了。
+ */
+val TopbarOverlay: Color = Color(0x38FFFFFF)
+
+/**
+ * 阴影档位。设计稿是 CSS `box-shadow`(带色带模糊半径),Compose 的
+ * `Modifier.shadow(elevation)` 只吃一个高度值 —— 按模糊半径 12 / 28 折成两档。
+ */
+@Immutable
+object Elevation {
+  /** `0 2px 12px` —— FAB / 卡片 */
+  val level1: Dp = 4.dp
+  /** `0 8px 28px` —— 抽屉面板 / 对话框 / snackbar */
+  val level2: Dp = 12.dp
+}
 
 @Immutable
 object Radius {
@@ -193,6 +279,17 @@ object Radius {
   val md: Dp = 12.dp
   /** 菜单 / 卡片 / Snackbar */
   val lg: Dp = 14.dp
+
+  // ---- 票 16 追加 ----
+
+  /** 整宽动作按钮(设计稿 isError 屏) */
+  val button: Dp = 15.dp
+  /** 胶囊按钮(设计稿 isSubboards 的订阅钮:32 高配 16 圆角) */
+  val pill: Dp = 16.dp
+  val fab: Dp = 19.dp
+  val dialog: Dp = 24.dp
+  /** 圆形图标按钮(设计稿里是 46/44 见方配 23/22 圆角) */
+  val full: Dp = 999.dp
 }
 
 @Immutable
@@ -247,4 +344,5 @@ const val SMILEY_BASE_HEIGHT: Int = 16
 const val AVATAR_BASE_SIZE: Int = 42
 
 val LocalNg2nColors = staticCompositionLocalOf { LightColors }
+val LocalNg2nTitleColors = staticCompositionLocalOf { LightTitleColors }
 val LocalTextScale = staticCompositionLocalOf { TextScale() }
