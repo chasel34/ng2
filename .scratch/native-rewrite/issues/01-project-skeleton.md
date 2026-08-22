@@ -4,7 +4,7 @@
 
 **Blocked by:** None
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] 本机 `assembleDebug` 与 `assembleRelease` 出包(gradle 代理按 CLAUDE.md 的 GRADLE_OPTS 传)
 - [x] Pixel_8 AVD 与小米 17 可安装,与 RN 版并存,桌面名 NG2N — AVD 侧做实;**小米 17 待所有者**(真机不在线)
@@ -134,3 +134,5 @@ ADR-0004 锁的 AGP 9.3.1 不能退(Compose BOM 2026.08.00 强制 AGP ≥9.1.1),
   性能;若在意 release 体积可后续跟进。
 - RN 版桌面名实际是「NGA 阅读器」,不是 `app.json` 里的 `NG2`(应该另有本地化 string 覆盖)。
   与本票无关,但主控在写并存验收口径时可能会用到这个事实。
+
+**主控验收(2026-08-22)**:合并后主干复跑 `:app:testDebugUnitTest :app:assembleRelease` 通过。裁决:`androidx.baselineprofile` Gradle 插件用 1.5.0-rc01(运行时库仍 1.4.1)——AGP 9 不可退,接受这一处非 stable;票 19 开工时复查 1.5.0 是否转正。小米真机安装项留到票 19 一并由所有者做。
