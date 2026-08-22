@@ -67,6 +67,15 @@ class NgaError(
 
   val retryable: Boolean = retryable ?: defaultRetryable(kind)
 
+  /**
+   * 反封锁链跑完之后由 `runStrategyChain` 补上(构造时还不知道后面会试几档)。
+   * 错误页拿它渲染诊断摘要。
+   *
+   * **故意可写**(票 04 留的口,票 06 落地):重新包一个 NgaError 会丢掉调用方用
+   * `is` / 引用比较建立的那些判断,也会丢掉 `cause` 链。
+   */
+  var diagnostic: FetchDiagnostic? = null
+
   /** [Exception.message] 在 Kotlin 里是可空的,但本类构造时必给,所以这里收窄。 */
   val text: String get() = message ?: ""
 

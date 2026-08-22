@@ -114,6 +114,7 @@ dependencies {
   testImplementation(libs.junit)
   testImplementation(libs.kotlin.test.junit)
   testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.mockwebserver3)
 
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)

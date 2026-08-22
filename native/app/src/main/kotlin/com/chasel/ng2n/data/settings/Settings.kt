@@ -25,18 +25,13 @@ import kotlin.math.roundToInt
 /**
  * NGA 官方域名(API 文档 §0.1,第一个是默认域名)。
  *
- * 票 14 暂居于此:`core/net` 的常量表归票 03/06/07,它们落地后这里改成引用,
- * 不要两份各自维护。校验只用到「必须是表里的一个」。
+ * 票 14 曾把这张表暂居在这里,**票 06 落地后已迁进 `core/net/Constants.kt`**:
+ * 反封锁链才是它的主消费者(域名轮换),设置项这边只用到「必须是表里的一个」。
+ * 这两行是再导出,免得改动全仓的引用点;唯一真相源在 core。
  */
-val NGA_HOSTS: List<String> = listOf(
-  "https://bbs.nga.cn",
-  "https://ngabbs.com",
-  "https://bbs.ngacn.cc",
-  "https://nga.178.com",
-  "https://nga.donews.com",
-)
+val NGA_HOSTS: List<String> = com.chasel.ng2n.core.net.NGA_HOSTS
 
-val DEFAULT_NGA_HOST: String = NGA_HOSTS[0]
+val DEFAULT_NGA_HOST: String = com.chasel.ng2n.core.net.DEFAULT_NGA_HOST
 
 /** 正文图片按哪一档清晰度取(设计稿「图片加载策略」)。 */
 enum class ImageQuality(val wire: String, val label: String) {
@@ -75,17 +70,16 @@ enum class ThemeMode(val wire: String) {
   }
 }
 
-/** Web 反解档位(ADR-0002 / API 文档 §0.8 的四档)。 */
-enum class WebFallbackMode(val wire: String) {
-  DISABLED("disabled"), SECONDARY("secondary"), PRIMARY("primary"), ONLY("only");
-
-  companion object {
-    fun fromWire(value: String?): WebFallbackMode? = entries.firstOrNull { it.wire == value }
-  }
-}
+/**
+ * Web 反解档位(ADR-0002 / API 文档 §0.8 的四档)。
+ *
+ * 同 [NGA_HOSTS]:定义已迁进 `core/net/NetworkSettings.kt`(反封锁链每请求现读它),
+ * 这里只是再导出。
+ */
+typealias WebFallbackMode = com.chasel.ng2n.core.net.WebFallbackMode
 
 /** 默认 Web 反解档位:排在换账号之后,原生接口全垮了才去反解网页版。 */
-val DEFAULT_WEB_FALLBACK_MODE = WebFallbackMode.SECONDARY
+val DEFAULT_WEB_FALLBACK_MODE: WebFallbackMode = com.chasel.ng2n.core.net.DEFAULT_WEB_FALLBACK_MODE
 
 /** 字体与头像大小(设计稿「字体和头像大小」屏的五根滑杆)。 */
 data class AppearanceSettings(

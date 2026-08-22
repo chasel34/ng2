@@ -63,6 +63,11 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-coroutines = { group = "com.squareup.okhttp3", name = "okhttp-coroutines", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+# 票 06:反封锁链的 JVM 单测要真起一个 HTTP 服务端 —— `renewTransport` 换没换连接、
+# 自管 CookieJar 有没有把 Cookie 头装上、GBK 表单 Content-Type 有没有原样发出去,
+# 这三件事假 Transport 证明不了(它们发生在 okhttp 内部)。5.x 的 artifact 名是
+# mockwebserver3(旧的 mockwebserver 是 okhttp3 包名那套),版本跟 okhttp 走。
+mockwebserver3 = { group = "com.squareup.okhttp3", name = "mockwebserver3", version.ref = "okhttp" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
