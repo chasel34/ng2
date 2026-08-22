@@ -22,8 +22,8 @@ import java.util.regex.PatternSyntaxException
  *
  * RN 版把用户手输的串直接 `new RegExp(pattern, 'i')` 就拿去 `test()`,没有任何
  * 长度或复杂度限制,也没有匹配预算:`(a+)+$` 这种嵌套量词碰上长正文就是指数级回溯,
- * 在 JS 上表现为整个 UI 线程卡死。这里加三道闸(见 [MAX_RULE_VALUE_LENGTH]、
- * [MAX_REGEX_PATTERN_LENGTH]、[MAX_REGEX_STEPS]),并把编译缓存改成有界 LRU。
+ * 在 JS 上表现为整个 UI 线程卡死。这里加四道闸(见 [MAX_RULE_VALUE_LENGTH]、[MAX_REGEX_PATTERN_LENGTH]、
+ * [MAX_REGEX_INPUT_LENGTH]、[MAX_REGEX_STEPS]),并把编译缓存改成有界 LRU。
  */
 
 /** 规则的三类(设计稿屏蔽规则页「本地规则」tab 的三种行)。 */
@@ -89,7 +89,7 @@ data class FilterRuleInput(
   val uid: Long? = null,
 )
 
-// --- P3-05 的三道闸 ---------------------------------------------------------
+// --- P3-05 的四道闸 ---------------------------------------------------------
 
 /** 规则文本长度上限。超过就不是「屏蔽词」而是往里灌数据了。 */
 const val MAX_RULE_VALUE_LENGTH = 256
@@ -106,6 +106,16 @@ const val MAX_REGEX_PATTERN_LENGTH = 256
  * 在快机器和慢机器上是同一个结果)。命中预算按「不命中」处理。
  */
 const val MAX_REGEX_STEPS = 200_000
+
+/**
+ * 送进用户正则的正文长度上限。
+ *
+ * `java.util.regex` 的 `Loop` 是**递归**实现的,栈深度随重复次数走,JVM 又没有
+ * 「最大回溯深度」这种旋钮——长正文 + 贪婪循环会先炸 `StackOverflowError`,
+ * 根本轮不到步数预算。所以先砍输入:超出的部分正则规则看不到
+ * (普通子串规则不受影响,它没有这个风险)。
+ */
+const val MAX_REGEX_INPUT_LENGTH = 20_000
 
 /** 编译缓存的容量上限(RN 版那张 `Map` 是无界的,规则表被灌爆时它自己就是个泄漏)。 */
 private const val REGEX_CACHE_CAPACITY = 64
@@ -189,11 +199,22 @@ private class BudgetedCharSequence(
   override fun toString(): String = delegate.toString()
 }
 
-/** 带步数预算的 `find()`。超预算 = 不命中(P3-05:一条病态规则不能拖垮整屏)。 */
-private fun matchesWithinBudget(pattern: Pattern, text: String): Boolean = try {
-  pattern.matcher(BudgetedCharSequence(text, intArrayOf(MAX_REGEX_STEPS))).find()
-} catch (_: RegexStepBudgetExceeded) {
-  false
+/**
+ * 带步数预算的 `find()`。超预算 = 不命中(P3-05:一条病态规则不能拖垮整屏)。
+ *
+ * `StackOverflowError` 也在这里兜住:见 [MAX_REGEX_INPUT_LENGTH],砍完输入仍可能
+ * 撞上递归上限。这是极少数「接住 Error 是对的」的场合——爆栈发生在纯正则递归里,
+ * 栈干净地展开,没有持锁、没有改到一半的状态,而放它上去就是整屏白掉。
+ */
+private fun matchesWithinBudget(pattern: Pattern, text: String): Boolean {
+  val bounded = if (text.length > MAX_REGEX_INPUT_LENGTH) text.take(MAX_REGEX_INPUT_LENGTH) else text
+  return try {
+    pattern.matcher(BudgetedCharSequence(bounded, intArrayOf(MAX_REGEX_STEPS))).find()
+  } catch (_: RegexStepBudgetExceeded) {
+    false
+  } catch (_: StackOverflowError) {
+    false
+  }
 }
 
 /**
