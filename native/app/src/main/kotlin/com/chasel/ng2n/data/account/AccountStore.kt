@@ -10,6 +10,7 @@ import com.chasel.ng2n.core.net.CredentialSource
 import com.chasel.ng2n.di.AccountPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
@@ -46,9 +47,12 @@ import javax.inject.Singleton
 @Singleton
 class AccountStore @Inject constructor(
   @AccountPreferences private val dataStore: DataStore<Preferences>,
+  /**
+   * 落盘前的加解密。真实装是 [KeystoreCrypto](`di/DataModule.kt` 里绑的);
+   * 收成构造参数是票 15 加的接缝 —— 见 [AccountCrypto] 的注释。
+   */
+  private val crypto: AccountCrypto,
 ) : CredentialSource {
-
-  private val crypto = KeystoreCrypto()
 
   /** 账号表订阅口。游客态是 [EMPTY_ACCOUNTS]。 */
   val accounts: Flow<AccountsState> = dataStore.data
@@ -57,6 +61,13 @@ class AccountStore @Inject constructor(
       if (cause is IOException) emit(emptyPreferences()) else throw cause
     }
     .map { prefs -> decodeState(prefs[KEY]) }
+
+  /**
+   * 当前账号 uid;游客态是 null。**票 15 加**:按 uid 隔离的缓存/查询键都读它
+   * (修 P1-02 —— RN 版收藏夹的 TanStack Query key 漏了 uid,切号后会读到上一个账号的夹)。
+   * `distinctUntilChanged` 让「改了别的账号的名字」这类无关变更不触发下游重查。
+   */
+  val currentUid: Flow<String?> = accounts.map { it.currentUid }.distinctUntilChanged()
 
   /** 当前账号;游客态是 null。**每次现读**。 */
   suspend fun currentAccount(): NgaAccount? = currentAccountOf(accounts.first())
