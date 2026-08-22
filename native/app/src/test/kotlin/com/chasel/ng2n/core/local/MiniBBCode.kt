@@ -3,6 +3,7 @@ package com.chasel.ng2n.core.local
 import com.chasel.ng2n.core.bbcode.unescapeNgaText
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -63,7 +64,7 @@ internal fun MiniNode.toGoldenJson(): JsonElement = buildJsonObject {
   title?.let { put("title", it) }
   pid?.let { put("pid", it) }
   uid?.let { put("uid", it) }
-  if (args.isNotEmpty()) put("args", buildJsonArray { args.forEach { put(it) } })
+  if (args.isNotEmpty()) put("args", buildJsonArray { args.forEach { add(it) } })
   if (type != "dice" && type != "text" && type != "linebreak") {
     put("children", JsonArray(children.map { it.toGoldenJson() }))
   }

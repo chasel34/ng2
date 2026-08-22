@@ -16,17 +16,12 @@ class AnonymousGoldenTest {
   @Test
   fun `anonymous 金样本全量对拍`() = runGoldenDomain("anonymous") {
     fn("decodeAnonymousName") { case ->
+      // 对拍框架的 toGoldenJson 认 Map/Iterable,直接摆成期望的形状最省事
       decodeAnonymousName(case.inputString())?.let { decoded ->
-        buildJsonObject {
-          put("name", decoded.name)
-          put(
-            "colors",
-            buildJsonArray {
-              add(kotlinx.serialization.json.JsonPrimitive(decoded.colors.first))
-              add(kotlinx.serialization.json.JsonPrimitive(decoded.colors.second))
-            },
-          )
-        }
+        mapOf(
+          "name" to decoded.name,
+          "colors" to listOf(decoded.colors.first, decoded.colors.second),
+        )
       }
     }
     fn("resolveAuthorName") { case -> resolveAuthorName(case.inputString()) }
