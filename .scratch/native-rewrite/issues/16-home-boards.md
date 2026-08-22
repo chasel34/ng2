@@ -4,7 +4,7 @@
 
 **Blocked by:** 07, 14
 
-**Status:** in-review
+**Status:** resolved
 
 - [ ] 对应屏(首页/版块/热帖/精华/子版块)checklist 项与 RN 版对照通过
       —— 代码逐条对照完毕,**模拟器联网验证做不了**:NGA 全链 `connection closed`,并装的 RN 版同样连不上(宿主代理侧问题,见 Comments「待所有者」)
@@ -147,3 +147,5 @@
 4. **Kotlin 反引号外的中文测试名不能以数字开头**(`fun 22dp以外…` 编译报
    「Function declaration must have a name」)。agent-brief 里记了「不能含 ASCII `:`」,
    建议一并补上这一条。
+
+**主控验收(2026-08-22)**:合并进 android-native;`Ng2nApp.kt` 与票 15 手工合并——Login/Accounts 真屏进 Ng2nApp(共享 NavDisplay 外那份 AccountsViewModel),`homeEntries(nav, accounts, onOpenDevMenu)` 把 VM 传进 HomeScreen,抽屉 `accountHeader` 换成票 15 `AccountHeader`(GuestAccountHeader 保留未用)。assembleDebug 通过,单测 736/0 失败/4 跳过。验收①联网五屏走查:根因是本票给模拟器设了 `http_proxy 10.0.2.2:7897` 未还原(模拟器本来直连,经 Clash 的 HTTPS 全断,RN 版一起中招),主控已 `put global http_proxy :0` 还原并确认 Chrome/RN 版访问 NGA 正常——**联网走查顺延到票 18**。导航栏 overlay 仍为三键,票 18 前恢复 gestural。票外发现(边缘手势与系统返回重叠、beginToggle 歧义、NotificationLike 层级、中文测试名数字开头)转票 17/18 处理。
