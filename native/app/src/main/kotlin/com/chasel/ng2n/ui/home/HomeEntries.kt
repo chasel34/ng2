@@ -14,7 +14,6 @@ import com.chasel.ng2n.ui.nav.CachesKey
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
 import com.chasel.ng2n.ui.nav.FiltersKey
-import com.chasel.ng2n.ui.nav.HistoryKey
 import com.chasel.ng2n.ui.Home
 import com.chasel.ng2n.ui.accounts.AccountsViewModel
 import com.chasel.ng2n.ui.nav.Navigator
@@ -66,10 +65,11 @@ fun EntryProviderScope<NavKey>.homeEntries(
   // 票 15 的 Login / Accounts 真屏在 `ui/Ng2nApp.kt`(它们要共享 NavDisplay 外面那一份 AccountsViewModel)
 
   // 票 17:其余屏幕
+  // 搜索 / 收藏 / 收藏夹管理 / 历史 / 缓存 / 通知 六个键归票 17a,真屏在
+  // `ui/lists/ListEntries.kt`(挂在 `ui/Ng2nApp.kt` 的 entryProvider 上)
   entry<SearchKey> { PlaceholderScreen("搜索", "票 17", nav::pop) }
   entry<FavoritesKey> { PlaceholderScreen("收藏夹", "票 17", nav::pop) }
   entry<FavoriteFoldersKey> { PlaceholderScreen("收藏夹管理", "票 17", nav::pop) }
-  entry<HistoryKey> { PlaceholderScreen("浏览历史", "票 17", nav::pop) }
   entry<CachesKey> { PlaceholderScreen("我的缓存", "票 17", nav::pop) }
   entry<FiltersKey> { PlaceholderScreen("屏蔽规则", "票 17", nav::pop) }
   entry<NotificationsKey> { PlaceholderScreen("最近被喷", "票 17", nav::pop) }

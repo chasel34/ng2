@@ -11,6 +11,7 @@ import com.chasel.ng2n.data.board.CheckInRepository
 import com.chasel.ng2n.data.board.HotTopicsRepository
 import com.chasel.ng2n.data.board.SubBoardRepository
 import com.chasel.ng2n.data.board.TopicListRepository
+import com.chasel.ng2n.data.history.HistoryRepository
 import com.chasel.ng2n.data.notifications.NotificationPoller
 import com.chasel.ng2n.data.settings.SettingsStore
 import dagger.hilt.EntryPoint
@@ -45,6 +46,9 @@ interface AppDepsEntryPoint {
   fun notifications(): NotificationPoller
   fun accounts(): AccountStore
   fun settings(): SettingsStore
+
+  // ---- 票 17a 追加(搜索 / 收藏 / 历史 / 缓存管理)----
+  fun history(): HistoryRepository
 }
 
 class AppDeps(entryPoint: AppDepsEntryPoint) {
@@ -57,6 +61,7 @@ class AppDeps(entryPoint: AppDepsEntryPoint) {
   val notifications: NotificationPoller = entryPoint.notifications()
   val accounts: AccountStore = entryPoint.accounts()
   val settings: SettingsStore = entryPoint.settings()
+  val history: HistoryRepository = entryPoint.history()
 }
 
 @Composable

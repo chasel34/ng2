@@ -25,6 +25,7 @@ import com.chasel.ng2n.ui.dev.DevMenuKey
 import com.chasel.ng2n.ui.dev.DevMenuScreen
 import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
+import com.chasel.ng2n.ui.lists.listEntries
 import com.chasel.ng2n.ui.image.ImageViewerScreen
 import com.chasel.ng2n.ui.nav.Navigator
 import kotlinx.serialization.Serializable
@@ -76,6 +77,8 @@ fun Ng2nApp() {
         // 票 16:首页 / 版块面 / 抽屉宿主,外加还没落地那些键的占位条目
         // (Login / Accounts 的占位条目也在里面,票 15 合并时换成真屏 —— 见票 16 Comments)
         homeEntries(nav = nav, accounts = accounts, onOpenDevMenu = { backStack.add(DevMenuKey) })
+        // 票 17a:搜索 / 收藏 / 收藏夹管理 / 历史 / 缓存管理 / 通知
+        listEntries(nav = nav)
         entry<Login> {
           LoginScreen(onBack = { backStack.removeLastOrNull() })
         }
