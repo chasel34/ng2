@@ -12,6 +12,7 @@ import com.chasel.ng2n.data.board.HotTopicsRepository
 import com.chasel.ng2n.data.board.SubBoardRepository
 import com.chasel.ng2n.data.board.TopicListRepository
 import com.chasel.ng2n.data.cache.TopicCacheRepository
+import com.chasel.ng2n.data.favorites.TopicFavoriteRepository
 import com.chasel.ng2n.data.history.HistoryRepository
 import com.chasel.ng2n.data.notifications.NotificationPoller
 import com.chasel.ng2n.data.settings.SettingsStore
@@ -51,6 +52,7 @@ interface AppDepsEntryPoint {
   // ---- 票 17a 追加(搜索 / 收藏 / 历史 / 缓存管理)----
   fun history(): HistoryRepository
   fun topicCache(): TopicCacheRepository
+  fun topicFavorites(): TopicFavoriteRepository
 }
 
 class AppDeps(entryPoint: AppDepsEntryPoint) {
@@ -65,6 +67,7 @@ class AppDeps(entryPoint: AppDepsEntryPoint) {
   val settings: SettingsStore = entryPoint.settings()
   val history: HistoryRepository = entryPoint.history()
   val topicCache: TopicCacheRepository = entryPoint.topicCache()
+  val topicFavorites: TopicFavoriteRepository = entryPoint.topicFavorites()
 }
 
 @Composable
