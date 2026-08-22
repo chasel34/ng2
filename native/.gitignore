@@ -1,0 +1,12 @@
+# Gradle / AGP 产物
+build/
+.gradle/
+.kotlin/
+local.properties
+
+
+# IDE
+.idea/
+*.iml
+captures/
+.cxx/
