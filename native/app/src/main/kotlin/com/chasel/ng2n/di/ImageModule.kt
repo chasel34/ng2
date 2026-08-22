@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import coil3.ImageLoader
 import coil3.disk.DiskCache
+import coil3.gif.AnimatedImageDecoder
 import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
@@ -81,7 +82,13 @@ object ImageModule {
     val activityManager = context.getSystemService(ActivityManager::class.java)
     val heapBytes = (activityManager?.memoryClass ?: 128).toLong() * 1024L * 1024L
     return ImageLoader.Builder(context)
-      .components { add(OkHttpNetworkFetcherFactory(callFactory = { client })) }
+      .components {
+        add(OkHttpNetworkFetcherFactory(callFactory = { client }))
+        // 票 11:随包表情 265 张里有 27 张 GIF(默认套整套都是)。Coil 核心只解静态图,
+        // 不挂这个 decoder 那 27 个表情在正文里就是一帧不动的静态图。
+        // API 28 起 ImageDecoder 原生支持动图,minSdk 31 一律走这条。
+        add(AnimatedImageDecoder.Factory())
+      }
       .memoryCache {
         MemoryCache.Builder()
           .maxSizeBytes((heapBytes * MEMORY_CACHE_FRACTION).toLong())
