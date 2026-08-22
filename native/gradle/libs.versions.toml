@@ -85,6 +85,9 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 # 魔法也随之消失(只有 kotlin.test.assertEquals 能解析,kotlin.test.Test 解析不了)。
 # 这里显式锁 JUnit4 flavor。
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
+# 票 06:一条回归要断言「NgaRequest.operation 没有默认值」(漏标就会静默走错链),
+# 这只能靠 kotlin-reflect 读构造器的 isOptional。仅测试用。
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
