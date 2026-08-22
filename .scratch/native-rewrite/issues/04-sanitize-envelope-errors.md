@@ -8,7 +8,7 @@ kotlinx.serialization 配置:`isLenient + ignoreUnknownKeys + coerceInputValues`
 
 **Blocked by:** 01, 03
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] sanitize/envelope 全部 fixtures 金样本对拍通过
 - [x] 错误分类与可重试语义:手工移植 TS 版对应测试逐条绿
@@ -100,3 +100,5 @@ kotlinx.serialization 配置:`isLenient + ignoreUnknownKeys + coerceInputValues`
    §0.6 之外补的),文档可以补一句;本票只照抄行为,没动文档。
 3. 票 06 落地 `attempt` 时需要的 `renewTransport`(ADR-0002 第 3 条:RN 上是空操作,
    Kotlin 要真建新 client)不在本票范围,提醒一句别漏。
+
+**主控验收(2026-08-22)**:合并后主干 269 例全绿,goldens 重导幂等零 diff。接受:信封层严格 Json + 端点层 lenient 的分档;`mixed-keys` 两条 golden 的字面量改写(顺序语义改由手写单测锁,符合票 05 裁定的「顺序进数组」口径)。票外 ②(API 文档 §0.6 缺「去尾分号外层括号」)记 backlog。
