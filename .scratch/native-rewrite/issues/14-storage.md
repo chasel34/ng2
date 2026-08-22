@@ -9,7 +9,7 @@
 
 **Blocked by:** 01
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] 缓存上限/驱逐/节流语义单测与 RN 版一致
 - [x] StrictMode 验证冷启无主线程磁盘 IO
@@ -134,3 +134,5 @@ fav 码、搜索词 `key`、整张屏蔽词表 `data` 三条泄露源逐条断�
    (DAO 的设备端测试要 `runTest` 驱动 suspend DAO)。`libs.versions.toml` **没动**。
 3. 票 12 的图片尺寸缓存与本票的 DataStore 没有交集(它自己落 JSON 文件),
    `SettingsStore` 的键表里注明了归属,不会冲突。
+
+**主控验收(2026-08-22)**:合并后主干 `testDebugUnitTest` 135 例全绿。接受自写 AndroidKeyStore+AES-GCM、schema 进库、单库 `ng2n.db`。跟进项:`NGA_HOSTS` 常量待票 06/07 落 `core/net` 后改引用(记入票 07 提示)。
