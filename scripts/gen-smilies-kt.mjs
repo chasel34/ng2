@@ -43,7 +43,38 @@ async function loadTable() {
 /** Kotlin 字符串字面量转义。表情名里有中文、没有换行,但引号与反斜杠得挡住。 */
 const kt = (value) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$')}"`
 
+/**
+ * 读一张随包表情的原始像素尺寸。
+ *
+ * 为什么在**生成期**读而不是运行期:RN 侧 `smiley.tsx` 拿的是打包期写进 bundle 的元数据
+ * (`Image.resolveAssetSource`),它的注释说得很清楚——一楼正文里同一个表情可能出现
+ * 几十次、列表回收后还要再解一遍,比例是打包期就定死的东西。Android 侧对应的做法是
+ * `BitmapFactory.decodeStream(inJustDecodeBounds)`,但那是 android.* 调用,渲染模型
+ * 构建器是纯 Kotlin(要能 JVM 单测),而且要为 265 张图各开一次 assets 流。
+ * 直接把两个整数写进生成表,运行期零开销。
+ *
+ * 只解 PNG 与 GIF 的文件头(随包的 265 张就这两种格式,manifest 可查)。
+ */
+async function intrinsicSize(file) {
+  const bytes = await readFile(join(root, 'assets/smilies', file))
+  // PNG:8 字节签名 + IHDR 长度/类型各 4 字节,宽高是随后的两个大端 u32
+  if (bytes.length >= 24 && bytes[0] === 0x89 && bytes.toString('ascii', 1, 4) === 'PNG') {
+    return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) }
+  }
+  // GIF:`GIF87a`/`GIF89a` 之后就是逻辑屏宽高,两个小端 u16
+  if (bytes.length >= 10 && bytes.toString('ascii', 0, 3) === 'GIF') {
+    return { width: bytes.readUInt16LE(6), height: bytes.readUInt16LE(8) }
+  }
+  throw new Error(`认不出的图片格式:${file}(随包表情应当只有 PNG 与 GIF)`)
+}
+
 const table = await loadTable()
+
+/** 文件名 → `宽 x 高`。查不到尺寸(没随包)的不进表,渲染层按正方形占位。 */
+const sizes = new Map()
+for (const file of table.BUNDLED_SMILEY_FILES) {
+  sizes.set(file, await intrinsicSize(file))
+}
 
 const categories = table.SMILEY_CATEGORIES.map((category) => {
   const entries = category.entries
@@ -60,7 +91,10 @@ const categories = table.SMILEY_CATEGORIES.map((category) => {
   ].join('\n')
 }).join('\n')
 
-const bundled = table.BUNDLED_SMILEY_FILES.map((file) => `  ${kt(file)},`).join('\n')
+const bundled = table.BUNDLED_SMILEY_FILES.map((file) => {
+  const { width, height } = sizes.get(file)
+  return `  ${kt(file)} to SmileySize(${width}, ${height}),`
+}).join('\n')
 
 const out = `package com.chasel.ng2n.ui.bbcode
 
@@ -91,10 +125,19 @@ val SMILEY_CATEGORIES: List<SmileyCategory> = listOf(
 ${categories}
 )
 
-/** 实际随包下载成功的文件名。表里有、这里没有的走远程 URL。 */
-val BUNDLED_SMILEY_FILES: Set<String> = setOf(
+/**
+ * 随包图片的原始像素尺寸。生成期从 PNG/GIF 文件头读出来写死——
+ * 运行期不解码就能知道一个表情该占多宽(高度由「表情大小」设置定,宽度按比例算)。
+ */
+data class SmileySize(val width: Int, val height: Int)
+
+/** 实际随包下载成功的文件名 → 原始尺寸。表里有、这里没有的走远程 URL。 */
+val BUNDLED_SMILEY_SIZES: Map<String, SmileySize> = mapOf(
 ${bundled}
 )
+
+/** 随包文件名集合(三级兜底的第一级判据)。 */
+val BUNDLED_SMILEY_FILES: Set<String> = BUNDLED_SMILEY_SIZES.keys
 `
 
 await writeFile(TARGET, out, 'utf8')

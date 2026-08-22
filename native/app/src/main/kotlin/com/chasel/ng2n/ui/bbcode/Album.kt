@@ -2,7 +2,6 @@ package com.chasel.ng2n.ui.bbcode
 
 import com.chasel.ng2n.core.api.AttachmentUrlOptions
 import com.chasel.ng2n.core.api.AttachmentUrls
-import com.chasel.ng2n.core.bbcode.AttachmentRef
 
 /**
  * `[album]` 里那一串图片地址的提取(RN 侧原件 `src/ui/bbcode/album.ts`)。
@@ -32,12 +31,6 @@ private val BARE_PATTERN = Regex(
 
 private val HAS_TAG = Regex("""\[(?:img|url)]""", RegexOption.IGNORE_CASE)
 
-/** [albumImageUrls] 内部用的最小 [AttachmentRef]——相册里的地址不是 AST 节点。 */
-private data class AlbumRef(
-  override val src: String,
-  override val needsAttachBase: Boolean,
-) : AttachmentRef
-
 /** 相册里的每一张图,已拼好可以直接喂给图片组件。 */
 fun albumImageUrls(
   value: String,
@@ -48,9 +41,12 @@ fun albumImageUrls(
   return pattern.findAll(value).map { match ->
     val raw = match.groupValues[1]
     val relative = raw.startsWith("./")
+    // 相册里的地址不是 AST 节点(票 09 把 `[album]` 的内容原样留在 value 里),
+    // 所以走 attachmentUrl 收散装字段的那一版
     urls.attachmentUrl(
-      AlbumRef(src = if (relative) raw.substring(2) else raw, needsAttachBase = relative),
-      options,
+      src = if (relative) raw.substring(2) else raw,
+      needsAttachBase = relative,
+      options = options,
     )
   }.toList()
 }

@@ -17,8 +17,18 @@ import com.chasel.ng2n.core.bbcode.AttachmentRef
  * 本文件的实现体删除,接口保留。
  */
 interface AttachmentUrls {
+  /**
+   * 把一条资源引用拼成能直接喂给图片组件的地址。
+   *
+   * 收散装的两个字段而不是只收 [AttachmentRef]:`[album]` 的内容是**一整串裸地址**
+   * (票 09 把它原样留在 `value` 里),不是 AST 节点,而 [AttachmentRef] 是密封接口
+   * ——包外造不出实例。两条路必须能走同一套拼装规则。
+   */
+  fun attachmentUrl(src: String, needsAttachBase: Boolean, options: AttachmentUrlOptions): String
+
   /** 把 AST 里的资源引用拼成能直接喂给图片组件的地址。 */
-  fun attachmentUrl(ref: AttachmentRef, options: AttachmentUrlOptions): String
+  fun attachmentUrl(ref: AttachmentRef, options: AttachmentUrlOptions): String =
+    attachmentUrl(ref.src, ref.needsAttachBase, options)
 
   /** 把 `__GLOBAL._ATTACH_BASE_VIEW` 归一成能直接往后拼路径的基址。 */
   fun normalizeAttachBase(raw: String?): String
@@ -102,10 +112,14 @@ object DefaultAttachmentUrls : AttachmentUrls {
    * 而 `[noimg]./-7Qd36d-….jpg[/noimg]` 没有——后者要按发帖时间补 `mon_YYYYMM/DD/`
    * 才能取到图(实测缺前缀的地址是 404)。
    */
-  override fun attachmentUrl(ref: AttachmentRef, options: AttachmentUrlOptions): String {
-    if (!ref.needsAttachBase) return rehostLegacyAttachment(ref.src, options.base)
+  override fun attachmentUrl(
+    src: String,
+    needsAttachBase: Boolean,
+    options: AttachmentUrlOptions,
+  ): String {
+    if (!needsAttachBase) return rehostLegacyAttachment(src, options.base)
 
-    var path = LEADING_SLASHES.replace(stripThumbnailSuffix(ref.src), "")
+    var path = LEADING_SLASHES.replace(stripThumbnailSuffix(src), "")
     val postedAt = options.postedAt
     if (postedAt != null && !DATED_PATH_PATTERN.containsMatchIn(path)) {
       path = "${datedDirectory(postedAt)}/$path"
