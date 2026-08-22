@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -56,7 +57,7 @@ import com.chasel.ng2n.data.settings.FilterRuleOrigin as StoredOrigin
 class FilterRepository @Inject constructor(
   private val client: NgaClient,
   private val settings: SettingsStore,
-  accounts: AccountStore,
+  private val accounts: AccountStore,
 ) {
 
   // ---------------------------------------------------------------- 本地规则
@@ -129,17 +130,22 @@ class FilterRepository @Inject constructor(
     local + officialFilterRules(cloud.list ?: EMPTY_BLOCK_WORDS)
   }
 
-  /** 当前账号 uid;游客是 `null`(接口要登录,游客一律不发请求)。 */
-  private val currentUid: Flow<String?> = accounts.currentUid
-
-  fun currentUidFlow(): Flow<String?> = currentUid
+  /**
+   * 当前账号 uid;游客是 `null`(接口要登录,游客一律不发请求)。
+   *
+   * **uid 一律由本仓库自己从 [AccountStore] 现读**,不让屏幕传进来:屏幕上那份是
+   * `collectAsStateWithLifecycle(initialValue = null)`,进屏第一帧必然是 `null`,
+   * 传进来就会把已经拉到的云端表当成「切到游客了」清掉,5 分钟的 staleTime 白搭。
+   */
+  val currentUid: Flow<String?> = accounts.currentUid
 
   /**
    * 进屏时调。**幂等**:同一个账号的表在 [STALE_MS] 内不重问
    * (RN 侧 `staleTime: 5 * 60 * 1000`,ADR-0002「能少打就少打」)。
    * 换了账号一律重拉。
    */
-  suspend fun ensureBlockWords(uid: String?, nowMs: Long = System.currentTimeMillis()) {
+  suspend fun ensureBlockWords(nowMs: Long = System.currentTimeMillis()) {
+    val uid = accounts.currentUid.first()
     if (uid == null) {
       // 游客:清掉上一个号留下的表,别让它继续参与判定
       blockWordsState.value = BlockWordsState()
@@ -150,8 +156,9 @@ class FilterRepository @Inject constructor(
     load(uid, refreshing = false, nowMs = nowMs)
   }
 
-  /** 下拉刷新:用户可能刚在网页版改过,给一个重读的口子。 */
-  suspend fun refreshBlockWords(uid: String, nowMs: Long = System.currentTimeMillis()) {
+  /** 下拉刷新:用户可能刚在网页版改过,给一个重读的口子。游客态是 no-op。 */
+  suspend fun refreshBlockWords(nowMs: Long = System.currentTimeMillis()) {
+    val uid = accounts.currentUid.first() ?: return
     load(uid, refreshing = true, nowMs = nowMs)
   }
 
@@ -194,8 +201,8 @@ class FilterRepository @Inject constructor(
    * 乐观更新 + 失败回滚:开关点了就该立刻动,失败把服务端那句话交给调用方去说
    * (`failureText`)。
    */
-  private suspend fun edit(uid: String?, change: (BlockWordList) -> BlockWordList) {
-    if (uid == null) throw IllegalStateException("登录后才能同步官方屏蔽词")
+  private suspend fun edit(change: (BlockWordList) -> BlockWordList) {
+    val uid = accounts.currentUid.first() ?: throw IllegalStateException("登录后才能同步官方屏蔽词")
     val before = blockWordsState.value
     val current = before.list ?: throw IllegalStateException("官方屏蔽表还没读到,下拉刷新后再试")
     val next = change(current)
@@ -210,15 +217,15 @@ class FilterRepository @Inject constructor(
     }
   }
 
-  suspend fun addOfficialWord(uid: String?, word: String) = edit(uid) { list ->
+  suspend fun addOfficialWord(word: String) = edit { list ->
     list.copy(words = listOf(word) + list.words.filter { it != word })
   }
 
-  suspend fun removeOfficialWord(uid: String?, word: String) = edit(uid) { list ->
+  suspend fun removeOfficialWord(word: String) = edit { list ->
     list.copy(words = list.words.filter { it != word })
   }
 
-  suspend fun removeOfficialUser(uid: String?, user: BlockedUser) = edit(uid) { list ->
+  suspend fun removeOfficialUser(user: BlockedUser) = edit { list ->
     list.copy(
       users = list.users.filter { item ->
         if (user.uid == null) item.name != user.name else item.uid != user.uid
@@ -227,7 +234,7 @@ class FilterRepository @Inject constructor(
   }
 
   /** 整表写回。「撤销」把改动前那张表原样写回去即可。 */
-  suspend fun replaceOfficial(uid: String?, replacement: BlockWordList) = edit(uid) { replacement }
+  suspend fun replaceOfficial(replacement: BlockWordList) = edit { replacement }
 
   private companion object {
     /** RN 侧 `staleTime: 5 * 60 * 1000`。 */

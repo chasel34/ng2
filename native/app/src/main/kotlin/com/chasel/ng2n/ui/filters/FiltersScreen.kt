@@ -45,6 +45,7 @@ import com.chasel.ng2n.core.local.FilterRule
 import com.chasel.ng2n.core.local.FilterRuleInput
 import com.chasel.ng2n.core.local.FilterRuleKind
 import com.chasel.ng2n.data.filters.FilterRepository
+import com.chasel.ng2n.data.settings.DEFAULT_SETTINGS
 import com.chasel.ng2n.ui.board.dateText
 import com.chasel.ng2n.ui.common.EmptyState
 import com.chasel.ng2n.ui.common.InputDialog
@@ -117,16 +118,29 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
   var addWordOpen by remember { mutableStateOf(false) }
   var wordError by remember { mutableStateOf<String?>(null) }
 
-  val uid by deps.accounts.currentUid.collectAsStateWithLifecycle(initialValue = null)
-  val signedIn = uid != null
   val rules by deps.filters.localRules.collectAsStateWithLifecycle(initialValue = emptyList())
   val cloud by deps.filters.blockWords.collectAsStateWithLifecycle()
-  val leftHanded by deps.settings.settings.collectAsStateWithLifecycle(
-    initialValue = com.chasel.ng2n.data.settings.DEFAULT_SETTINGS,
+  val appSettings by deps.settings.settings.collectAsStateWithLifecycle(
+    initialValue = DEFAULT_SETTINGS,
   )
 
+  /*
+   * 登录态是**三态**:还没从磁盘读到 / 游客 / 某个 uid。
+   * 少了「还没读到」这一档,进屏第一帧就会拿游客态渲染 —— 已登录用户会先看到
+   * 一闪的「登录后才能读写官方屏蔽词」。账号表是 DataStore(suspend,修 P2-04),
+   * 第一次发射必然晚于首帧。
+   */
+  var uid by remember { mutableStateOf<String?>(null) }
+  var uidKnown by remember { mutableStateOf(false) }
   // 切号也要重来一遍:云端表是账号级数据
-  LaunchedEffect(uid) { deps.filters.ensureBlockWords(uid) }
+  LaunchedEffect(Unit) {
+    deps.filters.currentUid.collect { current ->
+      uid = current
+      uidKnown = true
+      deps.filters.ensureBlockWords()
+    }
+  }
+  val signedIn = uid != null
 
   /** 云端写操作统一的失败话术:接口是整表覆盖,失败时表还是原来那张。 */
   val cloudFailed: (Throwable) -> Unit = { error ->
@@ -144,7 +158,7 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
             before?.let { snapshot ->
               SnackbarAction("撤销") {
                 scope.launch {
-                  runCatching { deps.filters.replaceOfficial(uid, snapshot) }
+                  runCatching { deps.filters.replaceOfficial(snapshot) }
                     .onFailure(cloudFailed)
                 }
               }
@@ -210,10 +224,7 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
       val pullable = tab != FilterTab.LOCAL && signedIn
       PullToRefreshBox(
         isRefreshing = pullable && cloud.refreshing,
-        onRefresh = {
-          val current = uid ?: return@PullToRefreshBox
-          if (pullable) scope.launch { deps.filters.refreshBlockWords(current) }
-        },
+        onRefresh = { if (pullable) scope.launch { deps.filters.refreshBlockWords() } },
         modifier = Modifier.fillMaxSize(),
       ) {
         LazyColumn(
@@ -256,13 +267,14 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
             officialBody(
               tab = tab,
               signedIn = signedIn,
+              uidKnown = uidKnown,
               state = cloud,
-              onRetry = { uid?.let { current -> scope.launch { deps.filters.refreshBlockWords(current) } } },
+              onRetry = { scope.launch { deps.filters.refreshBlockWords() } },
               onRemoveUser = { user ->
-                undoable("已解除对 ${user.name} 的屏蔽") { deps.filters.removeOfficialUser(uid, user) }
+                undoable("已解除对 ${user.name} 的屏蔽") { deps.filters.removeOfficialUser(user) }
               },
               onRemoveWord = { word ->
-                undoable("已删除官方关键词:$word") { deps.filters.removeOfficialWord(uid, word) }
+                undoable("已删除官方关键词:$word") { deps.filters.removeOfficialWord(word) }
               },
             )
           }
@@ -272,9 +284,9 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
       // 官方用户屏蔽只做「读 + 解除」(票面):加人要 uid,输入框拿不到,所以那个 tab 不给 FAB
       if (tab != FilterTab.OFFICIAL_USERS) {
         AddRuleFab(
-          leftHanded = leftHanded.leftHanded,
+          leftHanded = appSettings.leftHanded,
           modifier = Modifier.align(
-            if (leftHanded.leftHanded) Alignment.BottomStart else Alignment.BottomEnd,
+            if (appSettings.leftHanded) Alignment.BottomStart else Alignment.BottomEnd,
           ),
           onClick = {
             when {
@@ -323,7 +335,7 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
         addWordOpen = false
         val word = value.trim()
         scope.launch {
-          runCatching { deps.filters.addOfficialWord(uid, word) }.fold(
+          runCatching { deps.filters.addOfficialWord(word) }.fold(
             onSuccess = { Snackbars.show("已添加官方关键词:$word") },
             onFailure = cloudFailed,
           )
@@ -337,11 +349,17 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
 private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
   tab: FilterTab,
   signedIn: Boolean,
+  uidKnown: Boolean,
   state: FilterRepository.BlockWordsState,
   onRetry: () -> Unit,
   onRemoveUser: (BlockedUser) -> Unit,
   onRemoveWord: (String) -> Unit,
 ) {
+  if (!uidKnown) {
+    // 账号表还没从磁盘读回来:先转圈,别拿游客态措辞
+    item(key = "unknown", contentType = "state") { LoadingState(variant = StateVariant.INLINE) }
+    return
+  }
   if (!signedIn) {
     item(key = "guest", contentType = "state") {
       EmptyState(
