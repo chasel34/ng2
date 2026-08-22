@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  系统分享要一个 content:// URI 才肯收文件(直接给 file:// 会 FileUriExposedException)。
+  只暴露图片下载中转目录一处,别把整个 cacheDir 开出去。目录名与
+  `data/ImageSaver.CACHE_DIR` 必须一致。
+-->
+<paths>
+    <cache-path name="ng2n-images" path="ng2n-images/" />
+</paths>
