@@ -11,7 +11,7 @@
 
 **Blocked by:** 01, 04
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] 手工移植回归全绿:combo 投毒(`rejectNonTopicList` 防假成功)、「未登录=可重试」、游客短路、`__output=11` 真数组
 - [x] 新增回归:写操作不轮换/不换号/不重放;读写元数据缺省安全(未标注=按写处理或编译期强制标注,二选一并记录)
@@ -216,3 +216,5 @@ combo-poison 里间接覆盖)。
    更强的保证(比如从账号 Flow 直接订阅),要在那边加。
 4. **`benchmark` 模块与 `androidTest` 本票没碰**,`:app:assembleDebug` 与
    `:app:testDebugUnitTest` 均通过。
+
+**主控验收(2026-08-22)**:合并后主干 437 例全绿(1 skipped = 门控联网冒烟)。主控亲跑一次 `NGA_INTEGRATION=1` 冒烟:`via=format-rotation keys=[__GLOBAL, __ROWS, __T, …]` 通过。接受全部 7 条裁定(含 `operation` 编译期强制、自管 jar 唯一来源、超时 8/12/12/15s)。票外 4 条转交票 17(实验室对齐)与票 12 跟进(图片凭证冷启为游客——票 15 接登录后复核)。
