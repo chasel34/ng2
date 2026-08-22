@@ -203,3 +203,5 @@
   `cardMeta` 等几档;本票就地内联了取值(并行期不动共用表),票 17 收口后建议统一补进 `Typo`。
 - `ui/common/Dialogs.kt` 的 `DialogShell` 是 private,单选对话框只能在 `ui/settings/` 里复刻
   一份同款(动效常量取自同一个 `Motion`,不会各说各话)。收口后建议把它提成 internal 共用。
+
+**主控验收 17c(2026-08-22)**:合并进 android-native;AppDeps/Ng2nApp 两票追加项都保留;HomeEntries 占位只剩 17a 六个键;DevMenu「屏蔽规则(票 17b)」临时入口已删。815 单测/0 失败。`gestureBack` 语义待所有者裁决(原生左边缘返回是系统手势);深链 `am start -d ng2n://…` 实跳与设置界面归票 18 走查。
