@@ -88,6 +88,15 @@ data class BBCodeCallbacks(
    * 所以由楼层卡按楼填,渲染器只负责显示。**< 2 不画**:链上只有它自己,进去也是空的。
    */
   val chainDepth: Int = 0,
+  /**
+   * 长按正文。
+   *
+   * **非有不可**:正文段自己用 `detectTapGestures` 认点击(链接/uid/防剧透都钉在
+   * annotation 上),而 `detectTapGestures` 会把 down 吃掉 —— 祖先的
+   * `combinedClickable(onLongClick = …)` 因此收不到长按,「长按整卡出楼层菜单」
+   * 就只在正文以外的地方才灵(模拟器实测)。所以长按要从这里往上转发。
+   */
+  val onLongPress: (() -> Unit)? = null,
 )
 
 @Composable
@@ -186,7 +195,9 @@ private fun TextSegmentView(segment: TextSegment, callbacks: BBCodeCallbacks) {
     modifier = Modifier
       .fillMaxWidth()
       .pointerInput(segment, callbacks) {
-        detectTapGestures { position ->
+        detectTapGestures(
+          onLongPress = callbacks.onLongPress?.let { handler -> { _ -> handler() } },
+        ) { position ->
           val result = layout ?: return@detectTapGestures
           val offset = result.getOffsetForPosition(position)
           for (annotation in segment.text.getStringAnnotations(offset, offset)) {

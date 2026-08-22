@@ -99,6 +99,9 @@ fun FloorCard(
       onOpenExternal = actions.onOpenLink,
       onOpenChain = { actions.onOpenChain(floor) },
       chainDepth = chainDepth,
+      // 正文段自己吃 down 事件,长按得从渲染器转发上来,否则「长按整卡出菜单」
+      // 只在正文以外的空白处才灵(见 BBCodeCallbacks.onLongPress)
+      onLongPress = { actions.onOpenMenu(floor) },
     )
   }
 
