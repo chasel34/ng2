@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -88,7 +89,13 @@ fun BBCodeDemoScreen(onOpenViewer: (ImageViewerKey) -> Unit) {
     )
   }
 
-  Column(modifier = Modifier.fillMaxSize().background(colors.bg)) {
+  // MainActivity 开了 edge-to-edge(票 01),不让开就顶到状态栏底下去了
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(colors.bg)
+      .systemBarsPadding(),
+  ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
