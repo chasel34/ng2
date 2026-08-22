@@ -10,7 +10,7 @@
 
 **Blocked by:** 05
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] 各算法全部 fixtures 金样本对拍零差异(尤其骰子共享随机流、匿名越界 case、TLV 边界)
       —— 10 个 domain 348 条全绿;`./gradlew :app:testDebugUnitTest` 179 tests / 0 failures
@@ -123,3 +123,5 @@
 ### 需要所有者(真人)介入的事项
 
 无。本票零 Android 依赖、纯 JVM 单测,不需要登录、不需要真机。
+
+**主控验收(2026-08-22)**:合并时与票 12 的 `AttachmentUrls.kt` 顶层函数重名,主控改为接口委托到本票 `Attachments.kt`(票 12 最小实现删除,`AttachmentUrlsTest` 仍跑)。合并后主干 313 例全绿。接受 P3-05 四道闸(含输入 20000 字上限的有意偏离)。跟进:`DeepLink.kt` 的 `NGA_HOSTNAMES` 待票 06 常量落地后改引用;`MiniBBCode.kt` 待票 11/13 换正式解析器。
