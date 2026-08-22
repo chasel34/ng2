@@ -5,7 +5,7 @@
 
 **Blocked by:** 09
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] coverage 29 类型逐一与 RN 版并排截图核对(功能对照,非像素级)——口径改为「demo 屏自检 + 对照 render.tsx 逐条核对」,见 Comments 的 32 行对照表
 - [x] 超长楼层(最长 fixture)滚动无肉眼断续(初测;正式闸在票 19)——模拟器甩 12 次无崩溃无卡死,不下性能结论
@@ -188,3 +188,5 @@ spec §五)。两条观察留给票 13/19:
    并写明「删掉改 import 那一份」。票 10 落地时会撞上,主控注意排期。
 4. **`ui/bbcode/FloorImages.kt` 里的 `FloorAttachment`** 是票 13 楼层数据模型的临时替身
    (只要「地址 + 是不是图」两项),标了 `TODO(票 13)`。
+
+**主控验收(2026-08-22)**:与票 10 在 `AttachmentUrls.kt` 冲突,主控合并为「票 11 的宽接口 + 全量委托票 10 `Attachments.kt`」。合并后主干 533 例全绿、`assembleDebug` 通过。接受 7 条裁定(防剧透点击翻开、折叠 200ms 动画、size 不放大行高等)。跟进票 13:段级分帧决策(票外 1)、`DiceOutcome`/`ReplyHeader` 临时实现换票 10 正式版(票外 2)、`FloorAttachment` 替身。
