@@ -8,6 +8,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import com.chasel.ng2n.core.bbcode.Align
 import com.chasel.ng2n.core.bbcode.BoxVariant
+import com.chasel.ng2n.core.local.DiceOutcome
+import com.chasel.ng2n.core.local.QuoteRef
 import kotlinx.collections.immutable.ImmutableList
 
 /**
@@ -197,38 +199,4 @@ object BBCodeAnnotation {
    * 点一下把这一段翻出来看(见 `BBCodeContent`)。
    */
   const val SPOILER: String = "ng2n:spoiler"
-}
-
-/**
- * 骰子结果(RN 侧 `src/core/local/dice.ts` 的 `DiceOutcome`)。
- *
- * **TODO(票 10)**:票 10 落地 `core/local/Dice.kt`(含 LCG 复算与共享随机流)后,
- * 把这三个类型删掉改 import 那一份。渲染器只消费结果,复算不在票 11 范围内。
- */
-@Immutable
-data class DiceOutcome(
-  /** AST 里的原始表达式,原样回显(网页版的 `ROLL : <表达式>`) */
-  val expression: String,
-  val terms: ImmutableList<DiceTerm>,
-  /** 超出 NGA 的上限时没有点数,网页版此处显示 `OUT OF LIMIT` / `ERROR` */
-  val sum: Int? = null,
-)
-
-@Immutable
-sealed interface DiceTerm {
-  val value: Int
-
-  /** 掷出来的一颗:`d100(37)`。 */
-  data class Roll(val faces: Int, override val value: Int) : DiceTerm
-
-  /** 表达式里的常数项:`2d6+3` 的那个 3。 */
-  data class Constant(override val value: Int) : DiceTerm
-}
-
-/** `d100(37)+3` 这样的展开串(RN 侧 `formatDiceTerms`)。 */
-fun formatDiceTerms(terms: List<DiceTerm>): String = terms.joinToString("+") { term ->
-  when (term) {
-    is DiceTerm.Roll -> "d${term.faces}(${term.value})"
-    is DiceTerm.Constant -> term.value.toString()
-  }
 }

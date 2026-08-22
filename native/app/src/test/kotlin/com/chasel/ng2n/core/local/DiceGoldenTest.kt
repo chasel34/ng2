@@ -1,8 +1,10 @@
 package com.chasel.ng2n.core.local
 
+import com.chasel.ng2n.core.bbcode.parseBBCode
 import com.chasel.ng2n.golden.GoldenCase
 import com.chasel.ng2n.golden.longField
 import com.chasel.ng2n.golden.runGoldenDomain
+import com.chasel.ng2n.ui.bbcode.diceScopeOf
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
@@ -19,9 +21,8 @@ import kotlin.test.assertNotEquals
  * `dice` domain 全量对拍(23 条)。
  *
  * 金样本的 `input.text` 是楼层正文原文,README 要求「先 `parseBBCode(text)` 再
- * `resolveDice(ast, seed)`」。票 09 的解析器还没合并,所以这里先过 [parseMiniBBCode]
- * (只认 `[dice]`/`[collapse]` 等六种标签的临时抽取器)再 [diceScopeOf] 抽成
- * [DiceScope] 喂进去——**TODO(票 11/13):换成正式 `parseBBCode`。**
+ * `resolveDice(ast, seed)`」。票 13 把票 10 留的接缝接上了:正式解析器 +
+ * `ui/bbcode/BBCodeShapeAdapter.kt` 的 [diceScopeOf](AST → [DiceScope])。
  */
 class DiceGoldenTest {
 
@@ -63,7 +64,7 @@ class DiceGoldenTest {
 
   @Test
   fun `同一楼层里两个写法相同的骰子各有各的点数`() {
-    val outcomes = resolveDice(diceScopeOf(parseMiniBBCode("[dice]d100[/dice][dice]d100[/dice]")), SEED)
+    val outcomes = resolveDice(diceScopeOf(parseBBCode("[dice]d100[/dice][dice]d100[/dice]")), SEED)
     assertEquals(2, outcomes.size)
     assertEquals(listOf(60L, 90L), outcomes.map { it.sum })
   }
@@ -72,7 +73,7 @@ class DiceGoldenTest {
   fun `折叠块作用域的展开顺序与结果顺序一致`() {
     // 票 11/13 靠这条把结果贴回 AST 节点:flatten() 与 resolveDice() 必须同序
     val scope = diceScopeOf(
-      parseMiniBBCode("[dice]2d6[/dice][collapse][dice]d100[/dice][/collapse][dice]d8[/dice]"),
+      parseBBCode("[dice]2d6[/dice][collapse][dice]d100[/dice][/collapse][dice]d8[/dice]"),
     )
     assertEquals(listOf("2d6", "d8", "d100"), scope.flatten())
     assertEquals(scope.flatten(), resolveDice(scope, SEED).map { it.expression })
@@ -83,7 +84,7 @@ class DiceGoldenTest {
 
     /** 一串骰子的点数,按文档顺序(TS 测试里的 `values()`)。 */
     fun rolls(source: String, seed: DiceSeed = SEED): List<Long> =
-      resolveDice(diceScopeOf(parseMiniBBCode(source)), seed)
+      resolveDice(diceScopeOf(parseBBCode(source)), seed)
         .flatMap { outcome -> outcome.terms.filterIsInstance<DiceTerm.Roll>().map { it.value } }
   }
 }
@@ -94,7 +95,7 @@ private fun GoldenCase.seed(): DiceSeed =
   DiceSeed(longField("authorId"), longField("tid"), longField("pid"))
 
 private fun outcomesJson(text: String, seed: DiceSeed): JsonElement {
-  val outcomes = resolveDice(diceScopeOf(parseMiniBBCode(text)), seed)
+  val outcomes = resolveDice(diceScopeOf(parseBBCode(text)), seed)
   return JsonArray(
     outcomes.map { outcome ->
       buildJsonObject {

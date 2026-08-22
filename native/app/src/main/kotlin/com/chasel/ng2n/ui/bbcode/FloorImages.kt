@@ -2,6 +2,7 @@ package com.chasel.ng2n.ui.bbcode
 
 import com.chasel.ng2n.core.api.AttachmentUrlOptions
 import com.chasel.ng2n.core.api.AttachmentUrls
+import com.chasel.ng2n.core.api.FloorAttachment
 import com.chasel.ng2n.core.bbcode.AlbumNode
 import com.chasel.ng2n.core.bbcode.BBCodeNode
 import com.chasel.ng2n.core.bbcode.ImageNode
@@ -21,16 +22,8 @@ import com.chasel.ng2n.core.bbcode.childNodeLists
 /** 查看器要的一条。`thumbnailUrl` 与 `url` 相同或没有时不填。 */
 data class ViewerImage(val url: String, val thumbnailUrl: String? = null)
 
-/**
- * 楼层附件区的一条(票 13 会从信封里解出来;这里只要「地址 + 是不是图」两项)。
- *
- * **TODO(票 13)**:楼层数据模型落地后换成那边的 `FloorAttachment`,本类删除。
- */
-data class FloorAttachment(
-  val url: String,
-  val isImage: Boolean,
-  val thumbnailUrl: String? = null,
-)
+/** 附件里哪些算图片(服务端 `type`,实测只见过 `img`)。 */
+const val ATTACHMENT_IMAGE_KIND: String = "img"
 
 fun collectFloorImages(
   nodes: List<BBCodeNode>,
@@ -66,7 +59,7 @@ fun collectFloorImages(
   visit(nodes)
 
   for (attachment in attachments) {
-    if (!attachment.isImage) continue
+    if (attachment.kind != ATTACHMENT_IMAGE_KIND) continue
     push(attachment.url, attachment.thumbnailUrl)
   }
 

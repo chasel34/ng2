@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.chasel.ng2n.core.bbcode.Align
+import com.chasel.ng2n.core.local.QuoteRef
 import com.chasel.ng2n.ui.image.PostImage
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.LocalTextScale
@@ -80,6 +81,13 @@ data class BBCodeCallbacks(
   val onOpenExternal: ((String) -> Unit)? = null,
   /** 引用卡底部的「查看对话链(N 层)」;给了才画那一行 */
   val onOpenChain: ((QuoteRef) -> Unit)? = null,
+  /**
+   * 「查看对话链」那一行里的 N —— 从**本楼**可追溯的链深(含它自己)。
+   *
+   * 是楼层的属性不是引用块的属性(RN 侧 `floor-card.tsx` 的 `chainDepthOf(floor)`),
+   * 所以由楼层卡按楼填,渲染器只负责显示。**< 2 不画**:链上只有它自己,进去也是空的。
+   */
+  val chainDepth: Int = 0,
 )
 
 @Composable

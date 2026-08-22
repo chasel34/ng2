@@ -89,7 +89,7 @@ internal fun QuoteCard(segment: QuoteSegment, callbacks: BBCodeCallbacks) {
 
     // 「查看对话链(N 层)」入口:只有调用方接了、且这个引用块认得出 [pid] 引用时才画——
     // 手打的 [quote](没有 pid 标记)追不了链,画了也是死入口
-    if (chain != null && onOpenChain != null) {
+    if (chain != null && onOpenChain != null && callbacks.chainDepth >= MIN_CHAIN_DEPTH) {
       Row(
         modifier = Modifier
           .padding(top = 2.dp)
@@ -99,7 +99,7 @@ internal fun QuoteCard(segment: QuoteSegment, callbacks: BBCodeCallbacks) {
       ) {
         ChainIcon(tint = colors.primary)
         Text(
-          text = "查看对话链",
+          text = "查看对话链(${callbacks.chainDepth} 层)",
           fontSize = Typo.listMeta.size,
           fontWeight = FontWeight.SemiBold,
           color = colors.primary,
@@ -110,6 +110,9 @@ internal fun QuoteCard(segment: QuoteSegment, callbacks: BBCodeCallbacks) {
 }
 
 private val QUOTE_RAIL = 3.dp
+
+/** 链上只有本楼自己时不画入口(RN 侧 `chainDepth >= 2`)。 */
+private const val MIN_CHAIN_DEPTH = 2
 
 /**
  * 左边一条 3dp 的竖轨(设计稿 `borderLeftWidth: 3`)。

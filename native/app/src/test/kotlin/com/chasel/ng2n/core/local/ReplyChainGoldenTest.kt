@@ -1,9 +1,13 @@
 package com.chasel.ng2n.core.local
 
+import com.chasel.ng2n.core.bbcode.BBCodeNode
+import com.chasel.ng2n.core.bbcode.encodeBBCode
+import com.chasel.ng2n.core.bbcode.parseBBCode
 import com.chasel.ng2n.golden.GoldenCase
 import com.chasel.ng2n.golden.longField
 import com.chasel.ng2n.golden.longFieldOrNull
 import com.chasel.ng2n.golden.runGoldenDomain
+import com.chasel.ng2n.ui.bbcode.BBCodeNodeShape
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -16,9 +20,9 @@ import kotlin.test.assertEquals
  * `reply-chain` domain 全量对拍(52 条)。
  *
  * `input` 里的 `text` / `floors[].content` 是楼层正文 BBCode 原文,README 要求
- * 先 `parseBBCode` 再喂给被测函数。票 09 还没合并,所以这里过 [parseMiniBBCode]
- * (临时抽取器)+ [MiniShape] 适配器——**TODO(票 11/13):换成正式 `parseBBCode`
- * 与 `BBCodeShape<BBCodeNode>`,`core/local` 的函数本身不用动。**
+ * 先 `parseBBCode` 再喂给被测函数。票 13 接上了正式解析器与
+ * `ui/bbcode/BBCodeShapeAdapter.kt` 的 [BBCodeNodeShape] 适配器 ——
+ * **`core/local` 的函数本身一个字没动**(票 10 的设计意图)。
  *
  * `buildQuoteIndex` 的期望值把 Map/Set 拍平成 `{ quotes, quotedBy, loaded }`,键按升序
  * (JSON 装不下 Map);TS 侧返回的是插入序的 Map,升序是导出器的规范化,所以排序在这里做。
@@ -28,14 +32,14 @@ class ReplyChainGoldenTest {
   @Test
   fun `reply-chain 金样本全量对拍`() = runGoldenDomain("reply-chain") {
     fn("extractQuoteRefs") { case ->
-      extractQuoteRefs(parseMiniBBCode(case.stringField("text")), MiniShape).map { it.toGoldenMap() }
+      extractQuoteRefs(parseBBCode(case.stringField("text")), BBCodeNodeShape).map { it.toGoldenMap() }
     }
     // 这三个收的是 parseBBCode(text)[0] —— 整段正文的第一个节点
-    fn("quoteRefOf") { case -> quoteRefOf(case.firstNode(), MiniShape)?.toGoldenMap() }
-    fn("isReplyHeaderNode") { case -> isReplyHeaderNode(case.firstNode(), MiniShape) }
-    fn("replyHeaderRefOf") { case -> replyHeaderRefOf(case.firstNode(), MiniShape)?.toGoldenMap() }
+    fn("quoteRefOf") { case -> quoteRefOf(case.firstNode(), BBCodeNodeShape)?.toGoldenMap() }
+    fn("isReplyHeaderNode") { case -> isReplyHeaderNode(case.firstNode(), BBCodeNodeShape) }
+    fn("replyHeaderRefOf") { case -> replyHeaderRefOf(case.firstNode(), BBCodeNodeShape)?.toGoldenMap() }
     fn("stripQuoteMarkup") { case ->
-      stripQuoteMarkup(parseMiniBBCode(case.stringField("text")), MiniShape).toGoldenJson()
+      stripQuoteMarkup(parseBBCode(case.stringField("text")), BBCodeNodeShape).let(::encodeBBCode)
     }
     fn("buildQuoteIndex") { case -> case.quoteIndex().toGoldenMap() }
     fn("buildReplyChain") { case ->
@@ -48,8 +52,8 @@ class ReplyChainGoldenTest {
 
   @Test
   fun `正文里随手贴的 pid 链接不算引用——那是提及,不是回复关系`() {
-    val nodes = parseMiniBBCode("看看这楼 [pid=99,45150945,1]Reply[/pid] 说的")
-    assertEquals(emptyList(), extractQuoteRefs(nodes, MiniShape))
+    val nodes = parseBBCode("看看这楼 [pid=99,45150945,1]Reply[/pid] 说的")
+    assertEquals(emptyList(), extractQuoteRefs(nodes, BBCodeNodeShape))
   }
 
   @Test
@@ -79,7 +83,7 @@ class ReplyChainGoldenTest {
   private fun floor(pid: Long, lou: Long, text: String) = QuoteIndexFloor(
     pid = pid,
     lou = lou,
-    refs = extractQuoteRefs(parseMiniBBCode(text), MiniShape),
+    refs = extractQuoteRefs(parseBBCode(text), BBCodeNodeShape),
   )
 }
 
@@ -109,7 +113,7 @@ private fun QuoteIndex.toGoldenMap(): Map<String, Any?> = mapOf(
 )
 
 /** `quoteRefOf` / `isReplyHeaderNode` / `replyHeaderRefOf` 收的是整段正文的第一个节点。 */
-private fun GoldenCase.firstNode(): MiniNode = parseMiniBBCode(stringField("text")).first()
+private fun GoldenCase.firstNode(): BBCodeNode = parseBBCode(stringField("text")).first()
 
 private fun GoldenCase.quoteIndex(): QuoteIndex {
   val floors = field("floors").jsonArray.map { element ->
@@ -118,8 +122,8 @@ private fun GoldenCase.quoteIndex(): QuoteIndex {
       pid = floor.getValue("pid").jsonPrimitive.long,
       lou = floor["lou"]?.takeIf { it !is JsonNull }?.jsonPrimitive?.long,
       refs = extractQuoteRefs(
-        parseMiniBBCode(floor.getValue("content").jsonPrimitive.content),
-        MiniShape,
+        parseBBCode(floor.getValue("content").jsonPrimitive.content),
+        BBCodeNodeShape,
       ),
     )
   }

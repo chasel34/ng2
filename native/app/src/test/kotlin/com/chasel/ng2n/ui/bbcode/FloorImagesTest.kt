@@ -2,6 +2,7 @@ package com.chasel.ng2n.ui.bbcode
 
 import com.chasel.ng2n.core.api.AttachmentUrlOptions
 import com.chasel.ng2n.core.api.DefaultAttachmentUrls
+import com.chasel.ng2n.core.api.FloorAttachment
 import com.chasel.ng2n.core.bbcode.parseBBCode
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -75,10 +76,10 @@ class FloorImagesTest {
     val attachments = listOf(
       FloorAttachment(
         url = "$base/mon_202608/07/att.jpg",
-        isImage = true,
+        kind = "img",
         thumbnailUrl = "$base/mon_202608/07/att.jpg.thumb.jpg",
       ),
-      FloorAttachment(url = "$base/mon_202608/07/pack.zip", isImage = false),
+      FloorAttachment(url = "$base/mon_202608/07/pack.zip", kind = "file"),
     )
     val images = collect("[img]./mon_202608/07/body.jpg[/img]", attachments)
     assertEquals(
@@ -92,7 +93,7 @@ class FloorImagesTest {
   fun `同一张图正文与附件都出现时按第一次出现去重`() {
     val images = collect(
       "[img]./mon_202608/07/dup.jpg[/img]",
-      listOf(FloorAttachment(url = "$base/mon_202608/07/dup.jpg", isImage = true)),
+      listOf(FloorAttachment(url = "$base/mon_202608/07/dup.jpg", kind = "img")),
     )
     assertEquals(1, images.size)
   }
