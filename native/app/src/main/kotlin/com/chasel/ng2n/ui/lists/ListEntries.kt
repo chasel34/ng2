@@ -6,6 +6,7 @@ import com.chasel.ng2n.ui.nav.CachesKey
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
 import com.chasel.ng2n.ui.nav.HistoryKey
+import com.chasel.ng2n.ui.nav.SearchKey
 import com.chasel.ng2n.ui.nav.Navigator
 
 /**
@@ -22,4 +23,5 @@ fun EntryProviderScope<NavKey>.listEntries(nav: Navigator) {
   entry<CachesKey> { CachesScreen(nav = nav) }
   entry<FavoritesKey> { FavoritesScreen(nav = nav) }
   entry<FavoriteFoldersKey> { FavoriteFoldersScreen(nav = nav) }
+  entry<SearchKey> { key -> SearchScreen(key = key, nav = nav) }
 }

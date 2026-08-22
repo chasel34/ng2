@@ -14,6 +14,7 @@ import com.chasel.ng2n.data.board.TopicListRepository
 import com.chasel.ng2n.data.cache.TopicCacheRepository
 import com.chasel.ng2n.data.favorites.TopicFavoriteRepository
 import com.chasel.ng2n.data.history.HistoryRepository
+import com.chasel.ng2n.data.search.SearchRepository
 import com.chasel.ng2n.data.notifications.NotificationPoller
 import com.chasel.ng2n.data.settings.SettingsStore
 import dagger.hilt.EntryPoint
@@ -53,6 +54,7 @@ interface AppDepsEntryPoint {
   fun history(): HistoryRepository
   fun topicCache(): TopicCacheRepository
   fun topicFavorites(): TopicFavoriteRepository
+  fun search(): SearchRepository
 }
 
 class AppDeps(entryPoint: AppDepsEntryPoint) {
@@ -68,6 +70,7 @@ class AppDeps(entryPoint: AppDepsEntryPoint) {
   val history: HistoryRepository = entryPoint.history()
   val topicCache: TopicCacheRepository = entryPoint.topicCache()
   val topicFavorites: TopicFavoriteRepository = entryPoint.topicFavorites()
+  val search: SearchRepository = entryPoint.search()
 }
 
 @Composable
