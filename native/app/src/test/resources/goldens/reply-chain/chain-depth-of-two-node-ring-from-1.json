@@ -1,0 +1,21 @@
+{
+  "expected": 2,
+  "fn": "chainDepthOf",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=2,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>B 的话[/quote]A",
+        "lou": 1,
+        "pid": 1
+      },
+      {
+        "content": "[quote][pid=1,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>A 的话[/quote]B",
+        "lou": 2,
+        "pid": 2
+      }
+    ],
+    "startPid": 1,
+    "tid": 45150945
+  },
+  "name": "chain-depth-of-two-node-ring-from-1"
+}

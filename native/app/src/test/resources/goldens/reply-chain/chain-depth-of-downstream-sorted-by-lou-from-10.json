@@ -1,0 +1,26 @@
+{
+  "expected": 2,
+  "fn": "chainDepthOf",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=10,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>原话[/quote]",
+        "lou": 9,
+        "pid": 30
+      },
+      {
+        "content": "[quote][pid=10,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>原话[/quote]",
+        "lou": 4,
+        "pid": 20
+      },
+      {
+        "content": "被引的楼",
+        "lou": 1,
+        "pid": 10
+      }
+    ],
+    "startPid": 10,
+    "tid": 45150945
+  },
+  "name": "chain-depth-of-downstream-sorted-by-lou-from-10"
+}

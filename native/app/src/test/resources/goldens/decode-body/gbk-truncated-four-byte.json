@@ -1,0 +1,11 @@
+{
+  "expected": "�",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "gTCB",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "gbk-truncated-four-byte",
+  "note": "流末尾残留前导字节 → 一个 U+FFFD"
+}

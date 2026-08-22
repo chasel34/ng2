@@ -1,0 +1,23 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "重点"
+        }
+      ],
+      "type": "bold"
+    },
+    {
+      "type": "text",
+      "value": "内容"
+    }
+  ],
+  "fn": "stripQuoteMarkup",
+  "input": {
+    "text": "[b]重点[/b]内容"
+  },
+  "name": "strip-quote-markup-plain-bold-kept",
+  "note": "普通粗体不剥，只剥 Reply to 回复头"
+}

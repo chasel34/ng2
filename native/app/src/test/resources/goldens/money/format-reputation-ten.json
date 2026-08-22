@@ -1,0 +1,9 @@
+{
+  "expected": "1.0",
+  "fn": "formatReputation",
+  "input": {
+    "reputation": 1
+  },
+  "name": "format-reputation-ten",
+  "note": "固定一位小数（设计稿楼层头 `威望 1.0`）"
+}

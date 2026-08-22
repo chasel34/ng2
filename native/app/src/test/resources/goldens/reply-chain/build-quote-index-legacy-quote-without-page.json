@@ -1,0 +1,38 @@
+{
+  "expected": {
+    "loaded": [
+      100
+    ],
+    "quotedBy": [
+      [
+        66,
+        [
+          100
+        ]
+      ]
+    ],
+    "quotes": [
+      [
+        100,
+        [
+          {
+            "pid": 66
+          }
+        ]
+      ]
+    ]
+  },
+  "fn": "buildQuoteIndex",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=66]Reply[/pid]老写法引用[/quote]",
+        "lou": 5,
+        "pid": 100
+      }
+    ],
+    "tid": 45150945
+  },
+  "name": "build-quote-index-legacy-quote-without-page",
+  "note": "引用楼缺失且没有页码信息：节点照样在链上，只是没有定位手段"
+}

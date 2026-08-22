@@ -1,0 +1,16 @@
+{
+  "expected": 1,
+  "fn": "chainDepthOf",
+  "input": {
+    "floors": [
+      {
+        "content": "就一句话",
+        "lou": 9,
+        "pid": 9
+      }
+    ],
+    "startPid": 9,
+    "tid": 45150945
+  },
+  "name": "chain-depth-of-lonely-floor-from-9"
+}

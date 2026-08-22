@@ -1,0 +1,27 @@
+{
+  "expected": null,
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:([未闭合",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": true,
+        "value": "([未闭合"
+      },
+      {
+        "id": "local:keyword:广告",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "广告"
+      }
+    ],
+    "subject": {
+      "title": "([未闭合 的标题"
+    }
+  },
+  "name": "match-filter-rules-invalid-regex-never-matches-and-never-throws",
+  "note": "写错的正则不能让整个列表白屏，也不能命中"
+}

@@ -1,0 +1,8 @@
+{
+  "expected": [],
+  "fn": "extractQuoteRefs",
+  "input": {
+    "text": "就一句话"
+  },
+  "name": "extract-quote-refs-plain-text-has-no-refs"
+}

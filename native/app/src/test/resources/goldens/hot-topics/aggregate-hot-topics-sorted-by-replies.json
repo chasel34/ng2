@@ -1,0 +1,51 @@
+{
+  "expected": [
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799996400,
+      "replies": 300,
+      "tid": 2
+    },
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799996400,
+      "replies": 42,
+      "tid": 3
+    },
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799996400,
+      "replies": 10,
+      "tid": 1
+    }
+  ],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000
+    },
+    "pages": [
+      [
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 10,
+          "tid": 1
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 300,
+          "tid": 2
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 42,
+          "tid": 3
+        }
+      ]
+    ]
+  },
+  "name": "aggregate-hot-topics-sorted-by-replies"
+}

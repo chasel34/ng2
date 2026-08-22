@@ -1,0 +1,62 @@
+{
+  "expected": {
+    "loaded": [
+      1,
+      2
+    ],
+    "quotedBy": [
+      [
+        1,
+        [
+          2
+        ]
+      ],
+      [
+        2,
+        [
+          1
+        ]
+      ]
+    ],
+    "quotes": [
+      [
+        1,
+        [
+          {
+            "page": 1,
+            "pid": 2,
+            "tid": 45150945
+          }
+        ]
+      ],
+      [
+        2,
+        [
+          {
+            "page": 1,
+            "pid": 1,
+            "tid": 45150945
+          }
+        ]
+      ]
+    ]
+  },
+  "fn": "buildQuoteIndex",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=2,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>B 的话[/quote]A",
+        "lou": 1,
+        "pid": 1
+      },
+      {
+        "content": "[quote][pid=1,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>A 的话[/quote]B",
+        "lou": 2,
+        "pid": 2
+      }
+    ],
+    "tid": 45150945
+  },
+  "name": "build-quote-index-two-node-ring",
+  "note": "环引用靠 visited 掐断，不死循环"
+}

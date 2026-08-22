@@ -2,9 +2,20 @@
   "expected": "access_uid=123&access_token=abc",
   "fn": "buildQueryString",
   "input": {
-    "access_token": "abc",
-    "access_uid": "123",
-    "extra": ""
+    "params": [
+      [
+        "access_uid",
+        "123"
+      ],
+      [
+        "access_token",
+        "abc"
+      ],
+      [
+        "extra",
+        ""
+      ]
+    ]
   },
   "name": "build-query-string-post-form-same-rules"
 }

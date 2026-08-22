@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "copper": 50,
+    "gold": 0,
+    "negative": false,
+    "silver": 1
+  },
+  "fn": "splitMoney",
+  "input": {
+    "copperTotal": 150.9
+  },
+  "name": "split-money-fractional-truncated",
+  "note": "小数先规整成整数铜币"
+}

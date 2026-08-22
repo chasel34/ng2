@@ -1,0 +1,89 @@
+{
+  "expected": {
+    "loaded": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "quotedBy": [
+      [
+        1,
+        [
+          2
+        ]
+      ],
+      [
+        2,
+        [
+          3
+        ]
+      ],
+      [
+        3,
+        [
+          4
+        ]
+      ]
+    ],
+    "quotes": [
+      [
+        2,
+        [
+          {
+            "page": 1,
+            "pid": 1,
+            "tid": 45150945
+          }
+        ]
+      ],
+      [
+        3,
+        [
+          {
+            "page": 1,
+            "pid": 2,
+            "tid": 45150945
+          }
+        ]
+      ],
+      [
+        4,
+        [
+          {
+            "page": 1,
+            "pid": 3,
+            "tid": 45150945
+          }
+        ]
+      ]
+    ]
+  },
+  "fn": "buildQuoteIndex",
+  "input": {
+    "floors": [
+      {
+        "content": "主楼",
+        "lou": 0,
+        "pid": 1
+      },
+      {
+        "content": "[quote][pid=1,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>主楼原话[/quote]一楼",
+        "lou": 1,
+        "pid": 2
+      },
+      {
+        "content": "[quote][pid=2,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>一楼原话[/quote]二楼",
+        "lou": 2,
+        "pid": 3
+      },
+      {
+        "content": "[quote][pid=3,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>二楼原话[/quote]三楼",
+        "lou": 3,
+        "pid": 4
+      }
+    ],
+    "tid": 45150945
+  },
+  "name": "build-quote-index-linear"
+}

@@ -1,0 +1,64 @@
+{
+  "expected": [
+    {
+      "lastPostAt": 1799999990,
+      "postedAt": 1799996400,
+      "replies": 5,
+      "tid": 1
+    },
+    {
+      "lastPostAt": 1799999900,
+      "postedAt": 1799996400,
+      "replies": 5,
+      "tid": 2
+    },
+    {
+      "lastPostAt": 1799999900,
+      "postedAt": 1799996400,
+      "replies": 5,
+      "tid": 3
+    },
+    {
+      "lastPostAt": 1799999900,
+      "postedAt": 1799996400,
+      "replies": 5,
+      "tid": 4
+    }
+  ],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000
+    },
+    "pages": [
+      [
+        {
+          "lastPostAt": 1799999900,
+          "postedAt": 1799996400,
+          "replies": 5,
+          "tid": 3
+        },
+        {
+          "lastPostAt": 1799999990,
+          "postedAt": 1799996400,
+          "replies": 5,
+          "tid": 1
+        },
+        {
+          "lastPostAt": 1799999900,
+          "postedAt": 1799996400,
+          "replies": 5,
+          "tid": 4
+        },
+        {
+          "lastPostAt": 1799999900,
+          "postedAt": 1799996400,
+          "replies": 5,
+          "tid": 2
+        }
+      ]
+    ]
+  },
+  "name": "aggregate-hot-topics-ties-broken-by-last-post-then-tid",
+  "note": "回复数相同按最后回复时间降序，再相同按 tid 升序——结果必须确定"
+}

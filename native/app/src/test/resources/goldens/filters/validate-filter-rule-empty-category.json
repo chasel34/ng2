@@ -1,0 +1,9 @@
+{
+  "expected": "请输入要屏蔽的分类",
+  "fn": "validateFilterRule",
+  "input": {
+    "kind": "category",
+    "value": ""
+  },
+  "name": "validate-filter-rule-empty-category"
+}

@@ -1,0 +1,11 @@
+{
+  "expected": "local:keyword:广告",
+  "fn": "filterRuleId",
+  "input": {
+    "kind": "keyword",
+    "origin": "local",
+    "value": "广告"
+  },
+  "name": "filter-rule-id-local-keyword",
+  "note": "同来源、同类型、同内容即同一条规则；比对前小写"
+}

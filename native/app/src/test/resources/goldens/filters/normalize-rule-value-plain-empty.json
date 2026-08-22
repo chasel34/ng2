@@ -1,0 +1,9 @@
+{
+  "expected": "",
+  "fn": "normalizeRuleValue",
+  "input": {
+    "regex": false,
+    "value": "   "
+  },
+  "name": "normalize-rule-value-plain-empty"
+}

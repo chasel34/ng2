@@ -1,0 +1,11 @@
+{
+  "expected": "�0AB",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "gTBBQg==",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "gbk-half-four-byte",
+  "note": "半截四字节 → 退回 second 与尾字节重解"
+}

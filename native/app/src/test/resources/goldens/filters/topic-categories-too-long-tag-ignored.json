@@ -1,0 +1,6 @@
+{
+  "expected": [],
+  "fn": "topicCategories",
+  "input": "[长长长长长长长长长长长长长长长长长长长长长]标题",
+  "name": "topic-categories-too-long-tag-ignored"
+}

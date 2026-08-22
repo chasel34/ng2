@@ -1,0 +1,25 @@
+{
+  "expected": {
+    "id": "local:keyword:内部消息",
+    "kind": "keyword",
+    "origin": "local",
+    "regex": false,
+    "value": "内部消息"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:内部消息",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "内部消息"
+      }
+    ],
+    "subject": {
+      "title": "爆个内部消息"
+    }
+  },
+  "name": "match-filter-rules-keyword-in-title"
+}

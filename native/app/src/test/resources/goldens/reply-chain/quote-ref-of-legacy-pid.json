@@ -1,0 +1,11 @@
+{
+  "expected": {
+    "pid": 123
+  },
+  "fn": "quoteRefOf",
+  "input": {
+    "text": "[quote][pid=123]Reply[/pid]原话[/quote]"
+  },
+  "name": "quote-ref-of-legacy-pid",
+  "note": "input 是整段正文，取第一个节点（必是 quote）"
+}

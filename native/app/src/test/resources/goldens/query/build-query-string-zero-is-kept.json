@@ -2,7 +2,12 @@
   "expected": "page=0",
   "fn": "buildQueryString",
   "input": {
-    "page": 0
+    "params": [
+      [
+        "page",
+        0
+      ]
+    ]
   },
   "name": "build-query-string-zero-is-kept"
 }

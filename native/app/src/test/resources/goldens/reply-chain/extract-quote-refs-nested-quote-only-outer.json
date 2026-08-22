@@ -1,0 +1,15 @@
+{
+  "expected": [
+    {
+      "page": 1,
+      "pid": 22,
+      "tid": 45150945
+    }
+  ],
+  "fn": "extractQuoteRefs",
+  "input": {
+    "text": "[quote][pid=22,45150945,1]Reply[/pid] [b]Post by [uid=1]某人[/uid]:[/b][quote][pid=11,45150945,1]Reply[/pid]祖辈原话[/quote]父辈原话[/quote]"
+  },
+  "name": "extract-quote-refs-nested-quote-only-outer",
+  "note": "内层的 [pid] 是祖辈关系，算到本楼头上会把祖孙错接成父子"
+}

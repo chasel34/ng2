@@ -1,0 +1,10 @@
+{
+  "expected": null,
+  "fn": "validateFilterRule",
+  "input": {
+    "kind": "user",
+    "regex": true,
+    "value": "(["
+  },
+  "name": "validate-filter-rule-regex-flag-ignored-for-user"
+}

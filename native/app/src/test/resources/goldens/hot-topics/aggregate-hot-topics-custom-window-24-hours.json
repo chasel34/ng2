@@ -1,0 +1,40 @@
+{
+  "expected": [
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799992800,
+      "replies": 0,
+      "tid": 1
+    },
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799998200,
+      "replies": 0,
+      "tid": 2
+    }
+  ],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000,
+      "windowHours": 24
+    },
+    "pages": [
+      [
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799992800,
+          "replies": 0,
+          "tid": 1
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799998200,
+          "replies": 0,
+          "tid": 2
+        }
+      ]
+    ]
+  },
+  "name": "aggregate-hot-topics-custom-window-24-hours"
+}

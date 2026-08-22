@@ -1,0 +1,8 @@
+{
+  "expected": true,
+  "fn": "isReplyHeaderNode",
+  "input": {
+    "text": "[b]Reply to [pid=777,45150945,2]Reply[/pid] Post by [uid=233]李四[/uid] (2026-08-07 13:00)[/b]<br/>同意楼上"
+  },
+  "name": "is-reply-header-node-reply-header"
+}

@@ -1,0 +1,9 @@
+{
+  "expected": [
+    "讨论",
+    "转帖"
+  ],
+  "fn": "topicCategories",
+  "input": "[讨论][转帖]显卡涨价",
+  "name": "topic-categories-two-tags"
+}

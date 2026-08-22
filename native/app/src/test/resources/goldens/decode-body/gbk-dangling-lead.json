@@ -1,0 +1,11 @@
+{
+  "expected": "原�",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "1K3U",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "gbk-dangling-lead",
+  "note": "尾部半个双字节序列"
+}

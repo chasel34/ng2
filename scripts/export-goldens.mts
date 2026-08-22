@@ -63,6 +63,34 @@ import {
   signedBoardId,
 } from '../src/core/local/title-style'
 import { ngaLinkPath, parseNgaLink, type NgaLink } from '../src/core/local/deep-link'
+import {
+  createFilterRule,
+  filterMatchText,
+  filterRuleId,
+  matchFilterRules,
+  normalizeRuleValue,
+  removeFilterRule,
+  topicCategories,
+  upsertFilterRule,
+  validateFilterRule,
+  type FilterRule,
+  type FilterRuleInput,
+  type FilterSubject,
+} from '../src/core/local/filters'
+import {
+  buildQuoteIndex,
+  buildReplyChain,
+  chainDepthOf,
+  extractQuoteRefs,
+  isReplyHeaderNode,
+  quoteRefOf,
+  replyHeaderRefOf,
+  stripQuoteMarkup,
+  type QuoteIndex,
+  type QuoteIndexFloor,
+} from '../src/core/local/reply-chain'
+import { formatMoney, formatReputation, splitMoney, toReputation } from '../src/core/local/money'
+import { aggregateHotTopics, type HotTopicCandidate } from '../src/core/local/hot-topics'
 import { isVoteClosed, parseVote, voteSharePercent } from '../src/core/local/vote'
 
 import {
@@ -554,6 +582,29 @@ function exportDecodeBody(): void {
     'text/html; charset=iso-8859-1',
     '不认识的 charset 不硬用，退回投票',
   )
+
+  // GB18030 **框法**的边界（票 03）。RN 版是手写状态机，Kotlin 侧的表问 JDK 要，
+  // 但框法必须照抄 WHATWG：JDK 的 CharsetDecoder 在这几处与 WHATWG 不一样
+  // （`A3 A0` 给 PUA、单独的 `0x80` 当非法字节、坏字节处一口气多吞几个字节）。
+  // 而未声明 charset 时正是**按 U+FFFD 个数投票**选编码的，多吞一个字节就可能翻盘。
+  const gbkFramingCases: [name: string, bytes: number[], note: string][] = [
+    ['gbk-fullwidth-space', [0xa3, 0xa0], '`A3 A0` 是全角空格 U+3000，日常内容里到处都是'],
+    ['gbk-standalone-euro', [0x41, 0x80, 0x42], '单独的 `0x80` 解成 €，不是非法字节'],
+    [
+      'gbk-lead-then-ascii',
+      [0xd4, 0x20, 0x41],
+      '尾字节非法 → 一个 U+FFFD，且 ASCII 尾字节退回流里当普通字符重解',
+    ],
+    ['gbk-lead-then-7f', [0xd4, 0x7f, 0x41], '`0x7F` 也算 ASCII 尾字节，同样退回流里'],
+    ['gbk-half-four-byte', [0x81, 0x30, 0x41, 0x42], '半截四字节 → 退回 second 与尾字节重解'],
+    ['gbk-truncated-four-byte', [0x81, 0x30, 0x81], '流末尾残留前导字节 → 一个 U+FFFD'],
+    ['gbk-four-byte-astral', [0x90, 0x30, 0x81, 0x30], '四字节星平面段：U+10000'],
+    ['gbk-four-byte-unmapped', [0xfe, 0x39, 0xfe, 0x39], '四字节 pointer 越界 → U+FFFD'],
+    ['gbk-dangling-lead', [0xd4, 0xad, 0xd4], '尾部半个双字节序列'],
+  ]
+  for (const [name, bytes, note] of gbkFramingCases) {
+    emitDecodeBody(name, new Uint8Array(bytes), 'text/javascript; charset=GBK', note)
+  }
 
   const netFixtures: [string, NetFixtureName][] = [
     ['capture-thread-list-undeclared-gbk', 'threadList'],
@@ -1461,6 +1512,19 @@ function exportVote(): void {
 // domain: query —— 出站参数编码（GBK 逐参数 opt-in）
 // ===========================================================================
 
+/**
+ * 参数表 → 有序的 `[key, value]` 列表。
+ *
+ * **不能直接把参数对象当 input 落盘**：`stringifyStable` 会把键按字典序排掉，而
+ * `buildQueryString` 拼出来的串是**插入序**——`post-form-same-rules` 那条
+ * （`access_uid` 在 `access_token` 前）落盘后键序就反了，Kotlin 侧照文件顺序拼
+ * 永远对不上 `expected`。数组的顺序 `stringifyStable` 会原样保留，所以用列表。
+ * `undefined` 的值落成 `null`（两者在 `normalize` 里同档：剔除该参数）。
+ */
+function queryPairs(params: QueryParams): [string, unknown][] {
+  return Object.entries(params).map(([key, value]) => [key, value === undefined ? null : value])
+}
+
 function exportQuery(): void {
   const cases: [name: string, params: QueryParams, note?: string][] = [
     ['plain-params', { fid: 650, page: 1 }],
@@ -1489,7 +1553,7 @@ function exportQuery(): void {
     emit('query', {
       name: `build-query-string-${name}`,
       fn: 'buildQueryString',
-      input: params,
+      input: { params: queryPairs(params) },
       expected: buildQueryString(params),
       ...(note === undefined ? {} : { note }),
     })
@@ -1505,9 +1569,625 @@ function exportQuery(): void {
     emit('query', {
       name: `has-gbk-param-${name}`,
       fn: 'hasGbkParam',
-      input: params === undefined ? null : params,
+      input: params === undefined ? null : { params: queryPairs(params) },
       expected: hasGbkParam(params),
       note: '命中 = 要声明 charset=GBK 并撤掉 __inchst=UTF8',
+    })
+  }
+}
+
+// ===========================================================================
+// domain: filters —— 屏蔽规则匹配器（票 10）
+// ===========================================================================
+
+function exportFilters(): void {
+  const rule = (over: Partial<FilterRule> & Pick<FilterRule, 'kind' | 'value'>): FilterRule => ({
+    id: `${over.origin ?? 'local'}:${over.kind}:${over.value.toLowerCase()}`,
+    origin: 'local',
+    regex: false,
+    ...over,
+  })
+
+  const normalizeCases: [string, string, boolean?][] = [
+    ['trims-and-collapses-whitespace', '  张 \t 三  '],
+    ['regex-keeps-whitespace-syntax', 'a\\s{2,}b', true],
+    ['plain-empty', '   '],
+  ]
+  for (const [name, value, regex] of normalizeCases) {
+    emit('filters', {
+      name: `normalize-rule-value-${name}`,
+      fn: 'normalizeRuleValue',
+      input: { value, regex: regex === true },
+      expected: normalizeRuleValue(value, regex),
+    })
+  }
+
+  const idCases: [string, FilterRule['origin'], FilterRule['kind'], string][] = [
+    ['local-keyword', 'local', 'keyword', '广告'],
+    ['official-user-lowercases', 'official', 'user', 'XTL150OK'],
+    ['local-category', 'local', 'category', '转帖'],
+  ]
+  for (const [name, origin, kind, value] of idCases) {
+    emit('filters', {
+      name: `filter-rule-id-${name}`,
+      fn: 'filterRuleId',
+      input: { origin, kind, value },
+      expected: filterRuleId(origin, kind, value),
+      note: '同来源、同类型、同内容即同一条规则；比对前小写',
+    })
+  }
+
+  const categoryCases: [string, string][] = [
+    ['two-tags', '[讨论][转帖]显卡涨价'],
+    ['no-tag', '没有标签的标题'],
+    ['empty-tag-dropped', '[]空标签'],
+    ['nested-brackets-not-matched', '[外[内]层]标题'],
+    ['too-long-tag-ignored', `[${'长'.repeat(21)}]标题`],
+  ]
+  for (const [name, title] of categoryCases) {
+    emit('filters', {
+      name: `topic-categories-${name}`,
+      fn: 'topicCategories',
+      input: title,
+      expected: topicCategories(title),
+    })
+  }
+
+  // ⚠ 非法正则那一档（`validateFilterRule({ value: '([', regex: true })`）**不导**：
+  // 返回文案里嵌着 JS 引擎的 `SyntaxError.message`（V8 与 Hermes 都不保证一致，
+  // JVM 的 PatternSyntaxException 更是另一套措辞），拿它对拍等于把引擎实现钉死。
+  // Kotlin 侧只需保证「非法正则 → 返回以『正则表达式不合法：』开头的文案」，
+  // 票 10 用手写单测锁前缀即可。
+  const validateCases: [string, FilterRuleInput][] = [
+    ['empty-keyword', { kind: 'keyword', value: '   ' }],
+    ['empty-user', { kind: 'user', value: '' }],
+    ['empty-category', { kind: 'category', value: '' }],
+    ['valid-regex', { kind: 'keyword', value: '^\\[水\\]', regex: true }],
+    ['same-string-as-plain-keyword-passes', { kind: 'keyword', value: '([' }],
+    ['regex-flag-ignored-for-user', { kind: 'user', value: '([', regex: true }],
+  ]
+  for (const [name, input] of validateCases) {
+    emit('filters', {
+      name: `validate-filter-rule-${name}`,
+      fn: 'validateFilterRule',
+      input,
+      expected: validateFilterRule(input) ?? null,
+    })
+  }
+
+  const createCases: [string, FilterRuleInput, number][] = [
+    ['keyword-trims', { kind: 'keyword', value: ' 广告 ' }, 102],
+    ['regex-keyword', { kind: 'keyword', value: 'a\\s{2,}b', regex: true }, 100],
+    ['user-with-uid', { kind: 'user', value: '张三', uid: 42 }, 101],
+    ['regex-flag-only-for-keyword', { kind: 'category', value: '转帖', regex: true }, 103],
+  ]
+  for (const [name, input, nowSeconds] of createCases) {
+    emit('filters', {
+      name: `create-filter-rule-${name}`,
+      fn: 'createFilterRule',
+      input: { input, nowSeconds },
+      expected: createFilterRule(input, nowSeconds),
+    })
+  }
+
+  const existing = [
+    createFilterRule({ kind: 'keyword', value: '广告' }, 100),
+    createFilterRule({ kind: 'user', value: '张三' }, 101),
+  ]
+  const again = createFilterRule({ kind: 'keyword', value: ' 广告 ' }, 102)
+  emit('filters', {
+    name: 'upsert-filter-rule-replaces-and-moves-to-front',
+    fn: 'upsertFilterRule',
+    input: { rules: existing, rule: again },
+    expected: upsertFilterRule(existing, again),
+    note: '同一条规则重复添加是覆盖并挪到最前，不并存',
+  })
+  emit('filters', {
+    name: 'upsert-filter-rule-new-goes-first',
+    fn: 'upsertFilterRule',
+    input: { rules: existing, rule: createFilterRule({ kind: 'category', value: '转帖' }, 103) },
+    expected: upsertFilterRule(existing, createFilterRule({ kind: 'category', value: '转帖' }, 103)),
+  })
+  emit('filters', {
+    name: 'remove-filter-rule-by-id',
+    fn: 'removeFilterRule',
+    input: { rules: existing, id: existing[0]!.id },
+    expected: removeFilterRule(existing, existing[0]!.id),
+  })
+  emit('filters', {
+    name: 'remove-filter-rule-missing-is-noop',
+    fn: 'removeFilterRule',
+    input: { rules: existing, id: 'local:keyword:别的' },
+    expected: removeFilterRule(existing, 'local:keyword:别的'),
+  })
+
+  const matchCases: [string, FilterRule[], FilterSubject, string?][] = [
+    ['keyword-in-title', [rule({ kind: 'keyword', value: '内部消息' })], { title: '爆个内部消息' }],
+    [
+      'keyword-in-content',
+      [rule({ kind: 'keyword', value: '内部消息' })],
+      { title: '闲聊', content: '这是内部消息，别外传' },
+    ],
+    [
+      'keyword-miss',
+      [rule({ kind: 'keyword', value: '内部消息' })],
+      { title: '闲聊', content: '没什么可说的' },
+    ],
+    ['keyword-case-insensitive', [rule({ kind: 'keyword', value: 'Steam' })], { title: 'STEAM 夏促' }],
+    [
+      'regex-keyword-anchored',
+      [rule({ kind: 'keyword', value: '^\\[水\\]', regex: true })],
+      { title: '[水]今天吃什么' },
+    ],
+    [
+      'regex-keyword-anchor-misses',
+      [rule({ kind: 'keyword', value: '^\\[水\\]', regex: true })],
+      { title: '闲聊 [水]今天吃什么' },
+    ],
+    [
+      'plain-keyword-treats-metachars-literally',
+      [rule({ kind: 'keyword', value: '^\\[水\\]' })],
+      { title: '[水]今天吃什么' },
+      '同一个串当普通关键词时是在找字面量',
+    ],
+    [
+      'invalid-regex-never-matches-and-never-throws',
+      [rule({ kind: 'keyword', value: '([未闭合', regex: true }), rule({ kind: 'keyword', value: '广告' })],
+      { title: '([未闭合 的标题' },
+      '写错的正则不能让整个列表白屏，也不能命中',
+    ],
+    [
+      'invalid-regex-does-not-block-later-rules',
+      [rule({ kind: 'keyword', value: '([未闭合', regex: true }), rule({ kind: 'keyword', value: '广告' })],
+      { title: '这是广告' },
+    ],
+    ['user-exact-case-insensitive', [rule({ kind: 'user', value: 'xtl150ok' })], { author: 'XTL150OK' }],
+    ['user-no-substring', [rule({ kind: 'user', value: 'xtl150ok' })], { author: 'xtl150ok2' }],
+    [
+      'user-rule-does-not-match-title',
+      [rule({ kind: 'user', value: 'xtl150ok' })],
+      { title: 'xtl150ok 说得对' },
+    ],
+    [
+      'uid-beats-renamed-author',
+      [rule({ kind: 'user', value: '旧名字', uid: 42 })],
+      { author: '新名字', authorId: 42 },
+      '带 uid 的用户规则以 uid 为准：改了名照样命中',
+    ],
+    ['uid-rule-still-matches-by-name', [rule({ kind: 'user', value: '旧名字', uid: 42 })], { author: '旧名字' }],
+    ['uid-rule-misses-other-user', [rule({ kind: 'user', value: '旧名字', uid: 42 })], { author: '别人', authorId: 43 }],
+    ['category-tag-in-title', [rule({ kind: 'category', value: '转帖' })], { title: '[转帖]某地新闻' }],
+    [
+      'category-not-from-content',
+      [rule({ kind: 'category', value: '转帖' })],
+      { title: '某地新闻', content: '转帖自隔壁' },
+    ],
+    [
+      'category-needs-title',
+      [rule({ kind: 'category', value: '转帖' })],
+      { content: '[转帖]' },
+      '楼层没有标题，分类规则对它天然不生效',
+    ],
+    [
+      'first-matching-rule-wins',
+      [rule({ kind: 'keyword', value: '广告' }), rule({ kind: 'keyword', value: '内部消息', origin: 'official' })],
+      { title: '内部消息也是广告' },
+      '本地规则排在官方之前时先报本地那条',
+    ],
+    ['empty-rule-table', [], { title: '随便什么' }],
+    ['blank-rule-value-skipped', [rule({ kind: 'keyword', value: '  ' })], { title: 'x' }],
+  ]
+  for (const [name, rules, subject, note] of matchCases) {
+    emit('filters', {
+      name: `match-filter-rules-${name}`,
+      fn: 'matchFilterRules',
+      input: { rules, subject },
+      expected: matchFilterRules(rules, subject) ?? null,
+      ...(note === undefined ? {} : { note }),
+    })
+  }
+
+  for (const [name, kind, value] of [
+    ['user', 'user', '张三'],
+    ['keyword', 'keyword', '广告'],
+    ['category', 'category', '转帖'],
+  ] as [string, FilterRule['kind'], string][]) {
+    const item = rule({ kind, value })
+    emit('filters', {
+      name: `filter-match-text-${name}`,
+      fn: 'filterMatchText',
+      input: { rule: item },
+      expected: filterMatchText(item),
+    })
+  }
+}
+
+// ===========================================================================
+// domain: reply-chain —— 引用/回复链（票 10；input 先过 parseBBCode）
+// ===========================================================================
+
+const CHAIN_TID = 45150945
+
+/** 引用块写法（NGA「引用」按钮的产物）。 */
+const quoteOf = (pid: number, page: number, body: string): string =>
+  `[quote][pid=${pid},${CHAIN_TID},${page}]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>${body}[/quote]`
+
+/** 回复头写法（NGA「回复」按钮的产物，没有 quote 容器）。 */
+const replyTo = (pid: number, page: number): string =>
+  `[b]Reply to [pid=${pid},${CHAIN_TID},${page}]Reply[/pid] Post by [uid=233]李四[/uid] (2026-08-07 13:00)[/b]<br/>`
+
+/** Map/Set 装不进 JSON：拍平成有序的键值对列表（键升序，跨实现可复现）。 */
+function serializeQuoteIndex(index: QuoteIndex): unknown {
+  const byKey = <T,>(map: ReadonlyMap<number, T>): [number, T][] =>
+    [...map.entries()].sort(([a], [b]) => a - b)
+  return {
+    quotes: byKey(index.quotes),
+    quotedBy: byKey(index.quotedBy),
+    loaded: [...index.loaded].sort((a, b) => a - b),
+  }
+}
+
+function exportReplyChain(): void {
+  const refCases: [string, string, string?][] = [
+    ['quote-block', quoteOf(123456, 3, '原话') + '我的看法', 'tid 与页码来自 [pid] 的后两个参数'],
+    ['reply-header', replyTo(777, 2) + '同意楼上', '[b]Reply to …[/b] 回复头也认成引用'],
+    ['bare-pid-link-is-not-a-quote', `看看这楼 [pid=99,${CHAIN_TID},1]Reply[/pid] 说的`],
+    [
+      'nested-quote-only-outer',
+      `[quote][pid=22,${CHAIN_TID},1]Reply[/pid] [b]Post by [uid=1]某人[/uid]:[/b][quote][pid=11,${CHAIN_TID},1]Reply[/pid]祖辈原话[/quote]父辈原话[/quote]`,
+      '内层的 [pid] 是祖辈关系，算到本楼头上会把祖孙错接成父子',
+    ],
+    ['legacy-pid-without-tid', '[quote][pid=123]Reply[/pid]原话[/quote]'],
+    ['bad-pid-arg-is-not-a-quote', '[quote][pid=abc]Reply[/pid]原话[/quote]'],
+    ['plain-text-has-no-refs', '就一句话'],
+  ]
+  for (const [name, text, note] of refCases) {
+    emit('reply-chain', {
+      name: `extract-quote-refs-${name}`,
+      fn: 'extractQuoteRefs',
+      input: { text },
+      expected: extractQuoteRefs(parseBBCode(text)),
+      ...(note === undefined ? {} : { note }),
+    })
+  }
+
+  for (const [name, text] of [
+    ['quote-block', quoteOf(5, 1, '原话')],
+    ['legacy-pid', '[quote][pid=123]Reply[/pid]原话[/quote]'],
+    ['no-pid-inside', '[quote]光有原话[/quote]'],
+  ] as [string, string][]) {
+    const node = parseBBCode(text)[0]
+    if (node?.type !== 'quote') throw new Error(`${name} 的第一个节点不是 quote`)
+    emit('reply-chain', {
+      name: `quote-ref-of-${name}`,
+      fn: 'quoteRefOf',
+      input: { text },
+      expected: quoteRefOf(node) ?? null,
+      note: 'input 是整段正文，取第一个节点（必是 quote）',
+    })
+  }
+
+  const headerCases: [string, string][] = [
+    ['reply-header', replyTo(777, 2) + '同意楼上'],
+    ['plain-bold-is-not-a-header', '[b]重点[/b]'],
+    ['handwritten-header-without-pid', '[b]Reply to 楼上[/b]'],
+  ]
+  for (const [name, text] of headerCases) {
+    const node = parseBBCode(text)[0]!
+    emit('reply-chain', {
+      name: `is-reply-header-node-${name}`,
+      fn: 'isReplyHeaderNode',
+      input: { text },
+      expected: isReplyHeaderNode(node),
+    })
+    emit('reply-chain', {
+      name: `reply-header-ref-of-${name}`,
+      fn: 'replyHeaderRefOf',
+      input: { text },
+      expected: replyHeaderRefOf(node) ?? null,
+    })
+  }
+
+  const chainFixtures: [name: string, floors: QuoteIndexFloor[], tid: number | undefined, note?: string][] = [
+    [
+      'linear',
+      [
+        { pid: 1, lou: 0, content: '主楼' },
+        { pid: 2, lou: 1, content: quoteOf(1, 1, '主楼原话') + '一楼' },
+        { pid: 3, lou: 2, content: quoteOf(2, 1, '一楼原话') + '二楼' },
+        { pid: 4, lou: 3, content: quoteOf(3, 1, '二楼原话') + '三楼' },
+      ],
+      CHAIN_TID,
+    ],
+    [
+      'two-quoters',
+      [
+        { pid: 1, lou: 0, content: '主楼' },
+        { pid: 2, lou: 1, content: quoteOf(1, 1, '主楼原话') + '顶' },
+        { pid: 3, lou: 2, content: quoteOf(1, 1, '主楼原话') + '再顶' },
+      ],
+      CHAIN_TID,
+      'quotes 记它引了谁，quotedBy 记谁引了它',
+    ],
+    [
+      'self-and-cross-topic-quotes-dropped',
+      [
+        { pid: 7, lou: 3, content: quoteOf(7, 1, '自己') },
+        { pid: 8, lou: 4, content: `[quote][pid=555,99999,1]Reply[/pid]别帖的话[/quote]` },
+        { pid: 9, lou: 5, content: quoteOf(7, 1, 'a') + quoteOf(7, 1, 'b') },
+      ],
+      CHAIN_TID,
+      '引用自己、跨帖引用不进索引；同目标引两次只记一条',
+    ],
+    [
+      'downstream-sorted-by-lou',
+      [
+        { pid: 30, lou: 9, content: quoteOf(10, 1, '原话') },
+        { pid: 20, lou: 4, content: quoteOf(10, 1, '原话') },
+        { pid: 10, lou: 1, content: '被引的楼' },
+      ],
+      CHAIN_TID,
+      '下游按楼号排，与楼层加载顺序无关',
+    ],
+    [
+      'cross-page-quote-not-loaded',
+      [{ pid: 100, lou: 21, content: quoteOf(66, 1, '第一页的原话') + '回它' }],
+      CHAIN_TID,
+      '被引楼不在已加载集合时，节点带 ref 供懒加载',
+    ],
+    [
+      'legacy-quote-without-page',
+      [{ pid: 100, lou: 5, content: '[quote][pid=66]Reply[/pid]老写法引用[/quote]' }],
+      CHAIN_TID,
+      '引用楼缺失且没有页码信息：节点照样在链上，只是没有定位手段',
+    ],
+    [
+      'two-node-ring',
+      [
+        { pid: 1, lou: 1, content: quoteOf(2, 1, 'B 的话') + 'A' },
+        { pid: 2, lou: 2, content: quoteOf(1, 1, 'A 的话') + 'B' },
+      ],
+      CHAIN_TID,
+      '环引用靠 visited 掐断，不死循环',
+    ],
+    [
+      'three-node-ring',
+      [
+        { pid: 1, lou: 1, content: quoteOf(3, 1, 'x') },
+        { pid: 2, lou: 2, content: quoteOf(1, 1, 'x') },
+        { pid: 3, lou: 3, content: quoteOf(2, 1, 'x') },
+      ],
+      CHAIN_TID,
+    ],
+    ['lonely-floor', [{ pid: 9, lou: 9, content: '就一句话' }], CHAIN_TID],
+    [
+      'no-tid-keeps-cross-topic-quote',
+      [{ pid: 8, lou: 4, content: `[quote][pid=555,99999,1]Reply[/pid]别帖的话[/quote]` }],
+      undefined,
+      '不给 tid 就不做跨帖过滤',
+    ],
+  ]
+  const startPids: Record<string, number[]> = {
+    linear: [3, 1],
+    'two-quoters': [1],
+    'self-and-cross-topic-quotes-dropped': [9],
+    'downstream-sorted-by-lou': [10],
+    'cross-page-quote-not-loaded': [100],
+    'legacy-quote-without-page': [100],
+    'two-node-ring': [1],
+    'three-node-ring': [2],
+    'lonely-floor': [9],
+    'no-tid-keeps-cross-topic-quote': [8],
+  }
+  for (const [name, floors, tid, note] of chainFixtures) {
+    const options = tid === undefined ? {} : { tid }
+    const index = buildQuoteIndex(floors, options)
+    emit('reply-chain', {
+      name: `build-quote-index-${name}`,
+      fn: 'buildQuoteIndex',
+      input: { floors, ...(tid === undefined ? {} : { tid }) },
+      expected: serializeQuoteIndex(index),
+      ...(note === undefined ? {} : { note }),
+    })
+    for (const startPid of startPids[name] ?? []) {
+      emit('reply-chain', {
+        name: `build-reply-chain-${name}-from-${startPid}`,
+        fn: 'buildReplyChain',
+        input: { floors, ...(tid === undefined ? {} : { tid }), startPid },
+        expected: buildReplyChain(index, startPid),
+        ...(note === undefined ? {} : { note }),
+      })
+      emit('reply-chain', {
+        name: `chain-depth-of-${name}-from-${startPid}`,
+        fn: 'chainDepthOf',
+        input: { floors, ...(tid === undefined ? {} : { tid }), startPid },
+        expected: chainDepthOf(index, startPid),
+      })
+    }
+  }
+
+  const stripCases: [string, string, string?][] = [
+    ['quote-block', quoteOf(1, 1, '原话') + '我的看法', '剥掉引用块，留下本楼自己的话'],
+    ['reply-header', replyTo(7, 1) + '同意楼上'],
+    ['plain-bold-kept', '[b]重点[/b]内容', '普通粗体不剥，只剥 Reply to 回复头'],
+    ['everything-stripped', quoteOf(1, 1, '原话')],
+  ]
+  for (const [name, text, note] of stripCases) {
+    emit('reply-chain', {
+      name: `strip-quote-markup-${name}`,
+      fn: 'stripQuoteMarkup',
+      input: { text },
+      expected: stripQuoteMarkup(parseBBCode(text)),
+      ...(note === undefined ? {} : { note }),
+    })
+  }
+}
+
+// ===========================================================================
+// domain: money —— 金钱/威望显示换算（票 10，API 文档 §11.1）
+// ===========================================================================
+
+function exportMoney(): void {
+  // ⚠ `splitMoney(NaN)` 不导：金样本里不允许非有限数字（README 规范 4），
+  //   NaN 进不了 input。Kotlin 侧 `Double.NaN → 0` 由票 10 的手写单测锁。
+  const copperCases: [string, number, string?][] = [
+    ['zero', 0],
+    ['one-copper', 1],
+    ['one-silver', 100],
+    ['one-gold', 10000],
+    ['mixed', 123456, '12 金 34 银 56 铜'],
+    ['negative', -12345, '负余额按绝对值拆，符号单独标出来'],
+    ['fractional-truncated', 150.9, '小数先规整成整数铜币'],
+  ]
+  for (const [name, copperTotal, note] of copperCases) {
+    emit('money', {
+      name: `split-money-${name}`,
+      fn: 'splitMoney',
+      input: { copperTotal },
+      expected: splitMoney(copperTotal),
+      ...(note === undefined ? {} : { note }),
+    })
+    emit('money', {
+      name: `format-money-${name}`,
+      fn: 'formatMoney',
+      input: { copperTotal },
+      expected: formatMoney(copperTotal),
+      note: '设计稿基础信息卡的 `金.银.铜` 文案',
+    })
+  }
+
+  const reputationCases: [string, number, string?][] = [
+    ['fifteen', 15],
+    ['ten', 10],
+    ['zero', 0],
+    ['negative-real-sample', -11109, '真实样本 uid=2 的 rvrc'],
+    ['one-hundred-twenty-four', 124],
+  ]
+  for (const [name, raw, note] of reputationCases) {
+    const reputation = toReputation(raw)
+    emit('money', {
+      name: `to-reputation-${name}`,
+      fn: 'toReputation',
+      input: { raw },
+      expected: reputation,
+      ...(note === undefined ? {} : { note }),
+    })
+    emit('money', {
+      name: `format-reputation-${name}`,
+      fn: 'formatReputation',
+      input: { reputation },
+      expected: formatReputation(reputation),
+      note: '固定一位小数（设计稿楼层头 `威望 1.0`）',
+    })
+  }
+}
+
+// ===========================================================================
+// domain: hot-topics —— 本地热帖聚合（票 10）
+// ===========================================================================
+
+function exportHotTopics(): void {
+  const NOW = 1_800_000_000
+
+  const topic = (
+    tid: number,
+    overrides: Partial<HotTopicCandidate> & { postedAgo?: number } = {},
+  ): HotTopicCandidate => {
+    const { postedAgo = 3600, ...rest } = overrides
+    return { tid, replies: 0, postedAt: NOW - postedAgo, lastPostAt: NOW - 60, ...rest }
+  }
+
+  const cases: [
+    name: string,
+    pages: HotTopicCandidate[][],
+    windowHours: number | undefined,
+    note?: string,
+  ][] = [
+    [
+      'sorted-by-replies',
+      [[topic(1, { replies: 10 }), topic(2, { replies: 300 }), topic(3, { replies: 42 })]],
+      undefined,
+    ],
+    [
+      'ties-broken-by-last-post-then-tid',
+      [
+        [
+          topic(3, { replies: 5, lastPostAt: NOW - 100 }),
+          topic(1, { replies: 5, lastPostAt: NOW - 10 }),
+          topic(4, { replies: 5, lastPostAt: NOW - 100 }),
+          topic(2, { replies: 5, lastPostAt: NOW - 100 }),
+        ],
+      ],
+      undefined,
+      '回复数相同按最后回复时间降序，再相同按 tid 升序——结果必须确定',
+    ],
+    [
+      'window-boundary-inclusive',
+      [
+        [
+          topic(1, { postedAgo: 24 * 3600 }),
+          topic(2, { postedAgo: 24 * 3600 + 1 }),
+          topic(3, { postedAgo: 10 }),
+        ],
+      ],
+      undefined,
+      '恰好 24h 含边界，过线 1 秒就出局',
+    ],
+    [
+      'bumped-grave-does-not-enter',
+      [[topic(1, { postedAgo: 300 * 24 * 3600, lastPostAt: NOW - 5, replies: 9999 })]],
+      undefined,
+      '窗口过滤看发帖时间而不是最后回复',
+    ],
+    [
+      'custom-window-one-hour',
+      [[topic(1, { postedAgo: 2 * 3600 }), topic(2, { postedAgo: 30 * 60 })]],
+      1,
+    ],
+    [
+      'custom-window-24-hours',
+      [[topic(1, { postedAgo: 2 * 3600 }), topic(2, { postedAgo: 30 * 60 })]],
+      24,
+    ],
+    [
+      'dedup-across-pages',
+      [
+        [topic(1, { replies: 7 }), topic(2, { replies: 3 })],
+        [topic(1, { replies: 7 }), topic(3, { replies: 5 })],
+      ],
+      undefined,
+      '置顶主题每页都会再回来一次',
+    ],
+    [
+      'shortcut-and-jump-url-excluded',
+      [
+        [
+          topic(1, { replies: 100, shortcut: { kind: 'board', id: 650 } }),
+          topic(2, { replies: 50, jumpUrl: 'https://nga.178.com/misc/lottery.html' }),
+          topic(3, { replies: 1 }),
+        ],
+      ],
+      undefined,
+      '合集/镜像行与外链活动主题不是讨论串，不进榜',
+    ],
+    [
+      'zero-posted-at-filtered-out',
+      [[topic(1, { postedAt: 0 }), topic(2)]],
+      undefined,
+      'postedAt 解析失败退到 0 的坏条目被窗口自然挡掉',
+    ],
+    ['no-pages', [], undefined],
+    ['all-pages-empty', [[], []], undefined],
+  ]
+
+  for (const [name, pages, windowHours, note] of cases) {
+    const options = windowHours === undefined ? { now: NOW } : { now: NOW, windowHours }
+    emit('hot-topics', {
+      name: `aggregate-hot-topics-${name}`,
+      fn: 'aggregateHotTopics',
+      input: { pages, options },
+      expected: aggregateHotTopics(pages, options),
+      ...(note === undefined ? {} : { note }),
     })
   }
 }
@@ -2178,6 +2858,10 @@ function exportAll(): Map<string, string> {
   exportDeepLink()
   exportVote()
   exportQuery()
+  exportFilters()
+  exportReplyChain()
+  exportMoney()
+  exportHotTopics()
 
   exportApiTopicList()
   exportApiTopicDetail()

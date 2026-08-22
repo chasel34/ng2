@@ -1,0 +1,11 @@
+{
+  "expected": "𐀀",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "kDCBMA==",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "gbk-four-byte-astral",
+  "note": "四字节星平面段：U+10000"
+}

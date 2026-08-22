@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "pid": 123
+    }
+  ],
+  "fn": "extractQuoteRefs",
+  "input": {
+    "text": "[quote][pid=123]Reply[/pid]原话[/quote]"
+  },
+  "name": "extract-quote-refs-legacy-pid-without-tid"
+}

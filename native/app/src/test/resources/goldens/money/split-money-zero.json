@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "copper": 0,
+    "gold": 0,
+    "negative": false,
+    "silver": 0
+  },
+  "fn": "splitMoney",
+  "input": {
+    "copperTotal": 0
+  },
+  "name": "split-money-zero"
+}

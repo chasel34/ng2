@@ -1,0 +1,33 @@
+{
+  "expected": {
+    "id": "local:keyword:广告",
+    "kind": "keyword",
+    "origin": "local",
+    "regex": false,
+    "value": "广告"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:广告",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "广告"
+      },
+      {
+        "id": "official:keyword:内部消息",
+        "kind": "keyword",
+        "origin": "official",
+        "regex": false,
+        "value": "内部消息"
+      }
+    ],
+    "subject": {
+      "title": "内部消息也是广告"
+    }
+  },
+  "name": "match-filter-rules-first-matching-rule-wins",
+  "note": "本地规则排在官方之前时先报本地那条"
+}

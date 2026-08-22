@@ -1,0 +1,58 @@
+{
+  "expected": [
+    {
+      "createdAt": 103,
+      "id": "local:category:转帖",
+      "kind": "category",
+      "origin": "local",
+      "regex": false,
+      "value": "转帖"
+    },
+    {
+      "createdAt": 100,
+      "id": "local:keyword:广告",
+      "kind": "keyword",
+      "origin": "local",
+      "regex": false,
+      "value": "广告"
+    },
+    {
+      "createdAt": 101,
+      "id": "local:user:张三",
+      "kind": "user",
+      "origin": "local",
+      "regex": false,
+      "value": "张三"
+    }
+  ],
+  "fn": "upsertFilterRule",
+  "input": {
+    "rule": {
+      "createdAt": 103,
+      "id": "local:category:转帖",
+      "kind": "category",
+      "origin": "local",
+      "regex": false,
+      "value": "转帖"
+    },
+    "rules": [
+      {
+        "createdAt": 100,
+        "id": "local:keyword:广告",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "广告"
+      },
+      {
+        "createdAt": 101,
+        "id": "local:user:张三",
+        "kind": "user",
+        "origin": "local",
+        "regex": false,
+        "value": "张三"
+      }
+    ]
+  },
+  "name": "upsert-filter-rule-new-goes-first"
+}

@@ -2,7 +2,12 @@
   "expected": "a%20b=c%20d",
   "fn": "buildQueryString",
   "input": {
-    "a b": "c d"
+    "params": [
+      [
+        "a b",
+        "c d"
+      ]
+    ]
   },
   "name": "build-query-string-key-is-encoded-too"
 }

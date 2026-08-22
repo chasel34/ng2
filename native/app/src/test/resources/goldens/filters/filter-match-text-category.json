@@ -1,0 +1,14 @@
+{
+  "expected": "已屏蔽分类「转帖」的楼层",
+  "fn": "filterMatchText",
+  "input": {
+    "rule": {
+      "id": "local:category:转帖",
+      "kind": "category",
+      "origin": "local",
+      "regex": false,
+      "value": "转帖"
+    }
+  },
+  "name": "filter-match-text-category"
+}

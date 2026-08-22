@@ -1,0 +1,51 @@
+{
+  "expected": [
+    {
+      "createdAt": 102,
+      "id": "local:keyword:广告",
+      "kind": "keyword",
+      "origin": "local",
+      "regex": false,
+      "value": "广告"
+    },
+    {
+      "createdAt": 101,
+      "id": "local:user:张三",
+      "kind": "user",
+      "origin": "local",
+      "regex": false,
+      "value": "张三"
+    }
+  ],
+  "fn": "upsertFilterRule",
+  "input": {
+    "rule": {
+      "createdAt": 102,
+      "id": "local:keyword:广告",
+      "kind": "keyword",
+      "origin": "local",
+      "regex": false,
+      "value": "广告"
+    },
+    "rules": [
+      {
+        "createdAt": 100,
+        "id": "local:keyword:广告",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "广告"
+      },
+      {
+        "createdAt": 101,
+        "id": "local:user:张三",
+        "kind": "user",
+        "origin": "local",
+        "regex": false,
+        "value": "张三"
+      }
+    ]
+  },
+  "name": "upsert-filter-rule-replaces-and-moves-to-front",
+  "note": "同一条规则重复添加是覆盖并挪到最前，不并存"
+}

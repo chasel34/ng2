@@ -1,0 +1,20 @@
+{
+  "expected": {
+    "createdAt": 100,
+    "id": "local:keyword:a\\s{2,}b",
+    "kind": "keyword",
+    "origin": "local",
+    "regex": true,
+    "value": "a\\s{2,}b"
+  },
+  "fn": "createFilterRule",
+  "input": {
+    "input": {
+      "kind": "keyword",
+      "regex": true,
+      "value": "a\\s{2,}b"
+    },
+    "nowSeconds": 100
+  },
+  "name": "create-filter-rule-regex-keyword"
+}

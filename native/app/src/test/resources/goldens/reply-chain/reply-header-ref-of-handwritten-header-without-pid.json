@@ -1,0 +1,8 @@
+{
+  "expected": null,
+  "fn": "replyHeaderRefOf",
+  "input": {
+    "text": "[b]Reply to 楼上[/b]"
+  },
+  "name": "reply-header-ref-of-handwritten-header-without-pid"
+}

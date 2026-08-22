@@ -1,0 +1,9 @@
+{
+  "expected": "张 三",
+  "fn": "normalizeRuleValue",
+  "input": {
+    "regex": false,
+    "value": "  张 \t 三  "
+  },
+  "name": "normalize-rule-value-trims-and-collapses-whitespace"
+}

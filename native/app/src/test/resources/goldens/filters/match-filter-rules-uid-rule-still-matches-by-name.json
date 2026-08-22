@@ -1,0 +1,27 @@
+{
+  "expected": {
+    "id": "local:user:旧名字",
+    "kind": "user",
+    "origin": "local",
+    "regex": false,
+    "uid": 42,
+    "value": "旧名字"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:user:旧名字",
+        "kind": "user",
+        "origin": "local",
+        "regex": false,
+        "uid": 42,
+        "value": "旧名字"
+      }
+    ],
+    "subject": {
+      "author": "旧名字"
+    }
+  },
+  "name": "match-filter-rules-uid-rule-still-matches-by-name"
+}

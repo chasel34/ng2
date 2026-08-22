@@ -1,0 +1,25 @@
+{
+  "expected": {
+    "id": "local:keyword:steam",
+    "kind": "keyword",
+    "origin": "local",
+    "regex": false,
+    "value": "Steam"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:steam",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "Steam"
+      }
+    ],
+    "subject": {
+      "title": "STEAM 夏促"
+    }
+  },
+  "name": "match-filter-rules-keyword-case-insensitive"
+}

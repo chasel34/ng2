@@ -1,0 +1,8 @@
+{
+  "expected": null,
+  "fn": "replyHeaderRefOf",
+  "input": {
+    "text": "[b]重点[/b]"
+  },
+  "name": "reply-header-ref-of-plain-bold-is-not-a-header"
+}

@@ -1,0 +1,9 @@
+{
+  "expected": "a\\s{2,}b",
+  "fn": "normalizeRuleValue",
+  "input": {
+    "regex": true,
+    "value": "a\\s{2,}b"
+  },
+  "name": "normalize-rule-value-regex-keeps-whitespace-syntax"
+}

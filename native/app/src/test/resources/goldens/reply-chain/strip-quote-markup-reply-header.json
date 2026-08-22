@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "同意楼上"
+    }
+  ],
+  "fn": "stripQuoteMarkup",
+  "input": {
+    "text": "[b]Reply to [pid=7,45150945,1]Reply[/pid] Post by [uid=233]李四[/uid] (2026-08-07 13:00)[/b]<br/>同意楼上"
+  },
+  "name": "strip-quote-markup-reply-header"
+}

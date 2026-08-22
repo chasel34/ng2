@@ -1,0 +1,9 @@
+{
+  "expected": "12.34.56",
+  "fn": "formatMoney",
+  "input": {
+    "copperTotal": 123456
+  },
+  "name": "format-money-mixed",
+  "note": "设计稿基础信息卡的 `金.银.铜` 文案"
+}

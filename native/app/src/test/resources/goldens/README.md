@@ -21,7 +21,7 @@ pnpm goldens:export
   无扩展名的 TS 相对导入，Node 原生类型剥离解析不了。导出器本身也是那一条用例——
   它跑两遍并逐字节比对，**幂等（重跑零 diff）是验收项**。
 
-当前规模：**617 条**，24 个 domain。
+当前规模：**762 条**，28 个 domain。
 
 ## 目录结构
 
@@ -101,7 +101,7 @@ val bytes = Base64.getDecoder().decode(input.bytes)
 | `sanitize` | `core/net/sanitize.ts` | `sanitizeNgaJson`×22 | 响应原文（字符串） | 洗完的 JSON 文本（字符串，**不解析**） |
 | `envelope` | `core/net/envelope.ts` | `parseNgaJson`×18 | `{ text, via?, shape? }` | `{ data, time?, fakeError? }` 或 `{ throws }` |
 | `errors` | `core/net/errors.ts`、`server-text.ts` | `isFakeError`×10 / `isAuthLevelServerError`×3 / `extractServerError`×11 / `stripServerHtml`×8 | 字符串（前三个是 message，`extractServerError` 是**响应顶层对象**） | 布尔 / `{ code, message }`\|`null` / 纯文本 |
-| `decode-body` | `core/net/encoding/decode-body.ts` | `decodeResponseBody`×16 / `parseCharset`×5 | `{ bytes(base64), contentType }` / `{ contentType }` | 解码后的文本 / 小写 charset 或 `null` |
+| `decode-body` | `core/net/encoding/decode-body.ts` | `decodeResponseBody`×25 / `parseCharset`×5 | `{ bytes(base64), contentType }` / `{ contentType }` | 解码后的文本 / 小写 charset 或 `null` |
 | `entities` | `core/bbcode/entities.ts` | `unescapeNgaText`×11 / `escapeForSubmit`×9 | 字符串 | 字符串 |
 | `bbcode` | `core/bbcode/parse.ts` | `parseBBCode`×126 | BBCode 原文（字符串） | AST（`BBCodeNode[]`，可直接 JSON 往返） |
 | `dice` | `core/local/dice.ts` | `resolveDice`×20 / `formatDiceTerms`×3 | `{ text, authorId, tid, pid }` / `{ terms }` | 见下 |
@@ -110,7 +110,11 @@ val bytes = Base64.getDecoder().decode(input.bytes)
 | `attachments` | `core/api/attachments.ts` | 7 个函数×44 | 见下 | 字符串 |
 | `deep-link` | `core/local/deep-link.ts` | `parseNgaLink`×51 / `ngaLinkPath`×5 | 链接原文 / `NgaLink` 对象 | `{ ok:true, link }`\|`{ ok:false, reason }` / 路由路径 |
 | `vote` | `core/local/vote.ts` | `parseVote`×17 / `isVoteClosed`×3 / `voteSharePercent`×4 | `{ raw, tid }` / `{ raw, tid, now }` / `{ votes, total }` | `Vote`\|`null` / 布尔 / 数字 |
-| `query` | `core/net/query.ts` | `buildQueryString`×12 / `hasGbkParam`×4 | 参数对象（见下） | query 串 / 布尔 |
+| `query` | `core/net/query.ts` | `buildQueryString`×12 / `hasGbkParam`×4 | `{ params: [[key, value], …] }`（见下） | query 串 / 布尔 |
+| `filters` | `core/local/filters.ts` | `normalizeRuleValue`×3 / `filterRuleId`×3 / `topicCategories`×5 / `validateFilterRule`×6 / `createFilterRule`×4 / `upsertFilterRule`×2 / `removeFilterRule`×2 / `matchFilterRules`×21 / `filterMatchText`×3 | 见下 | 见下 |
+| `reply-chain` | `core/local/reply-chain.ts` | `extractQuoteRefs`×7 / `quoteRefOf`×3 / `isReplyHeaderNode`×3 / `replyHeaderRefOf`×3 / `buildQuoteIndex`×10 / `buildReplyChain`×11 / `chainDepthOf`×11 / `stripQuoteMarkup`×4 | 见下（先过 `parseBBCode`） | `QuoteRef[]` / 索引 / `ChainNode[]` / AST |
+| `money` | `core/local/money.ts` | `splitMoney`×7 / `formatMoney`×7 / `toReputation`×5 / `formatReputation`×5 | `{ copperTotal }` / `{ raw }` / `{ reputation }` | `Money` / 字符串 / 数字 |
+| `hot-topics` | `core/local/hot-topics.ts` | `aggregateHotTopics`×11 | `{ pages, options: { now, windowHours? } }` | 排好序的候选主题数组 |
 | `api/topic-list` | `core/api/topic-list.ts` | `parseTopicList`×9 / `hasTopicListStructure`×7 / `rejectNonTopicList`×4 / `mergeTopicPages`×1 / `serverEmptyTopicList`×1 | 管线 / 值 | `TopicList` 等 |
 | `api/topic-detail` | `core/api/topic-detail.ts` | `parseTopicDetail`×5 / `parseAvatarUrl`×6 | 管线（`args.context`）/ `{ raw }` | `TopicDetail` / 字符串\|`null` |
 | `api/board-tree` | `core/api/board-tree.ts` | `parseBoardTree`×3 / `pickActiveAnnouncement`×3 | 管线（`part: "root"`, `envelope: "bare"`）/ `{ announcements, now }` | `BoardTree` 或 `{ throws }` |
@@ -147,7 +151,12 @@ Kotlin 侧逐字符比。真实抓包那几条（`capture-*`）的 `input` 是�
 `capture-read-thread-declared-gbk`、`capture-read-web-not-found-gb18030`、
 `capture-thread-list-414-broken-bytes`（**服务端下发的字节本身就坏**，期望里就该有 U+FFFD——
 这是「fid=414 打不开」的根因，不是解码器的 bug）。
-Kotlin 侧扔掉手写状态机，用 `Charset.forName("GB18030")`，但**策略照抄**。
+`gbk-*` 那 9 条锁的是 GB18030 的**框法**（票 03 补，非 fixture 的合成字节）：
+`A3 A0` = 全角空格 U+3000、单独的 `0x80` = `€`、坏字节处「把尾字节退回流里重新解析」。
+**JDK 的 `CharsetDecoder` 在这三处与 WHATWG 不一样**，而未声明 charset 时正是按
+U+FFFD 个数投票选编码的，多吞一个字节就可能翻盘——所以 Kotlin 侧的做法是
+**表问 `Charset.forName("GB18030")` 要、框法照抄 WHATWG 状态机**，两处补丁写在
+`core/net/encoding/Gb18030.kt` 的文件头。
 
 **`bbcode`** — `input` 是楼层 `content` 原文，`expected` 是 29 种节点的 AST。
 `coverage-*` 是渲染器覆盖清单（`src/ui/bbcode/coverage.test.ts`）的样例，**一种节点一条**；
@@ -176,10 +185,49 @@ Kotlin 侧要先 `parseBBCode(text)` 再 `resolveDice(ast, seed)`。
 `dated-directory-is-utc-plus-8` 锁的是「日期目录按论坛时区算，不跟设备时区」——
 Kotlin 侧别用系统默认时区。
 
-**`query`** — `input` 是参数对象。`gbk()` 标记的值在 JSON 里就是它的运行时形态
-`{ "charset": "gbk", "value": "原神" }`；`null` = 该参数被显式删掉。
+**`query`** — `input` 是 `{ "params": [[key, value], …] }`，**有序的键值对列表而不是对象**：
+规范化会把对象键排成字典序，而 `buildQueryString` 拼出来的串是**插入序**
+（`build-query-string-post-form-same-rules` 那条就靠这个区分）。数组顺序规范化不动，所以用列表。
+`gbk()` 标记的值在 JSON 里就是它的运行时形态 `{ "charset": "gbk", "value": "原神" }`；
+`null` = 该参数被显式删掉（TS 的 `null` 与 `undefined` 在这里同档）。
 规则：空值参数（`null`/`undefined`/空串/`false`/空 gbk 值）**必须从 query 中删除**，
 `true` → `1`，数字 `0` 保留。`hasGbkParam` 命中 ⇒ 声明 `charset=GBK` 且**撤掉 `__inchst=UTF8`**。
+后两条判据落在 `attempt.ts` 的未导出函数里，进不了金样本；Kotlin 侧抠成了
+`core/net/OutboundCharset.kt` 的纯函数，用例手工移植（票 03）。
+
+**`filters`** — 各 fn 的 input：
+`normalizeRuleValue` `{ value, regex }`、`filterRuleId` `{ origin, kind, value }`、
+`topicCategories` 标题字符串、`validateFilterRule` / `createFilterRule` 的 `input` 是
+`FilterRuleInput`（后者外面再包一层 `{ input, nowSeconds }`）、
+`upsertFilterRule` `{ rules, rule }`、`removeFilterRule` `{ rules, id }`、
+`matchFilterRules` `{ rules, subject }`（expected 是命中的那条规则或 `null`）、
+`filterMatchText` `{ rule }`。
+两条铁律：**匹配一律大小写不敏感**；**非法正则永不命中、也永不抛**
+（`match-filter-rules-invalid-regex-*`）。
+⚠ `validateFilterRule` 的**非法正则**那一档没导：返回文案里嵌着 JS 引擎的
+`SyntaxError.message`，JVM 的措辞是另一套，拿它对拍等于把引擎实现钉死。
+Kotlin 侧只需保证前缀是「正则表达式不合法：」，票 10 用手写单测锁。
+`compileFilterRegex` 同样没导——它返回 `RegExp`，不是 JSON 值。
+
+**`reply-chain`** — `input` 里的 `text`/`floors[].content` 是**楼层正文 BBCode 原文**，
+Kotlin 侧要先 `parseBBCode` 再喂给被测函数（同 `dice`）。
+`extractQuoteRefs` / `stripQuoteMarkup` 收整段节点；`quoteRefOf` / `isReplyHeaderNode` /
+`replyHeaderRefOf` 收 `parseBBCode(text)[0]`（第一个节点）。
+`buildQuoteIndex` / `buildReplyChain` / `chainDepthOf` 的 input 是
+`{ floors, tid?, startPid? }`，Kotlin 侧先 `buildQuoteIndex(floors, tid)` 再往下走。
+`buildQuoteIndex` 的 expected **把 Map/Set 拍平**成 `{ quotes: [[pid, refs], …],
+quotedBy: [[pid, [pid, …]], …], loaded: [pid, …] }`，键都按升序（JSON 装不下 Map）。
+锁住的怪癖：嵌套引用只认外层、引用自己与跨帖引用不进索引、下游按楼号排、环引用不死循环。
+
+**`money`** — 纯显示换算（API 文档 §11.1）。`splitMoney` 负余额按**绝对值**拆再标
+`negative`（直接对负数取模会拆出 `-1.-2.-3` 这种读不出来的东西）；小数先截断成整数铜币。
+⚠ `splitMoney(NaN)` 没导（README 规范 4：金样本里不允许非有限数字），
+Kotlin 侧「非有限值 → 0」由票 10 手写单测锁。
+
+**`hot-topics`** — 本地聚合，**不是服务端 API**。`options.now` 固定传进来，函数里不看表。
+锁住的判据：窗口过滤看**发帖时间**而不是最后回复（被顶起来的老坟不进榜）、
+跨页按 tid 去重、排序是「回复数降序 → 最后回复时间降序 → tid 升序」（最后一档保证结果确定）、
+合集镜像行（`shortcut`）与外链活动主题（`jumpUrl`）不进榜。
 
 **`api/fields`** — `orderedEntries`/`orderedValues` 的 input 是 `{ value }`；
 `str`/`text`/`int` 是 `{ record, key }`；`nonZero` 是 `{ value }`。
@@ -231,6 +279,12 @@ Kotlin 侧别用系统默认时区。
   有 IO、有时序、有状态，走不了「输入→输出」的对拍。关键回归**手工移植**（票 06/04）。
 - 出站请求的 URL 装配（`attempt.ts` 里未导出的 `buildUrl`：`__inchst` 撤销 + 格式档参数 +
   Referer/UA/双通道认证）——同上，靠 `query` domain 锁住编码那一半，其余手工移植。
+  票 03 已把可纯化的那两条（`__inchst` 撤销、POST `Content-Type` 切 GBK）抠成
+  `core/net/OutboundCharset.kt`，用例手工移植自 `fetcher.test.ts` / `search.test.ts` /
+  `block-word.test.ts`（见 `OutboundCharsetTest.kt`）。
+- `validateFilterRule` 的**非法正则**分支与 `compileFilterRegex`——前者的文案里嵌着
+  JS 引擎的 `SyntaxError.message`，后者返回 `RegExp`；都不是跨实现可比的值。
+- `splitMoney(NaN)`——金样本里不允许非有限数字（规范 4）。
 - 存储层（`core/local/{topic-cache,history,settings,notifications,…}`）、Web 反解
   （`core/net/web/read-html.ts`，票 08 要先重新抓包验证参数位置表）。
 

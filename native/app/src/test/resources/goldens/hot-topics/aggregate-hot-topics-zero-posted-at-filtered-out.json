@@ -1,0 +1,34 @@
+{
+  "expected": [
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799996400,
+      "replies": 0,
+      "tid": 2
+    }
+  ],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000
+    },
+    "pages": [
+      [
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 0,
+          "replies": 0,
+          "tid": 1
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 0,
+          "tid": 2
+        }
+      ]
+    ]
+  },
+  "name": "aggregate-hot-topics-zero-posted-at-filtered-out",
+  "note": "postedAt 解析失败退到 0 的坏条目被窗口自然挡掉"
+}

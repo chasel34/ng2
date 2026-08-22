@@ -1,0 +1,11 @@
+{
+  "expected": "A€B",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "QYBC",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "gbk-standalone-euro",
+  "note": "单独的 `0x80` 解成 €，不是非法字节"
+}

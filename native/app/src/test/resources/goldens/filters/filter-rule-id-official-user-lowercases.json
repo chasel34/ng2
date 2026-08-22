@@ -1,0 +1,11 @@
+{
+  "expected": "official:user:xtl150ok",
+  "fn": "filterRuleId",
+  "input": {
+    "kind": "user",
+    "origin": "official",
+    "value": "XTL150OK"
+  },
+  "name": "filter-rule-id-official-user-lowercases",
+  "note": "同来源、同类型、同内容即同一条规则；比对前小写"
+}

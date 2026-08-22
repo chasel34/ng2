@@ -1,0 +1,32 @@
+{
+  "expected": {
+    "id": "local:keyword:广告",
+    "kind": "keyword",
+    "origin": "local",
+    "regex": false,
+    "value": "广告"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:([未闭合",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": true,
+        "value": "([未闭合"
+      },
+      {
+        "id": "local:keyword:广告",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "广告"
+      }
+    ],
+    "subject": {
+      "title": "这是广告"
+    }
+  },
+  "name": "match-filter-rules-invalid-regex-does-not-block-later-rules"
+}

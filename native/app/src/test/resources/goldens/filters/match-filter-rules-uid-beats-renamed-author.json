@@ -1,0 +1,29 @@
+{
+  "expected": {
+    "id": "local:user:旧名字",
+    "kind": "user",
+    "origin": "local",
+    "regex": false,
+    "uid": 42,
+    "value": "旧名字"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:user:旧名字",
+        "kind": "user",
+        "origin": "local",
+        "regex": false,
+        "uid": 42,
+        "value": "旧名字"
+      }
+    ],
+    "subject": {
+      "author": "新名字",
+      "authorId": 42
+    }
+  },
+  "name": "match-filter-rules-uid-beats-renamed-author",
+  "note": "带 uid 的用户规则以 uid 为准：改了名照样命中"
+}

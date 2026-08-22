@@ -2,10 +2,15 @@
   "expected": "author=%C3%FE%D3%E3%26%2355357%3B%26%2356836%3B",
   "fn": "buildQueryString",
   "input": {
-    "author": {
-      "charset": "gbk",
-      "value": "摸鱼😄"
-    }
+    "params": [
+      [
+        "author",
+        {
+          "charset": "gbk",
+          "value": "摸鱼😄"
+        }
+      ]
+    ]
   },
   "name": "build-query-string-gbk-emoji-not-in-table",
   "note": "GBK 表外字符的落地形态"

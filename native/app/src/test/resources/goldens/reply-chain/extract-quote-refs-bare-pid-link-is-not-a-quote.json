@@ -1,0 +1,8 @@
+{
+  "expected": [],
+  "fn": "extractQuoteRefs",
+  "input": {
+    "text": "看看这楼 [pid=99,45150945,1]Reply[/pid] 说的"
+  },
+  "name": "extract-quote-refs-bare-pid-link-is-not-a-quote"
+}

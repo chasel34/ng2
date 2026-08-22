@@ -1,0 +1,11 @@
+{
+  "expected": "　",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "o6A=",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "gbk-fullwidth-space",
+  "note": "`A3 A0` 是全角空格 U+3000，日常内容里到处都是"
+}

@@ -1,0 +1,9 @@
+{
+  "expected": "0.0.1",
+  "fn": "formatMoney",
+  "input": {
+    "copperTotal": 1
+  },
+  "name": "format-money-one-copper",
+  "note": "设计稿基础信息卡的 `金.银.铜` 文案"
+}

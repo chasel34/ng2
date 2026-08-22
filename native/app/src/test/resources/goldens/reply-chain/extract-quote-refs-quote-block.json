@@ -1,0 +1,15 @@
+{
+  "expected": [
+    {
+      "page": 3,
+      "pid": 123456,
+      "tid": 45150945
+    }
+  ],
+  "fn": "extractQuoteRefs",
+  "input": {
+    "text": "[quote][pid=123456,45150945,3]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>原话[/quote]我的看法"
+  },
+  "name": "extract-quote-refs-quote-block",
+  "note": "tid 与页码来自 [pid] 的后两个参数"
+}

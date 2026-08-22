@@ -1,6 +1,8 @@
 {
   "expected": "",
   "fn": "buildQueryString",
-  "input": {},
+  "input": {
+    "params": []
+  },
   "name": "build-query-string-empty-params"
 }

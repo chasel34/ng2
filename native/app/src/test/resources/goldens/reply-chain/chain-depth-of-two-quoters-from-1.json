@@ -1,0 +1,26 @@
+{
+  "expected": 2,
+  "fn": "chainDepthOf",
+  "input": {
+    "floors": [
+      {
+        "content": "主楼",
+        "lou": 0,
+        "pid": 1
+      },
+      {
+        "content": "[quote][pid=1,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>主楼原话[/quote]顶",
+        "lou": 1,
+        "pid": 2
+      },
+      {
+        "content": "[quote][pid=1,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>主楼原话[/quote]再顶",
+        "lou": 2,
+        "pid": 3
+      }
+    ],
+    "startPid": 1,
+    "tid": 45150945
+  },
+  "name": "chain-depth-of-two-quoters-from-1"
+}
