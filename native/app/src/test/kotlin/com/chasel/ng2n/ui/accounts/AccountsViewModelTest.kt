@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -43,9 +44,17 @@ class AccountsViewModelTest {
 
   @AfterTest
   fun tearDown() {
-    for (model in models) model.viewModelScope.cancel()
-    models.clear()
     Dispatchers.resetMain()
+  }
+
+  /** VM 的 scope 在 body 里取消 —— 理由见 `LoginViewModelTest.loginTest`。 */
+  private fun accountsTest(body: suspend TestScope.() -> Unit) = runTest(dispatcher) {
+    try {
+      body()
+    } finally {
+      for (model in models) model.viewModelScope.cancel()
+      models.clear()
+    }
   }
 
   private fun viewModel(store: AccountStore, vault: FakeWebCookieVault): AccountsViewModel =
@@ -58,7 +67,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `切号后当前账号与凭证一起换`() = runTest(dispatcher) {
+  fun `切号后当前账号与凭证一起换`() = accountsTest {
     val store = storeWith("1001", "1002")
     val vault = FakeWebCookieVault()
     val model = viewModel(store, vault)
@@ -71,7 +80,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `切号会清掉 WebView 里上一个账号的 cookie`() = runTest(dispatcher) {
+  fun `切号会清掉 WebView 里上一个账号的 cookie`() = accountsTest {
     val store = storeWith("1001", "1002")
     val vault = FakeWebCookieVault(cookie = "ngaPassportUid=1002; ngaPassportCid=cid-1002")
     val model = viewModel(store, vault)
@@ -84,7 +93,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `切到已经是当前的账号什么都不做`() = runTest(dispatcher) {
+  fun `切到已经是当前的账号什么都不做`() = accountsTest {
     val store = storeWith("1001", "1002")
     val vault = FakeWebCookieVault()
     val model = viewModel(store, vault)
@@ -96,7 +105,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `切到不存在的 uid 是空操作 —— 防御过期的 UI 事件`() = runTest(dispatcher) {
+  fun `切到不存在的 uid 是空操作 —— 防御过期的 UI 事件`() = accountsTest {
     val store = storeWith("1001", "1002")
     val model = viewModel(store, FakeWebCookieVault())
 
@@ -107,7 +116,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `左右滑循环切号 到头绕回`() = runTest(dispatcher) {
+  fun `左右滑循环切号 到头绕回`() = accountsTest {
     val store = storeWith("1001", "1002", "1003")
     val model = viewModel(store, FakeWebCookieVault())
     // 1003 是最后登进来的,也是当前账号
@@ -126,7 +135,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `只有一个账号时左右滑是空操作`() = runTest(dispatcher) {
+  fun `只有一个账号时左右滑是空操作`() = accountsTest {
     val store = storeWith("1001")
     val vault = FakeWebCookieVault()
     val model = viewModel(store, vault)
@@ -140,7 +149,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `登出当前账号后落到剩余第一个 并清 WebView cookie`() = runTest(dispatcher) {
+  fun `登出当前账号后落到剩余第一个 并清 WebView cookie`() = accountsTest {
     val store = storeWith("1001", "1002")
     val vault = FakeWebCookieVault(cookie = "ngaPassportUid=1002; ngaPassportCid=cid-1002")
     val model = viewModel(store, vault)
@@ -155,7 +164,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `全退光即游客态 凭证也没了`() = runTest(dispatcher) {
+  fun `全退光即游客态 凭证也没了`() = accountsTest {
     val store = storeWith("1001")
     val vault = FakeWebCookieVault(cookie = "ngaPassportUid=1001; ngaPassportCid=cid-1001")
     val model = viewModel(store, vault)
@@ -170,7 +179,7 @@ class AccountsViewModelTest {
   }
 
   @Test
-  fun `提示文案与 RN 版一致`() = runTest(dispatcher) {
+  fun `提示文案与 RN 版一致`() = accountsTest {
     val store = storeWith("1001", "1002")
     val model = viewModel(store, FakeWebCookieVault())
     val messages = mutableListOf<String>()

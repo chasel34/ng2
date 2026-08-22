@@ -125,6 +125,14 @@ class AccountStore @Inject constructor(
     /** DataStore 文件名(与设置分开:凭证的读写频率与生命周期都不一样)。 */
     const val FILE_NAME = "ng2n-accounts"
 
+    /**
+     * 用真实 Keystore 加密的实例。app 里正常走 Hilt(`di/DataModule.kt`);
+     * 这个口子是给**设备侧测试**用的 —— androidTest 要读的正是设备上那份真存档
+     * (票 15 的登录态冒烟),而 [KeystoreCrypto] 是 internal。
+     */
+    fun withKeystore(dataStore: DataStore<Preferences>): AccountStore =
+      AccountStore(dataStore, KeystoreCrypto())
+
     /** 换存储结构就换 key,老数据自然作废,不用写迁移。 */
     private val KEY = stringPreferencesKey("accounts.v1")
 

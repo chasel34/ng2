@@ -12,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
@@ -58,16 +59,30 @@ class LoginViewModelTest {
 
   @AfterTest
   fun tearDown() {
-    for (model in models) model.viewModelScope.cancel()
-    models.clear()
     Dispatchers.resetMain()
+  }
+
+  /**
+   * 每条用例都从这里进。
+   *
+   * ⚠️ VM 的 scope **必须在 `runTest` 的 body 里**取消:`runTest` 返回前会把测试调度器
+   * 排空,而收割轮询永远排着下一个 `delay` —— 放进 `@AfterTest` 就太晚了,
+   * 表现是整个 `:app:testDebugUnitTest` 卡死(不是超时,是一直空转)。
+   */
+  private fun loginTest(body: suspend TestScope.() -> Unit) = runTest(dispatcher) {
+    try {
+      body()
+    } finally {
+      for (model in models) model.viewModelScope.cancel()
+      models.clear()
+    }
   }
 
   private fun viewModel(vault: FakeWebCookieVault, store: AccountStore) =
     LoginViewModel(store, vault, SettingsStore(FakePreferencesDataStore())).also { models += it }
 
   @Test
-  fun `挂 WebView 之前先清掉上一个账号的 cookie`() = runTest(dispatcher) {
+  fun `挂 WebView 之前先清掉上一个账号的 cookie`() = loginTest {
     val vault = FakeWebCookieVault(cookie = "ngaPassportUid=1001; ngaPassportCid=$cid")
     val model = viewModel(vault, inMemoryAccountStore())
 
@@ -80,7 +95,7 @@ class LoginViewModelTest {
   }
 
   @Test
-  fun `两枚 passport cookie 齐了就落账号 并解出用户名`() = runTest(dispatcher) {
+  fun `两枚 passport cookie 齐了就落账号 并解出用户名`() = loginTest {
     val vault = FakeWebCookieVault()
     val store = inMemoryAccountStore()
     val model = viewModel(vault, store)
@@ -102,7 +117,7 @@ class LoginViewModelTest {
   }
 
   @Test
-  fun `收割成功后再清一次 WebView cookie —— 修 P1-03`() = runTest(dispatcher) {
+  fun `收割成功后再清一次 WebView cookie —— 修 P1-03`() = loginTest {
     val vault = FakeWebCookieVault()
     val model = viewModel(vault, inMemoryAccountStore())
     runCurrent()
@@ -118,7 +133,7 @@ class LoginViewModelTest {
   }
 
   @Test
-  fun `用户名 cookie 缺失或解不动时回落 UID 展示`() = runTest(dispatcher) {
+  fun `用户名 cookie 缺失或解不动时回落 UID 展示`() = loginTest {
     val vault = FakeWebCookieVault()
     val store = inMemoryAccountStore()
     viewModel(vault, store)
@@ -132,7 +147,7 @@ class LoginViewModelTest {
   }
 
   @Test
-  fun `登录前的占位 cookie 不会被误当成登录成功`() = runTest(dispatcher) {
+  fun `登录前的占位 cookie 不会被误当成登录成功`() = loginTest {
     val vault = FakeWebCookieVault()
     val store = inMemoryAccountStore()
     val model = viewModel(vault, store)
@@ -149,7 +164,7 @@ class LoginViewModelTest {
   }
 
   @Test
-  fun `轮询连着看到同一份 cookie 也只落一次账号`() = runTest(dispatcher) {
+  fun `轮询连着看到同一份 cookie 也只落一次账号`() = loginTest {
     val vault = FakeWebCookieVault()
     val store = inMemoryAccountStore()
     viewModel(vault, store)
@@ -168,7 +183,7 @@ class LoginViewModelTest {
   }
 
   @Test
-  fun `同一个账号重登只刷新 cid 不会多出一条`() = runTest(dispatcher) {
+  fun `同一个账号重登只刷新 cid 不会多出一条`() = loginTest {
     val vault = FakeWebCookieVault()
     val store = inMemoryAccountStore()
     store.upsert(testAccount(uid, cid = "cid-old"))
