@@ -49,6 +49,7 @@ import com.chasel.ng2n.core.bbcode.TextNode
 import com.chasel.ng2n.core.bbcode.TopicRefNode
 import com.chasel.ng2n.core.bbcode.UnderlineNode
 import com.chasel.ng2n.core.bbcode.UserRefNode
+import com.chasel.ng2n.core.local.DiceOutcome
 import com.chasel.ng2n.ui.theme.DEFAULT_BODY_FONT_SIZE
 import com.chasel.ng2n.ui.theme.DEFAULT_BODY_LINE_HEIGHT
 import com.chasel.ng2n.ui.theme.LightColors

@@ -22,8 +22,6 @@ import com.chasel.ng2n.ui.nav.NotificationsKey
 import com.chasel.ng2n.ui.nav.SearchKey
 import com.chasel.ng2n.ui.nav.SettingsKey
 import com.chasel.ng2n.ui.nav.SubBoardsKey
-import com.chasel.ng2n.ui.nav.TopicKey
-import com.chasel.ng2n.ui.nav.UserKey
 import com.chasel.ng2n.ui.nav.UserPostsKey
 import com.chasel.ng2n.ui.nav.WebKey
 
@@ -60,8 +58,7 @@ fun EntryProviderScope<NavKey>.homeEntries(
 
   // ---------------------------------------------------------------- 别人的键(占位)
 
-  // 票 13:主题详情
-  entry<TopicKey> { PlaceholderScreen("主题详情", "票 13", nav::pop) }
+  // 票 13 的 TopicKey / ChainKey / UserKey(占位)条目在 `ui/topic/TopicEntries.kt`
 
   // 票 15 的 Login / Accounts 真屏在 `ui/Ng2nApp.kt`(它们要共享 NavDisplay 外面那一份 AccountsViewModel)
 
@@ -73,7 +70,6 @@ fun EntryProviderScope<NavKey>.homeEntries(
   entry<CachesKey> { PlaceholderScreen("我的缓存", "票 17", nav::pop) }
   entry<FiltersKey> { PlaceholderScreen("屏蔽规则", "票 17", nav::pop) }
   entry<NotificationsKey> { PlaceholderScreen("最近被喷", "票 17", nav::pop) }
-  entry<UserKey> { PlaceholderScreen("用户资料", "票 17", nav::pop) }
   entry<UserPostsKey> { key ->
     PlaceholderScreen(
       title = if (key.kind == com.chasel.ng2n.ui.nav.UserPostKind.TOPICS) "我的主题" else "我的回复",

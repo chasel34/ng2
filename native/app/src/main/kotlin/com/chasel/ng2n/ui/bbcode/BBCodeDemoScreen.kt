@@ -30,6 +30,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.chasel.ng2n.core.bbcode.parseBBCode
+import com.chasel.ng2n.core.local.DiceOutcome
+import com.chasel.ng2n.core.local.DiceTerm
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Radius
@@ -251,11 +253,12 @@ private fun demoOptions(): BBCodeRenderOptions {
       attachBase = "https://img.nga.cn/attachments",
       // 让 [noimg] 有日期目录可补(2026-08-07 12:00 UTC+8)
       postedAt = 1786075200L,
-      // 骰子点数归票 10;demo 里给一颗假的,好看清结果卡长什么样
+      // demo 屏只有一条 [dice],给一颗定值好看清结果卡长什么样;
+      // 真楼层的点数由票 13 用 `resolveFloorDice(nodes, DiceSeed(...))` 复算
       dice = persistentListOf(
         DiceOutcome(
           expression = "1d100",
-          terms = persistentListOf(DiceTerm.Roll(faces = 100, value = 37)),
+          terms = listOf(DiceTerm.Roll(faces = 100, value = 37)),
           sum = 37,
         ),
       ),

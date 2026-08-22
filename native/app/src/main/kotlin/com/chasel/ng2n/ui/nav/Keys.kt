@@ -45,8 +45,10 @@ data class SubBoardsKey(
 ) : NavKey
 
 /**
- * 主题详情。**签名由票 13 定义**;票 16 要 push 它,而主干上还没有票 13 的文件,
- * 所以先在这里落一份同签名的(主控合并时去重)。
+ * 主题详情(票 13 定义的签名,合并后统一落在这里)。
+ * @param page 直接开在第几页(通知点进来时带)
+ * @param pid 只看某一楼(「我的回复」/ pid 深链)
+ * @param floor 进场就定位到第几楼(回复链的「在原帖中查看」)
  */
 @Serializable
 data class TopicKey(
@@ -91,6 +93,15 @@ data object FiltersKey : NavKey
 /** 通知(最近被喷)。 */
 @Serializable
 data object NotificationsKey : NavKey
+
+/** 回复链(`/chain`)。从详情页某楼的引用块进来(票 13)。 */
+@Serializable
+data class ChainKey(
+  val tid: Long,
+  /** 展开起点的楼层 pid */
+  val pid: Long,
+  val fav: String? = null,
+) : NavKey
 
 /** 用户资料。 */
 @Serializable

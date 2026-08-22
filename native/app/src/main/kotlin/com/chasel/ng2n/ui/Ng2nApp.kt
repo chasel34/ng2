@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -27,6 +29,8 @@ import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
 import com.chasel.ng2n.ui.nav.Navigator
+import com.chasel.ng2n.ui.nav.TopicKey
+import com.chasel.ng2n.ui.topic.topicEntries
 import kotlinx.serialization.Serializable
 
 /** 导航键。Nav3 的 back stack 就是一串 [NavKey],屏幕由 entryProvider 按键类型分派。 */
@@ -72,7 +76,16 @@ fun Ng2nApp() {
     NavDisplay(
       backStack = backStack,
       onBack = { backStack.removeLastOrNull() },
+      // 票 13:NavDisplay 默认只装 SaveableStateHolder 那一个装饰器,ViewModel 的作用域
+      // 要自己加 —— 不加的话条目里的 ViewModel 挂在 Activity 上,pop 之后不 clear,
+      // 主题详情的页级渲染成品(几百 KB / 页)会一直留着。
+      entryDecorators = listOf(
+        rememberSaveableStateHolderNavEntryDecorator(),
+        rememberViewModelStoreNavEntryDecorator(),
+      ),
       entryProvider = entryProvider {
+        // 票 13:主题详情 / 回复链 / 用户资料占位
+        topicEntries(nav)
         // 票 16:首页 / 版块面 / 抽屉宿主,外加还没落地那些键的占位条目
         // (Login / Accounts 的占位条目也在里面,票 15 合并时换成真屏 —— 见票 16 Comments)
         homeEntries(nav = nav, accounts = accounts, onOpenDevMenu = { backStack.add(DevMenuKey) })
@@ -105,6 +118,11 @@ fun Ng2nApp() {
                 label = "图片查看器 demo(票 12)",
                 tag = IMAGE_DEMO_BUTTON_TAG,
                 onClick = { backStack.add(ImageViewerKey(urls = DEMO_IMAGES, index = 0)) },
+              ),
+              DevMenuEntry(
+                label = "主题详情 tid=47406116(票 13)",
+                tag = TOPIC_DEMO_BUTTON_TAG,
+                onClick = { backStack.add(TopicKey(tid = 47406116L)) },
               ),
               DevMenuEntry(
                 label = "登录(票 15)",
@@ -174,3 +192,4 @@ const val IMAGE_DEMO_BUTTON_TAG: String = "ng2n-image-demo"
 /** 票 15 手验入口锚点(现挂在开发者菜单里)。 */
 const val LOGIN_ENTRY_TAG: String = "ng2n-login-entry"
 const val ACCOUNTS_ENTRY_TAG: String = "ng2n-accounts-entry"
+const val TOPIC_DEMO_BUTTON_TAG: String = "ng2n-topic-demo"

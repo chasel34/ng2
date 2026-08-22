@@ -10,9 +10,12 @@ import androidx.compose.ui.unit.dp
 import com.chasel.ng2n.core.bbcode.Align
 import com.chasel.ng2n.core.bbcode.BoxVariant
 import com.chasel.ng2n.core.bbcode.parseBBCode
+import com.chasel.ng2n.core.local.DiceOutcome
+import com.chasel.ng2n.core.local.DiceTerm
+import com.chasel.ng2n.core.local.QuoteRef
 import com.chasel.ng2n.ui.theme.MonoFontFamily
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toPersistentList
+import kotlinx.collections.immutable.toImmutableList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -38,7 +41,7 @@ class RenderModelBuilderTest {
   ) = BBCodeRenderOptions(
     attachBase = base,
     postedAt = postedAt,
-    dice = dice.toPersistentList(),
+    dice = dice.toImmutableList(),
   )
 
   private fun model(source: String, options: BBCodeRenderOptions = options()) =
@@ -222,7 +225,7 @@ class RenderModelBuilderTest {
   fun `quote 认得出 pid 时带上链引用`() {
     val segment = single("[quote][pid=879039681,47406116,1]Reply[/pid] 正文[/quote]")
     assertTrue(segment is QuoteSegment)
-    assertEquals(QuoteRef(pid = 879039681L, tid = 47406116L, page = 1), segment.chain)
+    assertEquals(QuoteRef(pid = 879039681L, tid = 47406116L, page = 1L), segment.chain)
   }
 
   @Test
@@ -345,14 +348,14 @@ class RenderModelBuilderTest {
 
   @Test
   fun `dice 按文档顺序取点数 写法相同的两颗不会串`() {
-    val first = DiceOutcome("1d100", persistentListOf(DiceTerm.Roll(100, 7)), sum = 7)
-    val second = DiceOutcome("1d100", persistentListOf(DiceTerm.Roll(100, 88)), sum = 88)
+    val first = DiceOutcome("1d100", listOf(DiceTerm.Roll(100, 7)), sum = 7)
+    val second = DiceOutcome("1d100", listOf(DiceTerm.Roll(100, 88)), sum = 88)
     val segments = model(
       "[dice]1d100[/dice]<br/>[dice]1d100[/dice]",
       options(dice = listOf(first, second)),
     ).segments
-    assertEquals(7, (segments[0] as DiceSegment).outcome?.sum)
-    assertEquals(88, (segments[1] as DiceSegment).outcome?.sum)
+    assertEquals(7L, (segments[0] as DiceSegment).outcome?.sum)
+    assertEquals(88L, (segments[1] as DiceSegment).outcome?.sum)
   }
 
   @Test
