@@ -1,0 +1,11 @@
+{
+  "expected": "{\"data\":{\"0\":\"\"},\"time\":1786111705}",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "eyJkYXRhIjp7IjAiOiIifSwidGltZSI6MTc4NjExMTcwNX0=",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "capture-noti-empty",
+  "note": "nuke.php __lib=noti __act=get_all，登录态，无未读"
+}

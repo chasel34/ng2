@@ -1,0 +1,6 @@
+{
+  "expected": "&#55357;&#56836;",
+  "fn": "escapeForSubmit",
+  "input": "😄",
+  "name": "escape-for-submit-emoji"
+}

@@ -1,0 +1,9 @@
+{
+  "expected": "https://img.nga.cn/attachments/mon_202006/03/a.png",
+  "fn": "rehostLegacyAttachment",
+  "input": {
+    "base": "https://img.nga.cn/attachments",
+    "src": "//img.nga.cn/attachments/mon_202006/03/a.png"
+  },
+  "name": "rehost-legacy-protocol-relative"
+}

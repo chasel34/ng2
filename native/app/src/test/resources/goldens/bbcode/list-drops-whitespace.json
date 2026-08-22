@@ -1,0 +1,25 @@
+{
+  "expected": [
+    {
+      "items": [
+        [
+          {
+            "type": "text",
+            "value": "一"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "二"
+          }
+        ]
+      ],
+      "ordered": false,
+      "type": "list"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[list]\n[*]一\n[*]二\n[/list]",
+  "name": "list-drops-whitespace"
+}

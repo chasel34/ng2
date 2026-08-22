@@ -1,0 +1,16 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "[i][u]深"
+        }
+      ],
+      "type": "bold"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[b][i][u]深[/b]",
+  "name": "close-across-levels"
+}

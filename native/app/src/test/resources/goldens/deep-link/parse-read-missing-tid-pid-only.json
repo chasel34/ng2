@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "missing-id"
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/read.php?pid=880123456",
+  "name": "parse-read-missing-tid-pid-only"
+}

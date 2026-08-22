@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "张三"
+        }
+      ],
+      "type": "userRef",
+      "uid": "41417929"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[uid=41417929]张三[/uid]",
+  "name": "uid-from-attr"
+}

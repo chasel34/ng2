@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "code",
+      "value": "a\nb"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[code]a<br/>b[/code]",
+  "name": "code-br-to-newline"
+}

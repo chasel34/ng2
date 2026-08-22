@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": true,
+      "src": "07/x.jpg",
+      "type": "image",
+      "variant": "noimg"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[noimg]./07/x.jpg[/noimg]",
+  "name": "noimg-relative"
+}

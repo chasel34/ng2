@@ -1,0 +1,9 @@
+{
+  "expected": "https://img.nga.cn/other/a.png",
+  "fn": "rehostLegacyAttachment",
+  "input": {
+    "base": "https://img.nga.cn/attachments",
+    "src": "https://img.nga.cn/other/a.png"
+  },
+  "name": "rehost-legacy-not-an-attachment-path"
+}

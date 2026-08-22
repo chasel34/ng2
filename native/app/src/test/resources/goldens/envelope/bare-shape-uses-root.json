@@ -1,0 +1,16 @@
+{
+  "expected": {
+    "data": {
+      "code": 0,
+      "msg": "",
+      "result": []
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "shape": "bare",
+    "text": "{\"code\":0,\"msg\":\"\",\"result\":[]}"
+  },
+  "name": "bare-shape-uses-root",
+  "note": "调用方显式声明 bare 时顶层才当 data"
+}

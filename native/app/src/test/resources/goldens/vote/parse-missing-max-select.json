@@ -1,0 +1,38 @@
+{
+  "expected": {
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "1",
+            "points": 0,
+            "title": "甲",
+            "votes": 1
+          },
+          {
+            "chosen": false,
+            "id": "2",
+            "points": 0,
+            "title": "乙",
+            "votes": 0
+          }
+        ],
+        "votes": 1
+      }
+    ],
+    "kind": "vote",
+    "maxSelect": 1,
+    "multiple": false,
+    "resultAfterEnd": false,
+    "resultAfterVote": false,
+    "totalVotes": 1,
+    "voters": 1
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "1~甲~2~乙~_1~1,0,1~_2~0,0,0",
+    "tid": 47331456
+  },
+  "name": "parse-missing-max-select"
+}

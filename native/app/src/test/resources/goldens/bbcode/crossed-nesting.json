@@ -1,0 +1,16 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "[b]交叉"
+        }
+      ],
+      "type": "quote"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[quote][b]交叉[/quote]",
+  "name": "crossed-nesting"
+}

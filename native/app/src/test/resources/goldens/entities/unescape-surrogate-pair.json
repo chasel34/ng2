@@ -1,0 +1,7 @@
+{
+  "expected": "😄",
+  "fn": "unescapeNgaText",
+  "input": "&#55357;&#56836;",
+  "name": "unescape-surrogate-pair",
+  "note": "按 UTF-16 码元还原，相邻代理对天然重组"
+}

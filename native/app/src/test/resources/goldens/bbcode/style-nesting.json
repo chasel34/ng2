@@ -1,0 +1,25 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "粗"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "又斜"
+            }
+          ],
+          "type": "italic"
+        }
+      ],
+      "type": "bold"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[b]粗[i]又斜[/i][/b]",
+  "name": "style-nesting"
+}

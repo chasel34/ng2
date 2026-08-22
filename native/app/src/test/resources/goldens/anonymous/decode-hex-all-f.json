@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "colors": [
+      "ffffff",
+      "ffffff"
+    ],
+    "name": "巳巳"
+  },
+  "fn": "decodeAnonymousName",
+  "input": "#anony_ffffffffffffffffffffffffffffffff",
+  "name": "decode-hex-all-f",
+  "note": "百家姓表只有 255 字，下标 0xff 官方就是取空 —— 照抄这个短名，勿修"
+}

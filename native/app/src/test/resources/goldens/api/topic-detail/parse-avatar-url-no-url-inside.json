@@ -1,0 +1,8 @@
+{
+  "expected": null,
+  "fn": "parseAvatarUrl",
+  "input": {
+    "raw": "{\"0\":\"\"}"
+  },
+  "name": "parse-avatar-url-no-url-inside"
+}

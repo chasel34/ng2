@@ -1,0 +1,10 @@
+{
+  "expected": {
+    "kind": "uid",
+    "uid": 41417929
+  },
+  "fn": "parseUserSearchInput",
+  "input": "41417929",
+  "name": "parse-user-search-input-numeric-uid",
+  "note": "只有整段都是数字才算 uid——NGA 用户名可以带数字"
+}

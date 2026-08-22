@@ -1,0 +1,12 @@
+{
+  "expected": "data=1%0D%0A%BC%D3%C3%DC%BB%F5%B1%D2%20%B2%E2%CA%D4%0D%0A42%2F%D5%C5%C8%FD",
+  "fn": "buildQueryString",
+  "input": {
+    "data": {
+      "charset": "gbk",
+      "value": "1\r\n加密货币 测试\r\n42/张三"
+    }
+  },
+  "name": "build-query-string-gbk-block-word-payload",
+  "note": "这一串对不上，网页版看到的就是乱码（block-word set_block_word）"
+}

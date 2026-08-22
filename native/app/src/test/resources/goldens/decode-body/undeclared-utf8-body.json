@@ -1,0 +1,11 @@
+{
+  "expected": "原神",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "5Y6f56We",
+    "contentType": "text/html"
+  },
+  "inputEncoding": "base64",
+  "name": "undeclared-utf8-body",
+  "note": "无声明 → UTF-8 一个 U+FFFD 都没有，直接采纳"
+}

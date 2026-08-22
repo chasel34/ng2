@@ -1,0 +1,18 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "大"
+        }
+      ],
+      "type": "size",
+      "value": "120%"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[size=120%]大[/size]",
+  "name": "coverage-size",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

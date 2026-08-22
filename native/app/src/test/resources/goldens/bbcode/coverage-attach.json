@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": true,
+      "src": "a.zip",
+      "type": "attach"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[attach]./a.zip[/attach]",
+  "name": "coverage-attach",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

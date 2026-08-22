@@ -1,0 +1,14 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": true,
+      "src": "a.jpg",
+      "type": "image",
+      "variant": "img"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[img]./a.jpg[/img]",
+  "name": "img-relative-bare",
+  "note": "AST 里不许出现任何写死的域名"
+}

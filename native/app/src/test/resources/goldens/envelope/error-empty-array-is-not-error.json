@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "data": {
+      "0": 1
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "{\"data\":{\"0\":1},\"error\":[]}"
+  },
+  "name": "error-empty-array-is-not-error"
+}

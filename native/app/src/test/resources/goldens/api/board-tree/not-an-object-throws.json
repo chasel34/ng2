@@ -1,0 +1,15 @@
+{
+  "expected": {
+    "throws": {
+      "kind": "parse",
+      "message": "分类树响应顶层不是对象",
+      "retryable": true
+    }
+  },
+  "fn": "parseBoardTree",
+  "input": {
+    "value": "nope"
+  },
+  "name": "not-an-object-throws",
+  "note": "顶层不是对象 → kind=parse"
+}

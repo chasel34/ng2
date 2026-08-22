@@ -1,0 +1,12 @@
+{
+  "expected": true,
+  "fn": "hasTopicListStructure",
+  "input": {
+    "value": {
+      "__F": {
+        "name": "原神"
+      }
+    }
+  },
+  "name": "has-topic-list-structure-has-f"
+}

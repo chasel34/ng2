@@ -1,0 +1,8 @@
+{
+  "expected": 47082733,
+  "fn": "signedBoardId",
+  "input": {
+    "value": 47082733
+  },
+  "name": "signed-board-id-large-topic-id"
+}

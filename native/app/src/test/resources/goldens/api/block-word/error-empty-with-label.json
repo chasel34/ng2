@@ -1,0 +1,10 @@
+{
+  "expected": "请输入要屏蔽的用户名",
+  "fn": "blockWordError",
+  "input": {
+    "label": "用户名",
+    "text": ""
+  },
+  "name": "error-empty-with-label",
+  "note": "空格是表里的分隔符，带空白的词写上去会被服务端拆成两条"
+}

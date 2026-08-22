@@ -1,0 +1,57 @@
+{
+  "expected": [
+    {
+      "expression": "d6",
+      "sum": 3,
+      "terms": [
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "expression": "d6",
+      "sum": 6,
+      "terms": [
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 6
+        }
+      ]
+    },
+    {
+      "expression": "d6",
+      "sum": 3,
+      "terms": [
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "expression": "d6",
+      "sum": 5,
+      "terms": [
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 5
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 60423359,
+    "pid": 857425480,
+    "text": "空手道<br/>[dice]d6[/dice]<br/>脑神经<br/>[dice]d6[/dice]<br/>本领<br/>[dice]d6[/dice]<br/>术(最终结果-3)<br/>[dice]d6[/dice]",
+    "tid": 46162468
+  },
+  "name": "real-post-four-d6-shared-stream",
+  "note": "同一楼四颗 d6 共用一条数列：楼主报「空手道3 脑神经6 本领3 术2」"
+}

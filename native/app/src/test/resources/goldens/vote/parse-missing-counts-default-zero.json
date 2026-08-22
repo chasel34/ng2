@@ -1,0 +1,38 @@
+{
+  "expected": {
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "1",
+            "points": 0,
+            "title": "甲",
+            "votes": 7
+          },
+          {
+            "chosen": false,
+            "id": "2",
+            "points": 0,
+            "title": "乙",
+            "votes": 0
+          }
+        ],
+        "votes": 7
+      }
+    ],
+    "kind": "vote",
+    "maxSelect": 1,
+    "multiple": false,
+    "resultAfterEnd": false,
+    "resultAfterVote": false,
+    "totalVotes": 7,
+    "voters": 7
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "1~甲~2~乙~_1~7,0,7",
+    "tid": 47331456
+  },
+  "name": "parse-missing-counts-default-zero"
+}

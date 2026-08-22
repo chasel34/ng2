@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "就是一段字"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "就是一段字",
+  "name": "walk-leaf-text"
+}

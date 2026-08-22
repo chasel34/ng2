@@ -1,0 +1,47 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "a"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "b"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "c"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "d"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "e"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "f"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "a<br/>b<br />c<br>d\ne\r\nf",
+  "name": "linebreak-variants",
+  "note": "<br/> 三写法 + \\n + \\r\\n 统一成换行节点"
+}

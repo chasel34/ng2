@@ -1,0 +1,16 @@
+{
+  "expected": "https://img.nga.cn/attachments/mon_202505/26/-7Qd36d-8aydZbT1kShs-13i.jpg",
+  "fn": "attachmentUrl",
+  "input": {
+    "options": {
+      "base": "https://img.nga.cn/attachments",
+      "postedAt": 1748252025
+    },
+    "ref": {
+      "needsAttachBase": true,
+      "src": "-7Qd36d-8aydZbT1kShs-13i.jpg"
+    }
+  },
+  "name": "attachment-url-noimg-needs-dated-directory",
+  "note": "[noimg] 没有日期目录，按发帖时间补 mon_YYYYMM/DD/"
+}

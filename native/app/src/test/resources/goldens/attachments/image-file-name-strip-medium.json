@@ -1,0 +1,6 @@
+{
+  "expected": "a.jpg",
+  "fn": "imageFileName",
+  "input": "https://img.nga.cn/attachments/mon_202608/07/a.jpg.medium.jpg",
+  "name": "image-file-name-strip-medium"
+}

@@ -1,0 +1,8 @@
+{
+  "expected": "https://img.nga.cn/attachments",
+  "fn": "normalizeAttachBase",
+  "input": {
+    "raw": "https://img.nga.cn/attachments/"
+  },
+  "name": "normalize-attach-base-with-scheme-trailing-slash"
+}

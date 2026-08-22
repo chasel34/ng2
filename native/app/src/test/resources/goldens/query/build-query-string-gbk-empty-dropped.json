@@ -1,0 +1,12 @@
+{
+  "expected": "fid=1",
+  "fn": "buildQueryString",
+  "input": {
+    "author": {
+      "charset": "gbk",
+      "value": ""
+    },
+    "fid": 1
+  },
+  "name": "build-query-string-gbk-empty-dropped"
+}

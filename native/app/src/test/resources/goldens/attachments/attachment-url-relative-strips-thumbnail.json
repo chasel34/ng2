@@ -1,0 +1,14 @@
+{
+  "expected": "https://img.nga.cn/attachments/mon_202607/21/a.jpg",
+  "fn": "attachmentUrl",
+  "input": {
+    "options": {
+      "base": "https://img.nga.cn/attachments"
+    },
+    "ref": {
+      "needsAttachBase": true,
+      "src": "mon_202607/21/a.jpg.medium.jpg"
+    }
+  },
+  "name": "attachment-url-relative-strips-thumbnail"
+}

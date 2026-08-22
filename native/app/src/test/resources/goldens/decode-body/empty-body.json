@@ -1,0 +1,10 @@
+{
+  "expected": "",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "",
+    "contentType": "text/html"
+  },
+  "inputEncoding": "base64",
+  "name": "empty-body"
+}

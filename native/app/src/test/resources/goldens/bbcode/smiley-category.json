@@ -1,0 +1,19 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "哈"
+    },
+    {
+      "code": "ac:笑",
+      "type": "smiley"
+    },
+    {
+      "type": "text",
+      "value": "哈"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "哈[s:ac:笑]哈",
+  "name": "smiley-category"
+}

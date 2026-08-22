@@ -1,0 +1,6 @@
+{
+  "expected": "你没有权限'访问' 这个版面&合集",
+  "fn": "stripServerHtml",
+  "input": "你没有权限&#39;访问&#39;&nbsp;这个版面&amp;合集",
+  "name": "strip-server-html-entities"
+}

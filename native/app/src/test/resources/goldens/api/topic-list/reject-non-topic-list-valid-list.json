@@ -1,0 +1,11 @@
+{
+  "expected": null,
+  "fn": "rejectNonTopicList",
+  "input": {
+    "data": {
+      "__F": {},
+      "__T": {}
+    }
+  },
+  "name": "reject-non-topic-list-valid-list"
+}

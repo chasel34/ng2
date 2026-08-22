@@ -1,0 +1,46 @@
+{
+  "expected": [
+    {
+      "expression": "d6",
+      "sum": 4,
+      "terms": [
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "expression": "d6",
+      "sum": 6,
+      "terms": [
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 6
+        }
+      ]
+    },
+    {
+      "expression": "d6",
+      "sum": 6,
+      "terms": [
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 6
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[quote][dice]d6[/dice][/quote][b][dice]d6[/dice][/b][dice]d6[/dice]",
+    "tid": 45150945
+  },
+  "name": "shared-stream-nested",
+  "note": "嵌在引用/加粗/表格里的骰子也在同一条数列上，按文档顺序"
+}

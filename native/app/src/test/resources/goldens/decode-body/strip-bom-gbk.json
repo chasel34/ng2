@@ -1,0 +1,10 @@
+{
+  "expected": "ԭ",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "77u/1K0=",
+    "contentType": null
+  },
+  "inputEncoding": "base64",
+  "name": "strip-bom-gbk"
+}

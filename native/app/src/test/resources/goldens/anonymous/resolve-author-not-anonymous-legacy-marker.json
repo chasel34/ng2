@@ -1,0 +1,6 @@
+{
+  "expected": "#ANONYMOUS#",
+  "fn": "resolveAuthorName",
+  "input": "#ANONYMOUS#",
+  "name": "resolve-author-not-anonymous-legacy-marker"
+}

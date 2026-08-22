@@ -1,0 +1,6 @@
+{
+  "expected": "普通中文 plain text",
+  "fn": "unescapeNgaText",
+  "input": "普通中文 plain text",
+  "name": "unescape-plain-text"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": true,
+  "fn": "isAnonymousAuthor",
+  "input": "#anony_1e2d3c4b5a69788796a5b4c3d2e1f0aa",
+  "name": "is-anonymous-hex-random-2"
+}

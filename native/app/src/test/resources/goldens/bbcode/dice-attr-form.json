@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "expression": "2d6",
+      "type": "dice"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[dice 2d6]",
+  "name": "dice-attr-form",
+  "note": "没有闭标签，表达式藏在属性位"
+}

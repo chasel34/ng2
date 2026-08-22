@@ -1,0 +1,7 @@
+{
+  "expected": false,
+  "fn": "isAuthLevelServerError",
+  "input": "你没有登录或者登录信息已过期",
+  "name": "is-auth-level-guest-limit",
+  "note": "命中 = 这一发没带上身份，值得换组合再试（不是语义失败）"
+}

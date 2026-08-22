@@ -1,0 +1,6 @@
+{
+  "expected": "一\n二\n三\n四",
+  "fn": "stripServerHtml",
+  "input": "一<br>二<br/>三<br />四",
+  "name": "strip-server-html-br-variants"
+}

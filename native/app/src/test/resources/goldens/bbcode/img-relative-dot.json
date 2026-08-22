@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": true,
+      "src": "mon_202608/07/abc.jpg",
+      "type": "image",
+      "variant": "img"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[img]./mon_202608/07/abc.jpg[/img]",
+  "name": "img-relative-dot"
+}

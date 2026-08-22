@@ -1,0 +1,349 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "一段字"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "上"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "下"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "粗"
+        }
+      ],
+      "type": "bold"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "斜"
+        }
+      ],
+      "type": "italic"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "下划线"
+        }
+      ],
+      "type": "underline"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "删除线"
+        }
+      ],
+      "type": "strike"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "红"
+        }
+      ],
+      "type": "color",
+      "value": "red"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "大"
+        }
+      ],
+      "type": "size",
+      "value": "120%"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "宋体"
+        }
+      ],
+      "type": "font",
+      "value": "宋体"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "code",
+      "value": "const a = 1"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "站外"
+        }
+      ],
+      "href": "https://example.test",
+      "type": "link"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "某人"
+        }
+      ],
+      "type": "userRef",
+      "uid": "123"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [],
+      "tid": "45150945",
+      "type": "topicRef"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "args": [
+        "1",
+        "2",
+        "3"
+      ],
+      "children": [
+        {
+          "type": "text",
+          "value": "Reply"
+        }
+      ],
+      "pid": "1",
+      "type": "floorRef"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "mention",
+      "username": "某人"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "code": "ac:blink",
+      "type": "smiley"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "引用"
+        }
+      ],
+      "type": "quote"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "needsAttachBase": true,
+      "src": "mon_202608/07/a.jpg",
+      "type": "image",
+      "variant": "img"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "标题"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "align": "center",
+      "children": [
+        {
+          "type": "text",
+          "value": "居中"
+        }
+      ],
+      "type": "align"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "藏起来的话"
+        }
+      ],
+      "title": "提要",
+      "type": "collapse"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "items": [
+        [
+          {
+            "type": "text",
+            "value": "甲"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "乙"
+          }
+        ]
+      ],
+      "ordered": false,
+      "type": "list"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "rows": [
+        {
+          "cells": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "甲"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "乙"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            }
+          ]
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "处罚说明"
+        }
+      ],
+      "punishment": "post",
+      "type": "box",
+      "variant": "lessernuke"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "expression": "1d100",
+      "type": "dice"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "media": "video",
+      "needsAttachBase": true,
+      "src": "a.mp4",
+      "type": "flash"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "needsAttachBase": true,
+      "src": "a.zip",
+      "type": "attach"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "album",
+      "value": "[img]./a.jpg[/img][img]./b.jpg[/img]"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "一段字<br/>上<br/>下<br/>[b]粗[/b]<br/>[i]斜[/i]<br/>[u]下划线[/u]<br/>[del]删除线[/del]<br/>[color=red]红[/color]<br/>[size=120%]大[/size]<br/>[font=宋体]宋体[/font]<br/>[code]const a = 1[/code]<br/>[url=https://example.test]站外[/url]<br/>[uid=123]某人[/uid]<br/>[tid]45150945[/tid]<br/>[pid=1,2,3]Reply[/pid]<br/>[@某人]<br/>[s:ac:blink]<br/>[quote]引用[/quote]<br/>[img]./mon_202608/07/a.jpg[/img]<br/>======<br/>===标题===<br/>[align=center]居中[/align]<br/>[collapse=提要]藏起来的话[/collapse]<br/>[list][*]甲[*]乙[/list]<br/>[table][tr][td]甲[/td][td]乙[/td][/tr][/table]<br/>[lessernuke]处罚说明[/lessernuke]<br/>[dice]1d100[/dice]<br/>[flash=video]./a.mp4[/flash]<br/>[attach]./a.zip[/attach]<br/>[album=相册][img]./a.jpg[/img][img]./b.jpg[/img][/album]",
+  "name": "coverage-all-joined",
+  "note": "29 种样例拼成一段长正文：解析出的类型不许超出清单"
+}

@@ -1,0 +1,7 @@
+{
+  "expected": "image-zuv6rc.jpg",
+  "fn": "imageFileName",
+  "input": "https://example.com/",
+  "name": "image-file-name-no-name-hash-fallback",
+  "note": "整段路径没名字时用 djb2 短哈希兜底"
+}

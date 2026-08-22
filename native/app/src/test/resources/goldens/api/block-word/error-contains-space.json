@@ -1,0 +1,9 @@
+{
+  "expected": "关键词中间不能有空格（官方屏蔽表用空格分隔）",
+  "fn": "blockWordError",
+  "input": {
+    "text": "内部 消息"
+  },
+  "name": "error-contains-space",
+  "note": "空格是表里的分隔符，带空白的词写上去会被服务端拆成两条"
+}

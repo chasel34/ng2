@@ -1,0 +1,7 @@
+{
+  "expected": "<html>你被封了</html>",
+  "fn": "sanitizeNgaJson",
+  "input": "<html>你被封了</html>",
+  "name": "plain-html-not-json",
+  "note": "被封时的响应：洗完仍不是 JSON"
+}

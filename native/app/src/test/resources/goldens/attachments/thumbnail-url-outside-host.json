@@ -1,0 +1,9 @@
+{
+  "expected": "https://i.imgur.com/abc.png",
+  "fn": "thumbnailUrl",
+  "input": {
+    "base": "https://img.nga.cn/attachments",
+    "url": "https://i.imgur.com/abc.png"
+  },
+  "name": "thumbnail-url-outside-host"
+}

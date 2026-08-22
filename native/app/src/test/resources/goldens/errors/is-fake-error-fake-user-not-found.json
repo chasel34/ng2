@@ -1,0 +1,6 @@
+{
+  "expected": true,
+  "fn": "isFakeError",
+  "input": "找不到用户",
+  "name": "is-fake-error-fake-user-not-found"
+}

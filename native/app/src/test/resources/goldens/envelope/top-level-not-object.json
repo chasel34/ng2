@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "throws": {
+      "kind": "parse",
+      "message": "响应顶层不是对象",
+      "retryable": true
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "[1,2,3]"
+  },
+  "name": "top-level-not-object"
+}

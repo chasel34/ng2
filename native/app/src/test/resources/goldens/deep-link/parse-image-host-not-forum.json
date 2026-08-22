@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "foreign-host"
+  },
+  "fn": "parseNgaLink",
+  "input": "https://img.nga.cn/read.php?tid=1",
+  "name": "parse-image-host-not-forum"
+}

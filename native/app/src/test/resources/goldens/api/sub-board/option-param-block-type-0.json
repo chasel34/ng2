@@ -1,0 +1,10 @@
+{
+  "expected": "del",
+  "fn": "subBoardOptionParam",
+  "input": {
+    "action": "block",
+    "filterType": 0
+  },
+  "name": "option-param-block-type-0",
+  "note": "参数名本身就是操作；type=0 时整个反过来"
+}

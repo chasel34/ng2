@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "code": "未知分类:名字",
+      "type": "smiley"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[s:未知分类:名字]",
+  "name": "smiley-unresolved-category"
+}

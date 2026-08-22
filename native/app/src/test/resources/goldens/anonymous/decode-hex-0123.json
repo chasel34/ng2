@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "colors": [
+      "bcdef0",
+      "123456"
+    ],
+    "name": "甲高傅庚聂涂"
+  },
+  "fn": "decodeAnonymousName",
+  "input": "#anony_0123456789abcdef0123456789abcdef",
+  "name": "decode-hex-0123"
+}

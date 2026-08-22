@@ -1,0 +1,26 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "看"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "这"
+            }
+          ],
+          "type": "bold"
+        }
+      ],
+      "href": "https://x.com",
+      "type": "link"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[url=https://x.com]看[b]这[/b][/url]",
+  "name": "url-with-label"
+}

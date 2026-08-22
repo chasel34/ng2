@@ -1,0 +1,10 @@
+{
+  "expected": true,
+  "fn": "hasTopicListStructure",
+  "input": {
+    "value": {
+      "__ROWS": 0
+    }
+  },
+  "name": "has-topic-list-structure-has-rows"
+}

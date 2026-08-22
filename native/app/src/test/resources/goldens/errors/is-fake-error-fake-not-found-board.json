@@ -1,0 +1,6 @@
+{
+  "expected": true,
+  "fn": "isFakeError",
+  "input": "没找到",
+  "name": "is-fake-error-fake-not-found-board"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": "image/gif",
+  "fn": "imageMimeType",
+  "input": "a.gif",
+  "name": "image-mime-type-gif"
+}

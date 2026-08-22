@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "code": 7,
+    "message": "未知错误（code=7）"
+  },
+  "fn": "extractServerError",
+  "input": {
+    "error": {
+      "code": 7
+    }
+  },
+  "name": "extract-server-error-error-object-without-message"
+}

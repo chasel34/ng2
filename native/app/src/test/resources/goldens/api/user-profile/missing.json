@@ -1,0 +1,14 @@
+{
+  "expected": null,
+  "fn": "parseUserProfile",
+  "input": {
+    "args": {
+      "nowSeconds": 1786100000
+    },
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"error\":{\"0\":\"找不到用户\"},\"time\":1786173392}"
+  },
+  "name": "missing",
+  "note": "nuke.php __lib=ucp __act=get uid=999999999 __output=8，登录态"
+}

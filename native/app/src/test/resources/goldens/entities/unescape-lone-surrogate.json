@@ -1,0 +1,7 @@
+{
+  "expected": "a�b",
+  "fn": "unescapeNgaText",
+  "input": "a&#55357;b",
+  "name": "unescape-lone-surrogate",
+  "note": "落单代理码元换成替换字符"
+}

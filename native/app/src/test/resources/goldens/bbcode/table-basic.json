@@ -1,0 +1,37 @@
+{
+  "expected": [
+    {
+      "rows": [
+        {
+          "cells": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "a"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "b"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            }
+          ]
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[table][tr][td]a[/td][td]b[/td][/tr][/table]",
+  "name": "table-basic",
+  "note": "colspan/rowspan 默认 1"
+}

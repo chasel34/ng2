@@ -1,0 +1,7 @@
+{
+  "expected": false,
+  "fn": "isAuthLevelServerError",
+  "input": "找不到主题",
+  "name": "is-auth-level-topic-not-found",
+  "note": "命中 = 这一发没带上身份，值得换组合再试（不是语义失败）"
+}

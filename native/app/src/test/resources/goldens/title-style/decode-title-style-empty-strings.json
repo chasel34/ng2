@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "bold": false,
+    "italic": false,
+    "underline": false
+  },
+  "fn": "decodeTitleStyle",
+  "input": {
+    "titlefont": "",
+    "topicMisc": ""
+  },
+  "name": "decode-title-style-empty-strings"
+}

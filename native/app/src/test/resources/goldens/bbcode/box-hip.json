@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "内容"
+        }
+      ],
+      "type": "box",
+      "variant": "hip"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[hip]内容[/hip]",
+  "name": "box-hip"
+}

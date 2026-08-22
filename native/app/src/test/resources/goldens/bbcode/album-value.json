@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "album",
+      "value": "12345"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[album]12345[/album]",
+  "name": "album-value"
+}

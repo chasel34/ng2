@@ -1,0 +1,6 @@
+{
+  "expected": "#anony_0123",
+  "fn": "resolveAuthorName",
+  "input": "#anony_0123",
+  "name": "resolve-author-not-anonymous-short-hex"
+}

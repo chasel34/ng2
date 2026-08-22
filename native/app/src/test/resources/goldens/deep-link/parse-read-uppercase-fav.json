@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "link": {
+      "fav": "DEADBEEF",
+      "kind": "topic",
+      "tid": 1
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/read.php?tid=1&fav=DEADBEEF",
+  "name": "parse-read-uppercase-fav"
+}

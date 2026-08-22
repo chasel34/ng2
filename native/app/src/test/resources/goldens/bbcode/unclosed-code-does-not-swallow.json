@@ -1,0 +1,24 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "[code]abc"
+        }
+      ],
+      "type": "quote"
+    },
+    {
+      "type": "text",
+      "value": "正文"
+    },
+    {
+      "type": "code",
+      "value": "x"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[quote][code]abc[/quote]正文[code]x[/code]",
+  "name": "unclosed-code-does-not-swallow"
+}

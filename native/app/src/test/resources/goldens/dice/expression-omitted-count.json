@@ -1,0 +1,23 @@
+{
+  "expected": [
+    {
+      "expression": "d20",
+      "sum": 12,
+      "terms": [
+        {
+          "faces": 20,
+          "kind": "roll",
+          "value": 12
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]d20[/dice]",
+    "tid": 45150945
+  },
+  "name": "expression-omitted-count"
+}

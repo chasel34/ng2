@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "media": "video",
+      "needsAttachBase": true,
+      "src": "mon_202608/07/a.mp4",
+      "type": "flash"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[flash=video]./mon_202608/07/a.mp4[/flash]",
+  "name": "flash-relative"
+}

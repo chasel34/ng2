@@ -1,0 +1,15 @@
+{
+  "expected": {
+    "link": {
+      "fav": "1a2b3c",
+      "kind": "topic",
+      "page": 3,
+      "pid": 880123456,
+      "tid": 45150945
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/read.php?tid=45150945&page=3&pid=880123456&fav=1a2b3c",
+  "name": "parse-read-all-params"
+}

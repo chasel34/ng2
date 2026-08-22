@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "items": []
+  },
+  "fn": "parseNotificationFeed",
+  "input": {
+    "value": {
+      "0": ""
+    }
+  },
+  "name": "empty-string-box"
+}

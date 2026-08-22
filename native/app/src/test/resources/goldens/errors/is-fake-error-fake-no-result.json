@@ -1,0 +1,6 @@
+{
+  "expected": true,
+  "fn": "isFakeError",
+  "input": "没有符合条件的结果",
+  "name": "is-fake-error-fake-no-result"
+}

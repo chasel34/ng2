@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "标题"
+        }
+      ],
+      "tid": "45150945",
+      "type": "topicRef"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[tid=45150945]标题[/tid]",
+  "name": "tid-from-attr"
+}

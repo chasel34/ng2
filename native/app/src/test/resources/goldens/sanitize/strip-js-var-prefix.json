@@ -1,0 +1,7 @@
+{
+  "expected": "{\"data\":1}",
+  "fn": "sanitizeNgaJson",
+  "input": "window.script_muti_get_var_store={\"data\":1}",
+  "name": "strip-js-var-prefix",
+  "note": "§0.6 第 1 步"
+}

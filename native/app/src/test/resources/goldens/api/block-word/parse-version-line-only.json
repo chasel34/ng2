@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "users": [],
+    "words": []
+  },
+  "fn": "parseBlockWords",
+  "input": {
+    "value": {
+      "0": "1"
+    }
+  },
+  "name": "parse-version-line-only"
+}

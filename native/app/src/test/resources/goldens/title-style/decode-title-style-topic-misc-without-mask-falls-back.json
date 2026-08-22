@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "bold": false,
+    "color": "blue",
+    "italic": false,
+    "underline": false
+  },
+  "fn": "decodeTitleStyle",
+  "input": {
+    "titlefont": 2,
+    "topicMisc": "AgH1lHM"
+  },
+  "name": "decode-title-style-topic-misc-without-mask-falls-back"
+}

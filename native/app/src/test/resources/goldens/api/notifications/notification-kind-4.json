@@ -1,0 +1,9 @@
+{
+  "expected": "comment",
+  "fn": "notificationKind",
+  "input": {
+    "type": 4
+  },
+  "name": "notification-kind-4",
+  "note": "API 文档 §9.1 的类型码枚举；认不出的进 other"
+}

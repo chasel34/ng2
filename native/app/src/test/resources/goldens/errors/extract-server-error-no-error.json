@@ -1,0 +1,9 @@
+{
+  "expected": null,
+  "fn": "extractServerError",
+  "input": {
+    "data": {},
+    "time": 1
+  },
+  "name": "extract-server-error-no-error"
+}

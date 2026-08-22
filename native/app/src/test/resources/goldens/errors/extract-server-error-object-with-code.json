@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "code": 403,
+    "message": "找不到主题"
+  },
+  "fn": "extractServerError",
+  "input": {
+    "error": {
+      "0": "找不到主题",
+      "code": 403
+    }
+  },
+  "name": "extract-server-error-object-with-code"
+}

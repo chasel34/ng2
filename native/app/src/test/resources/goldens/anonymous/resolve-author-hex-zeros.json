@@ -1,0 +1,6 @@
+{
+  "expected": "甲王王甲王王",
+  "fn": "resolveAuthorName",
+  "input": "#anony_00000000000000000000000000000000",
+  "name": "resolve-author-hex-zeros"
+}

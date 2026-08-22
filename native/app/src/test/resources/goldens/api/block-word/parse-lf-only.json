@@ -1,0 +1,21 @@
+{
+  "expected": {
+    "users": [
+      {
+        "name": "某人",
+        "uid": 42
+      }
+    ],
+    "words": [
+      "关键词"
+    ]
+  },
+  "fn": "parseBlockWords",
+  "input": {
+    "value": {
+      "0": "1\n关键词\n42/某人"
+    }
+  },
+  "name": "parse-lf-only",
+  "note": "服务端换行符不保证是 \\r\\n"
+}

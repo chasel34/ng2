@@ -1,0 +1,11 @@
+{
+  "expected": {
+    "mask": 8,
+    "stid": 32871539
+  },
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": "AgH1lHMBAAAACA"
+  },
+  "name": "parse-topic-misc-stid-and-mask"
+}

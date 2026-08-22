@@ -1,0 +1,10 @@
+{
+  "expected": "add",
+  "fn": "subBoardOptionParam",
+  "input": {
+    "action": "block",
+    "filterType": 1
+  },
+  "name": "option-param-block-type-1",
+  "note": "参数名本身就是操作；type=0 时整个反过来"
+}

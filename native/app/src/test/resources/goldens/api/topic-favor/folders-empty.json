@@ -1,0 +1,11 @@
+{
+  "expected": [],
+  "fn": "parseFavoriteFolders",
+  "input": {
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"data\":{\"0\":{},\"1\":0},\"time\":1786157954}"
+  },
+  "name": "folders-empty",
+  "note": "nuke.php __lib=topic_favor_v2 __act=list_folder page=1 __output=8，登录态，无收藏夹"
+}

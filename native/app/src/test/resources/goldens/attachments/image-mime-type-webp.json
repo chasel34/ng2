@@ -1,0 +1,6 @@
+{
+  "expected": "image/webp",
+  "fn": "imageMimeType",
+  "input": "a.webp",
+  "name": "image-mime-type-webp"
+}

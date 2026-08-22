@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "link": {
+      "kind": "topic",
+      "page": 2,
+      "tid": 1
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "ng2://read.php?tid=1&page=2",
+  "name": "parse-scheme-app-endpoint-in-host"
+}

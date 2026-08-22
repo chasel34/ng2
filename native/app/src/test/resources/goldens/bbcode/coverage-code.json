@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "type": "code",
+      "value": "const a = 1"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[code]const a = 1[/code]",
+  "name": "coverage-code",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

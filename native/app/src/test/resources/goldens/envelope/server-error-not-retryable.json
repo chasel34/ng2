@@ -1,0 +1,18 @@
+{
+  "expected": {
+    "throws": {
+      "code": 403,
+      "kind": "server",
+      "message": "找不到主题",
+      "retryable": false,
+      "via": "direct"
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "{\"error\":{\"code\":403,\"0\":\"找不到主题\"}}",
+    "via": "direct"
+  },
+  "name": "server-error-not-retryable",
+  "note": "服务端语义错误 kind=server 且 retryable=false"
+}

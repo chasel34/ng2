@@ -1,0 +1,16 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "粗"
+        }
+      ],
+      "type": "bold"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[B]粗[/B]",
+  "name": "tag-name-case-insensitive"
+}

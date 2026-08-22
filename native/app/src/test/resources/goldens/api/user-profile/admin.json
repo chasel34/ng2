@@ -1,0 +1,31 @@
+{
+  "expected": {
+    "adminForums": [
+      {
+        "fid": -2,
+        "name": "阿瓦隆177号"
+      }
+    ],
+    "group": "Old Titan",
+    "money": 0,
+    "name": "Ediart",
+    "postCount": 9453,
+    "registeredAt": 1034659291,
+    "reputation": -1110.9,
+    "reputations": [],
+    "signature": "[url=http://weibo.com/ediart]新浪微博[/url]",
+    "status": "active",
+    "uid": 2
+  },
+  "fn": "parseUserProfile",
+  "input": {
+    "args": {
+      "nowSeconds": 1786100000
+    },
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"data\":{\"0\":{\"uid\":2,\"username\":\"Ediart\",\"gid\":85,\"groupid\":85,\"memberid\":85,\"group\":\"Old Titan\",\"title\":\"\",\"honor\":\"\",\"bit\":1376806,\"regdate\":1034659291,\"muteTime\":0,\"medal\":\"7,4,19,65\",\"avatar\":\"\",\"sign\":\"[url=http://weibo.com/ediart]新浪微博[/url]\",\"clientChat\":0,\"umengChat\":0,\"lastpost\":0,\"lastvisit\":0,\"thisvisit\":0,\"more_info\":{\"0\":{\"type\":8,\"data\":127},\"1\":{\"type\":9,\"data\":1}},\"ipLoc\":\"尚无记录\",\"adminForums\":{\"-2\":\"阿瓦隆177号\"},\"userForum\":{\"0\":-2,\"1\":\"阿瓦隆177号\"},\"remark\":\"1\",\"adfree\":0,\"follow_by_num\":47,\"faction\":0,\"money\":0,\"fame\":-11109,\"rvrc\":-11109,\"posts\":9453,\"_admin\":0,\"_super\":0,\"_greater\":4,\"_lesser\":0}},\"time\":1786173392}"
+  },
+  "name": "admin",
+  "note": "nuke.php __lib=ucp __act=get uid=2 __output=8，登录态"
+}

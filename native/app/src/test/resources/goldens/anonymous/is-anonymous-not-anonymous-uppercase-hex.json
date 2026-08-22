@@ -1,0 +1,6 @@
+{
+  "expected": false,
+  "fn": "isAnonymousAuthor",
+  "input": "#anony_0123456789ABCDEF0123456789ABCDEF",
+  "name": "is-anonymous-not-anonymous-uppercase-hex"
+}

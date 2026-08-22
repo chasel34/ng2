@@ -1,0 +1,17 @@
+{
+  "expected": {
+    "data": null,
+    "fakeError": {
+      "code": "?",
+      "message": "找不到用户"
+    },
+    "time": 1786111727
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "{\"error\":{\"0\":\"找不到用户\"},\"time\":1786111727}",
+    "via": "direct"
+  },
+  "name": "capture-ucp-not-found",
+  "note": "不存在的 uid → {\"error\":{\"0\":\"找不到用户\"}}，命中假错误白名单"
+}

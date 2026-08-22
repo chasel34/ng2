@@ -1,0 +1,8 @@
+{
+  "expected": 835,
+  "fn": "signedBoardId",
+  "input": {
+    "value": 835
+  },
+  "name": "signed-board-id-normal-positive"
+}

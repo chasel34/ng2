@@ -1,0 +1,31 @@
+{
+  "expected": {
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "1",
+            "points": 0,
+            "title": "甲",
+            "votes": 1
+          }
+        ],
+        "votes": 1
+      }
+    ],
+    "kind": "vote",
+    "maxSelect": 1,
+    "multiple": false,
+    "resultAfterEnd": true,
+    "resultAfterVote": true,
+    "totalVotes": 1,
+    "voters": 1
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "1~甲~_1~1,0,1~opt~3",
+    "tid": 47331456
+  },
+  "name": "parse-opt-result-after-end"
+}

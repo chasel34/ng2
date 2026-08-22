@@ -1,0 +1,11 @@
+{
+  "expected": [],
+  "fn": "parseBoardSearch",
+  "input": {
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"error\":{\"0\":\"2048:没找到符合条件的版面\",\"1\":\"\",\"2\":\"\"},\"data\":{\"__MESSAGE\":{\"0\":2048,\"1\":\"没找到符合条件的版面\",\"3\":200}},\"encode\":\"gbk\",\"time\":1786175514}"
+  },
+  "name": "board-search-none",
+  "note": "forum.php key=<不存在的关键词 GBK> __output=8，登录态"
+}

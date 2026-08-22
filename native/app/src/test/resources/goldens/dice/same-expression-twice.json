@@ -1,0 +1,34 @@
+{
+  "expected": [
+    {
+      "expression": "d100",
+      "sum": 60,
+      "terms": [
+        {
+          "faces": 100,
+          "kind": "roll",
+          "value": 60
+        }
+      ]
+    },
+    {
+      "expression": "d100",
+      "sum": 90,
+      "terms": [
+        {
+          "faces": 100,
+          "kind": "roll",
+          "value": 90
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]d100[/dice][dice]d100[/dice]",
+    "tid": 45150945
+  },
+  "name": "same-expression-twice"
+}

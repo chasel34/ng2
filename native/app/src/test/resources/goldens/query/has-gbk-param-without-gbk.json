@@ -1,0 +1,10 @@
+{
+  "expected": false,
+  "fn": "hasGbkParam",
+  "input": {
+    "fid": 1,
+    "key": "原神"
+  },
+  "name": "has-gbk-param-without-gbk",
+  "note": "命中 = 要声明 charset=GBK 并撤掉 __inchst=UTF8"
+}

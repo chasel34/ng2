@@ -1,0 +1,6 @@
+{
+  "expected": "",
+  "fn": "escapeForSubmit",
+  "input": "",
+  "name": "escape-for-submit-roundtrip-empty"
+}

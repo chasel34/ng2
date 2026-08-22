@@ -1,0 +1,9 @@
+{
+  "expected": null,
+  "fn": "blockWordError",
+  "input": {
+    "text": "内部消息"
+  },
+  "name": "error-ok",
+  "note": "空格是表里的分隔符，带空白的词写上去会被服务端拆成两条"
+}

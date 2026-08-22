@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "link": {
+      "kind": "topic",
+      "page": 2,
+      "pid": 880123456,
+      "tid": 45150945
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/read.php?tid=45150945&page=2#pid880123456Anchor",
+  "name": "parse-read-anchor-pid"
+}

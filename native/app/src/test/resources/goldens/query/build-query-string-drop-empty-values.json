@@ -1,0 +1,12 @@
+{
+  "expected": "fid=650",
+  "fn": "buildQueryString",
+  "input": {
+    "content": false,
+    "fid": 650,
+    "key": "",
+    "stid": null
+  },
+  "name": "build-query-string-drop-empty-values",
+  "note": "空值参数必须删除：bool false = 不传、fid/stid 二选一都依赖它"
+}

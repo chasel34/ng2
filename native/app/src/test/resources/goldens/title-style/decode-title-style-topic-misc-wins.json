@@ -1,0 +1,15 @@
+{
+  "expected": {
+    "bold": true,
+    "color": "red",
+    "italic": false,
+    "underline": false
+  },
+  "fn": "decodeTitleStyle",
+  "input": {
+    "titlefont": 2,
+    "topicMisc": "AQAAACE"
+  },
+  "name": "decode-title-style-topic-misc-wins",
+  "note": "两个来源都在时以 topic_misc 为准"
+}

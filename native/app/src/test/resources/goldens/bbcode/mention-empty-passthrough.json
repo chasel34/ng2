@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "[@]"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[@]",
+  "name": "mention-empty-passthrough"
+}

@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "斜"
+        }
+      ],
+      "type": "italic"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[i]斜[/i]",
+  "name": "coverage-italic",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": true,
+  "fn": "isFakeError",
+  "input": "完毕",
+  "name": "is-fake-error-fake-wanbi"
+}

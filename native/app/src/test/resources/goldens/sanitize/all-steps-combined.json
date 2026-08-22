@@ -1,0 +1,6 @@
+{
+  "expected": "{\"data\":{\"0\":{\"pid\":9,\"alterinfo\":\"[E1 0 0]\\t\",\"content\":\"+7\",\"subject\":\"012\",\"note\":\"裸控制符\"}}}",
+  "fn": "sanitizeNgaJson",
+  "input": "window.script_muti_get_var_store=({\"data\":{0:{\"pid\":9,\"alterinfo\":\"[E1 0 0]\t\",\"content\":+7,\"subject\":012,\"note\":\"裸控制符\"}}});/*error fill content xxx",
+  "name": "all-steps-combined"
+}

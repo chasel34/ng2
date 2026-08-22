@@ -1,0 +1,14 @@
+{
+  "expected": "https://img.nga.cn/attachments/a.jpg",
+  "fn": "attachmentUrl",
+  "input": {
+    "options": {
+      "base": "https://img.nga.cn/attachments"
+    },
+    "ref": {
+      "needsAttachBase": true,
+      "src": "//a.jpg"
+    }
+  },
+  "name": "attachment-url-leading-slashes-trimmed"
+}

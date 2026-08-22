@@ -1,0 +1,15 @@
+{
+  "expected": "d100(74)",
+  "fn": "formatDiceTerms",
+  "input": {
+    "terms": [
+      {
+        "faces": 100,
+        "kind": "roll",
+        "value": 74
+      }
+    ]
+  },
+  "name": "format-terms-single-roll",
+  "note": "展开式显示串，与网页版同格式"
+}

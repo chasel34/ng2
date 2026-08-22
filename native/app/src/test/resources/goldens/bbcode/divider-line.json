@@ -1,0 +1,24 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "上"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "下"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "上<br/>======<br/>下",
+  "name": "divider-line"
+}

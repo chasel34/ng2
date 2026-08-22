@@ -1,0 +1,33 @@
+{
+  "expected": {
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "1",
+            "points": 0,
+            "title": "甲",
+            "votes": 1
+          }
+        ],
+        "votes": 1
+      }
+    ],
+    "kind": "vote",
+    "maxSelect": 1,
+    "multiple": false,
+    "requirement": "需要达到20版块声望以上",
+    "resultAfterEnd": false,
+    "resultAfterVote": false,
+    "totalVotes": 1,
+    "voters": 1
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "1~甲~_1~1,0,1~priv~r-10_20",
+    "tid": 47331456
+  },
+  "name": "parse-priv-requirement",
+  "note": "门槛数值在下划线之后"
+}

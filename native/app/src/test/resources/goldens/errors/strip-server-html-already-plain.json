@@ -1,0 +1,6 @@
+{
+  "expected": "您没有浏览该版面的权限",
+  "fn": "stripServerHtml",
+  "input": "您没有浏览该版面的权限",
+  "name": "strip-server-html-already-plain"
+}

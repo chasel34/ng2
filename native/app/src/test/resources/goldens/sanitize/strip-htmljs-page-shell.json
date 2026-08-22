@@ -1,0 +1,7 @@
+{
+  "expected": "{\"data\":{\"__MESSAGE\":{\"0\":0}}}",
+  "fn": "sanitizeNgaJson",
+  "input": "<html><body><script>window.script_muti_get_var_store={\"data\":{\"__MESSAGE\":{\"0\":0}}};</script></body></html>",
+  "name": "strip-htmljs-page-shell",
+  "note": "lite=htmljs：整页 HTML 里只留 script 那段"
+}

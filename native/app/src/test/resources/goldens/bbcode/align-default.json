@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "align": "left",
+      "children": [
+        {
+          "type": "text",
+          "value": "默认"
+        }
+      ],
+      "type": "align"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[align]默认[/align]",
+  "name": "align-default"
+}

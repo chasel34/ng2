@@ -1,0 +1,6 @@
+{
+  "expected": false,
+  "fn": "isAnonymousAuthor",
+  "input": "#ANONYMOUS#",
+  "name": "is-anonymous-not-anonymous-legacy-marker"
+}

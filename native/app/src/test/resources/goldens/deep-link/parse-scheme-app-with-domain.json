@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "link": {
+      "kind": "topic",
+      "tid": 1
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "ng2://bbs.nga.cn/read.php?tid=1",
+  "name": "parse-scheme-app-with-domain"
+}

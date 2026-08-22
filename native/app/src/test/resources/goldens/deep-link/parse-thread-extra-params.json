@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "link": {
+      "boardKind": "board",
+      "id": 650,
+      "kind": "board"
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/thread.php?fid=650&page=4&order_by=postdatedesc",
+  "name": "parse-thread-extra-params"
+}

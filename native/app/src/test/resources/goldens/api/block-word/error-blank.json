@@ -1,0 +1,9 @@
+{
+  "expected": "请输入要屏蔽的关键词",
+  "fn": "blockWordError",
+  "input": {
+    "text": "  "
+  },
+  "name": "error-blank",
+  "note": "空格是表里的分隔符，带空白的词写上去会被服务端拆成两条"
+}

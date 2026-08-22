@@ -1,0 +1,6 @@
+{
+  "expected": true,
+  "fn": "isFakeError",
+  "input": "今天已经签到",
+  "name": "is-fake-error-fake-already-checked-in"
+}
