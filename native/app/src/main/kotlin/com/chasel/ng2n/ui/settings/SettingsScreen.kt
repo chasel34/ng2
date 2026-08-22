@@ -289,14 +289,8 @@ fun SettingsScreen(
         onChange = { next -> update { it.copy(showSignature = next) } },
       )
     }
-    item("gesture-back") {
-      SettingsSwitchRow(
-        label = "手势返回",
-        sub = "从左边缘右滑返回上一页",
-        value = settings.gestureBack,
-        onChange = { next -> update { it.copy(gestureBack = next) } },
-      )
-    }
+    // 「手势返回」这一行不移植:原生的左边缘返回是系统手势(预测性返回),app 关不掉;
+    // 所有者 2026-08-22 裁决「保留系统语义」。`Settings.gestureBack` 字段留着不读。
     item("keep-screen-on") {
       SettingsSwitchRow(
         label = "阅读时常亮",
