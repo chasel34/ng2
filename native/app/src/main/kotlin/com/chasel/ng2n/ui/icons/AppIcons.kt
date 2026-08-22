@@ -64,6 +64,19 @@ enum class Ng2nIcon {
   LOCAL_FIRE_DEPARTMENT,
   CLOUD_OFF,
   SCIENCE,
+
+  // ---- 票 17b 追加(屏蔽规则 / 用户资料)----
+
+  /** 关键词规则行(设计稿标的 `text_fields`) */
+  TEXT_FIELDS,
+  /** 「没有屏蔽项」空态与被拒回复行(设计稿标的 `block`) */
+  BLOCK,
+  /** 正则开关的勾选态(`check_box`) */
+  CHECK_BOX,
+  /** 正则开关的未选态(`check_box_outline_blank`) */
+  CHECK_BOX_OUTLINE_BLANK,
+  /** 签名卡右上角的「编辑」(`edit`) */
+  EDIT,
 }
 
 /** 线宽 = 边长 × 这个比例(与 `BBCodeIcons.kt` 同档,同屏混用不会粗细不一)。 */
@@ -382,6 +395,37 @@ fun DrawScope.drawIcon(icon: Ng2nIcon, tint: Color) {
       }
       drawPath(flask, tint, style = Stroke(s, join = StrokeJoin.Round))
       hLine(tint, s, w, 0.32f, 0.68f, 0.12f)
+    }
+
+    // 「T」字加一条基线:Material 的 text_fields 就是这个形
+    Ng2nIcon.TEXT_FIELDS -> {
+      hLine(tint, s, w, 0.16f, 0.72f, 0.22f)
+      line(tint, s, w, 0.44f, 0.22f, 0.44f, 0.70f)
+      hLine(tint, s, w, 0.16f, 0.90f, 0.86f)
+    }
+
+    // 禁止符:一个圆加一道斜杠
+    Ng2nIcon.BLOCK -> {
+      drawCircle(tint, w * 0.36f, Offset(w * 0.5f, w * 0.5f), style = Stroke(s))
+      line(tint, s, w, 0.25f, 0.25f, 0.75f, 0.75f)
+    }
+
+    Ng2nIcon.CHECK_BOX -> {
+      drawRoundRectStroke(tint, s, w, 0.14f, 0.14f, 0.86f, 0.86f, 0.10f)
+      line(tint, s, w, 0.30f, 0.52f, 0.44f, 0.66f)
+      line(tint, s, w, 0.44f, 0.66f, 0.71f, 0.34f)
+    }
+
+    Ng2nIcon.CHECK_BOX_OUTLINE_BLANK ->
+      drawRoundRectStroke(tint, s, w, 0.14f, 0.14f, 0.86f, 0.86f, 0.10f)
+
+    // 铅笔:笔杆一道斜线 + 笔头一个小三角 + 底下一条横线
+    Ng2nIcon.EDIT -> {
+      line(tint, s, w, 0.22f, 0.66f, 0.68f, 0.20f)
+      line(tint, s, w, 0.22f, 0.66f, 0.20f, 0.80f)
+      line(tint, s, w, 0.20f, 0.80f, 0.34f, 0.78f)
+      line(tint, s, w, 0.34f, 0.78f, 0.68f, 0.20f)
+      hLine(tint, s, w, 0.52f, 0.88f, 0.88f)
     }
   }
 }

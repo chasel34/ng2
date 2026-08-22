@@ -173,6 +173,9 @@ fun ConfirmDialog(
  *
  * [error] 是输入不合法时就地顶掉 [hint] 的红字(「由 URL 读取」:链接解不开
  * 不跳转、不关框);改了输入立刻把红字撤掉,不该赖到下一次点确定才刷新。
+ *
+ * [multiline] 给「修改签名」用(票 17b):签名可以换行,回车要落进文本而不是提交,
+ * 所以那一档把 `singleLine` 关掉、IME 动作退回默认换行键,提交只认「保存」钮。
  */
 @Composable
 fun InputDialog(
@@ -185,6 +188,7 @@ fun InputDialog(
   error: String? = null,
   initialValue: String = "",
   keyboardType: KeyboardType = KeyboardType.Text,
+  multiline: Boolean = false,
   onValueChange: (String) -> Unit = {},
 ) {
   val colors = LocalNg2nColors.current
@@ -221,10 +225,15 @@ fun InputDialog(
             value = it
             onValueChange(it)
           },
-          singleLine = true,
+          singleLine = !multiline,
+          minLines = if (multiline) MULTILINE_MIN_LINES else 1,
+          maxLines = if (multiline) MULTILINE_MAX_LINES else 1,
           textStyle = TextStyle(fontSize = 16.sp, color = colors.fg),
           cursorBrush = SolidColor(colors.primary),
-          keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Go),
+          keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = if (multiline) ImeAction.Default else ImeAction.Go,
+          ),
           keyboardActions = KeyboardActions(onGo = { submit() }),
           modifier = Modifier
             .fillMaxWidth()
@@ -258,6 +267,10 @@ fun InputDialog(
     }
   }
 }
+
+/** 多行输入框(签名)的高度区间:一进来就是三行高,写长了到八行封顶再滚。 */
+private const val MULTILINE_MIN_LINES = 3
+private const val MULTILINE_MAX_LINES = 8
 
 @Composable
 private fun DialogActions(

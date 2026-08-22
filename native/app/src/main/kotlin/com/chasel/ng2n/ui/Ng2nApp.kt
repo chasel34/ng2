@@ -25,6 +25,7 @@ import com.chasel.ng2n.ui.common.SnackbarHost
 import com.chasel.ng2n.ui.dev.DevMenuEntry
 import com.chasel.ng2n.ui.dev.DevMenuKey
 import com.chasel.ng2n.ui.dev.DevMenuScreen
+import com.chasel.ng2n.ui.filters.filtersAndUserEntries
 import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
@@ -89,6 +90,8 @@ fun Ng2nApp() {
         // 票 16:首页 / 版块面 / 抽屉宿主,外加还没落地那些键的占位条目
         // (Login / Accounts 的占位条目也在里面,票 15 合并时换成真屏 —— 见票 16 Comments)
         homeEntries(nav = nav, accounts = accounts, onOpenDevMenu = { backStack.add(DevMenuKey) })
+        // 票 17b:屏蔽规则 / 用户资料 / 我的主题·我的回复
+        filtersAndUserEntries(nav = nav)
         entry<Login> {
           LoginScreen(onBack = { backStack.removeLastOrNull() })
         }
@@ -133,6 +136,13 @@ fun Ng2nApp() {
                 label = "账号管理(票 15)",
                 tag = ACCOUNTS_ENTRY_TAG,
                 onClick = { backStack.add(Accounts) },
+              ),
+              // 屏蔽规则屏正经的入口在设置树最后一行(票 17c)与楼层菜单(票 13),
+              // 那两处落地之前先从这里进得去 —— 票 18 要点它。**17c 合并后删掉这一条**
+              DevMenuEntry(
+                label = "屏蔽规则(票 17b)",
+                tag = FILTERS_ENTRY_TAG,
+                onClick = { backStack.add(com.chasel.ng2n.ui.nav.FiltersKey) },
               ),
             ),
           )
@@ -193,3 +203,6 @@ const val IMAGE_DEMO_BUTTON_TAG: String = "ng2n-image-demo"
 const val LOGIN_ENTRY_TAG: String = "ng2n-login-entry"
 const val ACCOUNTS_ENTRY_TAG: String = "ng2n-accounts-entry"
 const val TOPIC_DEMO_BUTTON_TAG: String = "ng2n-topic-demo"
+
+/** 票 17b 手验入口锚点(临时挂在开发者菜单里,见上面的注释)。 */
+const val FILTERS_ENTRY_TAG: String = "ng2n-filters-entry"

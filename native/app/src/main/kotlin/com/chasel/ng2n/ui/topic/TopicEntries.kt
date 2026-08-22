@@ -2,7 +2,6 @@ package com.chasel.ng2n.ui.topic
 
 import com.chasel.ng2n.ui.nav.TopicKey
 import com.chasel.ng2n.ui.nav.ChainKey
-import com.chasel.ng2n.ui.nav.UserKey
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,8 +26,7 @@ import com.chasel.ng2n.ui.theme.Typo
 fun EntryProviderScope<NavKey>.topicEntries(nav: Navigator) {
   entry<TopicKey> { key -> TopicScreen(key = key, nav = nav) }
   entry<ChainKey> { key -> ChainScreen(key = key, nav = nav) }
-  // TODO(票 17):换成真的用户资料屏
-  entry<UserKey> { key -> UserPlaceholderScreen(key = key, nav = nav) }
+  // UserKey 的真屏在 `ui/filters/FiltersEntries.kt`(票 17b)
 }
 
 /**
@@ -54,24 +52,3 @@ fun rememberChainViewModel(key: ChainKey): ChainViewModel {
   return viewModel(key = "chain:${key.tid}:${key.pid}") { ChainViewModel(key, deps) }
 }
 
-/** **TODO(票 17)**:用户资料屏的占位。点头像有地方去,别在这一票里留死入口。 */
-@Composable
-private fun UserPlaceholderScreen(key: UserKey, nav: Navigator) {
-  val colors = LocalNg2nColors.current
-  Column(Modifier.fillMaxSize()) {
-    TopicTopBar {
-      TopBarButton(onClick = nav::pop, label = "返回", box = 46.dp) {
-        BackArrowIcon(tint = colors.onTopbar)
-      }
-      TopBarTitle(text = key.name ?: "用户 ${key.uid}", modifier = Modifier.weight(1f))
-    }
-    Column(
-      modifier = Modifier.fillMaxSize().padding(24.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
-      horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-      Text("用户资料屏归票 17", fontSize = Typo.section.size, color = colors.fg)
-      Text("uid = ${key.uid}", fontSize = Typo.listMeta.size, color = colors.meta)
-    }
-  }
-}

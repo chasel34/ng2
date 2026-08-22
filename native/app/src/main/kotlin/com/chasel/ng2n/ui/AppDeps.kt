@@ -11,8 +11,11 @@ import com.chasel.ng2n.data.board.CheckInRepository
 import com.chasel.ng2n.data.board.HotTopicsRepository
 import com.chasel.ng2n.data.board.SubBoardRepository
 import com.chasel.ng2n.data.board.TopicListRepository
+import com.chasel.ng2n.data.filters.FilterRepository
 import com.chasel.ng2n.data.notifications.NotificationPoller
 import com.chasel.ng2n.data.settings.SettingsStore
+import com.chasel.ng2n.data.user.UserPostsRepository
+import com.chasel.ng2n.data.user.UserProfileRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -45,6 +48,11 @@ interface AppDepsEntryPoint {
   fun notifications(): NotificationPoller
   fun accounts(): AccountStore
   fun settings(): SettingsStore
+
+  // ---- 票 17b ----
+  fun filters(): FilterRepository
+  fun userProfiles(): UserProfileRepository
+  fun userPosts(): UserPostsRepository
 }
 
 class AppDeps(entryPoint: AppDepsEntryPoint) {
@@ -57,6 +65,9 @@ class AppDeps(entryPoint: AppDepsEntryPoint) {
   val notifications: NotificationPoller = entryPoint.notifications()
   val accounts: AccountStore = entryPoint.accounts()
   val settings: SettingsStore = entryPoint.settings()
+  val filters: FilterRepository = entryPoint.filters()
+  val userProfiles: UserProfileRepository = entryPoint.userProfiles()
+  val userPosts: UserPostsRepository = entryPoint.userPosts()
 }
 
 @Composable
