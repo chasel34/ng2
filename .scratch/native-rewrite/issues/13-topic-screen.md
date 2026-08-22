@@ -5,7 +5,7 @@
 
 **Blocked by:** 07, 11, 12
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] 24 屏 checklist 的主题详情/回复链两屏全项与 RN 版对照通过(模拟器)
       —— 口径改为「按 research/inventory.md §2 的『主题详情』『楼层操作』两段逐条自测」
@@ -231,3 +231,5 @@ RN 版没有这个问题(`<Text>` 的 onPress 不吃长按)。修法:`BBCodeCall
    就是为了让并行改 `Ng2nApp.kt` 的票 15/16 少一处冲突面。
 5. 手验期间往设备的 `topic_cache` 塞过一个假帖(tid=90000001)走缓存档验离线路径,
    **收工已删干净**;仓库里没有任何 seed 数据,正常启动不会写入。
+
+**主控验收(2026-08-22)**:合并进 android-native(`4439b1c`)。冲突处理:`TopicKey/ChainKey/UserKey` 统一落 `ui/nav/Keys.kt`(删 `ui/topic/TopicKeys.kt`,topic 包改 import);`Ng2nApp.kt` 用票 16 结构 + 本票的 `entryDecorators`(SaveableStateHolder + ViewModelStore)与 `topicEntries(nav)`;`HomeEntries.kt` 去掉 Topic/User 占位;`TopicDevOpenSection` 未挂(DevMenu 加了固定 tid=47406116 入口,tag `ng2n-topic-demo`)。assembleDebug 通过,单测 785/0/4 跳过。模拟器实跑:首页→版块→主题列表→主题详情联网全通(首次进帖「连不上服务器」是主控连续冷启触发 NGA 限流,冷却 60s 后重试即好)。验收③ 500+ 楼长帖与写操作验证顺延票 18/所有者登录。票外:FilterBridge 两份屏蔽模型待合一 → 票 17b 知会;README 分层表补 `ui/topic`/`ui/nav` → 票 18 前顺手。
