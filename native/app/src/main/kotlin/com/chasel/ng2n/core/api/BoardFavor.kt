@@ -6,6 +6,7 @@ import com.chasel.ng2n.core.net.NgaError
 import com.chasel.ng2n.core.net.NgaErrorKind
 import com.chasel.ng2n.core.net.NgaRequest
 import com.chasel.ng2n.core.net.Operation
+import com.chasel.ng2n.core.net.jsTrim
 import com.chasel.ng2n.core.net.queryOf
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -126,7 +127,7 @@ private val BOARD_ID_INPUT = Regex("^-?\\d+$")
  * 之后重拉列表,条目带 `stid` 就是合集(stid 优先,CONTEXT.md「合集」)。
  */
 fun parseBoardIdInput(text: String): Long? {
-  val trimmed = text.trim()
+  val trimmed = text.jsTrim()
   if (!BOARD_ID_INPUT.matches(trimmed)) return null
   // 越过 Long 的输入(TS 那边是 `Number.isSafeInteger` 挡掉)一律不认
   val id = trimmed.toLongOrNull() ?: return null
