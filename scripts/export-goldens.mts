@@ -2759,7 +2759,17 @@ function exportApiFields(): void {
     ['real-array', ['a', 'c', 'j'], '__output=11 的 __T 是真数组——不认它整页会静默变 0 条'],
     ['empty-array', []],
     ['empty-object', {}],
-    ['mixed-keys', { b: 2, '1': 'x', a: 1, '0': 'y' }, '非数字键排在数字键后面，保持原有顺序'],
+    // ⚠ 非数字键之间必须取**字典序**（这里是 a 先于 b）：`stringifyStable` 会把对象键排成
+    // 字典序，于是「JS 对象字面量的插入序」这个信息在文件里根本存不下来。写成 `{ b: 2, …, a: 1 }`
+    // 的话 expected 是 `b, a`，而任何从这份 JSON 读回入参的实现（Kotlin 侧）只能得到 `a, b`，
+    // 这条 case 就成了对不上的死局（票 04 发现，与 `query` domain 那次同源：
+    // 规范化会抹掉顺序，靠顺序的用例不能拿对象当入参）。
+    // 「插入序 ≠ 字典序时仍保持插入序」那一半跨不过 JSON，由 Kotlin 侧手写单测锁（FieldsTest）。
+    [
+      'mixed-keys',
+      { a: 1, '1': 'x', b: 2, '0': 'y' },
+      '非数字键排在数字键后面，保持原有顺序（键序只能是字典序，见导出器注释）',
+    ],
     ['null', null],
     ['string', 'abc'],
     ['number', 42],
