@@ -166,6 +166,7 @@ suspend fun fetchBlockWords(client: NgaClient, uid: String): BlockWordList {
       operation = Operation.READ,
       query = queryOf("__lib" to "ucp", "__act" to "get_block_word", "uid" to uid),
       refererPath = blockWordRefererPath(uid),
+      validate = ::rejectNonUcpPayload,
     ),
   )
   return parseBlockWords(result.data)

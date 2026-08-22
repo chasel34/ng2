@@ -107,6 +107,7 @@ suspend fun fetchNotificationFeed(client: NgaClient): NotificationFeed {
       path = "nuke.php",
       operation = Operation.READ,
       query = queryOf("__lib" to "noti", "__act" to "get_all"),
+      validate = ::rejectNonNotificationFeed,
     ),
   )
 

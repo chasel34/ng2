@@ -136,6 +136,7 @@ suspend fun fetchBoardSearch(client: NgaClient, key: String): List<BoardSearchIt
       path = "forum.php",
       operation = Operation.READ,
       query = queryOf("key" to gbk(key)),
+      validate = ::rejectNonBoardSearch,
     ),
   )
 

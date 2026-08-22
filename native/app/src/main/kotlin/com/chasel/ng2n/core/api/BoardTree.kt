@@ -206,6 +206,7 @@ suspend fun fetchBoardTree(client: NgaClient): BoardTree {
       // 解析拿的是 `root` 而不是 `data`——所以它不该受「顶层必须有 data 壳」那条约束。
       // 实测响应确实带 `data` 键,声明 BARE 只是让「我们读的是顶层」这件事写在明面上
       shape = EnvelopeShape.BARE,
+      validate = ::rejectNonBoardTree,
     ),
   )
   return parseBoardTree(result.root)

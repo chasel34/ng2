@@ -156,6 +156,7 @@ private suspend fun fetchUcpProfile(
       operation = Operation.READ,
       query = query,
       refererPath = UCP_REFERER_PATH,
+      validate = ::rejectNonUcpPayload,
     ),
   )
 
@@ -185,6 +186,7 @@ suspend fun fetchUserAvatar(client: NgaClient, uid: Long): String? {
       operation = Operation.READ,
       query = queryOf("__lib" to "ucp", "__act" to "get_avatar", "uid" to uid),
       refererPath = UCP_REFERER_PATH,
+      validate = ::rejectNonUcpPayload,
     ),
   )
   // 这个接口的 data["0"] 是 URL 字符串本身,不是对象

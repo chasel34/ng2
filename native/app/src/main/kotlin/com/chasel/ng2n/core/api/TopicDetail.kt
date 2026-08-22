@@ -366,6 +366,7 @@ suspend fun fetchTopicDetail(
       // v2 是 Android v4 的新版结构,_ATTACH_BASE_VIEW 就是它带出来的
       "v2" to 1,
     ),
+    validate = ::rejectNonTopicDetail,
   )
   val result = client.execute(request)
 
