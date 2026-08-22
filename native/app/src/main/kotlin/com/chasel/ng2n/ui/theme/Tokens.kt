@@ -213,6 +213,51 @@ object Typo {
   val listSubtitle: TypeToken = TypeToken(12.sp, 17.sp)
   /** 账号头像里的缩写 22 · 700(设计稿抽屉账号头) */
   val avatarAbbrev: TypeToken = TypeToken(22.sp, 26.sp)
+
+  // ---- 票 17a 追加(搜索 / 收藏 / 历史 / 缓存 / 通知,RN 侧 `src/ui/tokens.ts` 同名档)----
+
+  /** 搜索屏「搜索选项 / 搜索历史」小节标题 16 · 600(设计稿 isSearch 屏) */
+  val searchSection: TypeToken = TypeToken(16.sp, 23.sp)
+  /** 对话框列表条目 / 搜索选项与历史词 14.5(设计稿「收藏到…」多选夹那档) */
+  val dialogListItem: TypeToken = TypeToken(14.5.sp, 21.sp)
+  /** 卡片副行 / 二级列表副标题条 12(设计稿 isFolders 卡片与 listSub) */
+  val cardMeta: TypeToken = TypeToken(12.sp, 17.sp)
+  /** 收藏夹「默认」徽标 10.5 · 700(设计稿 isFolders 屏) */
+  val folderBadge: TypeToken = TypeToken(10.5.sp, 14.sp)
+  /** 头像占位的首字 15 · 700(设计稿 isArticle 的楼层头) */
+  val avatarInitial: TypeToken = TypeToken(15.sp, 18.sp)
+  /** 通知条目 36 见方头像里的首字 13 · 700(设计稿 isNotify 屏) */
+  val notifyInitial: TypeToken = TypeToken(13.sp, 15.sp)
+  /** 通知条目第三行「第 N 页 · 时间」11(设计稿 isNotify 屏) */
+  val notifyMeta: TypeToken = TypeToken(11.sp, 15.sp)
+}
+
+/**
+ * 头像占位的一档底色 —— 直译 RN 侧 `tokens.ts` 的 `avatarColors`。
+ * 「同一个人每次都同一个颜色」就够,所以取色用的是个逐字符累加的弱散列
+ * ([avatarColorFor]),不需要抗碰撞。
+ */
+val AvatarColors: List<Color> = listOf(
+  Color(0xFF3E6B7E),
+  Color(0xFF7E5A3E),
+  Color(0xFF5A6E3E),
+  Color(0xFF6E3E5A),
+  Color(0xFF3E5A7E),
+  Color(0xFF7E6B3E),
+  Color(0xFF4A4A6E),
+)
+
+/**
+ * 按用户 key 稳定取一档占位底色(RN 侧 `ui/avatar.tsx` 的 `avatarColorFor`)。
+ *
+ * 散列照抄 TS 那一行:`hash = (hash * 31 + charCodeAt(i)) % 0xffffff` ——
+ * `charCodeAt` 是 **UTF-16 码元**,Kotlin 的 `Char.code` 正好同义,
+ * 所以同一个 uid 在两版里落在同一档色上。
+ */
+fun avatarColorFor(key: String): Color {
+  var hash = 0L
+  for (char in key) hash = (hash * 31 + char.code) % 0xffffff
+  return AvatarColors[(hash % AvatarColors.size).toInt()]
 }
 
 /** 等宽字体。设计稿用 `ui-monospace,Menlo,monospace`,Android 侧就是系统 monospace。 */

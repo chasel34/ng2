@@ -16,6 +16,8 @@ import com.chasel.ng2n.core.net.NgaClient
 import com.chasel.ng2n.data.cache.TopicCacheRepository
 import com.chasel.ng2n.data.diagnostics.DiagnosticLogStore
 import com.chasel.ng2n.data.history.HistoryRepository
+import com.chasel.ng2n.data.favorites.TopicFavoriteRepository
+import com.chasel.ng2n.data.search.SearchRepository
 import com.chasel.ng2n.data.notifications.NotificationPoller
 import com.chasel.ng2n.data.settings.SettingsStore
 import com.chasel.ng2n.data.user.UserPostsRepository
@@ -62,6 +64,9 @@ interface AppDepsEntryPoint {
   fun topicCache(): TopicCacheRepository
   fun diagnostics(): DiagnosticLogStore
   fun ngaClient(): NgaClient
+  // ---- 票 17a 追加(搜索 / 收藏 / 历史 / 缓存管理)----
+  fun topicFavorites(): TopicFavoriteRepository
+  fun search(): SearchRepository
 }
 
 class AppDeps(entryPoint: AppDepsEntryPoint) {
@@ -81,6 +86,8 @@ class AppDeps(entryPoint: AppDepsEntryPoint) {
   val topicCache: TopicCacheRepository = entryPoint.topicCache()
   val diagnostics: DiagnosticLogStore = entryPoint.diagnostics()
   val ngaClient: NgaClient = entryPoint.ngaClient()
+  val topicFavorites: TopicFavoriteRepository = entryPoint.topicFavorites()
+  val search: SearchRepository = entryPoint.search()
 }
 
 @Composable

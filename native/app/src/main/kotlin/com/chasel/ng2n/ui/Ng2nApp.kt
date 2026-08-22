@@ -31,6 +31,7 @@ import com.chasel.ng2n.ui.dev.DevMenuScreen
 import com.chasel.ng2n.ui.filters.filtersAndUserEntries
 import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
+import com.chasel.ng2n.ui.lists.listEntries
 import com.chasel.ng2n.ui.image.ImageViewerScreen
 import com.chasel.ng2n.ui.nav.DeepLinkInbox
 import com.chasel.ng2n.ui.nav.Navigator
@@ -108,6 +109,8 @@ fun Ng2nApp() {
         filtersAndUserEntries(nav = nav)
         // 票 17c:设置树三屏 / 关于 / 网页兜底
         settingsEntries(nav = nav, onOpenAccounts = { backStack.add(Accounts) })
+        // 票 17a:搜索 / 收藏 / 收藏夹管理 / 历史 / 缓存管理 / 通知
+        listEntries(nav = nav)
         entry<Login> {
           LoginScreen(onBack = { backStack.removeLastOrNull() })
         }

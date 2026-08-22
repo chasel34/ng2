@@ -6,18 +6,11 @@ import com.chasel.ng2n.ui.board.BoardScreen
 import com.chasel.ng2n.ui.board.HotTopicsScreen
 import com.chasel.ng2n.ui.board.RecommendScreen
 import com.chasel.ng2n.ui.board.SubBoardsScreen
-import com.chasel.ng2n.ui.common.PlaceholderScreen
 import com.chasel.ng2n.ui.nav.BoardFace
 import com.chasel.ng2n.ui.nav.BoardKey
-import com.chasel.ng2n.ui.nav.CachesKey
-import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
-import com.chasel.ng2n.ui.nav.FavoritesKey
-import com.chasel.ng2n.ui.nav.HistoryKey
 import com.chasel.ng2n.ui.Home
 import com.chasel.ng2n.ui.accounts.AccountsViewModel
 import com.chasel.ng2n.ui.nav.Navigator
-import com.chasel.ng2n.ui.nav.NotificationsKey
-import com.chasel.ng2n.ui.nav.SearchKey
 import com.chasel.ng2n.ui.nav.SubBoardsKey
 
 /**
@@ -58,10 +51,5 @@ fun EntryProviderScope<NavKey>.homeEntries(
   // 票 15 的 Login / Accounts 真屏在 `ui/Ng2nApp.kt`(它们要共享 NavDisplay 外面那一份 AccountsViewModel)
 
   // 票 17:其余屏幕
-  entry<SearchKey> { PlaceholderScreen("搜索", "票 17", nav::pop) }
-  entry<FavoritesKey> { PlaceholderScreen("收藏夹", "票 17", nav::pop) }
-  entry<FavoriteFoldersKey> { PlaceholderScreen("收藏夹管理", "票 17", nav::pop) }
-  entry<HistoryKey> { PlaceholderScreen("浏览历史", "票 17", nav::pop) }
-  entry<CachesKey> { PlaceholderScreen("我的缓存", "票 17", nav::pop) }
-  entry<NotificationsKey> { PlaceholderScreen("最近被喷", "票 17", nav::pop) }
+  // 票 17 三份的真屏:`ui/lists/ListEntries.kt`(17a)、`ui/filters/FiltersEntries.kt`(17b)、`ui/settings/…`(17c),都挂在 `ui/Ng2nApp.kt`
 }
