@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.preferredFrameRate
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +66,9 @@ import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.LocalTextScale
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
+
+/** 楼层流与横滑翻页请求的刷新率(Hz)。120Hz 屏上把这两面钉在满帧档。 */
+private const val PAGER_FRAME_RATE = 120f
 
 /** 未实现功能的统一提示文案(RN 侧 `NOT_AVAILABLE_MESSAGE`)。 */
 const val NOT_AVAILABLE_MESSAGE: String = "本版本未开放"
@@ -351,9 +355,9 @@ private fun TopicPager(vm: TopicViewModel, actions: FloorActions, nav: Navigator
     // 相邻页预渲染 —— 方案 A 的「无缝」靠它们真的画得出来
     beyondViewportPageCount = 1,
     snapPosition = SnapPosition.Start,
-    // 滚动面投 120Hz(stack-2026-08 §12 ⑤)。API 不可用时这行不编译,
-    // 届时删掉即可 —— 刷新率还有 MainActivity 的窗口级投票兜底
-    modifier = Modifier.fillMaxSize().preferHighFrameRate(),
+    // 滚动面投 120Hz(stack-2026-08 §12 ⑤:`Modifier.preferredFrameRate`,
+    // Compose UI 1.12 起是正式 API)。窗口级还有 MainActivity 的 preferHighestRefreshRate 兜底
+    modifier = Modifier.fillMaxSize().preferredFrameRate(PAGER_FRAME_RATE),
     key = { it },
   ) { index ->
     val page = index + 1

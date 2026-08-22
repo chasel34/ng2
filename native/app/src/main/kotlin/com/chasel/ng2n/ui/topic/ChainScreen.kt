@@ -95,7 +95,7 @@ fun ChainScreen(key: ChainKey, nav: Navigator) {
             text = "从第 $lou 楼展开:上游是它引用的楼层,下游是引用它的楼层。",
             fontSize = Typo.meta.size,
             color = colors.meta,
-            modifier = Modifier.padding(horizontal = Spacing.xs, bottom = Spacing.md),
+            modifier = Modifier.padding(start = Spacing.xs, end = Spacing.xs, bottom = Spacing.md),
           )
         }
       }

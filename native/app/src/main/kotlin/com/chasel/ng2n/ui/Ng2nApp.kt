@@ -18,12 +18,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -33,6 +36,10 @@ import com.chasel.ng2n.ui.bbcode.BBCodeDemoScreen
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
 import com.chasel.ng2n.ui.image.PostImage
+import com.chasel.ng2n.ui.nav.Navigator
+import com.chasel.ng2n.ui.topic.TopicDevOpenSection
+import com.chasel.ng2n.ui.topic.TopicKey
+import com.chasel.ng2n.ui.topic.topicEntries
 import kotlinx.serialization.Serializable
 
 /** 导航键。Nav3 的 back stack 就是一串 [NavKey],屏幕由 entryProvider 按键类型分派。 */
@@ -48,15 +55,32 @@ data object Home : NavKey
 @Composable
 fun Ng2nApp() {
   val backStack = rememberNavBackStack(Home)
+  // 票 13:各屏只认 push/pop 这两件事,back stack 不往下传(见 ui/nav/Navigator.kt)
+  val nav = remember(backStack) {
+    object : Navigator {
+      override fun push(key: NavKey) { backStack.add(key) }
+      override fun pop() { backStack.removeLastOrNull() }
+    }
+  }
 
   NavDisplay(
     backStack = backStack,
     onBack = { backStack.removeLastOrNull() },
+    // 票 13:NavDisplay 默认只装 SaveableStateHolder 那一个装饰器,ViewModel 的作用域
+    // 要自己加 —— 不加的话条目里的 ViewModel 挂在 Activity 上,pop 之后不 clear,
+    // 主题详情的页级渲染成品(几百 KB / 页)会一直留着。
+    entryDecorators = listOf(
+      rememberSaveableStateHolderNavEntryDecorator(),
+      rememberViewModelStoreNavEntryDecorator(),
+    ),
     entryProvider = entryProvider {
+      // 票 13:主题详情 / 回复链 / 用户资料占位
+      topicEntries(nav)
       entry<Home> {
         HomeScreen(
           onOpenViewer = { backStack.add(it) },
           onOpenBBCodeDemo = { backStack.add(BBCodeDemoKey) },
+          onOpenTopic = { tid -> backStack.add(TopicKey(tid = tid)) },
         )
       }
       // TODO(票 16 移除):BBCode 渲染器的模拟器手验屏(票 11)
@@ -87,6 +111,7 @@ private const val VIEWER_FADE_MS = 220
 private fun HomeScreen(
   onOpenViewer: (ImageViewerKey) -> Unit,
   onOpenBBCodeDemo: () -> Unit,
+  onOpenTopic: (Long) -> Unit,
 ) {
   Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
     Column(
@@ -114,6 +139,10 @@ private fun HomeScreen(
       ) {
         Text("BBCode 渲染 demo")
       }
+
+      Spacer(Modifier.height(24.dp))
+      // TODO(票 16 移除):主题详情屏的手验入口(票 13)
+      TopicDevOpenSection(onOpen = onOpenTopic)
 
       Spacer(Modifier.height(24.dp))
       ImageDemoSection(onOpenViewer = onOpenViewer)

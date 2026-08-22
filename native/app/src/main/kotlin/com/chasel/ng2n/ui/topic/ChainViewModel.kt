@@ -26,6 +26,7 @@ import com.chasel.ng2n.ui.bbcode.FloorRenderModel
 import com.chasel.ng2n.ui.bbcode.RenderModelBuilder
 import com.chasel.ng2n.ui.bbcode.resolveFloorDice
 import com.chasel.ng2n.ui.theme.Typo
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -188,7 +189,7 @@ class ChainViewModel(
       BBCodeRenderOptions(
         attachBase = detail.attachBase,
         postedAt = floor.postedAt,
-        dice = kotlinx.collections.immutable.toImmutableList(dice),
+        dice = dice.toImmutableList(),
         colors = style.colors,
         // 链卡正文比楼层正文小一档(设计稿 chainBody)
         bodyFontSize = Typo.quoteBody.size.value,

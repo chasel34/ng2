@@ -9,9 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation3.runtime.EntryProviderBuilder
+import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entry
 import androidx.compose.material3.Text
 import com.chasel.ng2n.ui.nav.Navigator
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
@@ -22,7 +21,7 @@ import com.chasel.ng2n.ui.theme.Typo
  *
  * 三个条目:主题详情 / 回复链 / 用户资料占位(资料屏本体归票 17)。
  */
-fun EntryProviderBuilder<NavKey>.topicEntries(nav: Navigator) {
+fun EntryProviderScope<NavKey>.topicEntries(nav: Navigator) {
   entry<TopicKey> { key -> TopicScreen(key = key, nav = nav) }
   entry<ChainKey> { key -> ChainScreen(key = key, nav = nav) }
   // TODO(票 17):换成真的用户资料屏
