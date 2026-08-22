@@ -4,7 +4,7 @@
 
 **Blocked by:** 07, 14, 15
 
-**Status:** open
+**Status:** resolved
 
 - [ ] 24 屏 checklist 其余屏全部通过
 - [ ] 桩项逐个点击确认 toast 文案与 RN 版一致
@@ -278,3 +278,5 @@
    `NotificationPoller` 里要包一层 `Wrapped`(票 07 Comments 已记过)。
 3. `ui/board/TopicRow.kt` 的 `buildTopicRows` 没吃「帖子列表字体大小」设置(RN 侧 `useListFontSize`),
    本票沿用现状;设置树归 17c,那时一起接。
+
+**主控验收 17a + 票 17 整体(2026-08-22)**:17a 合并进 android-native;AppIcons 枚举/when/helper 三处按三方重组去重(EDIT/CHECK_BOX/CHECK_BOX_OUTLINE_BLANK 取 17b 版);`NotificationPoller` 取 17a 版(已含 17c 的 sprayNotice 门)。HomeEntries 占位全部清空。assembleDebug 通过,单测 849/0/4 跳过。三份验收项:24 屏代码齐、桩文案一致(单测锁)、设置即时生效(单测锁)——**界面走查与桩点击归票 18**,写操作类归所有者登录。票外汇总 → 票 18 时统一建缺陷票:轮询未接前后台;`NotificationLike` 下沉 core;`buildTopicRows` 未吃字号设置;两份 `validateFilterRule`;FilterBridge 重复;`gestureBack` 语义待裁。
