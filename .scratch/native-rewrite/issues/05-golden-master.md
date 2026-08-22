@@ -7,7 +7,7 @@
 
 **Blocked by:** 01
 
-**Status:** in-review（05a + 05b 均完成）
+**Status:** resolved
 
 - [x] 导出脚本进版本库,goldens 生成物有 README 说明再生方式
 - [x] Kotlin 框架对至少一个 domain 全量跑通（`entities` 20 条 + `decode-body` 30 条 + `query` 16 条，**sanitize 改由票 04 用本框架跑**，见下）
@@ -230,3 +230,5 @@ quotedBy:[[pid,[pid…]]…], loaded:[pid…]}`(键升序),README 写死了。
   等,全在 `src/ui/**`),与本轮改动无关;`scripts/**` 根本不在 eslint 的 config 覆盖里
   (`File ignored because no matching configuration was supplied`),所以导出器只有
   `pnpm typecheck` 管得着。
+
+**主控验收(2026-08-22)**:05a+05b 合并,762 条 / 28 domain。口径裁定(针对 05b 发现的键序问题):goldens 里 JSON **对象按无序 map 比较**;凡顺序有语义的输出(orderedEntries、query 参数表、列表)一律导成**数组**,不得依赖对象键序。后续加合成向量按此执行。

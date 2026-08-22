@@ -7,7 +7,7 @@
 
 **Blocked by:** 01
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] decode-body 全部 fixtures 金样本对拍通过(依赖票 05 的管线,可先手工样本起步)
 - [x] emoji/表外字符出站编码与 TS 版逐字节一致
@@ -123,3 +123,5 @@ emoji 出站逐字节一致:`gbk("摸鱼😄")` → `%C3%FE%D3%E3%26%2355357%3B%
 
 - `native/app/src/main/kotlin/com/chasel/ng2n/core/net/package.kt` 之类的占位文件
   (骨架票留的)还在,本票新增的实现放在同包下,没冲突;等各票填满后可以清一遍。
+
+**主控验收(2026-08-22)**:合并后主干 `testDebugUnitTest` 33 例全绿、0 skipped。裁决:接受「框法照抄 TS 状态机、映射表取自 JDK」的偏离——票面写的 `Charset.forName("GB18030")` 目的是语义等价于 TS,而 JDK 解码器在 A3A0/孤立 0x80/坏字节吞并三处与 WHATWG 不一致且直接影响 U+FFFD 投票,goldens 对拍才是裁判。
