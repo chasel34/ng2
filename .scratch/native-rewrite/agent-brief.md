@@ -29,7 +29,7 @@
 - Gradle:代理按 CLAUDE.md 的 `GRADLE_OPTS`(127.0.0.1:7897)传;本机只有 16GB 内存、可能有多个子代理并行构建——**`gradle.properties` 里 `org.gradle.jvmargs` 不超过 `-Xmx2g`、`kotlin.daemon.jvmargs` 不超过 `-Xmx1536m`**,收工前 `./gradlew --stop`。
 - 命令统一在 `native/` 下跑:`./gradlew :app:testDebugUnitTest`(单测)、`./gradlew :app:assembleDebug`(出包)。
 - **KDoc/注释里不要写含 `*/` 的路径**(如 `data/*/x.kt`)——注释被静默截断,KSP2 只报 `[MissingType]`,极难定位(票 14 踩坑)。写成 `data/…/x.kt`。
-- Kotlin 反引号测试名**不能含 ASCII `:`**(编译期报 illegal characters),从 TS 移植用例名时替换掉。
+- Kotlin 反引号测试名**不能含 ASCII `:`**(编译期报 illegal characters),从 TS 移植用例名时替换掉。**也不能以数字开头**(票 16 踩坑)。
 - 跑完必须 **编译通过 + 单测全绿**。禁止用 `@Ignore`/跳过来「变绿」;真做不到的用例在 Comments 里逐条列出原因。
 
 ## 工作树与提交
