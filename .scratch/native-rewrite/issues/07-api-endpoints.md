@@ -4,7 +4,7 @@
 
 **Blocked by:** 04, 06
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] 各端点解析器金样本对拍通过（`api/` 10 个 domain 113 条全绿）
 - [x] 联网冒烟套件(默认跳过,`NGA_INTEGRATION=1` 开;沿用 app-v1 票 02 的模式与脱敏纪律)——游客态那条已实跑通过,登录态与写端点只写不跑(待所有者)
@@ -112,3 +112,5 @@
   `NGA_HOSTS` 派生(域名表只剩一处真相源)。
 - `core/local/TitleStyle.kt` 只加了 `@Serializable` / `@SerialName("red")` 这类注解
   (主题行整份要进金样本对拍与本地缓存),**取值与判定逻辑一个字没动**。
+
+**主控验收(2026-08-22)**:合并后主干 646 例全绿(4 skipped = 门控冒烟)。接受 UNKNOWN 三态修法。票外 ①(游客不可用版块搜索)转票 17;③(notificationId 迁 core/local)记 backlog。登录态/写端点冒烟待所有者(与票 15 一并)。
