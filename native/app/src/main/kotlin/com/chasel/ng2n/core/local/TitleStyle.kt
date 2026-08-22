@@ -1,5 +1,8 @@
 package com.chasel.ng2n.core.local
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
  * 彩色标题:把 `titlefont` / `topic_misc` 解成标题样式。直译 `src/core/local/title-style.ts`。
  *
@@ -30,8 +33,29 @@ private const val TLV_SFID = 3
 /** 每条记录固定 5 字节:1 字节 type + 4 字节大端无符号整数。 */
 private const val TLV_RECORD_SIZE = 5
 
-enum class TitleColor { RED, BLUE, GREEN, ORANGE, SILVER }
+/**
+ * 序列化名是**小写**:主题行整份要进金样本对拍与本地缓存,
+ * 而金样本里这个字段就是 `"red"`(票 07 加的注解,取值与判定逻辑一个字没动)。
+ */
+@Serializable
+enum class TitleColor {
+  @SerialName("red")
+  RED,
 
+  @SerialName("blue")
+  BLUE,
+
+  @SerialName("green")
+  GREEN,
+
+  @SerialName("orange")
+  ORANGE,
+
+  @SerialName("silver")
+  SILVER,
+}
+
+@Serializable
 data class TitleStyle(
   /** 没上色时是 `null`,UI 用正文色 */
   val color: TitleColor? = null,
