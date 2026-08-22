@@ -10,7 +10,6 @@ import com.chasel.ng2n.ui.common.PlaceholderScreen
 import com.chasel.ng2n.ui.nav.AboutKey
 import com.chasel.ng2n.ui.nav.BoardFace
 import com.chasel.ng2n.ui.nav.BoardKey
-import com.chasel.ng2n.ui.nav.CachesKey
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
 import com.chasel.ng2n.ui.nav.FiltersKey
@@ -70,7 +69,6 @@ fun EntryProviderScope<NavKey>.homeEntries(
   entry<SearchKey> { PlaceholderScreen("搜索", "票 17", nav::pop) }
   entry<FavoritesKey> { PlaceholderScreen("收藏夹", "票 17", nav::pop) }
   entry<FavoriteFoldersKey> { PlaceholderScreen("收藏夹管理", "票 17", nav::pop) }
-  entry<CachesKey> { PlaceholderScreen("我的缓存", "票 17", nav::pop) }
   entry<FiltersKey> { PlaceholderScreen("屏蔽规则", "票 17", nav::pop) }
   entry<NotificationsKey> { PlaceholderScreen("最近被喷", "票 17", nav::pop) }
   entry<UserKey> { PlaceholderScreen("用户资料", "票 17", nav::pop) }
