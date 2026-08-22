@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -53,13 +54,7 @@ class AccountsViewModel @Inject constructor(
 
   /** 切换当前账号。已经是当前账号就什么都不做(照 RN 版账号管理页的守卫)。 */
   fun switchTo(uid: String) {
-    val account = state.value.accounts.firstOrNull { it.uid == uid } ?: return
-    if (state.value.currentUid == uid) return
-    viewModelScope.launch {
-      store.switchTo(uid)
-      cookies.clearAll()
-      _toasts.emit("已切换到 ${account.name}")
-    }
+    viewModelScope.launch { switchToNow(uid) }
   }
 
   /**
@@ -67,18 +62,35 @@ class AccountsViewModel @Inject constructor(
    * 循环取的是 `cycleAccountUid`,与 RN 版同一份纯函数语义。
    */
   fun cycle(step: Int) {
-    val uid = cycleAccountUid(state.value, step) ?: return
-    switchTo(uid)
+    viewModelScope.launch {
+      switchToNow(cycleAccountUid(store.accounts.first(), step) ?: return@launch)
+    }
   }
 
   /** 退出某账号。退的是当前账号时落到剩余第一个;全退光即游客态。 */
   fun logout(uid: String) {
-    val account = state.value.accounts.firstOrNull { it.uid == uid } ?: return
     viewModelScope.launch {
+      val account = store.accounts.first().accounts.firstOrNull { it.uid == uid } ?: return@launch
       store.remove(uid)
+      // 退出即清 WebView 那份(审计 P1-03:「用户在 App 中退出后,WebView 仍可能保持登录」)
       cookies.clearAll()
       _toasts.emit("已退出 ${account.name}")
     }
+  }
+
+  /**
+   * 切号的实处。**读的是 `store` 的现值而不是 [state]**:
+   * [state] 是 `WhileSubscribed` 的 UI 缓存,没有订阅者时它停在上一帧,
+   * 拿它当判据会让「后台发起的切号」静默失效。
+   */
+  private suspend fun switchToNow(uid: String) {
+    val snapshot = store.accounts.first()
+    val account = snapshot.accounts.firstOrNull { it.uid == uid } ?: return
+    if (snapshot.currentUid == uid) return
+    store.switchTo(uid)
+    // 切号也清:app 这边换人了,WebView 里还留着上一个账号的 cookie 就又成了第二个身份
+    cookies.clearAll()
+    _toasts.emit("已切换到 ${account.name}")
   }
 
   companion object {
