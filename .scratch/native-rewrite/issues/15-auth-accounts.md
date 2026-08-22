@@ -146,3 +146,5 @@ app 自己的请求一枚 WebView cookie 都不用(票 06 的自管 `NgaCookieJa
    纯粹是 modifier 顺序造成的,uiautomator 定位不受影响;票 16 把它装进抽屉时顺手理一下即可。
 
 **主控验收(2026-08-22)**:合并后主干 699 例全绿、`assembleDebug` 通过。②③ 通过;① 待所有者:AVD 的 WebView 打 NGA 登录页 `ERR_CONNECTION_CLOSED`(RN 版同样,宿主机 curl 正常——模拟器 WebView 网络环境问题),建议在小米真机上登录验证。票保持 in-review 直到所有者完成登录链路验证。
+
+**所有者反馈(2026-08-22 晚)**:在 NG2N 上登录失败(未说明设备与现象)。所有者指示:等全部功能完成后再统一验收。→ 票 18 B 段走查登录屏时复现并建缺陷票(模拟器 WebView 登录页此前曾 `ERR_CONNECTION_CLOSED`,当时代理未还原;现已直连,需重测)。
