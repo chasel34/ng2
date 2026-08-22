@@ -23,6 +23,7 @@ import com.chasel.ng2n.ui.common.SnackbarHost
 import com.chasel.ng2n.ui.dev.DevMenuEntry
 import com.chasel.ng2n.ui.dev.DevMenuKey
 import com.chasel.ng2n.ui.dev.DevMenuScreen
+import com.chasel.ng2n.ui.filters.filtersAndUserEntries
 import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
@@ -76,6 +77,8 @@ fun Ng2nApp() {
         // 票 16:首页 / 版块面 / 抽屉宿主,外加还没落地那些键的占位条目
         // (Login / Accounts 的占位条目也在里面,票 15 合并时换成真屏 —— 见票 16 Comments)
         homeEntries(nav = nav, accounts = accounts, onOpenDevMenu = { backStack.add(DevMenuKey) })
+        // 票 17b:屏蔽规则 / 用户资料 / 我的主题·我的回复
+        filtersAndUserEntries(nav = nav)
         entry<Login> {
           LoginScreen(onBack = { backStack.removeLastOrNull() })
         }

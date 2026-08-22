@@ -13,7 +13,6 @@ import com.chasel.ng2n.ui.nav.BoardKey
 import com.chasel.ng2n.ui.nav.CachesKey
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
-import com.chasel.ng2n.ui.nav.FiltersKey
 import com.chasel.ng2n.ui.nav.HistoryKey
 import com.chasel.ng2n.ui.Home
 import com.chasel.ng2n.ui.accounts.AccountsViewModel
@@ -23,8 +22,6 @@ import com.chasel.ng2n.ui.nav.SearchKey
 import com.chasel.ng2n.ui.nav.SettingsKey
 import com.chasel.ng2n.ui.nav.SubBoardsKey
 import com.chasel.ng2n.ui.nav.TopicKey
-import com.chasel.ng2n.ui.nav.UserKey
-import com.chasel.ng2n.ui.nav.UserPostsKey
 import com.chasel.ng2n.ui.nav.WebKey
 
 /**
@@ -71,16 +68,8 @@ fun EntryProviderScope<NavKey>.homeEntries(
   entry<FavoriteFoldersKey> { PlaceholderScreen("收藏夹管理", "票 17", nav::pop) }
   entry<HistoryKey> { PlaceholderScreen("浏览历史", "票 17", nav::pop) }
   entry<CachesKey> { PlaceholderScreen("我的缓存", "票 17", nav::pop) }
-  entry<FiltersKey> { PlaceholderScreen("屏蔽规则", "票 17", nav::pop) }
   entry<NotificationsKey> { PlaceholderScreen("最近被喷", "票 17", nav::pop) }
-  entry<UserKey> { PlaceholderScreen("用户资料", "票 17", nav::pop) }
-  entry<UserPostsKey> { key ->
-    PlaceholderScreen(
-      title = if (key.kind == com.chasel.ng2n.ui.nav.UserPostKind.TOPICS) "我的主题" else "我的回复",
-      owner = "票 17",
-      onBack = nav::pop,
-    )
-  }
+  // FiltersKey / UserKey / UserPostsKey 的真屏在 `ui/filters/FiltersEntries.kt`(票 17b)
   entry<SettingsKey> { PlaceholderScreen("设置", "票 17", nav::pop) }
   entry<AboutKey> { PlaceholderScreen("关于", "票 17", nav::pop) }
   entry<WebKey> { key -> PlaceholderScreen(key.title ?: "网页版", "票 17", nav::pop) }
