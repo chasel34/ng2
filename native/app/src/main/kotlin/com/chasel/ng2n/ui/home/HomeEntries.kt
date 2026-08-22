@@ -14,7 +14,6 @@ import com.chasel.ng2n.ui.nav.FiltersKey
 import com.chasel.ng2n.ui.Home
 import com.chasel.ng2n.ui.accounts.AccountsViewModel
 import com.chasel.ng2n.ui.nav.Navigator
-import com.chasel.ng2n.ui.nav.NotificationsKey
 import com.chasel.ng2n.ui.nav.SettingsKey
 import com.chasel.ng2n.ui.nav.SubBoardsKey
 import com.chasel.ng2n.ui.nav.TopicKey
@@ -64,7 +63,6 @@ fun EntryProviderScope<NavKey>.homeEntries(
   // 搜索 / 收藏 / 收藏夹管理 / 历史 / 缓存 / 通知 六个键归票 17a,真屏在
   // `ui/lists/ListEntries.kt`(挂在 `ui/Ng2nApp.kt` 的 entryProvider 上)
   entry<FiltersKey> { PlaceholderScreen("屏蔽规则", "票 17", nav::pop) }
-  entry<NotificationsKey> { PlaceholderScreen("最近被喷", "票 17", nav::pop) }
   entry<UserKey> { PlaceholderScreen("用户资料", "票 17", nav::pop) }
   entry<UserPostsKey> { key ->
     PlaceholderScreen(
