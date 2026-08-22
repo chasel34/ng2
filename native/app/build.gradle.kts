@@ -103,6 +103,8 @@ dependencies {
   implementation(libs.okhttp.coroutines)
   implementation(libs.coil.compose)
   implementation(libs.coil.network.okhttp)
+  // 票 11:随包表情里的 27 张 GIF 要它才会动
+  implementation(libs.coil.gif)
 
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.serialization.json)

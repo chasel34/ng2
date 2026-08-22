@@ -69,6 +69,9 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinxImmutable" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+# 票 11:随包表情 265 张里有 27 张 GIF(默认套整套都是),Coil 核心只解静态图,
+# 不加这个 decoder 那 27 个表情在正文里是**不动的第一帧**。与 coil 同版本,stable。
+coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
