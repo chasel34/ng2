@@ -233,6 +233,11 @@ Kotlin 侧「非有限值 → 0」由票 10 手写单测锁。
 `str`/`text`/`int` 是 `{ record, key }`；`nonZero` 是 `{ value }`。
 `orderedEntries` 的 expected 是 `[[key, value], …]`。**真数组也要当列表遍历**
 （`__output=11` 的 `__T` 是货真价实的 JSON 数组，不认它整页主题会静默变 0 条）。
+⚠ `mixed-keys` 那两条里非数字键的相对顺序**只能是字典序**：规范化会把 `input` 的对象键
+排成字典序，「JS 对象字面量的插入序」这个信息在文件里存不下来，写成 `b` 在 `a` 前面的话
+任何从 JSON 读回入参的实现都对不上（票 04 发现，与 `query` 那次同源）。
+「插入序 ≠ 字典序时仍保持插入序」那一半跨不过 JSON，由 Kotlin 侧手写单测锁
+（`core/api/FieldsTest.kt`）。
 
 ### `api/*` 的输入管线
 
