@@ -11,6 +11,7 @@ import com.chasel.ng2n.core.net.ResponseFormat
 import com.chasel.ng2n.core.net.StrategyOutcome
 import com.chasel.ng2n.core.net.WebFallbackMode
 import com.chasel.ng2n.core.net.interfaceKeyOf
+import com.chasel.ng2n.core.net.web.parseReadPageHtml
 
 const val WEB_FALLBACK_STRATEGY_NAME = "web-fallback"
 
@@ -20,14 +21,14 @@ private const val SUPPORTED_PATH = "read.php"
 /**
  * 网页版 HTML → 与 `__output=8` 同构的信封。
  *
- * **本体归票 08**(`commonui.postArg.proc` 的参数位置表全网无第二份文档,开工前要重新抓包
- * 核对)。这里只定义注入点:策略壳、四档档位、域名沿用规则、`only` 档的终点语义
- * 都在本票落地并有单测钉着,票 08 只需换掉这个实现。
+ * 本体在 `core/net/web/ReadHtml.kt`(票 08;`commonui.postArg.proc` 的参数位置表
+ * 全网无第二份文档,2026-08-22 对线上重验过)。这里是**注入点**:策略壳、四档档位、
+ * 域名沿用规则、`only` 档的终点语义都由票 06 落地并有单测钉着,反解本体换掉不影响它们。
  */
 interface WebReadParser {
 
   /**
-   * 反解器就绪了吗。票 08 落地前是 false —— 这一档在链上直接让位,
+   * 反解器就绪了吗。为 false 时这一档在链上直接让位,
    * **不白打一次网络请求**(打了也解不出来,只是给 NGA 多送一次限流计数)。
    */
   val available: Boolean
@@ -39,13 +40,27 @@ interface WebReadParser {
   fun parse(text: String, via: String): NgaEnvelope
 }
 
-/** 票 08 落地前的占位实现。 */
+/** 现行实现:`core/net/web/ReadHtml.kt` 的整页反解器(票 08)。 */
+object ReadHtmlWebParser : WebReadParser {
+
+  override val available: Boolean = true
+
+  override fun parse(text: String, via: String): NgaEnvelope = parseReadPageHtml(text, via)
+}
+
+/**
+ * 「反解器缺席」那一档。
+ *
+ * 票 08 之前它是唯一的实现;现在留着是因为**让位这条规则本身要有回归线**——
+ * 反解本体将来若因为 NGA 改版被临时摘掉([WebReadParser.available] 置 false),
+ * 链必须是「跳过这一档、错误仍是上一档那个」,而不是「多打一次请求再报 unavailable」。
+ */
 object UnavailableWebReadParser : WebReadParser {
 
   override val available: Boolean = false
 
   override fun parse(text: String, via: String): NgaEnvelope =
-    throw NgaError(NgaErrorKind.UNAVAILABLE, "网页反解还没落地(票 08)", via = via)
+    throw NgaError(NgaErrorKind.UNAVAILABLE, "网页反解器没接上", via = via)
 }
 
 /**
@@ -65,7 +80,7 @@ object UnavailableWebReadParser : WebReadParser {
  */
 class WebFallbackStrategy(
   private val placement: Placement,
-  private val parser: WebReadParser = UnavailableWebReadParser,
+  private val parser: WebReadParser = ReadHtmlWebParser,
 ) : FetchStrategy {
 
   enum class Placement { PRIMARY, SECONDARY }
@@ -84,7 +99,7 @@ class WebFallbackStrategy(
       return unavailable("Web 反解档位是 ${mode.wire},${placement.name.lowercase()} 位置不启用")
     }
     if (!parser.available) {
-      return unavailable("网页反解器还没接上(票 08),这一档让位")
+      return unavailable("网页反解器没接上,这一档让位")
     }
 
     val combo = FetchCombo(
