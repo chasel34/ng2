@@ -118,6 +118,8 @@ dependencies {
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)
   androidTestImplementation(libs.espresso.core)
+  // 票 14:DAO 的设备端验证用 runTest 驱动 suspend DAO
+  androidTestImplementation(libs.kotlinx.coroutines.test)
 
   baselineProfile(project(":benchmark"))
 }
