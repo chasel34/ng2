@@ -3,6 +3,13 @@
 
     <!-- 权限对齐 RN 版:先不带 SYSTEM_ALERT_WINDOW,观察是否真的需要。 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+      票 12:计费网络判定(「仅 Wi-Fi 下加载图片」/「图片加载策略」的 smart 档)要读
+      ConnectivityManager。少了它 `getActiveNetwork()` 直接抛 SecurityException —— 骨架期
+      没人碰网络所以一直没暴露,票 12 首次装包就崩在 Application 里(2026-08-22 模拟器实测)。
+      RN 版由 expo-network 自动合并进 manifest,原生这边要自己写。
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -50,6 +57,20 @@
                 <data android:scheme="ng2n" />
             </intent-filter>
         </activity>
+
+        <!--
+          票 12:系统分享要 content:// URI 才肯收文件。只暴露图片下载中转目录
+          (res/xml/file_paths.xml),不开整个 cacheDir。
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>
