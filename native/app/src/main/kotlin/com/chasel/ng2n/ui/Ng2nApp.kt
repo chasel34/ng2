@@ -7,6 +7,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -18,6 +20,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.chasel.ng2n.ui.bbcode.BBCodeDemoKey
 import com.chasel.ng2n.ui.bbcode.BBCodeDemoScreen
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chasel.ng2n.ui.accounts.AccountsScreen
 import com.chasel.ng2n.ui.accounts.AccountsViewModel
 import com.chasel.ng2n.ui.login.LoginScreen
@@ -29,9 +32,11 @@ import com.chasel.ng2n.ui.filters.filtersAndUserEntries
 import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
+import com.chasel.ng2n.ui.nav.DeepLinkInbox
 import com.chasel.ng2n.ui.nav.Navigator
 import com.chasel.ng2n.ui.nav.TopicKey
 import com.chasel.ng2n.ui.topic.topicEntries
+import com.chasel.ng2n.ui.settings.settingsEntries
 import kotlinx.serialization.Serializable
 
 /** 导航键。Nav3 的 back stack 就是一串 [NavKey],屏幕由 entryProvider 按键类型分派。 */
@@ -73,6 +78,15 @@ fun Ng2nApp() {
     }
   }
 
+  // 系统深链(`ng2n://…`):Activity 收 intent 投进收件箱,这里取件并 push。
+  // back stack 恒以 Home 开局,所以深链目标永远是第二格 —— 按返回回首页,不会直接退出。
+  val pendingLink by DeepLinkInbox.pending.collectAsStateWithLifecycle()
+  LaunchedEffect(pendingLink) {
+    val key = pendingLink ?: return@LaunchedEffect
+    DeepLinkInbox.consume()
+    if (backStack.lastOrNull() != key) backStack.add(key)
+  }
+
   Box(Modifier.fillMaxSize()) {
     NavDisplay(
       backStack = backStack,
@@ -92,6 +106,8 @@ fun Ng2nApp() {
         homeEntries(nav = nav, accounts = accounts, onOpenDevMenu = { backStack.add(DevMenuKey) })
         // 票 17b:屏蔽规则 / 用户资料 / 我的主题·我的回复
         filtersAndUserEntries(nav = nav)
+        // 票 17c:设置树三屏 / 关于 / 网页兜底
+        settingsEntries(nav = nav, onOpenAccounts = { backStack.add(Accounts) })
         entry<Login> {
           LoginScreen(onBack = { backStack.removeLastOrNull() })
         }
@@ -106,7 +122,11 @@ fun Ng2nApp() {
         /*
          * 开发者入口(抽屉「关于」长按)。票 11 / 12 的手验屏收在这儿 ——
          * demo 屏本身**不删**(票 18 的功能验收要用),只是不再挂在首页上。
-         * TODO(票 17):决定这个菜单是挪进「实验室」还是删掉。
+         *
+         * 票 17c 的决定:**留在长按里,不并进「实验室」**。实验室页收的是「排查线上
+         * 问题时要动的四条」(兜底档位、UA、组合表、日志导出),而这几个是 demo 屏的
+         * 手验入口 —— 混进去会让一个用户会点开的页面里出现两类完全不同的东西。
+         * 长按「关于」是个只有自己知道的口子,正合适。
          */
         entry<DevMenuKey> {
           DevMenuScreen(
@@ -136,13 +156,6 @@ fun Ng2nApp() {
                 label = "账号管理(票 15)",
                 tag = ACCOUNTS_ENTRY_TAG,
                 onClick = { backStack.add(Accounts) },
-              ),
-              // 屏蔽规则屏正经的入口在设置树最后一行(票 17c)与楼层菜单(票 13),
-              // 那两处落地之前先从这里进得去 —— 票 18 要点它。**17c 合并后删掉这一条**
-              DevMenuEntry(
-                label = "屏蔽规则(票 17b)",
-                tag = FILTERS_ENTRY_TAG,
-                onClick = { backStack.add(com.chasel.ng2n.ui.nav.FiltersKey) },
               ),
             ),
           )
@@ -204,5 +217,3 @@ const val LOGIN_ENTRY_TAG: String = "ng2n-login-entry"
 const val ACCOUNTS_ENTRY_TAG: String = "ng2n-accounts-entry"
 const val TOPIC_DEMO_BUTTON_TAG: String = "ng2n-topic-demo"
 
-/** 票 17b 手验入口锚点(临时挂在开发者菜单里,见上面的注释)。 */
-const val FILTERS_ENTRY_TAG: String = "ng2n-filters-entry"

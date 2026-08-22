@@ -90,6 +90,8 @@ import com.chasel.ng2n.ui.nav.CachesKey
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
 import com.chasel.ng2n.ui.nav.Navigator
+// 票 17c:「由 URL 读取」与系统深链共用同一份映射,真相源在 ui/nav/DeepLinkKeys.kt
+import com.chasel.ng2n.ui.nav.toNavKey
 import com.chasel.ng2n.ui.nav.NotificationsKey
 import com.chasel.ng2n.ui.nav.SearchKey
 import com.chasel.ng2n.ui.nav.SettingsKey
@@ -457,19 +459,6 @@ fun HomeScreen(
       }
     },
   )
-}
-
-/** 深链结果 → 导航键。与系统深链入口共用同一份映射(票 10 的 `ngaLinkPath` 那条规则)。 */
-fun NgaLink.toNavKey() = when (this) {
-  is NgaLink.Board -> BoardKey(
-    id = id,
-    kind = if (boardKind == com.chasel.ng2n.core.local.NgaBoardKind.COLLECTION) {
-      BoardKind.COLLECTION
-    } else {
-      BoardKind.BOARD
-    },
-  )
-  is NgaLink.Topic -> TopicKey(tid = tid, page = page?.toInt(), pid = pid, fav = fav)
 }
 
 private fun checkInMessage(outcome: CheckInOutcome): String? = when (outcome) {

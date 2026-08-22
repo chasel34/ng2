@@ -12,6 +12,10 @@ import com.chasel.ng2n.data.board.HotTopicsRepository
 import com.chasel.ng2n.data.board.SubBoardRepository
 import com.chasel.ng2n.data.board.TopicListRepository
 import com.chasel.ng2n.data.filters.FilterRepository
+import com.chasel.ng2n.core.net.NgaClient
+import com.chasel.ng2n.data.cache.TopicCacheRepository
+import com.chasel.ng2n.data.diagnostics.DiagnosticLogStore
+import com.chasel.ng2n.data.history.HistoryRepository
 import com.chasel.ng2n.data.notifications.NotificationPoller
 import com.chasel.ng2n.data.settings.SettingsStore
 import com.chasel.ng2n.data.user.UserPostsRepository
@@ -53,6 +57,11 @@ interface AppDepsEntryPoint {
   fun filters(): FilterRepository
   fun userProfiles(): UserProfileRepository
   fun userPosts(): UserPostsRepository
+  // ---- 票 17c 追加:设置树要读历史/缓存的计数,实验室页要读链路诊断 ----
+  fun history(): HistoryRepository
+  fun topicCache(): TopicCacheRepository
+  fun diagnostics(): DiagnosticLogStore
+  fun ngaClient(): NgaClient
 }
 
 class AppDeps(entryPoint: AppDepsEntryPoint) {
@@ -68,6 +77,10 @@ class AppDeps(entryPoint: AppDepsEntryPoint) {
   val filters: FilterRepository = entryPoint.filters()
   val userProfiles: UserProfileRepository = entryPoint.userProfiles()
   val userPosts: UserPostsRepository = entryPoint.userPosts()
+  val history: HistoryRepository = entryPoint.history()
+  val topicCache: TopicCacheRepository = entryPoint.topicCache()
+  val diagnostics: DiagnosticLogStore = entryPoint.diagnostics()
+  val ngaClient: NgaClient = entryPoint.ngaClient()
 }
 
 @Composable

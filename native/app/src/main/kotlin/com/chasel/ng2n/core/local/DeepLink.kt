@@ -11,8 +11,9 @@ import com.chasel.ng2n.core.net.encoding.encodeUriComponent
  * 认这几种写法:
  * ```
  * https://bbs.nga.cn/read.php?tid=123&page=2#pid456Anchor
- * ng2://read.php?tid=123          release 自定义 scheme(spec §2)
- * ng2-dev://read.php?tid=123      development 自定义 scheme
+ * ng2n://read.php?tid=123         本 app 的自有 scheme(spec §三)
+ * ng2://read.php?tid=123          并装的 RN 版 release scheme
+ * ng2-dev://read.php?tid=123      并装的 RN 版 development scheme
  * bbs.nga.cn/read.php?tid=123     手粘时常见的省略 scheme
  * /thread.php?fid=650             同上,只剩路径
  * ```
@@ -21,11 +22,21 @@ import com.chasel.ng2n.core.net.encoding.encodeUriComponent
  * 这种非法输入是抛异常而不是给个结论——从 scheme 到 query 全部手切,与 RN 版逐字对齐。
  */
 
-/** release 自定义 scheme;development 另用 ng2-dev,避免并装时互相抢链接。 */
-const val APP_SCHEME = "ng2"
-const val APP_DEV_SCHEME = "ng2-dev"
+/**
+ * 自有 scheme。
+ *
+ * [APP_SCHEME] `ng2n` 是**本 app 的**(manifest 里唯一注册的那条 intent-filter,
+ * spec §三:并行期不接管 NGA 域名);[RN_SCHEME] / [RN_DEV_SCHEME] 是并装的 RN 版那两个,
+ * 一并认下来 —— 用户手里存的旧链接、以及 RN 版分享出去的链接不该在这边打不开。
+ *
+ * ⚠️ 票 17c 修:这张表原样从 TS 抄过来时只有 `ng2` / `ng2-dev`,而 manifest 注册的是
+ * `ng2n://` —— 系统深链一条都进不来(解析器判 `unsupported-scheme`)。
+ */
+const val APP_SCHEME = "ng2n"
+const val RN_SCHEME = "ng2"
+const val RN_DEV_SCHEME = "ng2-dev"
 
-private val APP_SCHEMES = listOf(APP_SCHEME, APP_DEV_SCHEME)
+private val APP_SCHEMES = listOf(APP_SCHEME, RN_SCHEME, RN_DEV_SCHEME)
 
 /**
  * 能接管的域名 = 官方域名清单(API 文档 §0.1),去掉协议头。

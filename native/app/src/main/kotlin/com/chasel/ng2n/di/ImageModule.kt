@@ -15,7 +15,7 @@ import com.chasel.ng2n.core.local.ImageSizeCache
 import com.chasel.ng2n.core.local.ImageSizeStore
 import com.chasel.ng2n.core.local.MeteredNetworkSource
 import com.chasel.ng2n.data.FileImageSizeStore
-import com.chasel.ng2n.data.InMemoryImageSettingsSource
+import com.chasel.ng2n.data.settings.StoredImageSettingsSource
 import com.chasel.ng2n.data.MeteredNetworkMonitor
 import dagger.Binds
 import dagger.Module
@@ -119,9 +119,9 @@ abstract class ImageBindingsModule {
   @Binds
   abstract fun bindImageSizeStore(impl: FileImageSizeStore): ImageSizeStore
 
-  /** TODO(票 14/17):换成 DataStore 支持的实现。 */
+  /** 票 17c:接 DataStore(设置页一改,图片管线下一帧就按新档位取址)。 */
   @Binds
-  abstract fun bindImageSettingsSource(impl: InMemoryImageSettingsSource): ImageSettingsSource
+  abstract fun bindImageSettingsSource(impl: StoredImageSettingsSource): ImageSettingsSource
 
   @Binds
   abstract fun bindMeteredNetworkSource(impl: MeteredNetworkMonitor): MeteredNetworkSource

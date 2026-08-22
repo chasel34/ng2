@@ -7,7 +7,6 @@ import com.chasel.ng2n.ui.board.HotTopicsScreen
 import com.chasel.ng2n.ui.board.RecommendScreen
 import com.chasel.ng2n.ui.board.SubBoardsScreen
 import com.chasel.ng2n.ui.common.PlaceholderScreen
-import com.chasel.ng2n.ui.nav.AboutKey
 import com.chasel.ng2n.ui.nav.BoardFace
 import com.chasel.ng2n.ui.nav.BoardKey
 import com.chasel.ng2n.ui.nav.CachesKey
@@ -19,9 +18,7 @@ import com.chasel.ng2n.ui.accounts.AccountsViewModel
 import com.chasel.ng2n.ui.nav.Navigator
 import com.chasel.ng2n.ui.nav.NotificationsKey
 import com.chasel.ng2n.ui.nav.SearchKey
-import com.chasel.ng2n.ui.nav.SettingsKey
 import com.chasel.ng2n.ui.nav.SubBoardsKey
-import com.chasel.ng2n.ui.nav.WebKey
 
 /**
  * 票 16 的导航条目 —— 首页 / 版块面 / 抽屉宿主。
@@ -67,8 +64,4 @@ fun EntryProviderScope<NavKey>.homeEntries(
   entry<HistoryKey> { PlaceholderScreen("浏览历史", "票 17", nav::pop) }
   entry<CachesKey> { PlaceholderScreen("我的缓存", "票 17", nav::pop) }
   entry<NotificationsKey> { PlaceholderScreen("最近被喷", "票 17", nav::pop) }
-  // FiltersKey / UserKey / UserPostsKey 的真屏在 `ui/filters/FiltersEntries.kt`(票 17b)
-  entry<SettingsKey> { PlaceholderScreen("设置", "票 17", nav::pop) }
-  entry<AboutKey> { PlaceholderScreen("关于", "票 17", nav::pop) }
-  entry<WebKey> { key -> PlaceholderScreen(key.title ?: "网页版", "票 17", nav::pop) }
 }
