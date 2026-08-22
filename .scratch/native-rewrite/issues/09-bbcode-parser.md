@@ -4,7 +4,7 @@
 
 **Blocked by:** 05
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] coverage 覆盖表 29 类型金样本全绿
 - [x] 全部 bbcode fixtures 对拍零差异
@@ -146,3 +146,5 @@ JVM 上不做这一步,几万字的正文会明显退化。
 **需要真人介入的事项**
 
 无。本票是纯函数,不需要登录、不需要真机;真机性能在票 19 统一裁决。
+
+**主控验收(2026-08-22)**:合并后主干 197 例全绿。接受三处偏离(normalize 全深度摊平 / colspan 饱和 / ASCII-only 小写),均为 goldens 未覆盖的边界且修的是 RN 潜在缺陷。票外建议 1(100 条 pathological 向量进 goldens)记入 backlog,不阻塞。
