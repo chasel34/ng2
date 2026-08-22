@@ -2,6 +2,7 @@ package com.chasel.ng2n.core.net.strategies
 
 import com.chasel.ng2n.core.net.FetchContext
 import com.chasel.ng2n.core.net.FetchStrategy
+import com.chasel.ng2n.core.net.NgaEnvelope
 import com.chasel.ng2n.core.net.NgaError
 import com.chasel.ng2n.core.net.NgaErrorKind
 import com.chasel.ng2n.core.net.NgaRequest
@@ -18,6 +19,15 @@ private const val SUPPORTED_PATH = "read.php"
 
 /** 缓存一页的定位:主题 + 页码(从 1 起)。 */
 data class TopicCacheKey(val tid: Long, val page: Int)
+
+/**
+ * 把一次响应存成可以还原的文本(票 07 补上写侧的这一半)。
+ *
+ * 存顶层 `root` 而不是 `data`:`data` 是 `parseNgaJson` 按「有没有 data/error 键」
+ * 推出来的,只存它的话还原时推不回同一个结果(不套壳的接口会被当成套壳的)。
+ * Web 反解档(票 08)产出的信封 root 同样是普通对象,两条路存出来的东西可以互换。
+ */
+fun serializeEnvelope(envelope: NgaEnvelope): String = envelope.root.toString()
 
 /**
  * 缓存档要的最小存储口。设备侧接 Room(`data/cache/TopicCacheRepository`,票 14),

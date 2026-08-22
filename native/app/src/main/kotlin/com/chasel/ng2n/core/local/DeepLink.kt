@@ -1,5 +1,6 @@
 package com.chasel.ng2n.core.local
 
+import com.chasel.ng2n.core.net.NGA_HOSTS
 import com.chasel.ng2n.core.net.encoding.decodeUriComponentOrNull
 import com.chasel.ng2n.core.net.encoding.encodeUriComponent
 
@@ -29,16 +30,10 @@ private val APP_SCHEMES = listOf(APP_SCHEME, APP_DEV_SCHEME)
 /**
  * 能接管的域名 = 官方域名清单(API 文档 §0.1),去掉协议头。
  *
- * TS 侧是从 `core/net/constants.ts` 的 `NGA_HOSTS` 派生的;Kotlin 侧那份常量归票 06/07,
- * 还没落盘——先在这里放一份,等 `core/net` 的常量文件进来后改成引用它。
+ * 与 TS 侧一样从 `NGA_HOSTS` 派生(票 07 把票 10 留的那份副本改成了引用):
+ * 域名表**只有 `core/net/Constants.kt` 一处真相源**,加一个备用域名不必改两个地方。
  */
-private val NGA_HOSTNAMES = listOf(
-  "bbs.nga.cn",
-  "ngabbs.com",
-  "bbs.ngacn.cc",
-  "nga.178.com",
-  "nga.donews.com",
-)
+private val NGA_HOSTNAMES = NGA_HOSTS.map { it.substringAfter("://") }
 
 /** 深链只接管这两个端点(spec §2)。 */
 private val ENDPOINTS = mapOf(
