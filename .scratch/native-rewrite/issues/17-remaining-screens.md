@@ -97,3 +97,5 @@
    校验/建/增删一律指 core。`SettingsTest.kt` 里锁存储那份文案的两条断言要跟着改。
 2. `ui/common/Snackbars` 的自动消失是 4s 固定;RN 侧 snackbar 与 toast 是两档时长。
    桩提示走 snackbar 后比 RN 的 `Toast.LENGTH_SHORT`(2s)长一倍。不影响功能,记一笔。
+
+**主控验收 17b(2026-08-22)**:合并进 android-native(`4546d50`);`TopicEntries.kt` 的 UserKey 占位与 `UserPlaceholderScreen` 已删,真屏走 `filtersAndUserEntries`;800 单测/0 失败。FilterBridge 与 data/filters 重复、两份 `validateFilterRule` 行为不同 → 记为票 20 候选(票 18 走查时若楼层折叠看不到官方屏蔽词即升级为缺陷票)。DevMenu「屏蔽规则(票 17b)」入口在 17c 合并后删。
