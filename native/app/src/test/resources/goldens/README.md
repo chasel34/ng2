@@ -21,7 +21,7 @@ pnpm goldens:export
   无扩展名的 TS 相对导入，Node 原生类型剥离解析不了。导出器本身也是那一条用例——
   它跑两遍并逐字节比对，**幂等（重跑零 diff）是验收项**。
 
-当前规模：**762 条**，28 个 domain。
+当前规模：**769 条**，29 个 domain。
 
 ## 目录结构
 
@@ -102,6 +102,7 @@ val bytes = Base64.getDecoder().decode(input.bytes)
 | `envelope` | `core/net/envelope.ts` | `parseNgaJson`×18 | `{ text, via?, shape? }` | `{ data, time?, fakeError? }` 或 `{ throws }` |
 | `errors` | `core/net/errors.ts`、`server-text.ts` | `isFakeError`×10 / `isAuthLevelServerError`×3 / `extractServerError`×11 / `stripServerHtml`×8 | 字符串（前三个是 message，`extractServerError` 是**响应顶层对象**） | 布尔 / `{ code, message }`\|`null` / 纯文本 |
 | `decode-body` | `core/net/encoding/decode-body.ts` | `decodeResponseBody`×25 / `parseCharset`×5 | `{ bytes(base64), contentType }` / `{ contentType }` | 解码后的文本 / 小写 charset 或 `null` |
+| `web` | `core/net/web/read-html.ts` | `parseReadPageHtml`×7 | `{ text, via }`（整页 HTML 文本） | 信封的 `data`（与 `__output=8` 同构）或 `{ throws }` |
 | `entities` | `core/bbcode/entities.ts` | `unescapeNgaText`×11 / `escapeForSubmit`×9 | 字符串 | 字符串 |
 | `bbcode` | `core/bbcode/parse.ts` | `parseBBCode`×126 | BBCode 原文（字符串） | AST（`BBCodeNode[]`，可直接 JSON 往返） |
 | `dice` | `core/local/dice.ts` | `resolveDice`×20 / `formatDiceTerms`×3 | `{ text, authorId, tid, pid }` / `{ terms }` | 见下 |
@@ -157,6 +158,27 @@ Kotlin 侧逐字符比。真实抓包那几条（`capture-*`）的 `input` 是�
 U+FFFD 个数投票选编码的，多吞一个字节就可能翻盘——所以 Kotlin 侧的做法是
 **表问 `Charset.forName("GB18030")` 要、框法照抄 WHATWG 状态机**，两处补丁写在
 `core/net/encoding/Gb18030.kt` 的文件头。
+
+**`web`** — Web 反解档（票 08，ADR-0002 / API 文档 §0.8）。`input.text` 是
+`read.php` **不带格式参数**拿回来的整页 HTML（已过 `decodeResponseBody`，不是原始字节），
+`expected` 是信封的 `data`——与 `__output=8` 同构，下游 `parseTopicDetail` 直接吃。
+**`root` 故意不进 `expected`**：`parseReadPageHtml` 的 `root` 就是 `{ data }`（理由同 `envelope`）。
+
+- 三条 2026-08-08 抓包（`anonymous-hot-reply` / `comment` / `attachments`）分别覆盖
+  匿名主楼 + 热门回复、贴条、附件 + 编辑记录。
+- `revalidate-45150945` 是 **2026-08-22 票 08 重验**时抓的：同一时刻同一主题**并发**
+  抓了网页 HTML 与 `__output=8` 两份，逐字段对齐确认
+  `commonui.postArg.proc` 参数位置表**没变**（对拍用例在 `src/core/net/web/read-html.test.ts`，
+  JSON 那一份是 fixture `readJsonRevalidate`）。
+- `not-found` 是**坏样本，故意留着**（ADR-0002 第 9 条）：服务端语义错误夹在
+  `<!--msgcodestart-->` 注释标记里 → `kind:"server"`、**不可重试**。
+  2026-08-22 重抓同一请求，字节与 2026-08-08 那份**完全相同**。
+- `no-floors` / `empty-body` 是合成向量：一楼都没反解出来 = 大概率被封 →
+  `kind:"parse"`、**可重试**，链要接着往下走而不是当场收手。
+
+**已知不可恢复的三个字段**（网页版本来就不给，Kotlin 侧照抄，不要试图补）：
+投票（`vote`）、贴条与热门回复的发帖设备（`from_client`）、
+第 2 页及以后的匿名楼主标记。详见 `core/net/web/ReadHtml.kt` 的 KDoc。
 
 **`bbcode`** — `input` 是楼层 `content` 原文，`expected` 是 29 种节点的 AST。
 `coverage-*` 是渲染器覆盖清单（`src/ui/bbcode/coverage.test.ts`）的样例，**一种节点一条**；
@@ -290,8 +312,11 @@ Kotlin 侧「非有限值 → 0」由票 10 手写单测锁。
 - `validateFilterRule` 的**非法正则**分支与 `compileFilterRegex`——前者的文案里嵌着
   JS 引擎的 `SyntaxError.message`，后者返回 `RegExp`；都不是跨实现可比的值。
 - `splitMoney(NaN)`——金样本里不允许非有限数字（规范 4）。
-- 存储层（`core/local/{topic-cache,history,settings,notifications,…}`）、Web 反解
-  （`core/net/web/read-html.ts`，票 08 要先重新抓包验证参数位置表）。
+- 存储层（`core/local/{topic-cache,history,settings,notifications,…}`）。
+- Web 反解的**扫描器**（`core/net/web/html-scan.ts`：引号感知括号匹配、标签深度追踪、
+  JS 对象字面量）——它的边界用例全出自用户内容，`input`/`expected` 都是短字符串，
+  写成金样本不如直接手工移植（`native/…/core/net/web/HtmlScanTest.kt`）。
+  反解本体 `parseReadPageHtml` **已经在 `web` domain 里**（票 08 重验后加入）。
 
 ## 约定
 

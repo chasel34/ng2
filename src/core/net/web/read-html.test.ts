@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { NET_FIXTURES, fixtureContentType, readFixtureBytes, type NetFixtureName } from '../__fixtures__'
 import { decodeResponseBody } from '../encoding/decode-body'
+import { parseNgaJson } from '../envelope'
 import { NgaError } from '../errors'
 import { isRecord } from '../is-record'
 import { parseReadPageHtml } from './read-html'
@@ -180,9 +181,79 @@ describe('parseReadPageHtml · 错误', () => {
   })
 })
 
+/**
+ * 参数位置表的重验(票 08,2026-08-22)。
+ *
+ * `ARG` 那张表全网无第二份文档、最容易被 NGA 改版打掉(spec §七.5),所以它的回归线
+ * 不能只是「反解出来的值长这样」——那种断言在参数错位时会跟着一起错。这里吃的是
+ * **同一时刻同一主题并发抓的两份响应**(`readWebRevalidate` 网页 HTML 与
+ * `readJsonRevalidate` 的 `__output=8`),逐楼逐字段比:参数表一旦错位,某一位就对不上。
+ */
+describe('parseReadPageHtml · 与同刻 __output=8 逐字段相等', () => {
+  const web = dataOf('readWebRevalidate')
+  const json = (() => {
+    const { data } = parseNgaJson(html('readJsonRevalidate'))
+    if (!isRecord(data)) throw new Error('JSON 路线没有 data')
+    return data
+  })()
+
+  /** 网页版反解得出、且与 JSON 路线同口径的字段(不可恢复清单见 `read-html.ts` 文件头)。 */
+  const RECOVERABLE = [
+    'pid',
+    'lou',
+    'authorid',
+    'postdatetimestamp',
+    'type',
+    'content_length',
+    'from_client',
+    'score',
+    'subject',
+    'content',
+  ] as const
+
+  it('两份样本抓的是同一主题同一页', () => {
+    expect(record(web.__T).tid).toBe(record(json.__T).tid)
+    expect(web.__PAGE).toBe(json.__PAGE)
+  })
+
+  it('__R 逐楼逐字段相等(参数位置表没错位)', () => {
+    const webRows = record(web.__R)
+    const jsonRows = record(json.__R)
+    expect(Object.keys(webRows)).toEqual(Object.keys(jsonRows))
+
+    for (const key of Object.keys(jsonRows)) {
+      const expectedRow = record(jsonRows[key])
+      const actualRow = record(webRows[key])
+      for (const field of RECOVERABLE) {
+        // `authorid` JSON 给数字、网页版给字符串(匿名时是 `'-1'` 这种页内序号),按串比
+        const normalize = (value: unknown) => (field === 'authorid' ? String(value) : value)
+        expect(normalize(actualRow[field]), `__R.${key}.${field}`).toEqual(
+          normalize(expectedRow[field]),
+        )
+      }
+    }
+  })
+
+  it('主题元数据 / 版块 / 分页 / 附件域名 / 用户表键集合都对得上', () => {
+    expect(record(web.__T).subject).toBe(record(json.__T).subject)
+    expect(record(web.__T).authorid).toBe(record(json.__T).authorid)
+    expect(record(web.__T).author).toBe(record(json.__T).author)
+    expect(record(web.__F).name).toBe(record(json.__F).name)
+    expect(web.__ROWS).toBe(json.__ROWS)
+    expect(web.__R__ROWS_PAGE).toBe(json.__R__ROWS_PAGE)
+    expect(record(web.__GLOBAL)._ATTACH_BASE_VIEW).toBe(record(json.__GLOBAL)._ATTACH_BASE_VIEW)
+    expect(Object.keys(record(web.__U)).sort()).toEqual(Object.keys(record(json.__U)).sort())
+  })
+})
+
 describe('__fixtures__', () => {
   it('网页样本里没有留下抓包账号的身份', () => {
-    for (const name of ['readWebAnonymousHotReply', 'readWebComment', 'readWebAttachments'] as const) {
+    for (const name of [
+      'readWebAnonymousHotReply',
+      'readWebComment',
+      'readWebAttachments',
+      'readWebRevalidate',
+    ] as const) {
       const text = html(name)
       expect(NET_FIXTURES[name].file).toMatch(/^read-web-/)
       expect(text).toContain("__CURRENT_UID = parseInt('10000001'")

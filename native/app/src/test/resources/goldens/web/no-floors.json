@@ -1,0 +1,17 @@
+{
+  "expected": {
+    "throws": {
+      "kind": "parse",
+      "message": "Web 反解没有找到任何楼层",
+      "retryable": true,
+      "via": "web-fallback"
+    }
+  },
+  "fn": "parseReadPageHtml",
+  "input": {
+    "text": "<html><body>nothing here</body></html>",
+    "via": "web-fallback"
+  },
+  "name": "no-floors",
+  "note": "不是一张 read.php 网页 → kind:parse（可重试），链接着往下走而不是当场收手"
+}
