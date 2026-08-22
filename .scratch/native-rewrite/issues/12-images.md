@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] 与 RN 版同帖对照:占位/缩略/原图切换、查看器手势语义一致
 - [x] 尺寸记忆表命中时首帧即正确比例(录屏验证无跳动)
@@ -156,3 +156,5 @@ dumpsys meminfo   Java Heap 13424KB -> 12832KB   TOTAL PSS 101814 -> 104653
 
 无。登录态是现成的(模拟器上 RN 版 `com.chasel.ng2` 已登录,只用来做行为对照,没动它的数据)。
 真机性能仍归票 19。
+
+**主控验收(2026-08-22)**:与票 14 在 `Ng2nApplication.kt` 合并冲突,主控手工合并(StrictMode 先装 → Hilt → StorageBootstrap → ImageSizeCache.warmUpAsync;onTrimMemory 保留)。合并后主干 179 例全绿、`assembleDebug` 装模拟器冷启无崩溃。跟进:`AttachmentUrls` 最小实现待票 10 正式版替换;demo 入口票 16 删。
