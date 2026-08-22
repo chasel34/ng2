@@ -8,7 +8,7 @@ import com.chasel.ng2n.ui.board.RecommendScreen
 import com.chasel.ng2n.ui.board.SubBoardsScreen
 import com.chasel.ng2n.ui.common.PlaceholderScreen
 import com.chasel.ng2n.ui.nav.AboutKey
-import com.chasel.ng2n.ui.nav.AccountsKey
+import com.chasel.ng2n.ui.Accounts
 import com.chasel.ng2n.ui.nav.BoardFace
 import com.chasel.ng2n.ui.nav.BoardKey
 import com.chasel.ng2n.ui.nav.CachesKey
@@ -16,8 +16,8 @@ import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
 import com.chasel.ng2n.ui.nav.FiltersKey
 import com.chasel.ng2n.ui.nav.HistoryKey
-import com.chasel.ng2n.ui.nav.Home
-import com.chasel.ng2n.ui.nav.LoginKey
+import com.chasel.ng2n.ui.Home
+import com.chasel.ng2n.ui.Login
 import com.chasel.ng2n.ui.nav.Navigator
 import com.chasel.ng2n.ui.nav.NotificationsKey
 import com.chasel.ng2n.ui.nav.SearchKey
@@ -61,8 +61,8 @@ fun EntryProviderScope<NavKey>.homeEntries(nav: Navigator, onOpenDevMenu: () -> 
   entry<TopicKey> { PlaceholderScreen("主题详情", "票 13", nav::pop) }
 
   // 票 15:登录与多账号
-  entry<LoginKey> { PlaceholderScreen("登录", "票 15", nav::pop) }
-  entry<AccountsKey> { PlaceholderScreen("账号管理", "票 15", nav::pop) }
+  entry<Login> { PlaceholderScreen("登录", "票 15", nav::pop) }
+  entry<Accounts> { PlaceholderScreen("账号管理", "票 15", nav::pop) }
 
   // 票 17:其余屏幕
   entry<SearchKey> { PlaceholderScreen("搜索", "票 17", nav::pop) }

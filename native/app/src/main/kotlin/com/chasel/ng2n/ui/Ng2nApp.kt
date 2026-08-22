@@ -16,16 +16,32 @@ import androidx.navigation3.ui.NavDisplay
 import com.chasel.ng2n.ui.bbcode.BBCodeDemoKey
 import com.chasel.ng2n.ui.bbcode.BBCodeDemoScreen
 import com.chasel.ng2n.ui.common.SnackbarHost
+import com.chasel.ng2n.ui.dev.DevMenuEntry
 import com.chasel.ng2n.ui.dev.DevMenuKey
 import com.chasel.ng2n.ui.dev.DevMenuScreen
 import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
-import com.chasel.ng2n.ui.nav.Home
 import com.chasel.ng2n.ui.nav.Navigator
+import kotlinx.serialization.Serializable
+
+/** 导航键。Nav3 的 back stack 就是一串 [NavKey],屏幕由 entryProvider 按键类型分派。 */
+@Serializable
+data object Home : NavKey
+
+/** WebView 登录屏(票 15)。 */
+@Serializable
+data object Login : NavKey
+
+/** 多账号管理屏(票 15)。 */
+@Serializable
+data object Accounts : NavKey
 
 /**
  * 全 app 的导航宿主。
+ *
+ * 其余 20 个键在 `ui/nav/Keys.kt`(票 16 一次定齐);这三个留在本文件,
+ * 是因为票 01 / 票 15 就在这儿声明的 —— 挪走只会让并行期合并多三处冲突。
  *
  * 预测性返回不需要在这里写代码:manifest 开了 `enableOnBackInvokedCallback`,
  * NavDisplay 自带 predictive back 动画(ADR-0004 的有意偏离,RN 版是关的)。
@@ -50,7 +66,8 @@ fun Ng2nApp() {
       backStack = backStack,
       onBack = { backStack.removeLastOrNull() },
       entryProvider = entryProvider {
-        // 票 16:首页 / 版块面 / 抽屉,外加还没落地那些键的占位条目
+        // 票 16:首页 / 版块面 / 抽屉宿主,外加还没落地那些键的占位条目
+        // (Login / Accounts 的占位条目也在里面,票 15 合并时换成真屏 —— 见票 16 Comments)
         homeEntries(nav = nav, onOpenDevMenu = { backStack.add(DevMenuKey) })
 
         /*
@@ -62,10 +79,26 @@ fun Ng2nApp() {
           DevMenuScreen(
             onBack = { backStack.removeLastOrNull() },
             entries = listOf(
-              "BBCode 渲染 demo(票 11)" to { backStack.add(BBCodeDemoKey) },
-              "图片查看器 demo(票 12)" to {
-                backStack.add(ImageViewerKey(urls = DEMO_IMAGES, index = 0))
-              },
+              DevMenuEntry(
+                label = "BBCode 渲染 demo(票 11)",
+                tag = com.chasel.ng2n.ui.bbcode.BBCODE_DEMO_BUTTON_TAG,
+                onClick = { backStack.add(BBCodeDemoKey) },
+              ),
+              DevMenuEntry(
+                label = "图片查看器 demo(票 12)",
+                tag = IMAGE_DEMO_BUTTON_TAG,
+                onClick = { backStack.add(ImageViewerKey(urls = DEMO_IMAGES, index = 0)) },
+              ),
+              DevMenuEntry(
+                label = "登录(票 15)",
+                tag = LOGIN_ENTRY_TAG,
+                onClick = { backStack.add(Login) },
+              ),
+              DevMenuEntry(
+                label = "账号管理(票 15)",
+                tag = ACCOUNTS_ENTRY_TAG,
+                onClick = { backStack.add(Accounts) },
+              ),
             ),
           )
         }
@@ -106,3 +139,19 @@ private val DEMO_IMAGES = listOf(
   "https://picsum.photos/seed/ng2n-b/800/1200",
   "https://picsum.photos/seed/ng2n-c/600/2400",
 )
+
+/**
+ * macrobenchmark 等首帧内容的锚点(票 19 用;uiautomator 认 contentDescription)。
+ * **票 01 立的锚,语义不变**:首页首帧可用时打这个 tag —— 现在打在真首页的版块宫格上
+ * (`ui/home/HomeScreen.kt`)。
+ */
+const val SKELETON_READY_TAG: String = "ng2n-skeleton-ready"
+
+/**
+ * 票 11 / 12 / 15 的手验入口锚点。入口从首页搬进了开发者菜单
+ * (抽屉「关于」长按 → [DevMenuKey]),**锚点名一个字没改** —— 那几张票的
+ * uiautomator 脚本按 content-desc 找它们。
+ */
+const val IMAGE_DEMO_BUTTON_TAG: String = "ng2n-image-demo"
+const val LOGIN_ENTRY_TAG: String = "ng2n-login-entry"
+const val ACCOUNTS_ENTRY_TAG: String = "ng2n-accounts-entry"

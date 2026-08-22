@@ -2,6 +2,7 @@ package com.chasel.ng2n.ui.dev
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -35,7 +35,10 @@ import kotlinx.serialization.Serializable
  *
  * 票 11 / 12 / 15 各自留了一个「模拟器手验屏」,票 18 的功能验收还要用它们
  * (BBCode 渲染覆盖、图片管线、登录流程),所以**不删 demo 屏本身**,
- * 只把入口从首页收进这里 —— 首页是真首页了,不该再挂三个 demo 按钮。
+ * 只把入口从首页收进这里 —— 首页是真首页了,不该再挂四个 demo 按钮。
+ *
+ * 每一行照旧挂着原来的 `contentDescription` 锚点([Entry.tag]),
+ * 那几张票的 uiautomator 脚本按它找按钮,搬家不该让脚本失效。
  *
  * 进入方式:抽屉「关于」**长按**。不做成常驻入口是因为它不是给用户的。
  *
@@ -44,13 +47,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object DevMenuKey : NavKey
 
-/** uiautomator 找入口用的锚点(票 18 的手验脚本认它)。 */
+/** uiautomator 找这一屏用的锚点(票 18 的手验脚本认它)。 */
 const val DEV_MENU_TAG: String = "ng2n-dev-menu"
 
 @Composable
 fun DevMenuScreen(
   onBack: () -> Unit,
-  entries: List<Pair<String, () -> Unit>>,
+  entries: List<DevMenuEntry>,
   modifier: Modifier = Modifier,
 ) {
   val colors = LocalNg2nColors.current
@@ -72,7 +75,7 @@ fun DevMenuScreen(
     }
     Column(Modifier.verticalScroll(rememberScrollState())) {
       Text(
-        text = "票 11 / 12 的模拟器手验屏。票 18 功能验收要用,不删;票 17 决定去留。",
+        text = "票 11 / 12 / 15 的模拟器手验屏。票 18 功能验收要用,不删;票 17 决定去留。",
         modifier = Modifier.padding(Spacing.lg),
         style = TextStyle(
           fontSize = Typo.notice.size,
@@ -80,21 +83,22 @@ fun DevMenuScreen(
           color = colors.fg2,
         ),
       )
-      entries.forEach { (label, onClick) ->
+      entries.forEach { item ->
         Column(
           modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
-            .clickable(onClickLabel = label, onClick = onClick)
+            .clickable(onClickLabel = item.label, onClick = item.onClick)
+            .semantics { contentDescription = item.tag }
             .drawBehind {
               val y = size.height - 1f
               drawLine(colors.divider, Offset(0f, y), Offset(size.width, y), 1f)
             }
             .padding(horizontal = Spacing.xl),
-          verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+          verticalArrangement = Arrangement.Center,
         ) {
           Text(
-            text = label,
+            text = item.label,
             style = TextStyle(
               fontSize = Typo.drawerItem.size,
               lineHeight = Typo.drawerItem.lineHeight,
@@ -106,3 +110,6 @@ fun DevMenuScreen(
     }
   }
 }
+
+/** 一行入口。[tag] 是原来挂在首页那颗按钮上的 content-desc 锚点,搬家后照旧。 */
+data class DevMenuEntry(val label: String, val tag: String, val onClick: () -> Unit)

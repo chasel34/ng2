@@ -88,7 +88,6 @@ import com.chasel.ng2n.ui.nav.BoardKey
 import com.chasel.ng2n.ui.nav.CachesKey
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
-import com.chasel.ng2n.ui.nav.LoginKey
 import com.chasel.ng2n.ui.nav.Navigator
 import com.chasel.ng2n.ui.nav.NotificationsKey
 import com.chasel.ng2n.ui.nav.SearchKey
@@ -96,6 +95,8 @@ import com.chasel.ng2n.ui.nav.SettingsKey
 import com.chasel.ng2n.ui.nav.TopicKey
 import com.chasel.ng2n.ui.nav.UserPostKind
 import com.chasel.ng2n.ui.nav.UserPostsKey
+import com.chasel.ng2n.ui.Login
+import com.chasel.ng2n.ui.SKELETON_READY_TAG
 import com.chasel.ng2n.ui.rememberAppDeps
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Radius
@@ -110,12 +111,6 @@ private const val GRID_COLUMNS = 3
 
 /** 横滑换分类时把选中的那格滚进视野,左边留出这么多,免得它永远贴在最左边。 */
 private val TAB_SCROLL_LEAD = 56.dp
-
-/**
- * macrobenchmark 等首帧内容的锚点(票 19 用;uiautomator 认 contentDescription)。
- * **票 01 立的锚,语义不变**:首页首帧可用时打这个 tag。
- */
-const val SKELETON_READY_TAG: String = "ng2n-skeleton-ready"
 
 /**
  * 首页 —— 直译 RN 侧 `src/app/index.tsx`。
@@ -252,7 +247,7 @@ fun HomeScreen(nav: Navigator, onOpenDevMenu: () -> Unit, modifier: Modifier = M
           GuestAccountHeader(
             onLogin = {
               drawer.close(scope)
-              nav.push(LoginKey)
+              nav.push(Login)
             },
           )
         },
@@ -348,7 +343,7 @@ fun HomeScreen(nav: Navigator, onOpenDevMenu: () -> Unit, modifier: Modifier = M
             rows = rowsFor(categories[page]),
             onOpenBoard = openBoard,
             onDismiss = { deps.boardTree.dismissAnnouncement(it) },
-            onNoticeAction = { nav.push(LoginKey) },
+            onNoticeAction = { nav.push(Login) },
             onRetryFavorites = { scope.launch { deps.boardFavorites.reload(uid) } },
             // 首帧内容可用的锚点:第一页(可见那页)带上就够
             tagged = page == pagerState.currentPage,
@@ -490,7 +485,7 @@ private fun handleDrawerEntry(
   when (key) {
     DrawerEntryKey.LOGIN -> {
       closeDrawer()
-      nav.push(LoginKey)
+      nav.push(Login)
     }
     DrawerEntryKey.CHECK_IN -> {
       if (uid == null) {

@@ -15,9 +15,12 @@ import kotlinx.serialization.Serializable
  * 参数取值一律与 RN 版路由参数同名同义(`src/app/…` 的 `useLocalSearchParams`)。
  */
 
-/** 首页:分类 tab + 版块宫格 + 抽屉宿主。 */
-@Serializable
-data object Home : NavKey
+/*
+ * 首页 `com.chasel.ng2n.ui.Home`、登录 `com.chasel.ng2n.ui.Login`、
+ * 多账号 `com.chasel.ng2n.ui.Accounts` 三个键**留在 `ui/Ng2nApp.kt`** ——
+ * 票 01 就在那儿声明了 Home,票 15 又在那儿加了 Login / Accounts。
+ * 搬到这里只会让并行期的合并多三处冲突,而键住哪个文件对使用者没有区别。
+ */
 
 /** 版块 / 合集的主题列表。[id] 是「合集传 stid、普通版块传 fid」的那一个数(CONTEXT.md「合集」)。 */
 @Serializable
@@ -54,16 +57,6 @@ data class TopicKey(
   val pid: Long? = null,
   val floor: Long? = null,
 ) : NavKey
-
-// ---------------------------------------------------------------- 票 15(登录与多账号)
-
-/** WebView 登录。**票 15 实现**。 */
-@Serializable
-data object LoginKey : NavKey
-
-/** 多账号管理。**票 15 实现**。 */
-@Serializable
-data object AccountsKey : NavKey
 
 // ---------------------------------------------------------------- 票 17(其余屏幕)
 

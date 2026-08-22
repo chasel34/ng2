@@ -1,6 +1,6 @@
 package com.chasel.ng2n.ui.common
 
-import com.chasel.ng2n.ui.nav.LoginKey
+import com.chasel.ng2n.ui.Login
 import com.chasel.ng2n.ui.nav.Navigator
 
 /**
@@ -11,5 +11,5 @@ import com.chasel.ng2n.ui.nav.Navigator
  * 并把登录页递到手边。
  */
 fun showLoginPrompt(nav: Navigator, message: String) {
-  Snackbars.show(message, SnackbarAction("去登录") { nav.push(LoginKey) })
+  Snackbars.show(message, SnackbarAction("去登录") { nav.push(Login) })
 }

@@ -78,14 +78,16 @@ class DrawerGestureTest {
 
   @Test
   fun 从关着拖过40percent就开() {
-    assertTrue(settleDrawerOpen(startProgress = 0f, progress = 0.4f, velocityPxPerMs = 0f))
+    // 不用 0.4f 这个正点值断言:Float 里 `1f - 0.6f` 是 0.39999998、`0.4f - 0f` 是 0.4,
+    // 边界两侧各差半个 ulp,断在正点上等于断浮点噪声。判据本身是 `>= 0.4`
+    assertTrue(settleDrawerOpen(startProgress = 0f, progress = 0.41f, velocityPxPerMs = 0f))
     assertFalse(settleDrawerOpen(startProgress = 0f, progress = 0.39f, velocityPxPerMs = 0f))
   }
 
   @Test
   fun 从开着拖回40percent就关() {
     // RN 版原判据:`-dx > DRAWER_WIDTH * 0.4`,即进度从 1 掉到 0.6 以下
-    assertFalse(settleDrawerOpen(startProgress = 1f, progress = 0.6f, velocityPxPerMs = 0f))
+    assertFalse(settleDrawerOpen(startProgress = 1f, progress = 0.59f, velocityPxPerMs = 0f))
     assertTrue(settleDrawerOpen(startProgress = 1f, progress = 0.61f, velocityPxPerMs = 0f))
   }
 

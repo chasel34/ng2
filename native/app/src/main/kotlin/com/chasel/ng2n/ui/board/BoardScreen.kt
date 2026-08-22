@@ -223,7 +223,7 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
             nav.push(WebKey("$host/thread.php?$param=${key.id}", boardTitle))
           }
         },
-        onRelogin = { nav.push(com.chasel.ng2n.ui.nav.LoginKey) },
+        onRelogin = { nav.push(com.chasel.ng2n.ui.Login) },
       )
 
       // 发新帖不在 v1 范围内(spec §1),入口保留
