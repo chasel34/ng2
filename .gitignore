@@ -45,3 +45,6 @@ yarn-error.*
 # 源文件是同目录的 *.dc.html 与 canvas.json,产物随时能从它们重新 seed 出来
 .scratch/*/*.html
 !.scratch/*/*.dc.html
+
+# 性能脚本的本地 venv(按 scripts/perf/README.md 重建)
+scripts/perf/.venv/

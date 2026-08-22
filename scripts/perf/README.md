@@ -1,0 +1,58 @@
+# scripts/perf — 性能采样分析脚本
+
+判据编号(C\*/X\*/T\*/P\*)一律以 `docs/perf-playbook.md` 为准。
+**模拟器与 debug 包的数据永远不能用于性能裁决**(T7/T8);两个脚本都要求 `--source`,
+非 `device` 时在输出首段打「本次数据不可用于性能裁决」。
+
+## 环境再生
+
+`analyze_framestats.py` 只用标准库,系统 `python3` 直接跑。
+`analyze_rec.py` 需要 pyav + numpy;homebrew 的 python 是 externally-managed,不能直接 `pip install`,用 venv:
+
+```bash
+python3 -m venv scripts/perf/.venv
+scripts/perf/.venv/bin/pip install av numpy
+```
+
+`scripts/perf/.venv/` 已进 `.gitignore`(不入库,按上面两行重建)。
+
+## analyze_framestats.py — C2 / C5 / C6
+
+采样(测量前先按 T1/T4 确认:滚动中 `frameRateOverride {uid=<app> 120}`、前台焦点是被测 app):
+
+```bash
+adb shell dumpsys gfxinfo <pkg> reset
+# 操作。input swipe 单次时长 >80ms,起步段 ≤80ms 不作证据(T5)
+adb shell dumpsys gfxinfo <pkg> framestats > fs.txt
+python3 scripts/perf/analyze_framestats.py fs.txt --source device
+```
+
+输出:样本规模(Flags!=0 的首帧/窗口变更帧自动剔除)、**app 每帧 CPU**(C5,`HandleInputStart→SwapBuffers`)、
+整帧耗时、**丢帧**(C6,`IntendedVsync` 间隔 > `--drop-ms`,默认 13ms=120Hz 口径)、逐阶段均值、最差帧。
+
+选项:`--source device|emulator|unknown`、`--drop-ms`(换刷新率时取 ≈1.5× 帧间隔)、
+`--skip-head-ms`(切掉注入手势起步段)、`--top`。文件参数省略或写 `-` 时读 stdin。
+
+列一律按表头名定位——新版 framestats 在 `Flags` 后插了 `FrameTimelineVsyncId`,按下标取列会整体错位(T3)。
+
+## analyze_rec.py — C1 / C10 / C11
+
+```bash
+adb shell 'screenrecord --time-limit 8 /sdcard/rec.mp4 & sleep 1; <操作>; sleep 2'
+adb pull /sdcard/rec.mp4 .
+scripts/perf/.venv/bin/python scripts/perf/analyze_rec.py rec.mp4 --source device
+```
+
+按 pts 求帧间 dt,下采样成灰度求相邻帧平均绝对差:
+
+- **运动窗口** = 灰度差 > `--motion` 的连续段(允许 `--gap` 帧断口);
+- **停格**(C10)= 运动窗口内 dt > `--stall` × 基准帧间隔;**静止画面的出帧空洞不算缺陷**,单独计数不计入;
+- **内容突现**(C11)= 灰度差 > `--pop` × 运动帧差分中位数;冷启动闸要求无白/黑闪、无内容两跳突现。
+
+`screenrecord` 是 VFR,基准帧间隔取 dt 中位数,不要当成固定 fps。
+
+## 还没落盘的
+
+`SurfaceFlinger --timestats` 的 latch2present 直方图(C8,单峰/双峰)目前还是手工读 dump;
+注意 T2:反复 enable/clear 会把 timestats 卡死。Perfetto 侧的 `present_type='Dropped Frame'` 计数(C7)同理。
+两项都在票 19 真机验收时按需补脚本。
