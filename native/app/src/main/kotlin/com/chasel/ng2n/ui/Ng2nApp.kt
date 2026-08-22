@@ -27,6 +27,9 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.chasel.ng2n.ui.bbcode.BBCODE_DEMO_BUTTON_TAG
+import com.chasel.ng2n.ui.bbcode.BBCodeDemoKey
+import com.chasel.ng2n.ui.bbcode.BBCodeDemoScreen
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
 import com.chasel.ng2n.ui.image.PostImage
@@ -51,7 +54,14 @@ fun Ng2nApp() {
     onBack = { backStack.removeLastOrNull() },
     entryProvider = entryProvider {
       entry<Home> {
-        HomeScreen(onOpenViewer = { backStack.add(it) })
+        HomeScreen(
+          onOpenViewer = { backStack.add(it) },
+          onOpenBBCodeDemo = { backStack.add(BBCodeDemoKey) },
+        )
+      }
+      // TODO(票 16 移除):BBCode 渲染器的模拟器手验屏(票 11)
+      entry<BBCodeDemoKey> {
+        BBCodeDemoScreen(onOpenViewer = { backStack.add(it) })
       }
       // 查看器是「盖在当前页上的全屏浮层」:RN 侧 transparentModal + fade
       // (`motion.ts` 的 screenTransition.overlay),这里对应成 fade 进 fade 出,
@@ -74,7 +84,10 @@ fun Ng2nApp() {
 private const val VIEWER_FADE_MS = 220
 
 @Composable
-private fun HomeScreen(onOpenViewer: (ImageViewerKey) -> Unit) {
+private fun HomeScreen(
+  onOpenViewer: (ImageViewerKey) -> Unit,
+  onOpenBBCodeDemo: () -> Unit,
+) {
   Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
     Column(
       modifier = Modifier
@@ -92,6 +105,15 @@ private fun HomeScreen(onOpenViewer: (ImageViewerKey) -> Unit) {
       Spacer(Modifier.height(24.dp))
       Text(text = "NG2N", style = MaterialTheme.typography.headlineMedium)
       Text(text = "骨架就位(票 01)", style = MaterialTheme.typography.bodyMedium)
+
+      Spacer(Modifier.height(24.dp))
+      // TODO(票 16 移除):BBCode 渲染 demo(票 11)
+      Button(
+        onClick = onOpenBBCodeDemo,
+        modifier = Modifier.semantics { contentDescription = BBCODE_DEMO_BUTTON_TAG },
+      ) {
+        Text("BBCode 渲染 demo")
+      }
 
       Spacer(Modifier.height(24.dp))
       ImageDemoSection(onOpenViewer = onOpenViewer)
