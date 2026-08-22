@@ -10,6 +10,21 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /**
+ * 账号表落盘前的加解密。**票 15 加的接缝**:实装 [KeystoreCrypto] 要 `AndroidKeyStore` 与
+ * `android.util.Base64`,两样在 JVM 单测里都只有会抛的桩,于是 `AccountStore` 的
+ * 状态迁移(切号 / 登出 / 冷启读回)在 JVM 上一条也测不了 —— 而票 15 的验收②③正是这些。
+ * 加解密算法本身归 [KeystoreCrypto] 的 androidTest 管,单测这一侧塞个直通实现即可。
+ */
+interface AccountCrypto {
+
+  /** 明文 → 可进 DataStore 的字符串;失败返回 null(调用方按「写不进」降级)。 */
+  fun encrypt(plaintext: ByteArray): String?
+
+  /** 反过来;解不开返回 null(调用方退回游客态)。 */
+  fun decrypt(blob: String): ByteArray?
+}
+
+/**
  * Android Keystore 的 AES-GCM 小封装 —— 账号凭证(`ngaPassportCid`)落盘前过这一道。
  *
  * ## 为什么自己写
@@ -33,9 +48,9 @@ import javax.crypto.spec.GCMParameterSpec
  * 密钥被系统清掉(改锁屏、恢复出厂、备份还原)时 `decrypt` 返回 null,
  * 上层退回空账号表 = 游客态,登录一次就好。**绝不抛到调用方**。
  */
-internal class KeystoreCrypto(private val alias: String = KEY_ALIAS) {
+internal class KeystoreCrypto(private val alias: String = KEY_ALIAS) : AccountCrypto {
 
-  fun encrypt(plaintext: ByteArray): String? = runCatching {
+  override fun encrypt(plaintext: ByteArray): String? = runCatching {
     val cipher = Cipher.getInstance(TRANSFORMATION)
     cipher.init(Cipher.ENCRYPT_MODE, secretKey())
     val iv = cipher.iv
@@ -43,7 +58,7 @@ internal class KeystoreCrypto(private val alias: String = KEY_ALIAS) {
     Base64.encodeToString(iv + body, Base64.NO_WRAP)
   }.getOrNull()
 
-  fun decrypt(blob: String): ByteArray? = runCatching {
+  override fun decrypt(blob: String): ByteArray? = runCatching {
     val raw = Base64.decode(blob, Base64.NO_WRAP)
     if (raw.size <= IV_BYTES) return null
     val cipher = Cipher.getInstance(TRANSFORMATION)

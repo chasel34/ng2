@@ -30,6 +30,11 @@ import androidx.navigation3.ui.NavDisplay
 import com.chasel.ng2n.ui.bbcode.BBCODE_DEMO_BUTTON_TAG
 import com.chasel.ng2n.ui.bbcode.BBCodeDemoKey
 import com.chasel.ng2n.ui.bbcode.BBCodeDemoScreen
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.chasel.ng2n.ui.accounts.AccountHeader
+import com.chasel.ng2n.ui.accounts.AccountsScreen
+import com.chasel.ng2n.ui.accounts.AccountsViewModel
+import com.chasel.ng2n.ui.login.LoginScreen
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
 import com.chasel.ng2n.ui.image.PostImage
@@ -38,6 +43,14 @@ import kotlinx.serialization.Serializable
 /** 导航键。Nav3 的 back stack 就是一串 [NavKey],屏幕由 entryProvider 按键类型分派。 */
 @Serializable
 data object Home : NavKey
+
+/** WebView 登录屏(票 15)。 */
+@Serializable
+data object Login : NavKey
+
+/** 多账号管理屏(票 15)。 */
+@Serializable
+data object Accounts : NavKey
 
 /**
  * 空首屏:只为证明 Hilt + Compose + Nav3 + Material3 这条管线通到底。真正的首页在票 16。
@@ -48,6 +61,9 @@ data object Home : NavKey
 @Composable
 fun Ng2nApp() {
   val backStack = rememberNavBackStack(Home)
+  // 账号状态是全 app 一份(RN 版是全局 zustand store):在 NavDisplay **外面**取一次,
+  // 各屏共用同一个实例 —— 每屏各 hiltViewModel() 的话,切号之后另一屏的账号头不会跟着变。
+  val accounts: AccountsViewModel = hiltViewModel()
 
   NavDisplay(
     backStack = backStack,
@@ -55,13 +71,26 @@ fun Ng2nApp() {
     entryProvider = entryProvider {
       entry<Home> {
         HomeScreen(
+          accounts = accounts,
           onOpenViewer = { backStack.add(it) },
           onOpenBBCodeDemo = { backStack.add(BBCodeDemoKey) },
+          onOpenLogin = { backStack.add(Login) },
+          onOpenAccounts = { backStack.add(Accounts) },
         )
       }
       // TODO(票 16 移除):BBCode 渲染器的模拟器手验屏(票 11)
       entry<BBCodeDemoKey> {
         BBCodeDemoScreen(onOpenViewer = { backStack.add(it) })
+      }
+      entry<Login> {
+        LoginScreen(onBack = { backStack.removeLastOrNull() })
+      }
+      entry<Accounts> {
+        AccountsScreen(
+          viewModel = accounts,
+          onBack = { backStack.removeLastOrNull() },
+          onAddAccount = { backStack.add(Login) },
+        )
       }
       // 查看器是「盖在当前页上的全屏浮层」:RN 侧 transparentModal + fade
       // (`motion.ts` 的 screenTransition.overlay),这里对应成 fade 进 fade 出,
@@ -85,8 +114,11 @@ private const val VIEWER_FADE_MS = 220
 
 @Composable
 private fun HomeScreen(
+  accounts: AccountsViewModel,
   onOpenViewer: (ImageViewerKey) -> Unit,
   onOpenBBCodeDemo: () -> Unit,
+  onOpenLogin: () -> Unit,
+  onOpenAccounts: () -> Unit,
 ) {
   Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
     Column(
@@ -94,7 +126,6 @@ private fun HomeScreen(
         .fillMaxSize()
         .padding(innerPadding)
         .verticalScroll(rememberScrollState())
-        .padding(horizontal = 16.dp)
         // macrobenchmark 等首帧内容的锚点(票 19 会用):uiautomator 认 contentDescription。
         .semantics { contentDescription = SKELETON_READY_TAG },
       // 票 01 原本是 Arrangement.Center(那时屏上只有两行字)。加了 demo 之后内容比
@@ -102,21 +133,48 @@ private fun HomeScreen(
       verticalArrangement = Arrangement.Top,
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-      Spacer(Modifier.height(24.dp))
-      Text(text = "NG2N", style = MaterialTheme.typography.headlineMedium)
-      Text(text = "骨架就位(票 01)", style = MaterialTheme.typography.bodyMedium)
+      // **TODO(票 16 移除)**:账号头本该长在抽屉里,抽屉是票 16 的活。
+      // 摆在这里是为了让票 15 的三件事(游客态 / 已登录 / 左右滑切号)在模拟器上看得见。
+      AccountHeader(
+        viewModel = accounts,
+        onOpenAccounts = onOpenAccounts,
+        onLogin = onOpenLogin,
+      )
 
-      Spacer(Modifier.height(24.dp))
-      // TODO(票 16 移除):BBCode 渲染 demo(票 11)
-      Button(
-        onClick = onOpenBBCodeDemo,
-        modifier = Modifier.semantics { contentDescription = BBCODE_DEMO_BUTTON_TAG },
-      ) {
-        Text("BBCode 渲染 demo")
+      Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Spacer(Modifier.height(24.dp))
+        Text(text = "NG2N", style = MaterialTheme.typography.headlineMedium)
+        Text(text = "骨架就位(票 01)", style = MaterialTheme.typography.bodyMedium)
+
+        // **TODO(票 16 移除)**:抽屉铺开前的临时入口。
+        Spacer(Modifier.height(16.dp))
+        Text(text = "账号(票 15,票 16 删)", style = MaterialTheme.typography.labelLarge)
+        Spacer(Modifier.height(8.dp))
+        Button(
+          onClick = onOpenLogin,
+          modifier = Modifier.semantics { contentDescription = LOGIN_ENTRY_TAG },
+        ) {
+          Text("登录")
+        }
+        Button(
+          onClick = onOpenAccounts,
+          modifier = Modifier.semantics { contentDescription = ACCOUNTS_ENTRY_TAG },
+        ) {
+          Text("账号管理")
+        }
+
+        Spacer(Modifier.height(24.dp))
+        // TODO(票 16 移除):BBCode 渲染 demo(票 11)
+        Button(
+          onClick = onOpenBBCodeDemo,
+          modifier = Modifier.semantics { contentDescription = BBCODE_DEMO_BUTTON_TAG },
+        ) {
+          Text("BBCode 渲染 demo")
+        }
+
+        Spacer(Modifier.height(24.dp))
+        ImageDemoSection(onOpenViewer = onOpenViewer)
       }
-
-      Spacer(Modifier.height(24.dp))
-      ImageDemoSection(onOpenViewer = onOpenViewer)
     }
   }
 }
@@ -161,3 +219,7 @@ const val SKELETON_READY_TAG: String = "ng2n-skeleton-ready"
 
 /** 票 12 手验用的锚点(uiautomator 按 content-desc 找它)。票 16 随 demo 一起删。 */
 const val IMAGE_DEMO_BUTTON_TAG: String = "ng2n-image-demo"
+
+/** 票 15 手验用的两个临时入口锚点。票 16 铺真抽屉时随入口一起删。 */
+const val LOGIN_ENTRY_TAG: String = "ng2n-login-entry"
+const val ACCOUNTS_ENTRY_TAG: String = "ng2n-accounts-entry"

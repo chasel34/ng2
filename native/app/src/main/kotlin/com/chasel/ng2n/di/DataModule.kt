@@ -9,7 +9,11 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.chasel.ng2n.core.net.CredentialSource
+import com.chasel.ng2n.data.account.AccountCrypto
 import com.chasel.ng2n.data.account.AccountStore
+import com.chasel.ng2n.data.account.AndroidWebCookieVault
+import com.chasel.ng2n.data.account.KeystoreCrypto
+import com.chasel.ng2n.data.account.WebCookieVault
 import com.chasel.ng2n.data.db.BrowseHistoryDao
 import com.chasel.ng2n.data.db.Ng2nDatabase
 import com.chasel.ng2n.data.db.NotificationReadDao
@@ -99,6 +103,14 @@ object DataModule {
     scope = scope,
     produceFile = { context.preferencesDataStoreFile(AccountStore.FILE_NAME) },
   )
+
+  /**
+   * 账号表的加解密(票 15 收成接口):真实装是 Android Keystore 的 AES-GCM。
+   * `KeystoreCrypto` 是 internal 的,所以由本模块提供而不是 `@Binds`。
+   */
+  @Provides
+  @Singleton
+  fun provideAccountCrypto(): AccountCrypto = KeystoreCrypto()
 }
 
 /**
@@ -111,6 +123,13 @@ abstract class CredentialModule {
 
   @Binds
   abstract fun bindCredentialSource(store: AccountStore): CredentialSource
+
+  /**
+   * WebView 那份 cookie 仓库的唯一出入口(票 15,修 P1-03)。
+   * 登录收割、切号/登出清理的逻辑挂在 ViewModel 上,靠这个接口在 JVM 单测里换成假实现。
+   */
+  @Binds
+  abstract fun bindWebCookieVault(vault: AndroidWebCookieVault): WebCookieVault
 }
 
 @Qualifier
