@@ -102,8 +102,8 @@ object ImagePolicy {
 }
 
 /**
- * 图片设置的读口。实现现在是内存默认值(`data/InMemoryImageSettingsSource`),
- * 票 14 的 DataStore / 票 17 的设置屏接上来之后换实现即可,调用方不动。
+ * 图片设置的读口。实现是 `data/settings/StoredImageSettingsSource`(接 DataStore,票 17c);
+ * 设置页改「仅 Wi-Fi 下加载图片」/「图片加载策略」,下一帧就按新档位取址。
  */
 interface ImageSettingsSource {
   val imageSettings: kotlinx.coroutines.flow.StateFlow<ImageSettings>

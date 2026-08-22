@@ -1,12 +1,14 @@
 package com.chasel.ng2n
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.chasel.ng2n.ui.Ng2nApp
-import com.chasel.ng2n.ui.theme.Ng2nTheme
+import com.chasel.ng2n.ui.nav.DeepLinkInbox
+import com.chasel.ng2n.ui.settings.Ng2nAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -16,15 +18,32 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
 
+    // 冷启动深链:intent 比第一次 composition 还早,先投进收件箱,导航宿主起来后取件。
+    // 「垫首页」不需要 TaskStackBuilder —— Nav3 的 back stack 恒以 Home 开局
+    // (说明见 `ui/nav/DeepLinkInbox.kt`)。
+    DeepLinkInbox.offer(intent)
+
     // 120Hz 设备上避免窗口被系统按 60Hz 内容源处理。
     // post 到 decorView:attributes 要在窗口已经 attach 之后写才稳。
     window.decorView.post { preferHighestRefreshRate() }
 
     setContent {
-      Ng2nTheme {
+      // 夜间模式 / 主题风格 / 三根字号滑杆都从 DataStore 现读(票 17c):
+      // 设置页一改,整棵树跟着重组,不重启 Activity。
+      Ng2nAppTheme {
         Ng2nApp()
       }
     }
+  }
+
+  /**
+   * `launchMode=singleTask`:app 已经在前台时再点一条 `ng2n://` 链接走的是这里,
+   * 不会重新 `onCreate`。
+   */
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    DeepLinkInbox.offer(intent)
   }
 
   override fun onResume() {

@@ -4,6 +4,7 @@ import com.chasel.ng2n.core.api.NgaNotification
 import com.chasel.ng2n.core.api.fetchNotificationFeed
 import com.chasel.ng2n.core.net.NgaClient
 import com.chasel.ng2n.data.account.AccountStore
+import com.chasel.ng2n.data.settings.SettingsStore
 import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.di.IoScope
 import kotlinx.coroutines.CancellationException
@@ -37,6 +38,7 @@ class NotificationPoller @Inject constructor(
   private val client: NgaClient,
   private val accounts: AccountStore,
   private val readRepository: NotificationReadRepository,
+  private val settings: SettingsStore,
   @IoScope private val scope: CoroutineScope,
 ) {
 
@@ -78,6 +80,12 @@ class NotificationPoller @Inject constructor(
   suspend fun refresh() = pollOnce()
 
   private suspend fun pollOnce() {
+    // 票 17c:「启用被喷提示」关掉后不再轮询,抽屉也不显示未读角标
+    // (RN 版 `sprayNotice` 的原话)。设置**每轮现读**,改完下一轮就生效。
+    if (!settings.currentSettings().sprayNotice) {
+      unreadCount.value = 0
+      return
+    }
     val uid = currentAccountOf(accounts.accounts.first())?.uid
     if (uid == null) {
       // 游客态:接口会报「你必须先登录论坛」,不发请求,角标归零

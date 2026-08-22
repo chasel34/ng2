@@ -7,6 +7,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavKey
@@ -16,6 +18,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.chasel.ng2n.ui.bbcode.BBCodeDemoKey
 import com.chasel.ng2n.ui.bbcode.BBCodeDemoScreen
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chasel.ng2n.ui.accounts.AccountsScreen
 import com.chasel.ng2n.ui.accounts.AccountsViewModel
 import com.chasel.ng2n.ui.login.LoginScreen
@@ -26,7 +29,9 @@ import com.chasel.ng2n.ui.dev.DevMenuScreen
 import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.image.ImageViewerScreen
+import com.chasel.ng2n.ui.nav.DeepLinkInbox
 import com.chasel.ng2n.ui.nav.Navigator
+import com.chasel.ng2n.ui.settings.settingsEntries
 import kotlinx.serialization.Serializable
 
 /** 导航键。Nav3 的 back stack 就是一串 [NavKey],屏幕由 entryProvider 按键类型分派。 */
@@ -68,6 +73,15 @@ fun Ng2nApp() {
     }
   }
 
+  // 系统深链(`ng2n://…`):Activity 收 intent 投进收件箱,这里取件并 push。
+  // back stack 恒以 Home 开局,所以深链目标永远是第二格 —— 按返回回首页,不会直接退出。
+  val pendingLink by DeepLinkInbox.pending.collectAsStateWithLifecycle()
+  LaunchedEffect(pendingLink) {
+    val key = pendingLink ?: return@LaunchedEffect
+    DeepLinkInbox.consume()
+    if (backStack.lastOrNull() != key) backStack.add(key)
+  }
+
   Box(Modifier.fillMaxSize()) {
     NavDisplay(
       backStack = backStack,
@@ -76,6 +90,8 @@ fun Ng2nApp() {
         // 票 16:首页 / 版块面 / 抽屉宿主,外加还没落地那些键的占位条目
         // (Login / Accounts 的占位条目也在里面,票 15 合并时换成真屏 —— 见票 16 Comments)
         homeEntries(nav = nav, accounts = accounts, onOpenDevMenu = { backStack.add(DevMenuKey) })
+        // 票 17c:设置树三屏 / 关于 / 网页兜底
+        settingsEntries(nav = nav, onOpenAccounts = { backStack.add(Accounts) })
         entry<Login> {
           LoginScreen(onBack = { backStack.removeLastOrNull() })
         }
@@ -90,7 +106,11 @@ fun Ng2nApp() {
         /*
          * 开发者入口(抽屉「关于」长按)。票 11 / 12 的手验屏收在这儿 ——
          * demo 屏本身**不删**(票 18 的功能验收要用),只是不再挂在首页上。
-         * TODO(票 17):决定这个菜单是挪进「实验室」还是删掉。
+         *
+         * 票 17c 的决定:**留在长按里,不并进「实验室」**。实验室页收的是「排查线上
+         * 问题时要动的四条」(兜底档位、UA、组合表、日志导出),而这几个是 demo 屏的
+         * 手验入口 —— 混进去会让一个用户会点开的页面里出现两类完全不同的东西。
+         * 长按「关于」是个只有自己知道的口子,正合适。
          */
         entry<DevMenuKey> {
           DevMenuScreen(
