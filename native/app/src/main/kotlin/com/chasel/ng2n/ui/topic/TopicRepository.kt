@@ -4,9 +4,11 @@ import com.chasel.ng2n.core.api.AttachmentUrls
 import com.chasel.ng2n.core.api.TopicDetail
 import com.chasel.ng2n.core.api.fetchTopicDetail
 import com.chasel.ng2n.core.net.NgaClient
+import com.chasel.ng2n.core.api.TopicPageSnapshot
 import com.chasel.ng2n.data.net.TopicCachePayloadReader
 import com.chasel.ng2n.di.IoScope
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -17,7 +19,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import javax.inject.Inject
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 /**
@@ -89,8 +96,13 @@ data class CacheDownloadState(
 @Singleton
 class TopicRepository @Inject constructor(
   private val client: NgaClient,
-  private val cachePayloads: TopicCachePayloadReader,
+  private val cachePayloads: TopicSnapshotSink,
   @IoScope private val scope: CoroutineScope,
+  /**
+   * 建模跑在哪。生产是 [Dispatchers.Default](CPU 密集:解析 + 组装 AnnotatedString),
+   * 单测换成测试调度器 —— 不换的话 `advanceUntilIdle()` 管不到真线程池里的活。
+   */
+  @ComputeDispatcher private val compute: CoroutineDispatcher,
 ) {
 
   private val details = LinkedHashMap<TopicPageParams, CachedDetail>()
@@ -122,7 +134,7 @@ class TopicRepository @Inject constructor(
     nowMs: Long = System.currentTimeMillis(),
   ): PageRenderModel {
     val detail = loadDetail(params, refresh, nowMs)
-    return withContext(Dispatchers.Default) {
+    return withContext(compute) {
       TopicPageBuilder.build(detail, params.tid, style, urls)
     }
   }
@@ -243,14 +255,17 @@ class TopicRepository @Inject constructor(
         }
 
         try {
+          var snapshot: TopicPageSnapshot? = null
           fetchTopicDetail(
             client = client,
             tid = tid,
             page = page,
             favCode = favCode,
-            // 后台批量下载立即写盘,不走前台那条延后入口
-            onSnapshot = { snapshot -> scope.launch { cachePayloads.save(snapshot) } },
+            // 后台批量下载**就地写盘**(不像前台那样延后一拍):这一趟本来就是慢活,
+            // 而且顺序确定 —— 丢给别的 scope 的话「跑完了没」与「存完了没」会脱节
+            onSnapshot = { snapshot = it },
           )
+          snapshot?.let { runCatching { cachePayloads.save(it) } }
         } catch (cause: CancellationException) {
           throw cause
         } catch (cause: Exception) {
@@ -290,4 +305,34 @@ class TopicRepository @Inject constructor(
      */
     const val DETAIL_CACHE_CAPACITY = 40
   }
+}
+
+/**
+ * 「把这一页存下来」的去处。
+ *
+ * 抠成接口只为一件事:**单测能塞个假的**。生产实现就是票 14 的两向接缝
+ * [TopicCachePayloadReader](它已经有同名同签名的 `save`),由下面的模块绑上去 ——
+ * 票 07 / 14 的文件一个字没动。
+ */
+fun interface TopicSnapshotSink {
+  suspend fun save(snapshot: TopicPageSnapshot)
+}
+
+/** 建模用的 CPU 调度器。抠成 qualifier 只为单测能换掉它。 */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ComputeDispatcher
+
+@Module
+@InstallIn(SingletonComponent::class)
+object TopicRepositoryModule {
+
+  @Provides
+  @Singleton
+  fun provideTopicSnapshotSink(reader: TopicCachePayloadReader): TopicSnapshotSink =
+    TopicSnapshotSink { snapshot -> reader.save(snapshot) }
+
+  @Provides
+  @ComputeDispatcher
+  fun provideComputeDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }

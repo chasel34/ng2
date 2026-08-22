@@ -28,6 +28,7 @@ import com.chasel.ng2n.ui.bbcode.resolveFloorDice
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,6 +44,7 @@ import kotlinx.coroutines.withContext
 class ChainViewModel(
   val key: ChainKey,
   private val deps: TopicDeps,
+  private val compute: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   /** 已加载页。进场时从仓库缓存搬一份,懒加载的页往里补。 */
@@ -91,7 +93,7 @@ class ChainViewModel(
     val style = style ?: return
     val snapshot = pages.values.sortedBy { it.page }
     viewModelScope.launch {
-      val built = withContext(Dispatchers.Default) { buildChain(snapshot, style) }
+      val built = withContext(compute) { buildChain(snapshot, style) }
       chain = built.chain
       entries = built.entries
     }.invokeOnCompletion { maybeLoadNext() }

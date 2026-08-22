@@ -39,6 +39,7 @@ import com.chasel.ng2n.ui.bbcode.FloorRenderModel
 import com.chasel.ng2n.ui.bbcode.RenderModelBuilder
 import com.chasel.ng2n.ui.bbcode.signatureRenderOptions
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,6 +64,8 @@ import kotlinx.coroutines.withContext
 class TopicViewModel(
   val key: TopicKey,
   private val deps: TopicDeps,
+  /** 后台算屏蔽命中 / 回复链层数 / 签名建模的调度器;单测换成测试调度器。 */
+  private val compute: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   val tid: Long = key.tid
@@ -322,7 +325,7 @@ class TopicViewModel(
     if (pages[target] is PageState.Loaded || target in loading) return
     viewModelScope.launch {
       val cached = deps.repository.cachedDetail(paramsFor(target)) ?: return@launch
-      val model = withContext(Dispatchers.Default) {
+      val model = withContext(compute) {
         TopicPageBuilder.build(cached, tid, style, deps.attachmentUrls)
       }
       if (pages[target] !is PageState.Loaded) pages[target] = PageState.Loaded(model)
@@ -415,7 +418,7 @@ class TopicViewModel(
     }
     val snapshot = pages.values.filterIsInstance<PageState.Loaded>().map { it.model }
     blockJob = viewModelScope.launch {
-      val next = withContext(Dispatchers.Default) {
+      val next = withContext(compute) {
         val result = HashMap<Long, FilterRule>()
         for (model in snapshot) {
           for (floor in model.floors + model.hotReplies) {
@@ -494,7 +497,7 @@ class TopicViewModel(
     val snapshot = pages.values.filterIsInstance<PageState.Loaded>().map { it.model }
     if (snapshot.isEmpty()) return
     chainJob = viewModelScope.launch {
-      val depths = withContext(Dispatchers.Default) {
+      val depths = withContext(compute) {
         val floors = LinkedHashMap<Long, QuoteIndexFloor>()
         for (model in snapshot) {
           for (floor in model.floors + model.hotReplies) {
@@ -718,7 +721,7 @@ class TopicViewModel(
     if (signature.isNullOrEmpty()) return
     val attachBase = currentModel?.attachBase ?: ATTACH_BASE_FALLBACK
     viewModelScope.launch {
-      val model = withContext(Dispatchers.Default) {
+      val model = withContext(compute) {
         RenderModelBuilder.build(
           parseBBCode(signature),
           signatureRenderOptions(
