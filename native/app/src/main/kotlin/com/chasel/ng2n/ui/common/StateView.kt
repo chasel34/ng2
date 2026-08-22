@@ -1,0 +1,202 @@
+package com.chasel.ng2n.ui.common
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.chasel.ng2n.core.net.NgaError
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
+import com.chasel.ng2n.ui.theme.LocalNg2nColors
+import com.chasel.ng2n.ui.theme.Radius
+import com.chasel.ng2n.ui.theme.Spacing
+import com.chasel.ng2n.ui.theme.Typo
+
+/**
+ * 空态 / 加载态 / 「拉失败了」的统一口径 —— 直译 RN 侧 `ui/state-view.tsx`
+ * 与 `ui/error-screen.tsx` 里被本票用到的那几个形状。
+ *
+ * 设计稿没有单独画空屏,但 isError 那一屏定下了这套语言:一枚 meta 色的大图标 +
+ * 居中说明文字(+ 可选的一个出路)。
+ */
+
+/** 设计稿 isError 的图标是 34,空态没有那圈 72 的底,所以放大到 40 撑住版面。 */
+private val EMPTY_ICON_SIZE = 40.dp
+
+enum class StateVariant {
+  /** 撑满剩余高度并垂直居中(整屏没内容时用) */
+  SCREEN,
+
+  /** 只占一段固定高度(嵌在列表里、上面还有筛选条或分组头时用) */
+  INLINE,
+}
+
+data class StateAction(val label: String, val onClick: () -> Unit)
+
+@Composable
+private fun StateBox(
+  variant: StateVariant,
+  content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
+) {
+  val base = if (variant == StateVariant.SCREEN) {
+    Modifier.fillMaxSize().padding(Spacing.xl)
+  } else {
+    // 与 LoadFailedNotice 的纵向 56 对齐,列表里两种块换着出现时高度不跳
+    Modifier.fillMaxWidth().padding(vertical = 56.dp, horizontal = Spacing.xl)
+  }
+  Column(
+    modifier = base,
+    verticalArrangement = if (variant == StateVariant.SCREEN) {
+      Arrangement.spacedBy(Spacing.md, Alignment.CenterVertically)
+    } else {
+      Arrangement.spacedBy(Spacing.md)
+    },
+    horizontalAlignment = Alignment.CenterHorizontally,
+    content = content,
+  )
+}
+
+/** 「这儿还没有内容」。 */
+@Composable
+fun EmptyState(
+  icon: Ng2nIcon,
+  text: String,
+  modifier: Modifier = Modifier,
+  action: StateAction? = null,
+  variant: StateVariant = StateVariant.SCREEN,
+) {
+  val colors = LocalNg2nColors.current
+  Box(modifier) {
+    StateBox(variant) {
+      AppIcon(icon = icon, tint = colors.meta, size = EMPTY_ICON_SIZE)
+      Text(
+        text = text,
+        textAlign = TextAlign.Center,
+        style = TextStyle(
+          fontSize = Typo.notice.size,
+          lineHeight = Typo.notice.lineHeight,
+          color = colors.fg2,
+        ),
+      )
+      if (action != null) PillButton(action)
+    }
+  }
+}
+
+/** 「正在拉」。整屏首次加载与列表内的分段加载共用同一个转圈。 */
+@Composable
+fun LoadingState(
+  modifier: Modifier = Modifier,
+  text: String? = null,
+  variant: StateVariant = StateVariant.SCREEN,
+) {
+  val colors = LocalNg2nColors.current
+  Box(modifier) {
+    StateBox(variant) {
+      CircularProgressIndicator(color = colors.primary, strokeWidth = 3.dp, modifier = Modifier.size(32.dp))
+      if (text != null) {
+        Text(
+          text = text,
+          textAlign = TextAlign.Center,
+          style = TextStyle(
+            fontSize = Typo.notice.size,
+            lineHeight = Typo.notice.lineHeight,
+            color = colors.fg2,
+          ),
+        )
+      }
+    }
+  }
+}
+
+/**
+ * 列表底部「正在载入下一页」的那一行。设计稿(isList 底部提示)是一行 12.5 的
+ * meta 字,不带转圈;翻页时把转圈也带上,但整行高度维持设计稿的 20 内距。
+ */
+@Composable
+fun LoadingFooter(text: String, modifier: Modifier = Modifier) {
+  val colors = LocalNg2nColors.current
+  Row(
+    modifier = modifier.fillMaxWidth().padding(vertical = Spacing.xl),
+    horizontalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterHorizontally),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    CircularProgressIndicator(color = colors.meta, strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
+    Text(
+      text = text,
+      style = TextStyle(fontSize = Typo.listMeta.size, lineHeight = Typo.listMeta.lineHeight, color = colors.meta),
+    )
+  }
+}
+
+/** 出路按钮:40 高的胶囊(照 LoadFailedNotice 的重试钮)。 */
+@Composable
+fun PillButton(action: StateAction, modifier: Modifier = Modifier) {
+  val colors = LocalNg2nColors.current
+  Box(
+    modifier = modifier
+      .height(40.dp)
+      .clip(RoundedCornerShape(Radius.full))
+      .background(colors.primary)
+      .clickable(onClickLabel = action.label, onClick = action.onClick)
+      .padding(horizontal = Spacing.xl),
+    contentAlignment = Alignment.Center,
+  ) {
+    Text(
+      text = action.label,
+      style = TextStyle(
+        fontSize = Typo.drawerItem.size,
+        lineHeight = Typo.drawerItem.lineHeight,
+        fontWeight = FontWeight.SemiBold,
+        color = colors.onPrimary,
+      ),
+    )
+  }
+}
+
+/**
+ * 「拉失败了」的轻量形态(RN 侧 `LoadFailedNotice`)。
+ *
+ * 文案取服务端/传输层给的那句话 —— 反封锁链把「为什么失败」写进了 [NgaError.text],
+ * 换成「网络错误」这种通用话术等于把排障线索丢掉(ADR-0002)。
+ */
+@Composable
+fun LoadFailedNotice(
+  error: Throwable?,
+  onRetry: () -> Unit,
+  modifier: Modifier = Modifier,
+  variant: StateVariant = StateVariant.INLINE,
+) {
+  EmptyState(
+    icon = Ng2nIcon.CLOUD_OFF,
+    text = failureText(error),
+    action = StateAction("重试", onRetry),
+    variant = variant,
+    modifier = modifier,
+  )
+}
+
+/** 一句话说清这次失败。 */
+fun failureText(error: Throwable?): String = when {
+  error == null -> "没能拿到数据"
+  error is NgaError -> error.text
+  else -> error.message ?: "没能拿到数据"
+}

@@ -46,6 +46,7 @@ fun Ng2nTheme(
 ) {
   CompositionLocalProvider(
     LocalNg2nColors provides paletteOf(dark = darkTheme, plain = plain),
+    LocalNg2nTitleColors provides titleColorsOf(dark = darkTheme),
     LocalTextScale provides textScale,
   ) {
     MaterialTheme(
