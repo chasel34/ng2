@@ -10,6 +10,7 @@ import com.chasel.ng2n.core.api.fetchBoardTree
 import com.chasel.ng2n.core.api.fetchFavoriteFolders
 import com.chasel.ng2n.core.api.fetchTopicDetail
 import com.chasel.ng2n.core.api.fetchTopicList
+import com.chasel.ng2n.core.api.fetchTopicSearch
 import com.chasel.ng2n.core.api.fetchUserProfile
 import com.chasel.ng2n.core.api.postRecommend
 import com.chasel.ng2n.core.api.removeTopicFavorite
@@ -58,6 +59,10 @@ class NgaApiSmokeTest {
 
   /** 两发之间的静置。NGA 对背靠背请求会限流(见 research/perf-history)。 */
   private val cooldownMs = System.getenv("NGA_SMOKE_COOLDOWN_MS")?.toLongOrNull() ?: COOLDOWN_MS
+
+  /** 搜索那一发前面的静置(它比普通列表更容易撞限流,见用例里的注释)。 */
+  private val searchCooldownMs =
+    System.getenv("NGA_SMOKE_SEARCH_COOLDOWN_MS")?.toLongOrNull() ?: SEARCH_COOLDOWN_MS
 
   private fun proxy(): Proxy {
     val spec = System.getenv("NGA_TEST_PROXY") ?: return Proxy.NO_PROXY
@@ -120,14 +125,20 @@ class NgaApiSmokeTest {
     assertTrue(tree.categories.any { it.groups.any { group -> group.boards.isNotEmpty() } })
     println("[smoke] app_api categories=${tree.categories.size}")
 
-    delay(cooldownMs)
+    // 搜索比普通列表更容易撞限流:2026-08-22 本机实测,与前三发只隔 20s 时服务端回
+    // `2048:service error`,静置一分钟后同一串字节(curl 对拍)照常有结果——
+    // 是限流不是编码坏了,所以这一发前面多等一会儿
+    delay(searchCooldownMs)
 
-    // ④ forum.php:版块搜索。**key 走 GBK** —— 这一条错了服务端只会说「没找到」,
-    // 所以它同时是「GBK 出站编码在真实服务端还认不认」的验收
-    val boards = fetchBoardSearch(nga, key = "炉石")
-    assertTrue(boards.isNotEmpty(), "GBK key 搜不到版块(多半是编码那一步坏了)")
-    assertTrue(boards.any { it.board.name.contains("炉石") })
-    println("[smoke] forum.php boards=${boards.size}")
+    // ④ thread.php?key=:主题搜索(**key 走 UTF-8**,与版块搜索的 GBK 是两套)
+    val found = fetchTopicSearch(nga, key = "炉石", page = 1)
+    assertTrue(found.topics.isNotEmpty(), "搜不到主题")
+    assertTrue(found.topics.none { it.subject.contains('\uFFFD') }, "搜索结果标题里有替换字符")
+    println("[smoke] thread.php?key topics=${found.topics.size} totalRows=${found.totalRows}")
+
+    // 版块搜索(forum.php,**key 走 GBK**)**游客跑不了**:2026-08-22 本机 curl 对拍,
+    // 同样的字节游客拿到 `{"error":{"0":"2048:必须登录才能使用此功能"}}` ——
+    // 是服务端的规矩,不是编码坏了。它挪进了下面的登录态用例(待所有者)。
   }
 
   /**
@@ -155,6 +166,15 @@ class NgaApiSmokeTest {
     // 收藏夹列表:登录态最轻的一个读端点
     val folders = fetchFavoriteFolders(nga)
     println("[smoke] topic_favor_v2 list_folder folders=${folders.size}")
+
+    delay(cooldownMs)
+
+    // 版块搜索:**key 走 GBK**,这一条错了服务端只会说「没找到」,所以它同时是
+    // 「GBK 出站编码在真实服务端还认不认」的验收。游客不可用(见上一个用例的注释)
+    val boards = fetchBoardSearch(nga, key = "炉石")
+    assertTrue(boards.isNotEmpty(), "GBK key 搜不到版块(多半是编码那一步坏了)")
+    assertTrue(boards.any { it.board.name.contains("炉石") })
+    println("[smoke] forum.php boards=${boards.size}")
   }
 
   /**
@@ -234,5 +254,8 @@ class NgaApiSmokeTest {
 
     /** 两发之间静置多久。NGA 的限流窗口按分钟算,这里取一个不至于让单测跑一整天的值。 */
     const val COOLDOWN_MS = 20_000L
+
+    /** 搜索前的静置。实测 20s 不够(会回 `2048:service error`)。 */
+    const val SEARCH_COOLDOWN_MS = 70_000L
   }
 }

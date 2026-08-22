@@ -17,7 +17,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.Json
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -56,7 +55,7 @@ private val TPCURL_TID_PATTERN = Regex("[?&]tid=(\\d+)")
 
 /**
  * `parent` 字符串化 JSON 那一档要再解一次;这里只解形状,不认字段——
- * 用的是端点层那档宽容 [Json](`NgaJson`),与信封层的严格档不是一回事。
+ * 用的是端点层那档宽容的 `NgaJson`,与信封层的严格档不是一回事。
  */
 private fun reparse(text: String): JsonElement? =
   runCatching { NgaJson.parseToJsonElement(text) }.getOrNull()

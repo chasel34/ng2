@@ -9,6 +9,7 @@ import com.chasel.ng2n.core.net.RecordingTransport
 import com.chasel.ng2n.core.net.Transport
 import com.chasel.ng2n.core.net.assertThrowsNga
 import com.chasel.ng2n.core.net.ok
+import com.chasel.ng2n.core.net.strategies.TopicCacheKey
 import com.chasel.ng2n.core.net.strategies.TopicCacheStrategy
 import com.chasel.ng2n.core.net.testClient
 import com.chasel.ng2n.data.cache.TopicCacheRepository
@@ -79,8 +80,8 @@ class TopicCacheRoundTripTest {
       deferSnapshot = { create = it },
     )
 
-    assertNotNull(create)
-    val snapshot = create!!()
+    val make = assertNotNull(create)
+    val snapshot = make()
     assertEquals(detail.subject, snapshot.subject)
     assertEquals(detail.floors.size, snapshot.floors)
   }
@@ -147,17 +148,17 @@ class TopicCacheRoundTripTest {
     val dao = InMemoryTopicCacheDao()
     val reader = TopicCachePayloadReader(TopicCacheRepository(dao))
 
-    var snapshot: TopicPageSnapshot? = null
-    fetchTopicDetail(onlineClient(), tid = tid, page = 1, onSnapshot = { snapshot = it })
-    reader.save(snapshot!!)
+    var captured: TopicPageSnapshot? = null
+    fetchTopicDetail(onlineClient(), tid = tid, page = 1, onSnapshot = { captured = it })
+    val snapshot = assertNotNull(captured)
+    reader.save(snapshot)
 
-    val payload = reader.read(com.chasel.ng2n.core.net.strategies.TopicCacheKey(tid, 1))
-    assertEquals(snapshot!!.payload, payload)
-    assertNull(reader.read(com.chasel.ng2n.core.net.strategies.TopicCacheKey(tid, 2)))
+    assertEquals(snapshot.payload, reader.read(TopicCacheKey(tid, 1)))
+    assertNull(reader.read(TopicCacheKey(tid, 2)))
     // 元数据也照抄过去了(「我的缓存」列表要显示它们)
     val meta = dao.loadMeta().single()
-    assertEquals(snapshot!!.subject, meta.subject)
-    assertEquals(snapshot!!.floors, meta.floors)
+    assertEquals(snapshot.subject, meta.subject)
+    assertEquals(snapshot.floors, meta.floors)
   }
 }
 
