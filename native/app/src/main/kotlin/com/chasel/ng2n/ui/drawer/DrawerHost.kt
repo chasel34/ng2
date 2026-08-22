@@ -195,7 +195,7 @@ fun DrawerHost(
             edgePx = null,
             allowOpen = false,
             allowClose = true,
-            pass = PointerEventPass.Main,
+            pass = PointerEventPass.Initial,
           ),
       ) {
         drawerContent()
@@ -208,9 +208,17 @@ fun DrawerHost(
  * 一次抽屉手势的完整生命周期。边缘拉出与面板左划共用这一段 ——
  * 两处各写一份的话阈值迟早走偏(RN 侧就是各写一份,开与关的判据因此不对称)。
  *
+ * 两处都跑 [PointerEventPass.Initial]:**认领之前一个事件都不消费**,所以纵向滚动
+ * 与条目点击照常走;一旦认领(横向 >12dp 且横纵比过 1.3)就每一发都 `consume()`,
+ * 子节点从此收不到。
+ *
+ * 面板那一处本来挂在 Main 通道上(想着「让子节点先挑」),2026-08-22 模拟器实测
+ * 不成立:抽屉里横划一把会**触发落点那一行的点击**(划到「由 URL 读取」就弹出了
+ * 那个对话框)。原因是 Main 通道是子 → 父,`clickable` 的
+ * `waitForUpOrCancellation` 处理完这一发时父节点还没来得及消费,而它只在
+ * 「手指离开边界」时才取消,横向平移到别处并不算离开。Initial 通道没有这个时序问题。
+ *
  * @param edgePx 非空表示只接左边缘那一条起手的(首页让位规则);空表示整块都接
- * @param pass Initial = 抢在子节点前面(边缘拉出要压过 pager);
- *   Main = 让子节点先挑(面板里的纵向滚动优先)
  */
 private fun Modifier.drawerDrag(
   state: DrawerHostState,
@@ -242,6 +250,10 @@ private fun Modifier.drawerDrag(
       if (!change.pressed) {
         if (claimed) {
           change.consume()
+          // 松手那一下带着**最后一个坐标**:注入拖拽(`adb input swipe`)的末段比真手指稀疏,
+          // 只认最后一个 move 会把「刚好过 40%」判成没过;真手指抬起时同样带着最终位置
+          // (RN 侧 `onPanResponderRelease` 读的 `gesture.dx` 也是含抬手位置的那一个)
+          state.snap(drawerProgress(startProgress, change.position.x - down.position.x, widthPx))
           val velocity = tracker.calculateVelocity().x / 1000f
           state.settle(scope, settleDrawerOpen(startProgress, state.progress, velocity))
           settled = true
