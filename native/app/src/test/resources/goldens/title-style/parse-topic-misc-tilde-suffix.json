@@ -1,0 +1,9 @@
+{
+  "expected": {},
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": "AwAAA0MBAAAAIA~"
+  },
+  "name": "parse-topic-misc-tilde-suffix",
+  "note": "官方对 ~ / ~1 结尾直接返回空"
+}

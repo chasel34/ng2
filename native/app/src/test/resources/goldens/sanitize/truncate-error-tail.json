@@ -1,0 +1,7 @@
+{
+  "expected": "{\"data\":{\"0\":\"ok\"}}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"data\":{\"0\":\"ok\"}}/*error fill content 这里全是垃圾",
+  "name": "truncate-error-tail",
+  "note": "§0.6 第 2 步"
+}

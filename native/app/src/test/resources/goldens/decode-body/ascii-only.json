@@ -1,0 +1,11 @@
+{
+  "expected": "{\"a\":1}",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "eyJhIjoxfQ==",
+    "contentType": null
+  },
+  "inputEncoding": "base64",
+  "name": "ascii-only",
+  "note": "纯 ASCII：两边一样，走 UTF-8 分支"
+}

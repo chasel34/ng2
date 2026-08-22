@@ -1,0 +1,12 @@
+{
+  "expected": false,
+  "fn": "hasTopicListStructure",
+  "input": {
+    "value": {
+      "code": 0,
+      "msg": "",
+      "result": []
+    }
+  },
+  "name": "has-topic-list-structure-foreign-json"
+}

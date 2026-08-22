@@ -1,0 +1,6 @@
+{
+  "expected": "&#10084;&#65039;",
+  "fn": "escapeForSubmit",
+  "input": "❤️",
+  "name": "escape-for-submit-variation-selector"
+}

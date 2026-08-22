@@ -1,0 +1,14 @@
+{
+  "expected": null,
+  "fn": "parseUserProfile",
+  "input": {
+    "args": {
+      "nowSeconds": 1786100000
+    },
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"data\":{\"0\":\"https://img.nga.cn/avatars/2002/cc9/77f/002/41417929_0.jpg?57\"},\"time\":1786173138}"
+  },
+  "name": "avatar-only",
+  "note": "nuke.php __lib=ucp __act=get_avatar uid=41417929 __output=8，登录态"
+}

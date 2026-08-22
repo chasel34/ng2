@@ -1,0 +1,6 @@
+{
+  "expected": "春曰影",
+  "fn": "resolveAuthorName",
+  "input": "春曰影",
+  "name": "resolve-author-not-anonymous-plain"
+}

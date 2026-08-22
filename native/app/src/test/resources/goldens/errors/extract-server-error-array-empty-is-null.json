@@ -1,0 +1,8 @@
+{
+  "expected": null,
+  "fn": "extractServerError",
+  "input": {
+    "error": []
+  },
+  "name": "extract-server-error-array-empty-is-null"
+}

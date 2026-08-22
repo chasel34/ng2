@@ -1,0 +1,14 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": true,
+      "src": "12345_abc.jpg",
+      "type": "image",
+      "variant": "noimg"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[noimg]12345_abc.jpg[/noimg]",
+  "name": "noimg-bare-filename",
+  "note": "[noimg] 的实际形态就是裸文件名"
+}

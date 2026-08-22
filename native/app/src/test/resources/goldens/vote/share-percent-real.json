@@ -1,0 +1,10 @@
+{
+  "expected": 89.1,
+  "fn": "voteSharePercent",
+  "input": {
+    "total": 138,
+    "votes": 123
+  },
+  "name": "share-percent-real",
+  "note": "与网页版一样只保留一位小数且向下截断（((num/sum*1000)|0)/10）"
+}

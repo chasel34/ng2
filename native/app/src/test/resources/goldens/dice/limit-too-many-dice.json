@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "expression": "11d6",
+      "terms": []
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]11d6[/dice]",
+    "tid": 45150945
+  },
+  "name": "limit-too-many-dice",
+  "note": ">10 颗：网页版显示 OUT OF LIMIT"
+}

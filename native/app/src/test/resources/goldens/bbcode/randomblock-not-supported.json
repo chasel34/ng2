@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "[randomblock]抽奖[/randomblock]"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[randomblock]抽奖[/randomblock]",
+  "name": "randomblock-not-supported",
+  "note": "不支持的标签降级纯文本"
+}

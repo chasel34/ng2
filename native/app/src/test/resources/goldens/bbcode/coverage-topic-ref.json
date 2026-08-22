@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "children": [],
+      "tid": "45150945",
+      "type": "topicRef"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[tid]45150945[/tid]",
+  "name": "coverage-topic-ref",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

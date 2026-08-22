@@ -1,0 +1,6 @@
+{
+  "expected": null,
+  "fn": "parseBoardIdInput",
+  "input": "0",
+  "name": "parse-board-id-input-zero"
+}

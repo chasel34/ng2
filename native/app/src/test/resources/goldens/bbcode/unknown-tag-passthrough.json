@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "前[randomblock]中[/randomblock]后"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "前[randomblock]中[/randomblock]后",
+  "name": "unknown-tag-passthrough"
+}

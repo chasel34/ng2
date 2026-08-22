@@ -1,0 +1,15 @@
+{
+  "expected": {
+    "data": null,
+    "fakeError": {
+      "code": "?",
+      "message": "找不到用户"
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "{\"error\":{\"0\":\"找不到用户\"}}"
+  },
+  "name": "fake-error-is-success",
+  "note": "假错误白名单：当成功返回，data 是 undefined"
+}

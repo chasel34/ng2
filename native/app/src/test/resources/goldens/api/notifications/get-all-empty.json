@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "items": []
+  },
+  "fn": "parseNotificationFeed",
+  "input": {
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"data\":{\"0\":\"\"},\"time\":1786157592}"
+  },
+  "name": "get-all-empty",
+  "note": "nuke.php __lib=noti __act=get_all __output=8，登录态，空账号；data[\"0\"] 是空串而不是对象"
+}

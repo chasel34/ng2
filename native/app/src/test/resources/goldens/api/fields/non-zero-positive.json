@@ -1,0 +1,9 @@
+{
+  "expected": 7,
+  "fn": "nonZero",
+  "input": {
+    "value": 7
+  },
+  "name": "non-zero-positive",
+  "note": "NGA 分不清「字段缺省」与「填 0」（普通版块常带 stid:0）"
+}

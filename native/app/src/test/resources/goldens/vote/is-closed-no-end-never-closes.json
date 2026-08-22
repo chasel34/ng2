@@ -1,0 +1,11 @@
+{
+  "expected": false,
+  "fn": "isVoteClosed",
+  "input": {
+    "now": 9007199254740991,
+    "raw": "1~甲~_1~1,0,1",
+    "tid": 47331456
+  },
+  "name": "is-closed-no-end-never-closes",
+  "note": "输入先经 parseVote 再判；官方 atv = !x.end || __NOW <= x.end 的反面"
+}

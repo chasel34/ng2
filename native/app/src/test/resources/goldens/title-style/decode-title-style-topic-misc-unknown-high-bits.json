@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "bold": true,
+    "color": "red",
+    "italic": false,
+    "underline": false
+  },
+  "fn": "decodeTitleStyle",
+  "input": {
+    "topicMisc": "AQQAACE"
+  },
+  "name": "decode-title-style-topic-misc-unknown-high-bits",
+  "note": "真实抓包：活动帖 0x04000021"
+}

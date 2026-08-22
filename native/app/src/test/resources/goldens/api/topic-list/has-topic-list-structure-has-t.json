@@ -1,0 +1,11 @@
+{
+  "expected": true,
+  "fn": "hasTopicListStructure",
+  "input": {
+    "value": {
+      "__T": {}
+    }
+  },
+  "name": "has-topic-list-structure-has-t",
+  "note": "空版块也有 __T:{}——一条主题都没有 ≠ 没有这个结构"
+}

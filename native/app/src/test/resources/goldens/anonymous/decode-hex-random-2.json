@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "colors": [
+      "978879",
+      "6a5b4c"
+    ],
+    "name": "乙卞席戊牟辛"
+  },
+  "fn": "decodeAnonymousName",
+  "input": "#anony_1e2d3c4b5a69788796a5b4c3d2e1f0aa",
+  "name": "decode-hex-random-2"
+}

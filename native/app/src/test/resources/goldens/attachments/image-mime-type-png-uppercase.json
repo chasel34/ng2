@@ -1,0 +1,6 @@
+{
+  "expected": "image/png",
+  "fn": "imageMimeType",
+  "input": "a.PNG",
+  "name": "image-mime-type-png-uppercase"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": false,
+  "fn": "isFakeError",
+  "input": "未登录",
+  "name": "is-fake-error-real-not-logged-in"
+}

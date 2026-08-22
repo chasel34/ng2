@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": true,
+      "src": "a.jpg",
+      "type": "image",
+      "variant": "img"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[img]<br/> ./a.jpg <br/>[/img]",
+  "name": "img-trim-whitespace"
+}

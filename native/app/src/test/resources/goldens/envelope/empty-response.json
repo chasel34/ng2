@@ -1,0 +1,15 @@
+{
+  "expected": {
+    "throws": {
+      "kind": "parse",
+      "message": "响应为空",
+      "retryable": true
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": ""
+  },
+  "name": "empty-response",
+  "note": "空响应算 parse 错误（可重试）"
+}

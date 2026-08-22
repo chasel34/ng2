@@ -1,0 +1,16 @@
+{
+  "expected": [
+    {
+      "expression": "2d100001",
+      "terms": []
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]2d100001[/dice]",
+    "tid": 45150945
+  },
+  "name": "limit-too-many-faces"
+}

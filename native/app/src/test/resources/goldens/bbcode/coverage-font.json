@@ -1,0 +1,18 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "宋体"
+        }
+      ],
+      "type": "font",
+      "value": "宋体"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[font=宋体]宋体[/font]",
+  "name": "coverage-font",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

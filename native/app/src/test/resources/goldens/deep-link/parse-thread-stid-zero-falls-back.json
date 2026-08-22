@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "link": {
+      "boardKind": "board",
+      "id": 650,
+      "kind": "board"
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/thread.php?stid=0&fid=650",
+  "name": "parse-thread-stid-zero-falls-back"
+}

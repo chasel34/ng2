@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "link": {
+      "kind": "topic",
+      "tid": 1
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/read.php?tid=1&page=abc",
+  "name": "parse-read-non-numeric-page"
+}

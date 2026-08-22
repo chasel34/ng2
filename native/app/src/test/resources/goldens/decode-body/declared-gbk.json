@@ -1,0 +1,11 @@
+{
+  "expected": "原神",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "1K3J8Q==",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "declared-gbk",
+  "note": "声明了就信声明"
+}

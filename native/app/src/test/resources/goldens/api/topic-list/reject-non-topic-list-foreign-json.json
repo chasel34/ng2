@@ -1,0 +1,12 @@
+{
+  "expected": "响应里没有主题列表结构（多半是被限流或拦截了）",
+  "fn": "rejectNonTopicList",
+  "input": {
+    "data": {
+      "code": 0,
+      "msg": ""
+    }
+  },
+  "name": "reject-non-topic-list-foreign-json",
+  "note": "能洗成 JSON 但不是主题列表 → 当 kind=parse 继续轮换，坏组合进不了成功组合缓存"
+}

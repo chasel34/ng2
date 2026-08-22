@@ -1,0 +1,7 @@
+{
+  "expected": "[b]今天 & 明天[/b] <hi>",
+  "fn": "escapeForSubmit",
+  "input": "[b]今天 & 明天[/b] <hi>",
+  "name": "escape-for-submit-plain-kept",
+  "note": "中英文与 BBCode 不做 HTML 转义"
+}

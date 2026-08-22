@@ -1,0 +1,11 @@
+{
+  "expected": {
+    "mask": 4278190113
+  },
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": "Af8AACE"
+  },
+  "name": "parse-topic-misc-mask-unsigned",
+  "note": "掩码是位字段，仍按无符号读"
+}

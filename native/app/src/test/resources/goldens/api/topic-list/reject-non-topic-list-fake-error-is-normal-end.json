@@ -1,0 +1,15 @@
+{
+  "expected": null,
+  "fn": "rejectNonTopicList",
+  "input": {
+    "data": {
+      "__MESSAGE": {}
+    },
+    "fakeError": {
+      "code": "?",
+      "message": "2048:没有符合条件的结果"
+    }
+  },
+  "name": "reject-non-topic-list-fake-error-is-normal-end",
+  "note": "翻到底了是正常终止，不是坏组合"
+}

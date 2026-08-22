@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "code": "ac:根本不存在",
+      "type": "smiley"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[s:ac:根本不存在]",
+  "name": "smiley-unresolved-ac"
+}

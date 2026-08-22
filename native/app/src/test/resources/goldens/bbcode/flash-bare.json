@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "media": "flash",
+      "needsAttachBase": false,
+      "src": "https://v.cn/a.swf",
+      "type": "flash"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[flash]https://v.cn/a.swf[/flash]",
+  "name": "flash-bare"
+}

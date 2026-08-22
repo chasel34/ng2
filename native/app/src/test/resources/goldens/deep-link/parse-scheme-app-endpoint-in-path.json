@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "link": {
+      "boardKind": "board",
+      "id": 650,
+      "kind": "board"
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "ng2:///thread.php?fid=650",
+  "name": "parse-scheme-app-endpoint-in-path"
+}

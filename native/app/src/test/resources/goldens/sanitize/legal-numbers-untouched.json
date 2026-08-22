@@ -1,0 +1,6 @@
+{
+  "expected": "{\"content\":123,\"subject\":0,\"author\":-4}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"content\":123,\"subject\":0,\"author\":-4}",
+  "name": "legal-numbers-untouched"
+}

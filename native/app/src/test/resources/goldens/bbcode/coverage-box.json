@@ -1,0 +1,19 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "处罚说明"
+        }
+      ],
+      "punishment": "post",
+      "type": "box",
+      "variant": "lessernuke"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[lessernuke]处罚说明[/lessernuke]",
+  "name": "coverage-box",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

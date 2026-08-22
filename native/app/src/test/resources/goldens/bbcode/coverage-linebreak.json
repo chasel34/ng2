@@ -1,0 +1,19 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "上"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "下"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "上<br/>下",
+  "name": "coverage-linebreak",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

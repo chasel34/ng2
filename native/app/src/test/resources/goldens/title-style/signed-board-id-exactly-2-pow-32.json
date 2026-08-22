@@ -1,0 +1,8 @@
+{
+  "expected": 4294967296,
+  "fn": "signedBoardId",
+  "input": {
+    "value": 4294967296
+  },
+  "name": "signed-board-id-exactly-2-pow-32"
+}

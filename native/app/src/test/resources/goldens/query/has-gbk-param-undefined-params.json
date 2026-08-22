@@ -1,0 +1,7 @@
+{
+  "expected": false,
+  "fn": "hasGbkParam",
+  "input": null,
+  "name": "has-gbk-param-undefined-params",
+  "note": "命中 = 要声明 charset=GBK 并撤掉 __inchst=UTF8"
+}

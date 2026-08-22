@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "code": "?",
+    "message": "访问速度过快"
+  },
+  "fn": "extractServerError",
+  "input": {
+    "error": [
+      "访问速度过快"
+    ]
+  },
+  "name": "extract-server-error-array-form"
+}

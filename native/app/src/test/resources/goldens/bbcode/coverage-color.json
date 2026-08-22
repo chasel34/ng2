@@ -1,0 +1,18 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "红"
+        }
+      ],
+      "type": "color",
+      "value": "red"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[color=red]红[/color]",
+  "name": "coverage-color",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

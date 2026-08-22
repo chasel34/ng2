@@ -1,0 +1,7 @@
+{
+  "expected": "{\"data\":{\"0\":\"\"},\"time\":1786111705}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"data\":{\"0\":\"\"},\"time\":1786111705}",
+  "name": "capture-noti-empty",
+  "note": "nuke.php __lib=noti __act=get_all，登录态，无未读"
+}

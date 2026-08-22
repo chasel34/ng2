@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "colors": [
+      "8ca2ef",
+      "ea68a1"
+    ],
+    "name": "卯邱潘巳邵卢"
+  },
+  "fn": "decodeAnonymousName",
+  "input": "#anony_d43225f5a338ca2efea68a14773537e6",
+  "name": "decode-hex-real-capture",
+  "note": "thread.php?fid=-7 真实响应里的匿名作者，与设计稿从真机转录的「卯邱潘」对得上"
+}

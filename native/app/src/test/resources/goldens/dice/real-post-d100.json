@@ -1,0 +1,24 @@
+{
+  "expected": [
+    {
+      "expression": "d100",
+      "sum": 74,
+      "terms": [
+        {
+          "faces": 100,
+          "kind": "roll",
+          "value": 74
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 65352962,
+    "pid": 869683556,
+    "text": "[dice]d100[/dice]",
+    "tid": 46868034
+  },
+  "name": "real-post-d100",
+  "note": "站上真帖对拍：楼主在下一楼写「74的现实偏离度」"
+}

@@ -1,0 +1,8 @@
+{
+  "expected": -7,
+  "fn": "signedBoardId",
+  "input": {
+    "value": 4294967289
+  },
+  "name": "signed-board-id-u32-minus-seven"
+}

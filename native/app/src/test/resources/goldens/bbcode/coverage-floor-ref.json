@@ -1,0 +1,23 @@
+{
+  "expected": [
+    {
+      "args": [
+        "1",
+        "2",
+        "3"
+      ],
+      "children": [
+        {
+          "type": "text",
+          "value": "Reply"
+        }
+      ],
+      "pid": "1",
+      "type": "floorRef"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[pid=1,2,3]Reply[/pid]",
+  "name": "coverage-floor-ref",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

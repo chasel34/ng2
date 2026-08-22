@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "code": "ac:goodjob",
+      "type": "smiley"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[s:ac:goodjob]",
+  "name": "smiley-known"
+}

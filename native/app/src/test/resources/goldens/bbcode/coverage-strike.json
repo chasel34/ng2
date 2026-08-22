@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "删除线"
+        }
+      ],
+      "type": "strike"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[del]删除线[/del]",
+  "name": "coverage-strike",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

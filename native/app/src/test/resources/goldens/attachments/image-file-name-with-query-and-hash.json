@@ -1,0 +1,6 @@
+{
+  "expected": "-7Qd36d-abcK2fT3cSu0-qo.jpg",
+  "fn": "imageFileName",
+  "input": "https://img.nga.cn/attachments/mon_202608/07/-7Qd36d-abcK2fT3cSu0-qo.jpg?x=1#f",
+  "name": "image-file-name-with-query-and-hash"
+}

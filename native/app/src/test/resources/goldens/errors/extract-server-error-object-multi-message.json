@@ -1,0 +1,16 @@
+{
+  "expected": {
+    "code": "?",
+    "message": "a；b"
+  },
+  "fn": "extractServerError",
+  "input": {
+    "error": {
+      "0": "a",
+      "1": "b",
+      "2": ""
+    }
+  },
+  "name": "extract-server-error-object-multi-message",
+  "note": "多条用；连起来"
+}

@@ -1,0 +1,9 @@
+{
+  "expected": "/topic/45150945",
+  "fn": "ngaLinkPath",
+  "input": {
+    "kind": "topic",
+    "tid": 45150945
+  },
+  "name": "path-topic-only-tid"
+}

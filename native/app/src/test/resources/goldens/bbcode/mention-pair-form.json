@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "mention",
+      "username": "小红"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[@]小红[/@]",
+  "name": "mention-pair-form"
+}

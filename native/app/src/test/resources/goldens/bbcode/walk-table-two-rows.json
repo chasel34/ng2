@@ -1,0 +1,50 @@
+{
+  "expected": [
+    {
+      "rows": [
+        {
+          "cells": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "甲"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "乙"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            }
+          ]
+        },
+        {
+          "cells": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "丙"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            }
+          ]
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[table][tr][td]甲[/td][td]乙[/td][/tr][tr][td]丙[/td][/tr][/table]",
+  "name": "walk-table-two-rows"
+}

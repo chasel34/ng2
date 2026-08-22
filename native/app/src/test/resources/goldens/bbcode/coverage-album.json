@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "type": "album",
+      "value": "[img]./a.jpg[/img][img]./b.jpg[/img]"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[album=相册][img]./a.jpg[/img][img]./b.jpg[/img][/album]",
+  "name": "coverage-album",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

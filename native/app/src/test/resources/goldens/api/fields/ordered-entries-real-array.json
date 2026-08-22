@@ -1,0 +1,26 @@
+{
+  "expected": [
+    [
+      "0",
+      "a"
+    ],
+    [
+      "1",
+      "c"
+    ],
+    [
+      "2",
+      "j"
+    ]
+  ],
+  "fn": "orderedEntries",
+  "input": {
+    "value": [
+      "a",
+      "c",
+      "j"
+    ]
+  },
+  "name": "ordered-entries-real-array",
+  "note": "__output=11 的 __T 是真数组——不认它整页会静默变 0 条"
+}

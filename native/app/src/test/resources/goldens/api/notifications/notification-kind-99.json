@@ -1,0 +1,9 @@
+{
+  "expected": "other",
+  "fn": "notificationKind",
+  "input": {
+    "type": 99
+  },
+  "name": "notification-kind-99",
+  "note": "API 文档 §9.1 的类型码枚举；认不出的进 other"
+}

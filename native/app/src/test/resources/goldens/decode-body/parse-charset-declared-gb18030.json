@@ -1,0 +1,8 @@
+{
+  "expected": "gb18030",
+  "fn": "parseCharset",
+  "input": {
+    "contentType": "text/html; charset=GB18030"
+  },
+  "name": "parse-charset-declared-gb18030"
+}

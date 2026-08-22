@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "大"
+        }
+      ],
+      "type": "size",
+      "value": "120%"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[size=120%]大[/size]",
+  "name": "size-percent-kept"
+}

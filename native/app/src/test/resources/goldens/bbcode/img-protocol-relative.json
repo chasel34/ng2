@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": false,
+      "src": "//img.nga.cn/a.jpg",
+      "type": "image",
+      "variant": "img"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[img]//img.nga.cn/a.jpg[/img]",
+  "name": "img-protocol-relative"
+}

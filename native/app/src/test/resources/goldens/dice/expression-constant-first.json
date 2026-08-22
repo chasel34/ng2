@@ -1,0 +1,27 @@
+{
+  "expected": [
+    {
+      "expression": "20+1d80",
+      "sum": 68,
+      "terms": [
+        {
+          "kind": "constant",
+          "value": 20
+        },
+        {
+          "faces": 80,
+          "kind": "roll",
+          "value": 48
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]20+1d80[/dice]",
+    "tid": 45150945
+  },
+  "name": "expression-constant-first"
+}

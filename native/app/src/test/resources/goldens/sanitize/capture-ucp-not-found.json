@@ -1,0 +1,7 @@
+{
+  "expected": "{\"error\":{\"0\":\"找不到用户\"},\"time\":1786111727}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"error\":{\"0\":\"找不到用户\"},\"time\":1786111727}",
+  "name": "capture-ucp-not-found",
+  "note": "不存在的 uid → {\"error\":{\"0\":\"找不到用户\"}}，命中假错误白名单"
+}

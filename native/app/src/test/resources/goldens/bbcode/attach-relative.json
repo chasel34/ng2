@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": true,
+      "src": "mon_202608/07/f.zip",
+      "type": "attach"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[attach]./mon_202608/07/f.zip[/attach]",
+  "name": "attach-relative"
+}

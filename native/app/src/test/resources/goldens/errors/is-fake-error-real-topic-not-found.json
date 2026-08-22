@@ -1,0 +1,6 @@
+{
+  "expected": false,
+  "fn": "isFakeError",
+  "input": "找不到主题",
+  "name": "is-fake-error-real-topic-not-found"
+}

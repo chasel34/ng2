@@ -1,0 +1,6 @@
+{
+  "expected": "乙卞席戊牟辛",
+  "fn": "resolveAuthorName",
+  "input": "#anony_1e2d3c4b5a69788796a5b4c3d2e1f0aa",
+  "name": "resolve-author-hex-random-2"
+}

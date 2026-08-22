@@ -1,0 +1,31 @@
+{
+  "expected": {
+    "endAt": 1786100000,
+    "id": "a",
+    "startAt": 1786000000,
+    "title": "限时活动"
+  },
+  "fn": "pickActiveAnnouncement",
+  "input": {
+    "announcements": [
+      {
+        "endAt": 1786100000,
+        "id": "a",
+        "startAt": 1786000000,
+        "title": "限时活动"
+      },
+      {
+        "id": "b",
+        "title": "长期公告"
+      },
+      {
+        "id": "c",
+        "startAt": 1900000000,
+        "title": "未来的"
+      }
+    ],
+    "now": 1786050000000
+  },
+  "name": "pick-active-announcement-inside-window",
+  "note": "now 是毫秒，服务端字段是秒"
+}

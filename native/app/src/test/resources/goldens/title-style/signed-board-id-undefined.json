@@ -1,0 +1,8 @@
+{
+  "expected": null,
+  "fn": "signedBoardId",
+  "input": {
+    "value": null
+  },
+  "name": "signed-board-id-undefined"
+}

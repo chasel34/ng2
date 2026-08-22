@@ -1,0 +1,45 @@
+{
+  "expected": {
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": true,
+            "id": "1",
+            "points": 0,
+            "title": "甲",
+            "votes": 5
+          },
+          {
+            "chosen": false,
+            "id": "2",
+            "points": 0,
+            "title": "乙",
+            "votes": 3
+          },
+          {
+            "chosen": true,
+            "id": "3",
+            "points": 0,
+            "title": "丙",
+            "votes": 1
+          }
+        ],
+        "votes": 9
+      }
+    ],
+    "kind": "vote",
+    "maxSelect": 2,
+    "multiple": true,
+    "resultAfterEnd": false,
+    "resultAfterVote": false,
+    "totalVotes": 9,
+    "voters": 9
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "1~甲~2~乙~3~丙~max_select~2~done~1,3~_1~5,0,9~_2~3,0,0~_3~1,0,0",
+    "tid": 47331456
+  },
+  "name": "parse-done-marks-chosen"
+}

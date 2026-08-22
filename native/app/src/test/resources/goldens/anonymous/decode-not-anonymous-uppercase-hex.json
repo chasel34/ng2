@@ -1,0 +1,7 @@
+{
+  "expected": null,
+  "fn": "decodeAnonymousName",
+  "input": "#anony_0123456789ABCDEF0123456789ABCDEF",
+  "name": "decode-not-anonymous-uppercase-hex",
+  "note": "官方正则只认小写"
+}

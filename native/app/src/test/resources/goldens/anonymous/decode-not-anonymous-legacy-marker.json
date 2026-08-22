@@ -1,0 +1,6 @@
+{
+  "expected": null,
+  "fn": "decodeAnonymousName",
+  "input": "#ANONYMOUS#",
+  "name": "decode-not-anonymous-legacy-marker"
+}

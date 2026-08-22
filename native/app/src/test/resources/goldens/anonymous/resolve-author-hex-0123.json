@@ -1,0 +1,6 @@
+{
+  "expected": "甲高傅庚聂涂",
+  "fn": "resolveAuthorName",
+  "input": "#anony_0123456789abcdef0123456789abcdef",
+  "name": "resolve-author-hex-0123"
+}

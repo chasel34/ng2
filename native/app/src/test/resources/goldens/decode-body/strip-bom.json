@@ -1,0 +1,11 @@
+{
+  "expected": "{\"a\":1}",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "77u/eyJhIjoxfQ==",
+    "contentType": "application/json"
+  },
+  "inputEncoding": "base64",
+  "name": "strip-bom",
+  "note": "BOM 要剥掉"
+}

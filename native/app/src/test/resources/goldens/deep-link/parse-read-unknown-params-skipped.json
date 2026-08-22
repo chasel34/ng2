@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "link": {
+      "kind": "topic",
+      "page": 2,
+      "tid": 45150945
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "https://ngabbs.com/read.php?opt=512&page=2&authorid=41417929&tid=45150945",
+  "name": "parse-read-unknown-params-skipped"
+}

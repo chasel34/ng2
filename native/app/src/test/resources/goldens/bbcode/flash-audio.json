@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "media": "audio",
+      "needsAttachBase": false,
+      "src": "https://v.cn/a.mp3",
+      "type": "flash"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[flash=audio]https://v.cn/a.mp3[/flash]",
+  "name": "flash-audio"
+}

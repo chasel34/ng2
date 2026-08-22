@@ -1,0 +1,6 @@
+{
+  "expected": "[quote]引用[/quote]",
+  "fn": "escapeForSubmit",
+  "input": "[quote]引用[/quote]",
+  "name": "escape-for-submit-roundtrip-quote"
+}

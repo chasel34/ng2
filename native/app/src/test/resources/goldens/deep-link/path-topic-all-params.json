@@ -1,0 +1,12 @@
+{
+  "expected": "/topic/1?page=3&pid=22&fav=ab12",
+  "fn": "ngaLinkPath",
+  "input": {
+    "fav": "ab12",
+    "kind": "topic",
+    "page": 3,
+    "pid": 22,
+    "tid": 1
+  },
+  "name": "path-topic-all-params"
+}

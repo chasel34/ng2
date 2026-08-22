@@ -1,0 +1,6 @@
+{
+  "expected": null,
+  "fn": "extractServerError",
+  "input": "not an object",
+  "name": "extract-server-error-not-a-record"
+}

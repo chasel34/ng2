@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "😄 <tag>"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "&amp;#55357;&amp;#56836; &lt;tag&gt;",
+  "name": "double-entity-decode",
+  "note": "文本走两轮实体解码"
+}

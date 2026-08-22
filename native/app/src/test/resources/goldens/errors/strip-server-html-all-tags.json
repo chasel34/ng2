@@ -1,0 +1,6 @@
+{
+  "expected": "",
+  "fn": "stripServerHtml",
+  "input": "<br/>",
+  "name": "strip-server-html-all-tags"
+}

@@ -1,0 +1,18 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "某人"
+        }
+      ],
+      "type": "userRef",
+      "uid": "123"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[uid=123]某人[/uid]",
+  "name": "coverage-user-ref",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

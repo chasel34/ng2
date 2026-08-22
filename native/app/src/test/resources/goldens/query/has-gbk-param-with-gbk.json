@@ -1,0 +1,13 @@
+{
+  "expected": true,
+  "fn": "hasGbkParam",
+  "input": {
+    "author": {
+      "charset": "gbk",
+      "value": "原神"
+    },
+    "fid": 1
+  },
+  "name": "has-gbk-param-with-gbk",
+  "note": "命中 = 要声明 charset=GBK 并撤掉 __inchst=UTF8"
+}

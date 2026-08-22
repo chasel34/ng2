@@ -1,0 +1,15 @@
+{
+  "expected": "https://img.example.test/att/mon_202607/21/a.jpg",
+  "fn": "attachmentUrl",
+  "input": {
+    "options": {
+      "base": "https://img.example.test/att"
+    },
+    "ref": {
+      "needsAttachBase": true,
+      "src": "mon_202607/21/a.jpg"
+    }
+  },
+  "name": "attachment-url-relative-with-other-base",
+  "note": "目标基址只从响应来：换基址就换域名"
+}

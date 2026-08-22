@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "内容"
+        }
+      ],
+      "type": "box",
+      "variant": "item"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[item]内容[/item]",
+  "name": "box-item"
+}

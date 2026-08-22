@@ -1,0 +1,14 @@
+{
+  "expected": "https://img.nga.cn/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png",
+  "fn": "attachmentUrl",
+  "input": {
+    "options": {
+      "base": "https://img.nga.cn/attachments"
+    },
+    "ref": {
+      "needsAttachBase": false,
+      "src": "https://img.nga.178.com/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png"
+    }
+  },
+  "name": "attachment-url-legacy-domain-rehosted"
+}

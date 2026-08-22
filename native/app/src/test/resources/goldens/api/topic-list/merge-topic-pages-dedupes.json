@@ -1,0 +1,219 @@
+{
+  "expected": [
+    {
+      "anonymous": false,
+      "author": "nga_user",
+      "denied": false,
+      "hasAttachment": false,
+      "isBoardMirror": false,
+      "isCollection": false,
+      "lastPostAt": 1786000000,
+      "locked": false,
+      "postedAt": 1786000000,
+      "replies": 0,
+      "subject": "主题 1",
+      "tid": 1,
+      "titleStyle": {
+        "bold": false,
+        "italic": false,
+        "underline": false
+      }
+    },
+    {
+      "anonymous": false,
+      "author": "nga_user",
+      "denied": false,
+      "hasAttachment": false,
+      "isBoardMirror": false,
+      "isCollection": false,
+      "lastPostAt": 1786000000,
+      "locked": false,
+      "postedAt": 1786000000,
+      "replies": 0,
+      "subject": "主题 2",
+      "tid": 2,
+      "titleStyle": {
+        "bold": false,
+        "italic": false,
+        "underline": false
+      }
+    },
+    {
+      "anonymous": false,
+      "author": "nga_user",
+      "denied": false,
+      "hasAttachment": false,
+      "isBoardMirror": false,
+      "isCollection": false,
+      "lastPostAt": 1786000000,
+      "locked": false,
+      "postedAt": 1786000000,
+      "replies": 0,
+      "subject": "主题 3",
+      "tid": 3,
+      "titleStyle": {
+        "bold": false,
+        "italic": false,
+        "underline": false
+      }
+    },
+    {
+      "anonymous": false,
+      "author": "nga_user",
+      "denied": false,
+      "hasAttachment": false,
+      "isBoardMirror": false,
+      "isCollection": false,
+      "lastPostAt": 1786000000,
+      "locked": false,
+      "postedAt": 1786000000,
+      "replies": 0,
+      "subject": "主题 4",
+      "tid": 4,
+      "titleStyle": {
+        "bold": false,
+        "italic": false,
+        "underline": false
+      }
+    }
+  ],
+  "fn": "mergeTopicPages",
+  "input": {
+    "value": [
+      {
+        "listStructure": true,
+        "rowsPerPage": 20,
+        "subBoards": [],
+        "topics": [
+          {
+            "anonymous": false,
+            "author": "nga_user",
+            "denied": false,
+            "hasAttachment": false,
+            "isBoardMirror": false,
+            "isCollection": false,
+            "lastPostAt": 1786000000,
+            "locked": false,
+            "postedAt": 1786000000,
+            "replies": 0,
+            "subject": "主题 1",
+            "tid": 1,
+            "titleStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          },
+          {
+            "anonymous": false,
+            "author": "nga_user",
+            "denied": false,
+            "hasAttachment": false,
+            "isBoardMirror": false,
+            "isCollection": false,
+            "lastPostAt": 1786000000,
+            "locked": false,
+            "postedAt": 1786000000,
+            "replies": 0,
+            "subject": "主题 2",
+            "tid": 2,
+            "titleStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          },
+          {
+            "anonymous": false,
+            "author": "nga_user",
+            "denied": false,
+            "hasAttachment": false,
+            "isBoardMirror": false,
+            "isCollection": false,
+            "lastPostAt": 1786000000,
+            "locked": false,
+            "postedAt": 1786000000,
+            "replies": 0,
+            "subject": "主题 3",
+            "tid": 3,
+            "titleStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          }
+        ],
+        "totalPages": 2,
+        "totalRows": 40
+      },
+      {
+        "listStructure": true,
+        "rowsPerPage": 20,
+        "subBoards": [],
+        "topics": [
+          {
+            "anonymous": false,
+            "author": "nga_user",
+            "denied": false,
+            "hasAttachment": false,
+            "isBoardMirror": false,
+            "isCollection": false,
+            "lastPostAt": 1786000000,
+            "locked": false,
+            "postedAt": 1786000000,
+            "replies": 0,
+            "subject": "主题 2",
+            "tid": 2,
+            "titleStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          },
+          {
+            "anonymous": false,
+            "author": "nga_user",
+            "denied": false,
+            "hasAttachment": false,
+            "isBoardMirror": false,
+            "isCollection": false,
+            "lastPostAt": 1786000000,
+            "locked": false,
+            "postedAt": 1786000000,
+            "replies": 0,
+            "subject": "主题 3",
+            "tid": 3,
+            "titleStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          },
+          {
+            "anonymous": false,
+            "author": "nga_user",
+            "denied": false,
+            "hasAttachment": false,
+            "isBoardMirror": false,
+            "isCollection": false,
+            "lastPostAt": 1786000000,
+            "locked": false,
+            "postedAt": 1786000000,
+            "replies": 0,
+            "subject": "主题 4",
+            "tid": 4,
+            "titleStyle": {
+              "bold": false,
+              "italic": false,
+              "underline": false
+            }
+          }
+        ],
+        "totalPages": 2,
+        "totalRows": 40
+      }
+    ]
+  },
+  "name": "merge-topic-pages-dedupes",
+  "note": "置顶主题与版块镜像行每页都会再回来一次（实测 fid=-7 第 1、2 页重叠 20 条），必须按 tid 去重"
+}

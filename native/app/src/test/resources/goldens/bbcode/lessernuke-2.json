@@ -1,0 +1,18 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "内容"
+        }
+      ],
+      "punishment": "topic",
+      "type": "box",
+      "variant": "lessernuke"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[lessernuke2]内容[/lessernuke2]",
+  "name": "lessernuke-2"
+}

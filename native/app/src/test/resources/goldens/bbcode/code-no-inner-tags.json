@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "type": "code",
+      "value": "if (a < b) [b]x[/b]"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[code]if (a &lt; b) [b]x[/b][/code]",
+  "name": "code-no-inner-tags",
+  "note": "[code] 内只做实体解码"
+}

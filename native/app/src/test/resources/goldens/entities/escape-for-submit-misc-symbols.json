@@ -1,0 +1,6 @@
+{
+  "expected": "&#9728;&#9730;&#10175;",
+  "fn": "escapeForSubmit",
+  "input": "☀☂➿",
+  "name": "escape-for-submit-misc-symbols"
+}

@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "前ab后"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "前[stripbr]a<br/>b[/stripbr]后",
+  "name": "stripbr-basic"
+}

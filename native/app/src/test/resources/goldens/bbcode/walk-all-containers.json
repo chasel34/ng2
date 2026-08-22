@@ -1,0 +1,80 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "开头"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "粗"
+        }
+      ],
+      "type": "bold"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "引用"
+        }
+      ],
+      "type": "quote"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "折叠"
+        }
+      ],
+      "title": "提要",
+      "type": "collapse"
+    },
+    {
+      "items": [
+        [
+          {
+            "type": "text",
+            "value": "甲"
+          }
+        ]
+      ],
+      "ordered": false,
+      "type": "list"
+    },
+    {
+      "rows": [
+        {
+          "cells": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "格子"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            }
+          ]
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "align": "center",
+      "children": [
+        {
+          "type": "text",
+          "value": "居中"
+        }
+      ],
+      "type": "align"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "开头[b]粗[/b][quote]引用[/quote][collapse=提要]折叠[/collapse][list][*]甲[/list][table][tr][td]格子[/td][/tr][/table][align=center]居中[/align]",
+  "name": "walk-all-containers"
+}

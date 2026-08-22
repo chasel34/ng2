@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "empty"
+  },
+  "fn": "parseNgaLink",
+  "input": "   ",
+  "name": "parse-blank"
+}

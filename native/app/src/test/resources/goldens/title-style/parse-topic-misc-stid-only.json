@@ -1,0 +1,10 @@
+{
+  "expected": {
+    "stid": 32871539
+  },
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": "AgH1lHM"
+  },
+  "name": "parse-topic-misc-stid-only"
+}

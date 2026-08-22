@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "bold": true,
+    "color": "red",
+    "italic": false,
+    "underline": false
+  },
+  "fn": "decodeTitleStyle",
+  "input": {
+    "topicMisc": "AQAAACE"
+  },
+  "name": "decode-title-style-topic-misc-red-bold",
+  "note": "真实抓包：置顶主题掩码 0x21"
+}

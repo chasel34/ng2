@@ -1,0 +1,8 @@
+{
+  "expected": 0,
+  "fn": "signedBoardId",
+  "input": {
+    "value": 0
+  },
+  "name": "signed-board-id-zero"
+}

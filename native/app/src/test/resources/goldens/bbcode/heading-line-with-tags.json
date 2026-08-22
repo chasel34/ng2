@@ -1,0 +1,29 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "第"
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "一"
+            }
+          ],
+          "type": "bold"
+        },
+        {
+          "type": "text",
+          "value": "章"
+        }
+      ],
+      "type": "heading"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "===第[b]一[/b]章===",
+  "name": "heading-line-with-tags"
+}

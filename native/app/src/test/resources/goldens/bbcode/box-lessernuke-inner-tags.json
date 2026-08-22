@@ -1,0 +1,23 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "警告"
+            }
+          ],
+          "type": "bold"
+        }
+      ],
+      "punishment": "post",
+      "type": "box",
+      "variant": "lessernuke"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[lessernuke][b]警告[/b][/lessernuke]",
+  "name": "box-lessernuke-inner-tags"
+}

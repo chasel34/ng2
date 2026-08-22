@@ -1,0 +1,8 @@
+{
+  "expected": "https://img.nga.cn/avatars/a.jpg",
+  "fn": "parseAvatarUrl",
+  "input": {
+    "raw": "https:\\/\\/img.nga.cn\\/avatars\\/a.jpg"
+  },
+  "name": "parse-avatar-url-escaped-slashes"
+}

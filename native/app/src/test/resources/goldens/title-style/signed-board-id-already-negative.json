@@ -1,0 +1,8 @@
+{
+  "expected": -7,
+  "fn": "signedBoardId",
+  "input": {
+    "value": -7
+  },
+  "name": "signed-board-id-already-negative"
+}

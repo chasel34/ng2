@@ -1,0 +1,16 @@
+{
+  "expected": {
+    "throws": {
+      "code": "?",
+      "kind": "server",
+      "message": "访问速度过快",
+      "retryable": false
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "{\"error\":[\"访问速度过快\"]}"
+  },
+  "name": "error-array-form",
+  "note": "PHP 数组形态的 error（2026-08-13 版块全空排查）"
+}

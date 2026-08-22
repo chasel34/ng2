@@ -1,0 +1,6 @@
+{
+  "expected": "&zzz; &#; 100&50",
+  "fn": "unescapeNgaText",
+  "input": "&zzz; &#; 100&50",
+  "name": "unescape-unknown-entities-kept"
+}

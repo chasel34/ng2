@@ -1,0 +1,9 @@
+{
+  "expected": "fid=650&page=1",
+  "fn": "buildQueryString",
+  "input": {
+    "fid": 650,
+    "page": 1
+  },
+  "name": "build-query-string-plain-params"
+}

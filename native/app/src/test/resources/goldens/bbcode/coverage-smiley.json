@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "code": "ac:blink",
+      "type": "smiley"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[s:ac:blink]",
+  "name": "coverage-smiley",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": true,
+  "fn": "isFakeError",
+  "input": "操作完毕，正在跳转",
+  "name": "is-fake-error-fake-substring-action-done"
+}

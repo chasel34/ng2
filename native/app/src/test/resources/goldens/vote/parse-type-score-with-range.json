@@ -1,0 +1,35 @@
+{
+  "expected": {
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "1",
+            "points": 18,
+            "title": "画面",
+            "votes": 4
+          }
+        ],
+        "votes": 4
+      }
+    ],
+    "kind": "score",
+    "maxSelect": 1,
+    "multiple": false,
+    "resultAfterEnd": false,
+    "resultAfterVote": false,
+    "scoreRange": {
+      "max": 5,
+      "min": 1
+    },
+    "totalVotes": 4,
+    "voters": 4
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "1~画面~_1~4,18,4~type~2~min~1~max~5",
+    "tid": 47331456
+  },
+  "name": "parse-type-score-with-range"
+}

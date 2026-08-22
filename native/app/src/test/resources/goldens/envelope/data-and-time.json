@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "data": {
+      "0": "ok"
+    },
+    "time": 1786111705
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "{\"data\":{\"0\":\"ok\"},\"time\":1786111705}"
+  },
+  "name": "data-and-time"
+}

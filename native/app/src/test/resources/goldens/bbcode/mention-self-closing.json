@@ -1,0 +1,19 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "回复 "
+    },
+    {
+      "type": "mention",
+      "username": "小明"
+    },
+    {
+      "type": "text",
+      "value": " 你好"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "回复 [@小明] 你好",
+  "name": "mention-self-closing"
+}

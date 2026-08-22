@@ -1,0 +1,8 @@
+{
+  "expected": {},
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": 42
+  },
+  "name": "parse-topic-misc-number"
+}

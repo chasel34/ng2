@@ -1,0 +1,6 @@
+{
+  "expected": "a <b> \"c\"",
+  "fn": "unescapeNgaText",
+  "input": "a &lt;b&gt; &quot;c&quot;",
+  "name": "unescape-named-entities"
+}

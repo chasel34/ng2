@@ -1,0 +1,24 @@
+{
+  "expected": [
+    {
+      "expression": "d100",
+      "sum": 35,
+      "terms": [
+        {
+          "faces": 100,
+          "kind": "roll",
+          "value": 35
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 1,
+    "pid": 200188932,
+    "text": "[collapse=提要][dice]d100[/dice][/collapse]",
+    "tid": 10246184
+  },
+  "name": "collapse-old-topic-no-offset",
+  "note": "seedOffset 只对新帖生效（tid>10246184 或 pid>200188932）"
+}

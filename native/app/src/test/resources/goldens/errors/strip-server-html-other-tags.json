@@ -1,0 +1,6 @@
+{
+  "expected": "权限不足：需要 5 级",
+  "fn": "stripServerHtml",
+  "input": "<b>权限不足</b>：<span style=\"color:red\">需要 5 级</span>",
+  "name": "strip-server-html-other-tags"
+}

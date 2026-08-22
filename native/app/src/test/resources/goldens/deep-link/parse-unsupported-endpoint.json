@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "unsupported-path"
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/nuke.php?func=ucp&uid=1",
+  "name": "parse-unsupported-endpoint"
+}

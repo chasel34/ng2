@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "link": {
+      "boardKind": "board",
+      "id": 650,
+      "kind": "board"
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "/thread.php?fid=650",
+  "name": "parse-no-scheme-absolute-path"
+}

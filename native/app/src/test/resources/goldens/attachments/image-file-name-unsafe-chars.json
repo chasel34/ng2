@@ -1,0 +1,6 @@
+{
+  "expected": "a_b_c.png",
+  "fn": "imageFileName",
+  "input": "https://example.com/a\"b|c.png",
+  "name": "image-file-name-unsafe-chars"
+}

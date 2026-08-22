@@ -1,0 +1,11 @@
+{
+  "expected": {
+    "code": "?",
+    "message": "未登录"
+  },
+  "fn": "extractServerError",
+  "input": {
+    "error": "<b>未登录</b>"
+  },
+  "name": "extract-server-error-string-form"
+}

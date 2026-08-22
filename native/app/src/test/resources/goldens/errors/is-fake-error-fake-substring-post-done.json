@@ -1,0 +1,6 @@
+{
+  "expected": true,
+  "fn": "isFakeError",
+  "input": "发贴完毕",
+  "name": "is-fake-error-fake-substring-post-done"
+}

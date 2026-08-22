@@ -1,0 +1,7 @@
+{
+  "expected": "😄",
+  "fn": "unescapeNgaText",
+  "input": "&amp;#55357;&amp;#56836;",
+  "name": "unescape-double-escaped-emoji",
+  "note": "NGA 双重转义 → 解两遍"
+}

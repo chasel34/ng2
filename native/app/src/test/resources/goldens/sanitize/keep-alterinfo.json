@@ -1,0 +1,7 @@
+{
+  "expected": "{\"pid\":1,\"alterinfo\":\"[E1748252294 0 0]\\t\",\"lou\":3}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"pid\":1,\"alterinfo\":\"[E1748252294 0 0]\t\",\"lou\":3}",
+  "name": "keep-alterinfo",
+  "note": "刻意不删 alterinfo（上游删是因为没有第 7 步）——删了就丢「已编辑」标记"
+}

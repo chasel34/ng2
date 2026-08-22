@@ -1,0 +1,6 @@
+{
+  "expected": "mon_202607/21/thumb.jpg",
+  "fn": "stripThumbnailSuffix",
+  "input": "mon_202607/21/thumb.jpg",
+  "name": "strip-thumbnail-suffix-filename-called-thumb"
+}

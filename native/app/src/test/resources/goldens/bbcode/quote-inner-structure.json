@@ -1,0 +1,25 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "Post by 张三"
+            }
+          ],
+          "type": "bold"
+        },
+        {
+          "type": "text",
+          "value": "内容"
+        }
+      ],
+      "type": "quote"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[quote][b]Post by 张三[/b]内容[/quote]",
+  "name": "quote-inner-structure"
+}

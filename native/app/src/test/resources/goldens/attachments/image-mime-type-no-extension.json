@@ -1,0 +1,6 @@
+{
+  "expected": "image/jpeg",
+  "fn": "imageMimeType",
+  "input": "noext",
+  "name": "image-mime-type-no-extension"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": "a.php.jpg",
+  "fn": "imageFileName",
+  "input": "https://example.com/a.php",
+  "name": "image-file-name-php-extension"
+}

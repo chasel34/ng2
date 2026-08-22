@@ -1,0 +1,18 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "藏起来的话"
+        }
+      ],
+      "title": "提要",
+      "type": "collapse"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[collapse=提要]藏起来的话[/collapse]",
+  "name": "coverage-collapse",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}
