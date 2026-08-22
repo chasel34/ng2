@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
- * 真实抓包样本（2026-08-07 / 08-08，bbs.nga.cn，用 .env.local 的测试账号 curl 取得）。
+ * 真实抓包样本（2026-08-07 / 08-08 / 08-22，bbs.nga.cn，用 .env.local 的测试账号 curl 取得）。
  *
  * 文件存的是**原始响应字节**（多数是 GBK），不是 UTF-8 文本——解码本身就是被测对象。
  * 已脱敏：抓包账号的 uid（出现在 `__CU` / 网页版的 `__CURRENT_UID` 里）统一替换成
@@ -81,11 +81,42 @@ export const NET_FIXTURES = {
     file: 'read-web-attachments.gbk.bin',
     note: 'read.php tid=47328470 page=1 v2=1，无格式参数（网页 HTML），登录态',
   },
-  /** tid=1：网页版的错误页，错误码/文案夹在 `<!--msgcodestart-->` 一类注释标记里。 */
+  /**
+   * tid=1：网页版的错误页，错误码/文案夹在 `<!--msgcodestart-->` 一类注释标记里。
+   *
+   * **这是 Web 反解档的「坏样本」，故意留着**（ADR-0002 第 9 条）。2026-08-22 票 08
+   * 重验时按同样的请求又抓了一次，拿回来的字节与本文件**逐字节相同**（`cmp` 无输出），
+   * 所以没有再存一份重复的——这一份既是 2026-08-08 的样本，也是 2026-08-22 的样本。
+   */
   readWebNotFound: {
     contentType: 'text/html; charset=GB18030',
     file: 'read-web-not-found.gbk.bin',
     note: 'read.php tid=1，无格式参数 → msgcode 2048 找不到主题',
+  },
+
+  /**
+   * ── 2026-08-22 重验样本（票 08）─────────────────────────────────────────────
+   *
+   * `read-html.ts:52-68` 那张 `commonui.postArg.proc` 参数位置表全网无第二份文档，
+   * 是移植前必须重新验证的东西（spec §七.5）。做法是**对同一主题页并发**抓两份：
+   * 不带格式参数的网页 HTML 与 `__output=8` 的 JSON，逐字段对齐。
+   *
+   * 两份是**同一时刻同一主题**的，所以可以直接对拍（`read-html.test.ts` 里那条
+   * 「与同刻 `__output=8` 逐字段相等」的用例吃的就是这一对）。结论：**参数表没变**。
+   *
+   * 这个主题在既有语料里补的是一个空档：**实名楼主、无附件、无贴条、无热回、
+   * 主楼带 `subject`**，`from_client` 是 `'0 /'`（旧客户端）与 `'7 iOS'` 混着。
+   */
+  readWebRevalidate: {
+    contentType: 'text/html; charset=GBK',
+    file: 'read-web-revalidate-45150945.gbk.bin',
+    note: 'read.php tid=45150945 page=1，无格式参数（网页 HTML），2026-08-22 重验抓包',
+  },
+  /** 与 `readWebRevalidate` **同刻同主题**的 `__output=8` 响应，参数位置表的对拍基准。 */
+  readJsonRevalidate: {
+    contentType: 'text/javascript; charset=GBK',
+    file: 'read-json-revalidate-45150945.gbk.bin',
+    note: 'read.php tid=45150945 page=1 __output=8，2026-08-22 重验抓包（与网页 HTML 并发取得）',
   },
 } as const satisfies Record<string, NetFixture>
 

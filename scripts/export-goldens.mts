@@ -50,6 +50,7 @@ import {
 import { buildQueryString, gbk, hasGbkParam, type QueryParams } from '../src/core/net/query'
 import { sanitizeNgaJson } from '../src/core/net/sanitize'
 import { stripServerHtml } from '../src/core/net/server-text'
+import { parseReadPageHtml } from '../src/core/net/web/read-html'
 
 import { formatDiceTerms, resolveDice, type DiceSeed, type DiceTerm } from '../src/core/local/dice'
 import {
@@ -634,6 +635,64 @@ function exportDecodeBody(): void {
     apiFixtureContentType('threadListBusyVerbose'),
     '同一页的 __output=11 替身，解得干干净净',
   )
+}
+
+// ===========================================================================
+// domain: web —— read.php 网页版 HTML 反解（票 08，ADR-0002 / API 文档 §0.8）
+// ===========================================================================
+
+/**
+ * `input` 是**解码后的整页 HTML 文本**（不是原始字节：解码由 `decode-body` domain 管），
+ * `expected` 是信封的 `data`。
+ *
+ * **`root` 故意不进 `expected`**：`parseReadPageHtml` 的 `root` 就是 `{ data }`
+ * ——同一份东西存两遍只让每条 golden 体积翻倍（理由同 `envelope` domain）。
+ *
+ * 坏样本（`not-found`）期望抛错：网页版的服务端语义错误夹在 `<!--msgcodestart-->`
+ * 注释标记里，`kind:'server'`、不可重试。**这一份是故意留着的**（ADR-0002 第 9 条）。
+ */
+function exportWeb(): void {
+  const fixtures: [name: string, fixture: NetFixtureName][] = [
+    ['anonymous-hot-reply', 'readWebAnonymousHotReply'],
+    ['comment', 'readWebComment'],
+    ['attachments', 'readWebAttachments'],
+    ['revalidate-45150945', 'readWebRevalidate'],
+    ['not-found', 'readWebNotFound'],
+  ]
+  for (const [name, fixture] of fixtures) {
+    const text = decodeResponseBody(readNetFixtureBytes(fixture), netFixtureContentType(fixture))
+    emit('web', {
+      name,
+      fn: 'parseReadPageHtml',
+      input: { text, via: 'web-fallback' },
+      expected: outcome(() => parseReadPageHtml(text, 'web-fallback').data),
+      note: NET_FIXTURES[fixture].note,
+    })
+  }
+
+  // 一楼都没反解出来 = 大概率被封（`kind:'parse'`，可重试，链继续往下走）。
+  // 合成向量而不是抓包：真被封时拿回来的是什么页面无法预先取样。
+  const synthetic: [name: string, html: string, note: string][] = [
+    [
+      'no-floors',
+      '<html><body>nothing here</body></html>',
+      '不是一张 read.php 网页 → kind:parse（可重试），链接着往下走而不是当场收手',
+    ],
+    [
+      'empty-body',
+      '',
+      '空响应同上：反解不出楼层就是 parse 错误，不是 server 错误',
+    ],
+  ]
+  for (const [name, html, note] of synthetic) {
+    emit('web', {
+      name,
+      fn: 'parseReadPageHtml',
+      input: { text: html, via: 'web-fallback' },
+      expected: outcome(() => parseReadPageHtml(html, 'web-fallback').data),
+      note,
+    })
+  }
 }
 
 // ===========================================================================
@@ -2859,6 +2918,7 @@ function exportAll(): Map<string, string> {
   exportEnvelope()
   exportErrors()
   exportDecodeBody()
+  exportWeb()
   exportEntities()
   exportBBCode()
   exportDice()

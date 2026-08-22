@@ -1,0 +1,17 @@
+{
+  "expected": {
+    "throws": {
+      "kind": "parse",
+      "message": "Web 反解没有找到任何楼层",
+      "retryable": true,
+      "via": "web-fallback"
+    }
+  },
+  "fn": "parseReadPageHtml",
+  "input": {
+    "text": "",
+    "via": "web-fallback"
+  },
+  "name": "empty-body",
+  "note": "空响应同上：反解不出楼层就是 parse 错误，不是 server 错误"
+}

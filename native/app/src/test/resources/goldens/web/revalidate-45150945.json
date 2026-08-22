@@ -1,0 +1,328 @@
+{
+  "expected": {
+    "__F": {
+      "name": "网站开发A"
+    },
+    "__GLOBAL": {
+      "_ATTACH_BASE_VIEW": "img.nga.cn/attachments"
+    },
+    "__PAGE": 1,
+    "__R": {
+      "0": {
+        "authorid": "41417929",
+        "content": "测试测试zsbd",
+        "content_length": 12,
+        "from_client": "0 /",
+        "lou": 0,
+        "pid": 0,
+        "postdate": "2025-09-18 23:55",
+        "postdatetimestamp": 1758210953,
+        "score": 0,
+        "subject": "[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签",
+        "type": 33554432
+      },
+      "1": {
+        "authorid": "41417929",
+        "content": "[quote][tid=45150945]Topic[/tid] [b]Post by [uid=41417929]BugenZhao[/uid] (2025-09-18 23:55):[/b]<br/><br/>测试测试zsbd[/quote]<br/><br/>测试回复zsbd",
+        "content_length": 17,
+        "from_client": "7 iOS",
+        "lou": 1,
+        "pid": 841045175,
+        "postdate": "2025-09-20 14:50",
+        "postdatetimestamp": 1758351000,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "10": {
+        "alterinfo": "[E1762445198 0 0]\t",
+        "authorid": "41417929",
+        "content": "[@BugenZhao]<br/><br/>[@BugenZhao    ]<br/><br/>[@41417929]",
+        "content_length": 29,
+        "from_client": "0 /",
+        "lou": 10,
+        "pid": 846801800,
+        "postdate": "2025-11-06 23:52",
+        "postdatetimestamp": 1762444321,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "11": {
+        "authorid": "41417929",
+        "content": "[@BugenZhao]",
+        "content_length": 10,
+        "from_client": "0 /",
+        "lou": 11,
+        "pid": 846917801,
+        "postdate": "2025-11-07 23:18",
+        "postdatetimestamp": 1762528699,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "12": {
+        "alterinfo": "[E1762592109 0 0]\t",
+        "authorid": "41417929",
+        "content": "[@41417929]  <br/>[@BugenZhao]",
+        "content_length": 19,
+        "from_client": "0 /",
+        "lou": 12,
+        "pid": 846977351,
+        "postdate": "2025-11-08 16:54",
+        "postdatetimestamp": 1762592058,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "13": {
+        "authorid": "41417929",
+        "content": "测试回复！！",
+        "content_length": 12,
+        "from_client": "0 /",
+        "lou": 13,
+        "pid": 847017534,
+        "postdate": "2025-11-09 01:36",
+        "postdatetimestamp": 1762623371,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "14": {
+        "authorid": "41417929",
+        "content": "再次测试发帖！",
+        "content_length": 14,
+        "from_client": "0 /",
+        "lou": 14,
+        "pid": 847017587,
+        "postdate": "2025-11-09 01:37",
+        "postdatetimestamp": 1762623452,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "15": {
+        "authorid": "41417929",
+        "content": "又一次测试发帖。",
+        "content_length": 16,
+        "from_client": "7 iOS",
+        "lou": 15,
+        "pid": 847018305,
+        "postdate": "2025-11-09 01:57",
+        "postdatetimestamp": 1762624651,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "16": {
+        "authorid": "41417929",
+        "content": "测试发帖再次。",
+        "content_length": 14,
+        "from_client": "0 /",
+        "lou": 16,
+        "pid": 847018394,
+        "postdate": "2025-11-09 02:00",
+        "postdatetimestamp": 1762624820,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "17": {
+        "authorid": "41417929",
+        "content": "继续测试发帖。",
+        "content_length": 14,
+        "from_client": "0 /",
+        "lou": 17,
+        "pid": 847018418,
+        "postdate": "2025-11-09 02:01",
+        "postdatetimestamp": 1762624863,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "18": {
+        "authorid": "41417929",
+        "content": "重新测试发帖",
+        "content_length": 12,
+        "from_client": "0 /",
+        "lou": 18,
+        "pid": 847018444,
+        "postdate": "2025-11-09 02:01",
+        "postdatetimestamp": 1762624910,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "19": {
+        "alterinfo": "[E1762677682 0 0]\t",
+        "authorid": "41417929",
+        "content": "[color=white]测试发帖过短[/color][align=left][/align]",
+        "content_length": 4,
+        "from_client": "0 /",
+        "lou": 19,
+        "pid": 847064090,
+        "postdate": "2025-11-09 16:18",
+        "postdatetimestamp": 1762676320,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "2": {
+        "authorid": "41417929",
+        "content": "测试回复zsbd",
+        "content_length": 12,
+        "from_client": "0 /",
+        "lou": 2,
+        "pid": 841045434,
+        "postdate": "2025-09-20 14:52",
+        "postdatetimestamp": 1758351168,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "3": {
+        "authorid": "41417929",
+        "content": "测试回复zsbdd",
+        "content_length": 13,
+        "from_client": "0 /",
+        "lou": 3,
+        "pid": 841045735,
+        "postdate": "2025-09-20 14:55",
+        "postdatetimestamp": 1758351352,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "4": {
+        "authorid": "41417929",
+        "content": "测试回复zsbdddd",
+        "content_length": 15,
+        "from_client": "0 /",
+        "lou": 4,
+        "pid": 841045817,
+        "postdate": "2025-09-20 14:56",
+        "postdatetimestamp": 1758351397,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "5": {
+        "authorid": "41417929",
+        "content": "TestPostingReply",
+        "content_length": 16,
+        "from_client": "0 /",
+        "lou": 5,
+        "pid": 841046175,
+        "postdate": "2025-09-20 15:01",
+        "postdatetimestamp": 1758351662,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "6": {
+        "authorid": "41417929",
+        "content": "TestPostingReply",
+        "content_length": 16,
+        "from_client": "0 /",
+        "lou": 6,
+        "pid": 841046217,
+        "postdate": "2025-09-20 15:01",
+        "postdatetimestamp": 1758351688,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "7": {
+        "authorid": "41417929",
+        "content": "TestPostingReply",
+        "content_length": 16,
+        "from_client": "0 /",
+        "lou": 7,
+        "pid": 841046595,
+        "postdate": "2025-09-20 15:05",
+        "postdatetimestamp": 1758351927,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "8": {
+        "authorid": "41417929",
+        "content": "TestPostingReply",
+        "content_length": 16,
+        "from_client": "0 /",
+        "lou": 8,
+        "pid": 841046783,
+        "postdate": "2025-09-20 15:07",
+        "postdatetimestamp": 1758352064,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      },
+      "9": {
+        "authorid": "41417929",
+        "content": "[dice]2d4+2d6+100[/dice]",
+        "content_length": 20,
+        "from_client": "0 /",
+        "lou": 9,
+        "pid": 846291666,
+        "postdate": "2025-11-02 22:35",
+        "postdatetimestamp": 1762094140,
+        "score": 0,
+        "subject": "",
+        "type": 0
+      }
+    },
+    "__ROWS": 32,
+    "__R__ROWS_PAGE": 20,
+    "__T": {
+      "author": "BugenZhao",
+      "authorid": 41417929,
+      "subject": "[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签",
+      "tid": 45150945
+    },
+    "__U": {
+      "41417929": {
+        "avatar": "https://img.nga.cn/avatars/2002/cc9/77f/002/41417929_0.jpg?57",
+        "bit_data": 135537153,
+        "credit": 135537153,
+        "groupid": -1,
+        "honor": null,
+        "medal": null,
+        "memberid": 39,
+        "money": 7400,
+        "mute_time": null,
+        "nickname": null,
+        "postnum": 2277,
+        "regdate": 1495931441,
+        "reputation": "91_-600,53_-150,-7_-255,61_0",
+        "rvrc": 15,
+        "signature": "[url]http://apple.co/3RwvgIe[/url]<br/>Make NGA Great Again…",
+        "site": null,
+        "thisvisit": 1786529212,
+        "uid": 41417929,
+        "username": "BugenZhao",
+        "yz": 4
+      },
+      "__GROUPS": {
+        "39": {
+          "0": "学徒",
+          "1": 98528,
+          "2": 39
+        }
+      },
+      "__REPUTATIONS": {
+        "17": {
+          "0": "艾泽拉斯卫士",
+          "41417929": 0
+        }
+      }
+    }
+  },
+  "fn": "parseReadPageHtml",
+  "input": {
+    "text": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html>\n<head>\n<meta http-equiv='Content-Type' content='text/html; charset=GBK'>\n<meta name='apple-itunes-app' content='app-id=1662787685'/>\n<meta name='renderer' content='webkit|ie-stand|ie-comp'>\n<meta http-equiv='X-UA-Compatible' content='IE=edge; IE=11; IE=10; IE=9; IE=8'>\n<meta http-equiv='Cache-Control' content='no-transform'>\n<meta name='format-detection' content='telephone=no'/>\n<meta name='description' content=''>\n<meta name='keywords' content=''><title>[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签 NGA玩家社区</title>\n<script type='text/javascript'>\n//loadscriptstart\nvar __CURRENT_UID = parseInt('10000001',10),\n__NOW = 1787385224,\n__CURRENT_UNAME = 'nga_user',\n__CACHE_PATH = './data/bbscache',\n__MISC_COOKIE_NAME = 'bbsmisccookies',\n\n__CURRENT_FID=275,\n__CURRENT_F_BIT=8,\n__CURRENT_TID=45150945,\n__CURRENT_STID=0,\n__CURRENT_AUTHORID=0,\n__CURRENT_OPT=0,\n__CURRENT_PAGE=1,\n__CURRENT_GFID=335,\n__CURRENT_PAGE_POSTS=20,\n__CHARSET = 'GBK';\n\nvar __GP = {\n_b:{//C::_GB~\nadmin : 1,\n'super' : 2,\ngreater : 4,\nsuperlesser : 8,\nlesser : 16,\nnormal : 32,\ntopic : 64,\nreply : 128,\nvote : 256,\ncomment : 512,\nsearch : 524288,\nvoteBet : 1048576,\nstaff : 2097152,\nsecact :33554432,\nsecview:8388608,\nsecviews:16777216,\nubStaff:2097152,\nubSecAct:33554432,\nubSecView:8388608,\nubSecViewS:16777216\n},\n_ub:{//C::_UB~\nubMod:4,\nubExA:128,\nubExASucc:256\n},\n_n:null,\ninit:function(gbit,adck,rvrc,act,ubit,llog,gid){\n\tthis._n = {\n\t\t_bit:gbit,\n\t\tadmincheck:adck,\n\t\trvrc:rvrc,\n\t\tactive:act,\n\t\tuserBit:ubit,\n\t\tgroupId:gid\n\t\t}\n\tthis.loginlog = llog\n\tfor(var k in this._n){\n\t\tthis[k] = this._n[k]|0\n\t\tif(!this[k])this[k]=0\n\t\t}\n\tfor(var k in this._b)\n\t\tthis[k] = this._b[k]&this._bit ? 1 : 0\n\tfor(var k in this._ub)\n\t\tthis[k] = this._ub[k]&this.userBit ? 1 : 0\n\t}\n}//ce\n\n__GP.init('98528','','10','4','135266304','','39')\n//loadscriptend\nvar _NotLoad178NavAll=1,\nngaAds=[]\nngaAds.location = location\n\nvar __IMG_BASE = 'http://img4.nga.cn',\n__IMGPATH = 'http://img4.nga.cn/ngabbs',\n__IMG_STYLE = 'http://img4.nga.cn/ngabbs/nga_classic',\n__COMMONRES_PATH = 'http://img4.nga.cn/common_res',\n__BBSURL = location.protocol+'//bbs.nga.cn',\n__CKDOMAIN = 'bbs.nga.cn',\n__LASTDOMAIN = '',\n__ATTACH_BASE = 'https://img8.nga.cn',\n__ATTACH_BASE_UPLOAD = 'img8.nga.cn',\n__ATTACH_BASE_UPLOAD_SEC = 'img8.nga.cn',\n__ATTACH_BASE_VIEW = 'img.nga.cn',\n__ATTACH_BASE_VIEW_SEC = 'img.nga.cn',\n__AVATAR_BASE_VIEW = 'img.nga.cn/avatars/2002',\n__USERFILE_BASE_VIEW = 'user-file.nga.cn',\n__RES_BASE = 'img4.nga.cn',\n__RES_BASE_SEC = 'img4.nga.cn',\n__DSBASE = 'http://g1.tagtic.cn/v1/xingyou/c' \nif(location.protocol=='https:'){\n\t;(function(){var i=0,a=arguments\n\t\tfor(;i<a.length;i++)\n\t\t\tthis[a[i]]=this[a[i]].replace(/^https?:\\/\\/[^\\/]+/,'https://img4.nga.cn')\n\t\t})('__IMG_BASE','__IMGPATH','__IMG_STYLE','__COMMONRES_PATH');\n\t__DSBASE = __DSBASE.replace(/^http:/,'https:')\n\t}\nvar __RES_STYLE=__IMG_STYLE, __STYLE = [\n\n [\"default\",__IMG_STYLE+\"/css_default.css?7892839\",__IMG_STYLE+\"/js_color.js?7892839\"]\n,[\"teal\",__IMG_STYLE+\"/css_default1.css?7892839\",__IMG_STYLE+\"/js_color1.js?7892839\"]\n,[\"purp\",__IMG_STYLE+\"/css_default2.css?7892839\",__IMG_STYLE+\"/js_color2.js?7892839\"]\n,[\"dark\",__IMG_STYLE+\"/css_default3.css?7892840\",__IMG_STYLE+\"/js_color3.js?7892840\"]\n\n],\n__SCRIPTS={\n\n \"lib\":__COMMONRES_PATH+\"/js_commonLib.js?120870\"\n,\"common\":__COMMONRES_PATH+\"/js_commonui.js?5871373\"\n,\"forum\":__COMMONRES_PATH+\"/js_forum.js?3046642\"\n,\"commonSpec\":__RES_STYLE+\"/js_default.js?9965017\"\n,\"bbscode\":__COMMONRES_PATH+\"/js_bbscode_core.js?1342409\"\n,\"bbscodeSpec\":__RES_STYLE+\"/js_bbscode_smiles.js?2966394\"\n,\"post\":__COMMONRES_PATH+\"/js_postfunc_v2.js?3046646\"\n,\"mainMenu\":__COMMONRES_PATH+\"/js_mainMenu.js?110865\"\n,\"customBg\":__RES_STYLE+\"/js_customBg.js?111117\"\n,\"dsList\":__RES_STYLE+\"/js_dslist_default.js?1204862\"\n,\"dsCommon\":__COMMONRES_PATH+\"/js_dscommon.js?1204492\"\n,\"dsid_bbs_ads24\":__DSBASE+\"/715.js?\"\n,\"dsid_bbs_ads22\":__DSBASE+\"/718.js?\"\n,\"dsid_bbs_ads12\":__DSBASE+\"/778.js?\"\n,\"dsid_bbs_ads1\":__DSBASE+\"/714.js?\"\n,\"combine\":__IMG_BASE+\"/proxy/cache_attach/js_combine_data.js?\"+Math.floor(__NOW/300)\n,\"dsid_bbs_ads44\":__DSBASE+\"/6001.js?\"\n,\"dsid_bbs_ads45\":__DSBASE+\"/6002.js?\"\n,\"dsid_bbs_ads46\":__DSBASE+\"/200810.js?\"\n,\"dsid_bbs_ads47\":__DSBASE+\"/200811.js?\"\n,\"dsid_bbs_ads49\":__DSBASE+\"/200809.js?\"\n,\"dsid_bbs_ads50\":__DSBASE+\"/200808.js?\"\n,\"dsid_bbs_ads51\":__DSBASE+\"/200807.js?\"\n,\"notification\":__COMMONRES_PATH+\"/js_notification.js?8605179\"\n,\"md5\":__COMMONRES_PATH+\"/js_md5.js?140335\"\n,\"admin\":__COMMONRES_PATH+\"/js_admin.js?8605186\"\n,\"d3ItemSelect\":__COMMONRES_PATH+\"/js_d3_item_select.js?120649\"\n,\"iframeRead2\":__COMMONRES_PATH+\"/js_iframeRead.js?130145\"\n,\"loaderRead\":__COMMONRES_PATH+\"/js_box.js?8605186\"\n,\"userItem\":__COMMONRES_PATH+\"/js_userItem.js?131058\"\n,\"highlighter\":__COMMONRES_PATH+\"/js_highlighter.js?140332\"\n,\"armory\":__RES_STYLE+\"/js_armory.js?120685\"\n,\"read\":__COMMONRES_PATH+\"/js_read.js?3587966\"\n,\"message\":__COMMONRES_PATH+\"/js_message.js?121102\"\n,\"userScript\":__RES_STYLE+\"/js_userScript.js?131027\"\n,\"quoteTo\":__COMMONRES_PATH+\"/js_quote_to.js?432463\"\n,\"ucp\":__COMMONRES_PATH+\"/js_ucp.js?121176\"\n,\"imgEdit\":__COMMONRES_PATH+\"/js_imageEdit.js?121027\"\n,\"bbscodeMd\":__COMMONRES_PATH+\"/js_bbscode_md.js?120439\"\n,\"ubbeditor\":__COMMONRES_PATH+\"/ubbeditor_v2/index.html?v=1.08\"\n,\"service\":\"/js_service.js?778549\"\n,\"jsDebug\":\"http://127.0.0.1/jsDebug.js?\"\n,\"stat\":\"https://bdtj.tagtic.cn/bi-sdk.1.2.1.js?635574\"\n,\"dsCommonG\":\"https://g1.tagtic.cn/g.js?\"\n,\"aipi\":__COMMONRES_PATH+\"/js_aipi.js?123613\"\n\n,rand:637858\n}\n;(function(){\nvar T=__SCRIPTS,ev,h,tor=function(f){setTimeout(f)}\nT.lg={}\nT.loading=0\nT.lo={}\nT.cl=[]\nT.load = function(s,f,c,y){\nvar x = (!(y&1)||!h)?document.createElement('script'):''\nif(!h){ev=('readyState' in x)?'onreadystatechange':'onload'\n\th=document.getElementsByTagName('head')[0]}\nif(s.charAt(0)=='/'||s.substr(0,4)=='http'){\n\tvar k='s_'+Math.random()\n\tthis[k] = s\n\ts=k}\nelse if(!this[s]||this.src(s))\n\treturn\nif(f)this.cl[s]=f\nif((y&2)==0){\n\tthis.loading++\n\tthis.lg[this[s]]=(this.lg[this[s]]|0)+1\n\t}\nif(y&1)\n\tdocument.write('<script src=\"'+this[s]+'\" type=\"text/javascr'+'ipt\" '+ev+'=\"__SCRIPTS.ol(this,\\''+s+'\\')\" onerror=\"__SCRIPTS.oe(this,event)\" '+(c?'charset=\"'+c+'\"':'')+'></scr'+'ipt>')\nelse{x.src=this[s]\n\tx.type='text/javascript'\n\tif(c)x.charset=c\n\tx[ev]=function(){__SCRIPTS.ol(this,s)}\n\tx.onerror=function(e){__SCRIPTS.oe(this,e)}\n\th.insertBefore(x,h.firstChild)}\n}//\nT.src = function(s){}//\nT.asyncLoad = function(){var a=arguments, x=a.length,y\nif(typeof a[x-1]=='number')y=a[--x]\nfor(var i=0;i<x;i++){if(a[i]){this.load(a[i],typeof a[i+1]=='function'?a[++i]:0,0,y)}}\n}//\nT.el=function(e){console.log(e)}//\nT.syncLoad = function(){var a=arguments;a[a.length]=(a[a.length]|0)|1;a.length++;T.asyncLoad.apply(this,a)}//\nT.oe=function(o,e){this.el(o.src+' load error');if(this.loading>0){\n\tthis.loading--\n\t//this.lg[o.src]--\n\t}\n}//\nT.ol=function(o,n){\nif(ev!='onload'){var r=o.readyState\n\tif (r && r!='loaded' && r!='complete')return}\nthis.lo[n]=1\nif(this.loading>0){\n\tthis.loading--\n\tthis.lg[o.src]--\n\t}\nif(this.cl[n])tor(this.cl[n])\nif(this.loading<1){while(this.cl.length)tor(this.cl.shift())}\n}//\nT.wload=function(f){if(this.loading<1)return f();this.cl.push(f)}//\n})();\n\n\n</script>\n<script type='text/javascript'>\nvar tmp = 2\ntmp |= (__GP.lesser||__GP.ubMod)?1:0\nif(tmp && window.localStorage)\n\tngaAds.wait=[]\n__SCRIPTS.syncLoad('lib','dsList','combine','dsCommon','md5','common','forum', (tmp&1)?'admin':'' , (tmp&3)? 'loaderRead':'')\n</script>\n<script type='text/javascript'>\n__COOKIE.init(__CKDOMAIN,'/','bbsmisccookies')\n__SETTING.init(0)\n</script>\n<script type='text/javascript'>\n__SCRIPTS.syncLoad('commonSpec','bbscode','bbscodeSpec','mainMenu','customBg','post')\n</script>\n<script type='text/javascript'></script>\n</head>\n<body>\n<div class='clear minWidthSpacer' id='minWidthSpacer'></div>\n<div id='mmc'>\n<script type='text/javascript'>\ncommonui.ifuserscript()\ncommonui.initAfterBody()\n</script>\n\n<div id='mc'>\n<div id='mainmenu'></div>\n<script type='text/javascript'>commonui.mainMenu.init(__CURRENT_UNAME,'','','',__CURRENT_UID);</script>\n\r\n<h1 id='currentTopicName' class='x'>[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签</h1>\r\n<h2 id='currentForumName' class='x'>网站开发A</h2>\r\n<h2 id='currentSetName' class='x'></h2>\r\n<h2 id='topicAuthorName' class='x'></h2>\r\n<script type='text/javascript'>\r\n//loadscriptstart\r\n__SCRIPTS.syncLoad('read','armory','quoteTo')//loadscriptend\r\n__CURRENT_FID=parseInt('275')\r\n__CURRENT_F_BIT=parseInt('8')\r\n__CURRENT_F_ALLOWREPLY='+p1095,+u1,+w'\r\n__CURRENT_TID=45150945\r\n</script>\r\n<script type='text/javascript'>\r\n//userinfostart\r\ncommonui.userInfo.setAll(   {\"41417929\":{\"uid\":41417929,\"username\":\"BugenZhao\",\"credit\":135537153,\"medal\":null,\"reputation\":\"91_-600,53_-150,-7_-255,61_0\",\"groupid\":-1,\"memberid\":39,\"avatar\":\"https://img.nga.cn/avatars/2002/cc9/77f/002/41417929_0.jpg?57\",\"yz\":4,\"site\":null,\"honor\":null,\"regdate\":1495931441,\"mute_time\":null,\"postnum\":2277,\"rvrc\":15,\"money\":7400,\"thisvisit\":1786529212,\"signature\":\"[url]http://apple.co/3RwvgIe[/url]<br/>Make NGA Great Again…\",\"nickname\":null,\"bit_data\":135537153 },\"__GROUPS\":{\"39\":{\"0\":\"学徒\",\"1\":98528,\"2\":39 } },\"__REPUTATIONS\":{\"17\":{\"41417929\":0,\"0\":\"艾泽拉斯卫士\" } } } )\r\n//userinfoend\r\n\r\n__AUTO_TRANS_FID=275\r\n__SELECTED_FORUM='275'\r\ncommonui.postArg.setDefault(275,0,45150945,41417929,0,\"\",\"\",\",61285893,61285900,61285906,42747722,62955552,\",\"\",null,0,31,1774011037,20)\r\n//commonui.aE(document,'mouseup',function(e){commonui.quoteTo.hideWindow(e)})\r\nif(commonui.beforePostProc)commonui.beforePostProc()\r\n</script>\r\n\r\n<div id='m_nav' class='module_wrap'>\r\n<div class='nav'><a href='/' class='nav_root'>NGA玩家社区</a><span class='nav_spr'>&raquo;</span><a href='/thread.php?fid=335' class='nav_link' data-fb='33556616'>NGA开发</a><span class='nav_spr'>&raquo;</span><a href='/thread.php?fid=275' class='nav_link' data-fb='134217736'>网站开发A</a><span class='nav_spr'>&raquo;</span><h1><a href='/read.php?tid=45150945' class='nav_link' data-fb=''>[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签</a></h1><div class='clear'></div><a id='topNavAnchor'></a>\r\n</div>\r\n</div><script type='text/javascript'>commonui.advNav($('m_nav'))</script>\r\n\r\n<div id='m_pbtntop' class='module_wrap'>\r\n<div class='w100'>\r\n<div class='right_' id='postbtop'><a href='post.php?action=reply&fid=275&tid=45150945'>发表回复</a><script type='text/javascript'>commonui.topicBtn.load($('postbtop'),275,45150945)</script></div><div class='left' name='pageball' id='pagebtop'><a href='/read.php?tid=45150945&page=2' title='下一页' class='pager_spacer'>下一页(2)</a><span id='pageBtnHere' class='x'></span><script>var __PAGE = {0:'/read.php?tid=45150945',1:2,2:1,3:20};commonui.pageBtn(document.getElementById('pageBtnHere').parentNode,__PAGE,true)</script></div><div class='clear'></div>\r\n</div>\r\n</div>\r\n\r\n<div id='m_posts' class='module_wrap'>\r\n<div class='w100' id='m_posts_c'>\r\n<!--postliststart-->\r\n\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow0' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo0' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor0' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer0'><a id='pid0Anchor'></a><a name='l0'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos0'></div>\r\n\t\t\t<div class='postInfo' id='postInfo0'><span id='postdate0' title='reply time'>2025-09-18 23:55</span></div>\r\n\t\t\t<span id='postcontentandsubject0'>\r\n\t\t\t\t<h3 id='postsubject0'>[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签</h3><br/>\r\n\t\t\t\t<p id='postcontent0' class='postcontent ubbcode'>测试测试zsbd</p>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign0' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign0').parentNode.nextSibling,0,'275')\r\ncommonui.postArg.proc( 0,\r\n$('postcontainer0'),$('postsubject0'),$('postcontent0'),$('postsign0'),$('posterinfo0'),$('postInfo0'),$('postBtnPos0'),\r\nnull,null,0,33554432,\r\nnull,'41417929',1758210953,'0,0,0','12',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow0','1')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow1' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo1' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor1' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer1'><a id='pid841045175Anchor'></a><a name='l1'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos1'></div>\r\n\t\t\t<div class='postInfo' id='postInfo1'><span id='postdate1' title='reply time'>2025-09-20 14:50</span></div>\r\n\t\t\t<span id='postcontentandsubject1'>\r\n\t\t\t\t<h3 id='postsubject1'></h3><br/>\r\n\t\t\t\t<span id='postcontent1' class='postcontent ubbcode'>[quote][tid=45150945]Topic[/tid] [b]Post by [uid=41417929]BugenZhao[/uid] (2025-09-18 23:55):[/b]<br/><br/>测试测试zsbd[/quote]<br/><br/>测试回复zsbd</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign1' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign1').parentNode.nextSibling,1,'275')\r\ncommonui.postArg.proc( 1,\r\n$('postcontainer1'),$('postsubject1'),$('postcontent1'),$('postsign1'),$('posterinfo1'),$('postInfo1'),$('postBtnPos1'),\r\nnull,null,841045175,0,\r\nnull,'41417929',1758351000,'0,0,0','17',\r\n'','','7 iOS','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow1','2')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow2' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo2' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor2' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer2'><a id='pid841045434Anchor'></a><a name='l2'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos2'></div>\r\n\t\t\t<div class='postInfo' id='postInfo2'><span id='postdate2' title='reply time'>2025-09-20 14:52</span></div>\r\n\t\t\t<span id='postcontentandsubject2'>\r\n\t\t\t\t<h3 id='postsubject2'></h3><br/>\r\n\t\t\t\t<span id='postcontent2' class='postcontent ubbcode'>测试回复zsbd</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign2' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign2').parentNode.nextSibling,2,'275')\r\ncommonui.postArg.proc( 2,\r\n$('postcontainer2'),$('postsubject2'),$('postcontent2'),$('postsign2'),$('posterinfo2'),$('postInfo2'),$('postBtnPos2'),\r\nnull,null,841045434,0,\r\nnull,'41417929',1758351168,'0,0,0','12',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow2','3')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow3' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo3' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor3' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer3'><a id='pid841045735Anchor'></a><a name='l3'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos3'></div>\r\n\t\t\t<div class='postInfo' id='postInfo3'><span id='postdate3' title='reply time'>2025-09-20 14:55</span></div>\r\n\t\t\t<span id='postcontentandsubject3'>\r\n\t\t\t\t<h3 id='postsubject3'></h3><br/>\r\n\t\t\t\t<span id='postcontent3' class='postcontent ubbcode'>测试回复zsbdd</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign3' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign3').parentNode.nextSibling,3,'275')\r\ncommonui.postArg.proc( 3,\r\n$('postcontainer3'),$('postsubject3'),$('postcontent3'),$('postsign3'),$('posterinfo3'),$('postInfo3'),$('postBtnPos3'),\r\nnull,null,841045735,0,\r\nnull,'41417929',1758351352,'0,0,0','13',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow3','4')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow4' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo4' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor4' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer4'><a id='pid841045817Anchor'></a><a name='l4'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos4'></div>\r\n\t\t\t<div class='postInfo' id='postInfo4'><span id='postdate4' title='reply time'>2025-09-20 14:56</span></div>\r\n\t\t\t<span id='postcontentandsubject4'>\r\n\t\t\t\t<h3 id='postsubject4'></h3><br/>\r\n\t\t\t\t<span id='postcontent4' class='postcontent ubbcode'>测试回复zsbdddd</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign4' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign4').parentNode.nextSibling,4,'275')\r\ncommonui.postArg.proc( 4,\r\n$('postcontainer4'),$('postsubject4'),$('postcontent4'),$('postsign4'),$('posterinfo4'),$('postInfo4'),$('postBtnPos4'),\r\nnull,null,841045817,0,\r\nnull,'41417929',1758351397,'0,0,0','15',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow4','5')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow5' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo5' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor5' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer5'><a id='pid841046175Anchor'></a><a name='l5'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos5'></div>\r\n\t\t\t<div class='postInfo' id='postInfo5'><span id='postdate5' title='reply time'>2025-09-20 15:01</span></div>\r\n\t\t\t<span id='postcontentandsubject5'>\r\n\t\t\t\t<h3 id='postsubject5'></h3><br/>\r\n\t\t\t\t<span id='postcontent5' class='postcontent ubbcode'>TestPostingReply</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign5' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign5').parentNode.nextSibling,5,'275')\r\ncommonui.postArg.proc( 5,\r\n$('postcontainer5'),$('postsubject5'),$('postcontent5'),$('postsign5'),$('posterinfo5'),$('postInfo5'),$('postBtnPos5'),\r\nnull,null,841046175,0,\r\nnull,'41417929',1758351662,'0,0,0','16',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow5','6')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow6' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo6' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor6' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer6'><a id='pid841046217Anchor'></a><a name='l6'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos6'></div>\r\n\t\t\t<div class='postInfo' id='postInfo6'><span id='postdate6' title='reply time'>2025-09-20 15:01</span></div>\r\n\t\t\t<span id='postcontentandsubject6'>\r\n\t\t\t\t<h3 id='postsubject6'></h3><br/>\r\n\t\t\t\t<span id='postcontent6' class='postcontent ubbcode'>TestPostingReply</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign6' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign6').parentNode.nextSibling,6,'275')\r\ncommonui.postArg.proc( 6,\r\n$('postcontainer6'),$('postsubject6'),$('postcontent6'),$('postsign6'),$('posterinfo6'),$('postInfo6'),$('postBtnPos6'),\r\nnull,null,841046217,0,\r\nnull,'41417929',1758351688,'0,0,0','16',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow6','7')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow7' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo7' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor7' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer7'><a id='pid841046595Anchor'></a><a name='l7'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos7'></div>\r\n\t\t\t<div class='postInfo' id='postInfo7'><span id='postdate7' title='reply time'>2025-09-20 15:05</span></div>\r\n\t\t\t<span id='postcontentandsubject7'>\r\n\t\t\t\t<h3 id='postsubject7'></h3><br/>\r\n\t\t\t\t<span id='postcontent7' class='postcontent ubbcode'>TestPostingReply</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign7' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign7').parentNode.nextSibling,7,'275')\r\ncommonui.postArg.proc( 7,\r\n$('postcontainer7'),$('postsubject7'),$('postcontent7'),$('postsign7'),$('posterinfo7'),$('postInfo7'),$('postBtnPos7'),\r\nnull,null,841046595,0,\r\nnull,'41417929',1758351927,'0,0,0','16',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow7','8')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow8' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo8' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor8' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer8'><a id='pid841046783Anchor'></a><a name='l8'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos8'></div>\r\n\t\t\t<div class='postInfo' id='postInfo8'><span id='postdate8' title='reply time'>2025-09-20 15:07</span></div>\r\n\t\t\t<span id='postcontentandsubject8'>\r\n\t\t\t\t<h3 id='postsubject8'></h3><br/>\r\n\t\t\t\t<span id='postcontent8' class='postcontent ubbcode'>TestPostingReply</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign8' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign8').parentNode.nextSibling,8,'275')\r\ncommonui.postArg.proc( 8,\r\n$('postcontainer8'),$('postsubject8'),$('postcontent8'),$('postsign8'),$('posterinfo8'),$('postInfo8'),$('postBtnPos8'),\r\nnull,null,841046783,0,\r\nnull,'41417929',1758352064,'0,0,0','16',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow8','9')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow9' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo9' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor9' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer9'><a id='pid846291666Anchor'></a><a name='l9'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos9'></div>\r\n\t\t\t<div class='postInfo' id='postInfo9'><span id='postdate9' title='reply time'>2025-11-02 22:35</span></div>\r\n\t\t\t<span id='postcontentandsubject9'>\r\n\t\t\t\t<h3 id='postsubject9'></h3><br/>\r\n\t\t\t\t<span id='postcontent9' class='postcontent ubbcode'>[dice]2d4+2d6+100[/dice]</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign9' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign9').parentNode.nextSibling,9,'275')\r\ncommonui.postArg.proc( 9,\r\n$('postcontainer9'),$('postsubject9'),$('postcontent9'),$('postsign9'),$('posterinfo9'),$('postInfo9'),$('postBtnPos9'),\r\nnull,null,846291666,0,\r\nnull,'41417929',1762094140,'0,0,0','20',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow9','10')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow10' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo10' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor10' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer10'><a id='pid846801800Anchor'></a><a name='l10'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos10'></div>\r\n\t\t\t<div class='postInfo' id='postInfo10'><span id='postdate10' title='reply time'>2025-11-06 23:52</span></div>\r\n\t\t\t<span id='postcontentandsubject10'>\r\n\t\t\t\t<h3 id='postsubject10'></h3><br/>\r\n\t\t\t\t<span id='postcontent10' class='postcontent ubbcode'>[@BugenZhao]<br/><br/>[@BugenZhao    ]<br/><br/>[@41417929]</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span><h4 class='silver subtitle postbodysubtitle'>改动</h4><span id='alertc10'></span><script>commonui.loadAlertInfo('[E1762445198 0 0]\t','alertc10')</script><br class='clear'/>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign10' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign10').parentNode.nextSibling,10,'275')\r\ncommonui.postArg.proc( 10,\r\n$('postcontainer10'),$('postsubject10'),$('postcontent10'),$('postsign10'),$('posterinfo10'),$('postInfo10'),$('postBtnPos10'),\r\nnull,null,846801800,0,\r\nnull,'41417929',1762444321,'0,0,0','29',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow10','11')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow11' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo11' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor11' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer11'><a id='pid846917801Anchor'></a><a name='l11'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos11'></div>\r\n\t\t\t<div class='postInfo' id='postInfo11'><span id='postdate11' title='reply time'>2025-11-07 23:18</span></div>\r\n\t\t\t<span id='postcontentandsubject11'>\r\n\t\t\t\t<h3 id='postsubject11'></h3><br/>\r\n\t\t\t\t<span id='postcontent11' class='postcontent ubbcode'>[@BugenZhao]</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign11' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign11').parentNode.nextSibling,11,'275')\r\ncommonui.postArg.proc( 11,\r\n$('postcontainer11'),$('postsubject11'),$('postcontent11'),$('postsign11'),$('posterinfo11'),$('postInfo11'),$('postBtnPos11'),\r\nnull,null,846917801,0,\r\nnull,'41417929',1762528699,'0,0,0','10',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow11','12')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow12' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo12' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor12' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer12'><a id='pid846977351Anchor'></a><a name='l12'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos12'></div>\r\n\t\t\t<div class='postInfo' id='postInfo12'><span id='postdate12' title='reply time'>2025-11-08 16:54</span></div>\r\n\t\t\t<span id='postcontentandsubject12'>\r\n\t\t\t\t<h3 id='postsubject12'></h3><br/>\r\n\t\t\t\t<span id='postcontent12' class='postcontent ubbcode'>[@41417929]  <br/>[@BugenZhao]</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span><h4 class='silver subtitle postbodysubtitle'>改动</h4><span id='alertc12'></span><script>commonui.loadAlertInfo('[E1762592109 0 0]\t','alertc12')</script><br class='clear'/>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign12' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign12').parentNode.nextSibling,12,'275')\r\ncommonui.postArg.proc( 12,\r\n$('postcontainer12'),$('postsubject12'),$('postcontent12'),$('postsign12'),$('posterinfo12'),$('postInfo12'),$('postBtnPos12'),\r\nnull,null,846977351,0,\r\nnull,'41417929',1762592058,'0,0,0','19',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow12','13')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow13' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo13' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor13' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer13'><a id='pid847017534Anchor'></a><a name='l13'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos13'></div>\r\n\t\t\t<div class='postInfo' id='postInfo13'><span id='postdate13' title='reply time'>2025-11-09 01:36</span></div>\r\n\t\t\t<span id='postcontentandsubject13'>\r\n\t\t\t\t<h3 id='postsubject13'></h3><br/>\r\n\t\t\t\t<span id='postcontent13' class='postcontent ubbcode'>测试回复！！</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign13' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign13').parentNode.nextSibling,13,'275')\r\ncommonui.postArg.proc( 13,\r\n$('postcontainer13'),$('postsubject13'),$('postcontent13'),$('postsign13'),$('posterinfo13'),$('postInfo13'),$('postBtnPos13'),\r\nnull,null,847017534,0,\r\nnull,'41417929',1762623371,'0,0,0','12',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow13','14')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow14' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo14' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor14' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer14'><a id='pid847017587Anchor'></a><a name='l14'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos14'></div>\r\n\t\t\t<div class='postInfo' id='postInfo14'><span id='postdate14' title='reply time'>2025-11-09 01:37</span></div>\r\n\t\t\t<span id='postcontentandsubject14'>\r\n\t\t\t\t<h3 id='postsubject14'></h3><br/>\r\n\t\t\t\t<span id='postcontent14' class='postcontent ubbcode'>再次测试发帖！</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign14' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign14').parentNode.nextSibling,14,'275')\r\ncommonui.postArg.proc( 14,\r\n$('postcontainer14'),$('postsubject14'),$('postcontent14'),$('postsign14'),$('posterinfo14'),$('postInfo14'),$('postBtnPos14'),\r\nnull,null,847017587,0,\r\nnull,'41417929',1762623452,'0,0,0','14',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow14','15')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow15' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo15' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor15' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer15'><a id='pid847018305Anchor'></a><a name='l15'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos15'></div>\r\n\t\t\t<div class='postInfo' id='postInfo15'><span id='postdate15' title='reply time'>2025-11-09 01:57</span></div>\r\n\t\t\t<span id='postcontentandsubject15'>\r\n\t\t\t\t<h3 id='postsubject15'></h3><br/>\r\n\t\t\t\t<span id='postcontent15' class='postcontent ubbcode'>又一次测试发帖。</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign15' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign15').parentNode.nextSibling,15,'275')\r\ncommonui.postArg.proc( 15,\r\n$('postcontainer15'),$('postsubject15'),$('postcontent15'),$('postsign15'),$('posterinfo15'),$('postInfo15'),$('postBtnPos15'),\r\nnull,null,847018305,0,\r\nnull,'41417929',1762624651,'0,0,0','16',\r\n'','','7 iOS','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow15','16')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow16' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo16' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor16' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer16'><a id='pid847018394Anchor'></a><a name='l16'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos16'></div>\r\n\t\t\t<div class='postInfo' id='postInfo16'><span id='postdate16' title='reply time'>2025-11-09 02:00</span></div>\r\n\t\t\t<span id='postcontentandsubject16'>\r\n\t\t\t\t<h3 id='postsubject16'></h3><br/>\r\n\t\t\t\t<span id='postcontent16' class='postcontent ubbcode'>测试发帖再次。</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign16' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign16').parentNode.nextSibling,16,'275')\r\ncommonui.postArg.proc( 16,\r\n$('postcontainer16'),$('postsubject16'),$('postcontent16'),$('postsign16'),$('posterinfo16'),$('postInfo16'),$('postBtnPos16'),\r\nnull,null,847018394,0,\r\nnull,'41417929',1762624820,'0,0,0','14',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow16','17')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow17' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo17' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor17' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer17'><a id='pid847018418Anchor'></a><a name='l17'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos17'></div>\r\n\t\t\t<div class='postInfo' id='postInfo17'><span id='postdate17' title='reply time'>2025-11-09 02:01</span></div>\r\n\t\t\t<span id='postcontentandsubject17'>\r\n\t\t\t\t<h3 id='postsubject17'></h3><br/>\r\n\t\t\t\t<span id='postcontent17' class='postcontent ubbcode'>继续测试发帖。</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign17' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign17').parentNode.nextSibling,17,'275')\r\ncommonui.postArg.proc( 17,\r\n$('postcontainer17'),$('postsubject17'),$('postcontent17'),$('postsign17'),$('posterinfo17'),$('postInfo17'),$('postBtnPos17'),\r\nnull,null,847018418,0,\r\nnull,'41417929',1762624863,'0,0,0','14',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow17','18')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow18' class='postrow row2'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo18' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor18' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer18'><a id='pid847018444Anchor'></a><a name='l18'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos18'></div>\r\n\t\t\t<div class='postInfo' id='postInfo18'><span id='postdate18' title='reply time'>2025-11-09 02:01</span></div>\r\n\t\t\t<span id='postcontentandsubject18'>\r\n\t\t\t\t<h3 id='postsubject18'></h3><br/>\r\n\t\t\t\t<span id='postcontent18' class='postcontent ubbcode'>重新测试发帖</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign18' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign18').parentNode.nextSibling,18,'275')\r\ncommonui.postArg.proc( 18,\r\n$('postcontainer18'),$('postsubject18'),$('postcontent18'),$('postsign18'),$('posterinfo18'),$('postInfo18'),$('postBtnPos18'),\r\nnull,null,847018444,0,\r\nnull,'41417929',1762624910,'0,0,0','12',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow18','19')\r\n</script>\r\n\r\n<table class='forumbox postbox' cellspacing='1px'>\r\n\t<tr id='post1strow19' class='postrow row1'>\r\n\t\t<td class='c1' style='vertical-align:top;text-align:center'>\r\n\t\t\t<span id='posterinfo19' class='posterinfo'>\r\n\t\t\t\t<a href='nuke.php?func=ucp&uid=41417929' id='postauthor19' class='author b'></a>\r\n\t\t\t</span>\r\n\t\t</td>\r\n\t\t<td class='c2' style='vertical-align:top' id='postcontainer19'><a id='pid847064090Anchor'></a><a name='l19'></a>\r\n\t\t\t<div class='postBtnPos' id='postBtnPos19'></div>\r\n\t\t\t<div class='postInfo' id='postInfo19'><span id='postdate19' title='reply time'>2025-11-09 16:18</span></div>\r\n\t\t\t<span id='postcontentandsubject19'>\r\n\t\t\t\t<h3 id='postsubject19'></h3><br/>\r\n\t\t\t\t<span id='postcontent19' class='postcontent ubbcode'>[color=white]测试发帖过短[/color][align=left][/align]</span>\r\n\t\t\t\t<br/>\r\n\t\t\t</span><h4 class='silver subtitle postbodysubtitle'>改动</h4><span id='alertc19'></span><script>commonui.loadAlertInfo('[E1762677682 0 0]\t','alertc19')</script><br class='clear'/>\t\t\t<div class='clear'></div>\r\n\t\t\t<div id='postsign19' class='x'></div>\t\t\t</td><td class='adshid'></td>\r\n\t</tr>\r\n</table><script>\r\nngaAds.bbs_ads8_load_new($('postsign19').parentNode.nextSibling,19,'275')\r\ncommonui.postArg.proc( 19,\r\n$('postcontainer19'),$('postsubject19'),$('postcontent19'),$('postsign19'),$('posterinfo19'),$('postInfo19'),$('postBtnPos19'),\r\nnull,null,847064090,0,\r\nnull,'41417929',1762676320,'0,0,0','4',\r\n'','','0 /','',null,0 )\r\nif(ngaAds.bbs_ads31_gen)ngaAds.bbs_ads31_gen('post1strow19','20')\r\n</script>\r\n<!--postlistend-->\r\n</div>\r\n</div>\r\n\r\n\r\n<div id='m_pbtnbtm' class='module_wrap'><div class='w100'>\r\n<div class='right_' id='postbbtm'><a href='post.php?action=reply&fid=275&tid=45150945'>发表回复</a><script type='text/javascript'>commonui.topicBtn.load($('postbbtm'),275,45150945)</script></div><div class='left' name='pageball' id='pagebbtm'><a href='/read.php?tid=45150945&page=2' title='下一页' class='pager_spacer'>下一页(2)</a><span id='pageBtnHere' class='x'></span><script>var __PAGE = {0:'/read.php?tid=45150945',1:2,2:1,3:20};commonui.pageBtn(document.getElementById('pageBtnHere').parentNode,__PAGE,true)</script></div><div class='clear'></div>\r\n</div></div>\r\n\r\n<div id='b_nav' class='module_wrap'>\r\n<div class='nav'><a href='/' class='nav_root'>NGA玩家社区</a><span class='nav_spr'>&raquo;</span><a href='/thread.php?fid=335' class='nav_link' data-fb='33556616'>NGA开发</a><span class='nav_spr'>&raquo;</span><a href='/thread.php?fid=275' class='nav_link' data-fb='134217736'>网站开发A</a><span class='nav_spr'>&raquo;</span><h1><a href='/read.php?tid=45150945' class='nav_link' data-fb=''>[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签</a></h1><div class='clear'></div></div>\r\n</div>\r\n\r\n<span id='fast_post_c'></span>\r\n<script type='text/javascript'>\r\ncommonui.advNav($('b_nav'));\r\nngaAds.bbs_ads14_gen()\r\nif(commonui.fastPostUi)commonui.fastPostUi(275,45150945)\r\n</script>\r\n<script type='text/javascript'>//everyload\r\nif(commonui.afterPostProc)commonui.afterPostProc()\r\n</script>\r\n\n<div class='clear'></div>\n<script>//everypage\n\nif('serviceWorker' in navigator && __SCRIPTS.service && __GP.admin){\n\tnavigator.serviceWorker.ready.then(function(reg){\n\t\twindow.__SERVER_WORKER = reg.active\n\t\t})\n\tnavigator.serviceWorker.register(__SCRIPTS.service,{scope: '/'}).then(function(reg) {\n\t\tconsole.log('serviceWorker reg '+__SCRIPTS.service)\n\t\t})\n\t}\n\nadd_pv_count('01c4614f24e14020e036f4c3597aa059')\n\n</script>\n<script>//everypage\nif(ngaAds && ngaAds.syncAfterload)ngaAds.syncAfterload()\nif(window.__FORUM_JUMP_TMP){commonui.alert(__FORUM_JUMP_TMP);__FORUM_JUMP_TMP=''}\n</script>\n<div id='footer' class='cpinfo'><div class='xtxt silver'>商务市场合作: BD@infinities.com.cn , 内容合作: wangchuang@infinities.com.cn / QQ 972310705 , 违法和不良信息举报电话: 010-87538607 邮箱: jubao@infinities.com.cn <a href='https://www.12377.cn'>网上有害信息举报专区</a><br/><a href='http://beian.miit.gov.cn'>京ICP备16021487号-7</a> <a href='http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=京公网安备11010802027588号'>京公网安备11010802027588号</a> 电信增值业务许可证 京B2-20171340\n<a key ='5652d13cefbfb049451503f9' logo_size='32x12' logo_type='' href='http://www.anquan.org' style='display:none'><script>//document.write('<scr'+'ipt src=\"'+location.protocol+'//static.anquan.org/static/outer/js/aq_auth.js\" type=\"text/javasc'+'ript\"></scr'+'ipt>')</script></a>\n <span style='display:inline-block;vertical-align:middle;'></span>\n</div>\n<br/>\n</div>\n\n</div id='mc'>\n</div id='mmc'>\n<script>\nif(commonui.loadUserScript)\n\tcommonui.loadUserScript()\ncommonui.triggerEventDOMContentLoadedAct()\nif(window.ngaAds && ngaAds.bbs_ads58_gen)ngaAds.bbs_ads58_gen()\n</script>\n</body>\n</html>",
+    "via": "web-fallback"
+  },
+  "name": "revalidate-45150945",
+  "note": "read.php tid=45150945 page=1，无格式参数（网页 HTML），2026-08-22 重验抓包"
+}

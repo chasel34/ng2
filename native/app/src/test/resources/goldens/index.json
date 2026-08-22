@@ -817,9 +817,18 @@
       "share-percent-one-third",
       "share-percent-real",
       "share-percent-zero-total"
+    ],
+    "web": [
+      "anonymous-hot-reply",
+      "attachments",
+      "comment",
+      "empty-body",
+      "no-floors",
+      "not-found",
+      "revalidate-45150945"
     ]
   },
   "generator": "scripts/export-goldens.mts",
   "note": "生成物，勿手改；改 TS 源后跑 pnpm goldens:export 重生成",
-  "total": 762
+  "total": 769
 }
