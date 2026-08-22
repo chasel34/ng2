@@ -7,7 +7,7 @@
 
 **Blocked by:** None
 
-**Status:** in-review
+**Status:** resolved
 
 - [x] 诊断文档恢复进 `docs/`,内容与 `d2aaca4^` 一致
 - [x] 两个脚本对一次真实采样(RN 版即可)跑通并输出判读
