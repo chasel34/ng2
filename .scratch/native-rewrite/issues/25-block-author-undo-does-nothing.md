@@ -96,3 +96,56 @@ adb -s emulator-5554 shell run-as com.chasel.ng2.n \
 `ui/topic/TopicOverlays.kt`(挂在 `TopicViewModel.snackbar` 上,随屏退场)。
 两者同底距、同配色、同时长,能同时出现且互相盖住;主题屏的那一份还天然带着「撤销随屏
 消失」的隐患。合并归主控排期,本票只把行为修对,没动结构。
+
+---
+
+## 复验:这是**假缺陷**,撤销是好的(票 18 B 段,2026-08-23)
+
+**结论:撤销真的会删规则。上一轮的三次「复现」都是点在了一条已经自己消失的提示条上。**
+
+### 病根在测量方法
+
+`ui/common/Snackbar.kt:85` `AUTO_DISMISS_MS = 4000` —— 提示条 **4 秒**自动消失。
+而「先 `uiautomator dump` 找到『撤销』的 bounds、再 `input tap`」这个套路,
+一次 dump 在这台 AVD 上要 1.5–2s;上一轮又在动作与 dump 之间还等了 2s,
+**tap 发出去的时候提示条早没了**,点到的是空气。提示条「点完就不见」于是也不是
+「点击进去了」的证据 —— 它本来就到点了。
+
+### 复验做法(不 dump,用固定坐标,全程 < 1.5s)
+
+`撤销` 的 bounds 是稳定的 `[883,2023][1009,2149]`(提示条右对齐,文案长短不影响),
+直接打中心点 `(946, 2086)`:
+
+```zsh
+A shell input tap 151 1659      # 楼层菜单 →「屏蔽此人」
+sleep 1.0
+A exec-out screencap -p > BU0.png
+A shell input tap 946 2086      # 撤销
+sleep 0.4
+A exec-out screencap -p > BU1.png
+sleep 1.5
+A shell run-as com.chasel.ng2.n cat /data/data/com.chasel.ng2.n/files/datastore/ng2n-settings.preferences_pb \
+  | strings -n 12 | grep -o 'local:[^"]*'
+```
+
+- **BU0**(屏蔽后):该楼折成「已屏蔽 UID:9553166 的楼层 / 展开」,
+  提示条「已屏蔽 UID:9553166,其发言将折叠 / 撤销」。
+- **BU1**(点撤销后 0.4s):**UID:9553166 的楼层完整展开回来了**。
+- **落盘**:只剩 2026-08-22 就存在的 `local:user:uid:64858574`,新规则没留下。
+
+### 同一套路复验了另外两个撤销点,也都是好的
+
+- 屏蔽规则页「新增规则」后的撤销:加 `关键词:probeundo` → 1s 内点撤销 →
+  列表与 DataStore 里都没有了(截图 U0/U1)。
+- 屏蔽规则页删规则后的撤销(`restoreLocal`):同样能把规则放回去。
+
+### 建议
+
+本票按**假缺陷关掉**(结论归主控)。
+`TopicViewModel.blockAuthor` / `FiltersScreen` 的撤销闭包都不用动。
+
+**票尾那条「提示条与 FAB 横向重叠」是真的**(撤销钮 `[879,2016][1005,2142]` 与
+FAB `[896,2080][1027,2211]` 有交叠),那一条建议单独留着或并到别处,别跟着这票一起关。
+
+**给后来人的口径**:凡是验「带动作的提示条」,一律用固定坐标 `(946, 2086)` 直接点,
+**不要先 dump**;判据看 DataStore 与 0.4s 内的截图,不要看提示条还在不在。

@@ -148,3 +148,62 @@ app 自己的请求一枚 WebView cookie 都不用(票 06 的自管 `NgaCookieJa
 **主控验收(2026-08-22)**:合并后主干 699 例全绿、`assembleDebug` 通过。②③ 通过;① 待所有者:AVD 的 WebView 打 NGA 登录页 `ERR_CONNECTION_CLOSED`(RN 版同样,宿主机 curl 正常——模拟器 WebView 网络环境问题),建议在小米真机上登录验证。票保持 in-review 直到所有者完成登录链路验证。
 
 **所有者反馈(2026-08-22 晚)**:在 NG2N 上登录失败(未说明设备与现象)。所有者指示:等全部功能完成后再统一验收。→ 票 18 B 段走查登录屏时复现并建缺陷票(模拟器 WebView 登录页此前曾 `ERR_CONNECTION_CLOSED`,当时代理未还原;现已直连,需重测)。
+
+### 票 18 B 段走查:登录屏复测(2026-08-23,Pixel_8 AVD `emulator-5554`,直连无代理)
+
+**结论:登录页这次完全加载出来了,app 侧没有可见故障。所有者那次「登录失败」在这台
+模拟器上复现不了,需要所有者补现象(哪一步、什么设备、什么提示)。**
+
+#### 观察到的
+
+- 设置 →「账号管理」→「添加账号」→ 登录屏(`ng2n-login-screen`),顶栏「登录 NGA 账号」、
+  地址条 `bbs.nga.cn/nuke.php?__lib=login`、右上「刷新登录页」。
+- **页面正常渲染**(截图 `L1.png`),默认是**二维码扫码登录**那一档:
+  二维码 + 「注册账号」「忘记密码/重置密码」「使用APP扫码登录」「下载社区APP >」
+  「使用密码登录」+ QQ / 微博两个图标。
+- 点「使用密码登录」切到密码表单(截图 `L2.png`):
+  「用户名/邮箱/手机号」「密码」两个输入框都可见可点,
+  下面是**已勾选**的「我已阅读并同意 用户协议 与 隐私协议」,再下面「登录」与「扫码登录」。
+- **logcat 全程没有 `ERR_`、没有 WebView 崩溃、没有 net error**。
+  只有页面自己的二维码轮询,每 3 秒一组:
+  ```
+  I chromium: [INFO:CONSOLE:14] "appid : {"no":"none"}", source: https://bbs.nga.cn/nuke.php?__lib=login&__act=account&login
+  I chromium: [INFO:CONSOLE:14] "deviceid : {"no":"none"}", ...
+  I chromium: [INFO:CONSOLE:14] "userAgent : {"no":"none"}", ...
+  ```
+- 返回键从登录屏退回账号管理屏,正常。
+
+#### 与 2026-08-22 那次 `ERR_CONNECTION_CLOSED` 的差别
+
+那次**模拟器上设了 `settings put global http_proxy 10.0.2.2:7897`**,
+NGA 登录页经宿主代理走不通(当时 RN 版也是空白页,已作为环境问题记录)。
+现在代理已还原成「未设置」,模拟器直连,同一个 URL 一次就出来了。
+→ **「登录页打不开」那条基本可以从嫌疑名单里划掉了,前提是不要再给模拟器设代理。**
+
+#### 代码侧复核(没找到毛病)
+
+- 收割判据与 RN 版逐字一致:`UID_PATTERN = ^\d+$`、`CID_PATTERN = ^[0-9A-Za-z_-]{16,}$`
+  (`data/account/LoginCookies.kt:40/43` vs `src/core/account/login-cookies.ts:31/33`)。
+- 轮询 500ms、`Ready` 之前先 `clearAll()`、收割后再 `clearAll()`
+  (`ui/login/LoginViewModel.kt:85-114`),与本票 Comments 描述一致。
+- WebView 开了 `javaScriptEnabled` / `domStorageEnabled` /
+  `setAcceptCookie(true)` / `setAcceptThirdPartyCookies(view, true)`
+  (`ui/login/LoginScreen.kt:156-167`)。
+- 设备上 `files/datastore/` 只有 `ng2n-settings.preferences_pb`,
+  没有 `ng2n-accounts.preferences_pb` —— 与「这台机器从没登录成功过」一致。
+
+#### 需要所有者补的信息(否则查不下去)
+
+1. 失败发生在**哪一步**:登录页打不开 / 表单提交后报错 / 提交成功但 app 没退出登录屏 /
+   退出了但账号管理里没有账号 / 有账号但请求仍是游客态?
+2. 用的是**扫码登录还是密码登录**?(默认档是扫码)
+3. 设备与网络(小米真机?WiFi/流量?有没有开系统代理或 VPN?)
+4. 失败时如果 app 还在,顺手抓一份:
+   `adb logcat -d | grep -iE 'chromium|ERR_|ng2n'`。
+
+#### 走查建议
+
+`ui/login/LoginViewModel.harvest()` 目前**一条日志都不打**,失败时外部完全看不到
+「轮询有没有在跑」「读到的 cookie 里有哪几个名字」。建议加两句只打 **cookie 名字集合**
+(绝不打值,P1-04)的诊断日志,接到「实验室与诊断 → 导出诊断日志」里,
+所有者下次失败就能直接导出来给结论。
