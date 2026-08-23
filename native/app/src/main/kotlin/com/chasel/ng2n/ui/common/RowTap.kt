@@ -1,6 +1,8 @@
 package com.chasel.ng2n.ui.common
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.Modifier
@@ -33,13 +35,30 @@ import kotlin.math.abs
  * 只用在**整行**这一档:顶栏按钮、对话框按钮那种小目标上横划本来也划不出 slop,
  * 没必要多挂一个 pointerInput。
  */
+@OptIn(ExperimentalFoundationApi::class)
 fun Modifier.rowClickable(
   onClickLabel: String? = null,
   enabled: Boolean = true,
+  onLongClick: (() -> Unit)? = null,
+  onLongClickLabel: String? = null,
   onClick: () -> Unit,
 ): Modifier = this
   .cancelTapOnHorizontalDrag(enabled)
-  .clickable(enabled = enabled, onClickLabel = onClickLabel, onClick = onClick)
+  .then(
+    // 没长按动作的行照旧走 `clickable`:`combinedClickable` 会为了等长按而把点击
+    // 判定往后拖(要先确认这不是一次长按),列表上每一行都吃这一下不值当
+    if (onLongClick == null) {
+      Modifier.clickable(enabled = enabled, onClickLabel = onClickLabel, onClick = onClick)
+    } else {
+      Modifier.combinedClickable(
+        enabled = enabled,
+        onClickLabel = onClickLabel,
+        onLongClickLabel = onLongClickLabel,
+        onLongClick = onLongClick,
+        onClick = onClick,
+      )
+    },
+  )
 
 /**
  * 横划就把这一发手势吃掉,让内层的点击手势取消。

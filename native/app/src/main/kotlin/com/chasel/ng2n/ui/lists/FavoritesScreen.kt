@@ -30,15 +30,18 @@ import com.chasel.ng2n.core.api.Topic
 import com.chasel.ng2n.data.account.EMPTY_ACCOUNTS
 import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.data.favorites.pickFavoriteFolder
+import com.chasel.ng2n.data.favorites.unfavoriteConfirmMessage
 import com.chasel.ng2n.ui.board.TopicRow
 import com.chasel.ng2n.ui.board.buildTopicRows
 import com.chasel.ng2n.ui.board.dateText
+import com.chasel.ng2n.ui.common.ConfirmDialog
 import com.chasel.ng2n.ui.common.EmptyState
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingFooter
 import com.chasel.ng2n.ui.common.LoadingState
 import com.chasel.ng2n.ui.common.MenuItem
 import com.chasel.ng2n.ui.common.OverflowMenu
+import com.chasel.ng2n.ui.common.Snackbars
 import com.chasel.ng2n.ui.common.StateAction
 import com.chasel.ng2n.ui.common.StateVariant
 import com.chasel.ng2n.ui.common.TopBar
@@ -117,6 +120,12 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
     // 收藏夹列表的 tpcurl 带 fav 码,进详情页要带上才打得开隐藏/过期主题
     nav.push(TopicKey(tid = topic.tid, title = topic.subject, fav = topic.favCode))
   }
+
+  // 长按一行 → 确认 → `removeTopicFavorite`(票 33)。确认这一步不能省:
+  // 收藏夹里长按误触的代价是「收藏没了、找不回来」,而列表行本来就没有长按语义,
+  // 用户不会预期长按会写点什么
+  var unfavoriting by remember { mutableStateOf<Topic?>(null) }
+  var busy by remember { mutableStateOf(false) }
 
   Column(modifier.fillMaxSize().background(colors.bg)) {
     TopBar(paddingHorizontal = 4.dp) {
@@ -221,9 +230,29 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
               count = rows.size,
               key = { index -> rows[index].topic.tid },
               contentType = { "topic" },
-            ) { index -> TopicRow(rows[index], openTopic) }
+            ) { index ->
+              TopicRow(
+                model = rows[index],
+                onClick = openTopic,
+                onLongClick = { topic -> unfavoriting = topic },
+              )
+            }
             item(key = "footer", contentType = "footer") {
               Column {
+                if (!state.hasNextPage && !state.loadingNextPage) {
+                  // 长按取消收藏是个藏起来的动作,翻到底时说一句(设计稿没有这条,
+                  // 但不说的话没人找得到 —— RN 版压根没有取消收藏的入口)
+                  Text(
+                    text = "长按一条可以把它从这个收藏夹里移出。",
+                    modifier = Modifier.fillMaxWidth().padding(Spacing.row),
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                      fontSize = Typo.listMeta.size,
+                      lineHeight = Typo.listMeta.lineHeight,
+                      color = colors.meta,
+                    ),
+                  )
+                }
                 if (state.loadingNextPage) {
                   LoadingFooter("正在载入第 ${state.pages.size + 1} 页…")
                 }
@@ -246,6 +275,45 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
       }
     }
   }
+
+  val removing = unfavoriting
+  ConfirmDialog(
+    open = removing != null && folder != null,
+    title = "取消收藏",
+    message = if (removing == null || folder == null) {
+      null
+    } else {
+      unfavoriteConfirmMessage(removing.subject, folder.name)
+    },
+    confirmLabel = if (busy) "移出中…" else "取消收藏",
+    destructive = true,
+    onCancel = { unfavoriting = null },
+    onConfirm = {
+      val topic = removing ?: return@ConfirmDialog
+      val currentUid = uid ?: return@ConfirmDialog
+      val currentFolder = folder ?: return@ConfirmDialog
+      busy = true
+      scope.launch {
+        // `unfavoriteTopic` 走的是 `removeTopicFavorite`(参数名 `tidarray`),
+        // 完了重拉夹列表(计数以服务端为准)并把这个夹的主题列表重取回来
+        val result = runCatching {
+          deps.topicFavorites.unfavoriteTopic(
+            uid = currentUid,
+            tid = topic.tid,
+            folderId = currentFolder.id,
+          )
+        }
+        busy = false
+        unfavoriting = null
+        Snackbars.show(
+          result.fold(
+            onSuccess = { "已从「${currentFolder.name}」移出" },
+            onFailure = { failureText(it) },
+          ),
+        )
+      }
+    },
+  )
 
   OverflowMenu(
     open = switcherOpen,

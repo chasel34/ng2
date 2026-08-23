@@ -64,7 +64,12 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.Lifecycle
 import com.chasel.ng2n.core.api.TopicSource
 import com.chasel.ng2n.core.local.filterMatchText
+import com.chasel.ng2n.data.account.AccountsState
+import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.ui.bbcode.HotRepliesSection
+import com.chasel.ng2n.ui.common.showLoginPrompt
+import com.chasel.ng2n.ui.favorites.FavoriteFolderDialog
+import com.chasel.ng2n.ui.rememberAppDeps
 import com.chasel.ng2n.ui.image.ImageViewerKey
 import com.chasel.ng2n.ui.nav.Navigator
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
@@ -109,6 +114,7 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
   val textScale = LocalTextScale.current
   val context = LocalContext.current
   val uriHandler = LocalUriHandler.current
+  val deps = rememberAppDeps()
   val settings = vm.settings
 
   // 建模要的样式:配色与字号在 composition 里才知道,灌给 ViewModel;变了整页在后台重建
@@ -140,6 +146,25 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
   var jumpOpen by remember { mutableStateOf(false) }
   var menuOpen by remember { mutableStateOf(false) }
   var floorMenu by remember { mutableStateOf<FloorRenderItem?>(null) }
+
+  // 「收藏本帖」/ 楼层菜单「收藏」→「收藏到…」多选夹对话框(票 33)。
+  // 顶栏与楼层菜单打的是同一件事(把**这一帖**收进夹里,楼层菜单那条也不例外 ——
+  // NGA 的 `topic_favor_v2` 只收 tid,没有「收藏某一楼」),所以只有这一个状态位。
+  var favorOpen by remember { mutableStateOf(false) }
+  /*
+   * 登录态是**三态**:还没从磁盘读到 / 游客 / 某个 uid(与 `ui/filters/FiltersScreen.kt`
+   * 同一条理由 —— 账号表是 DataStore,第一次发射必然晚于首帧)。少了「还没读到」这一档,
+   * 已登录用户在进屏头几帧点「收藏本帖」会吃到一句冤枉的「登录后才能收藏」。
+   */
+  val accountsState: AccountsState? by deps.accounts.accounts
+    .collectAsStateWithLifecycle(initialValue = null)
+  val signedIn = accountsState?.let { currentAccountOf(it) != null }
+  // 游客态走与抽屉、版块收藏一致的「登录后才能收藏」+「去登录」提示条:
+  // 收藏接口对游客一律回「你必须先登录论坛」,这里先自己挡住并把登录页递到手边
+  val openFavor = {
+    // 还没读到就先开:对话框自己等 uid,比闪一句错话强
+    if (signedIn == false) showLoginPrompt(nav, "登录后才能收藏") else favorOpen = true
+  }
 
   val notAvailable = remember(context) { { showNotAvailable(context) } }
   val webKey = remember(key, settings.host, vm.page, vm.currentModel?.subject) {
@@ -281,6 +306,7 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
       vm = vm,
       onClose = { menuOpen = false },
       onJump = { jumpOpen = true },
+      onFavor = openFavor,
       notAvailable = notAvailable,
       nav = nav,
     ),
@@ -297,6 +323,7 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
         vm = vm,
         floor = floor,
         onClose = { floorMenu = null },
+        onFavor = openFavor,
         notAvailable = notAvailable,
       ),
       top = statusTop + 300.dp,
@@ -306,6 +333,10 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
   }
 
   SignatureDialog(state = vm.signatureDialog, onClose = vm::closeSignature)
+
+  // 顶栏「收藏本帖」与楼层菜单「收藏」共用这一个(票 33)。只在开着时挂载,
+  // 所以进详情页不会白打一发 `list_folder`
+  FavoriteFolderDialog(open = favorOpen, tid = vm.tid, onClose = { favorOpen = false })
 
   InputDialog(
     open = jumpOpen,
@@ -681,6 +712,7 @@ private fun topicMenuItems(
   vm: TopicViewModel,
   onClose: () -> Unit,
   onJump: () -> Unit,
+  onFavor: () -> Unit,
   notAvailable: () -> Unit,
   nav: Navigator,
 ): List<MenuItem> {
@@ -692,7 +724,7 @@ private fun topicMenuItems(
   return listOf(
     MenuItem("jump", "跳页", onClick = pick(onJump)),
     MenuItem("copy", "复制链接", onClick = pick(notAvailable)),
-    MenuItem("favor", "收藏本帖", onClick = pick(notAvailable)),
+    MenuItem("favor", "收藏本帖", onClick = pick(onFavor)),
     MenuItem("cache-page", "缓存本页", onClick = pick { vm.cacheCurrentPage { } }),
     MenuItem("cache-topic", "缓存整帖", onClick = pick { vm.cacheWholeTopic { } }),
     MenuItem("share", "分享", onClick = pick(notAvailable)),
@@ -710,6 +742,7 @@ private fun floorMenuItems(
   vm: TopicViewModel,
   floor: FloorRenderItem,
   onClose: () -> Unit,
+  onFavor: () -> Unit,
   notAvailable: () -> Unit,
 ): List<MenuItem> {
   fun pick(run: () -> Unit): () -> Unit = {
@@ -720,7 +753,8 @@ private fun floorMenuItems(
     MenuItem("note", "贴条", onClick = pick(notAvailable)),
     MenuItem("report", "举报", onClick = pick(notAvailable)),
     MenuItem("sign", "查看签名", onClick = pick { vm.openSignature(floor) }),
-    MenuItem("favor", "收藏", onClick = pick(notAvailable)),
+    // 楼层菜单的「收藏」收的也是**整帖**:`topic_favor_v2` 只收 tid,没有「收藏某一楼」
+    MenuItem("favor", "收藏", onClick = pick(onFavor)),
     MenuItem("only-user", "只看此人", gapBefore = true, onClick = pick { vm.enterOnlyUser(floor) }),
     MenuItem("block", "屏蔽此人", onClick = pick { vm.blockAuthor(floor) }),
   )
