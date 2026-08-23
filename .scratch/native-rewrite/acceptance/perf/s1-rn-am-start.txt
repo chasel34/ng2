@@ -1,0 +1,7 @@
+Starting: Intent { cmp=com.chasel.ng2/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.chasel.ng2/.MainActivity
+TotalTime: 354
+WaitTime: 357
+Complete

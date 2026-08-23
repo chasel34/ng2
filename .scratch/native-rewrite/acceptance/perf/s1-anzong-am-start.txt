@@ -1,0 +1,7 @@
+Starting: Intent { cmp=gov.anzong.androidnga/.activity.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+TotalTime: 166
+WaitTime: 171
+Complete
