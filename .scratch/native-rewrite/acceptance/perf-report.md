@@ -1,54 +1,54 @@
 # 票 19 真机性能验收报告
 
-**状态:** 阻断,尚未进入十场景裁决  
-**阻断票:** `issues/51-perf-baseline-profile-empty.md`
+**状态:** 进行中  
+**已复验缺陷:** 票 51 Baseline Profile 采集为空(修复基线 `34589c6`)
 
 ## 环境
 
 | 项 | 值 |
 |---|---|
 | 验收日期 | 2026-08-23 |
-| Git 基线 | `c559c92`(`android-native`) |
+| Git 基线 | `34589c6`(`android-native`) |
 | 设备 | 小米 `25113PN0EC`,device `pudding` |
 | 系统 | Android 16 / SDK 36 |
 | 屏幕 | 1220×2656 @520dpi,目标 120Hz |
 | ADB 目标 | `192.168.0.101:40039` |
 | 原生包 | `com.chasel.ng2.n` |
-| 采集 APK | `app-nonMinifiedRelease.apk`,SHA-256 `db10ecccb254710eba3d35768d783a18c3df55e9bc7bd8dccd572be8d61cfd5a`,非可调试 |
-| Baseline Profile | **失败:** 采集结果在过滤前即为空,`baseline-prof.txt` 未生成 |
-| 有效 release APK | 未生成/未安装;拒绝用无 profile 包裁决 |
+| Baseline Profile 源文件 | `baseline-prof.txt`,23,899 行, SHA-256 `75ce22259585423e06e38808105ba46f2addc3dc22fbb5b0ccd1740ce548abdd` |
+| Release APK | `app-release.apk`,5.0 MiB, SHA-256 `c803ccfb2d7d175f98a8656c670c787cbab2cd14db15125ec841219827656c43` |
+| 包变体 | release,非可调试,`com.chasel.ng2.n` 0.1.0(1) |
+| Profile 打包 | APK 含 `assets/dexopt/baseline.prof`(10,400 B)与 `baseline.profm`(1,396 B) |
+| 设备 dexopt | `arm64: [status=speed-profile] [reason=baseline]`,odex 7,868 KiB |
 
-## 闸前检查
+## Baseline Profile 闸前检查
 
-`ANDROID_SERIAL=192.168.0.101:40039 ./gradlew :app:generateReleaseBaselineProfile`
-在真机 `25113PN0EC - 16` 进入采集逻辑后失败:
+票 51 修复后,profileBlock 改为首页→版块→详情→甩动并驻留 ≥12 秒;生成文件已在
+`34589c6` 提交。设备 `dumpsys package com.chasel.ng2.n` 明确报告:
 
 ```text
-BaselineProfileGenerator > startup[25113PN0EC - 16] FAILED
-java.lang.IllegalStateException: Generated Profile is empty, before filtering.
-StartupBenchmark > coldStartupWithBaselineProfile[25113PN0EC - 16] SKIPPED
+Dexopt state:
+  [com.chasel.ng2.n]
+    arm64: [status=speed-profile] [reason=baseline] [primary-abi]
 ```
 
-按票 19 与 T7/T8,被测包必须是打入 Baseline Profile 的 release 包。此前无线 ADB 断链与
-MIUI 安装确认问题均已排除;当前是独立、确定的 profile 采集失败。已开缺陷票 51,
-等待修复后从 `generateReleaseBaselineProfile` 重新开始。
+APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过。下一步进行
+`compile --reset` 与 `speed-profile` 冷启 A/B;A/B 后恢复 `speed-profile` 再测十场景。
 
 ## 十场景
 
 | # | 场景 | 结果 | 说明 |
 |---|---|---|---|
-| 1 | 冷启动闪烁 | 阻断/未测 | 无有效 release + profile 包 |
-| 2 | 冷启后首次进主题 | 阻断/未测 | 同上 |
-| 3 | 主题列表快甩 | 阻断/未测 | 同上 |
-| 4 | 楼层流慢拖/快甩 | 阻断/未测 | 同上 |
-| 5 | 横滑翻页 | 阻断/未测 | 同上 |
-| 6 | 抽屉开合 | 阻断/未测 | 同上 |
-| 7 | 附件展开/收起 | 阻断/未测 | 同上 |
-| 8 | 大图/画廊开合与缩放 | 阻断/未测 | 同上 |
-| 9 | 各转场 latch2present / 连续丢帧 | 阻断/未测 | 同上 |
-| 10 | 动画交互伞条款 | 阻断/未测 | 同上 |
+| 1 | 冷启动闪烁 | 待测 | — |
+| 2 | 冷启后首次进主题 | 待测 | — |
+| 3 | 主题列表快甩 | 待测 | — |
+| 4 | 楼层流慢拖/快甩 | 待测 | — |
+| 5 | 横滑翻页 | 待测 | — |
+| 6 | 抽屉开合 | 待测 | — |
+| 7 | 附件展开/收起 | 待测 | — |
+| 8 | 大图/画廊开合与缩放 | 待测 | — |
+| 9 | 各转场 latch2present / 连续丢帧 | 待测 | — |
+| 10 | 动画交互伞条款 | 待测 | — |
 
 ## 结论
 
-当前不是十场景“不通过”,而是强制前置产物缺失导致**不可裁决**。票 51 修复并复验通过前,
-不产生任何原生版性能结论。
+进行中;待十场景与伞条款全部完成后裁决。

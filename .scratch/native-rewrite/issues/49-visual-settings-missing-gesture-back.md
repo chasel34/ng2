@@ -1,6 +1,6 @@
 # 49 — P2:设置屏漏了「手势返回」开关
 
-**Status:** open
+**Status:** invalid
 
 **Severity:** P2(不是视觉差,是少了一项设置 —— 功能拿不到)
 
@@ -49,3 +49,5 @@ HEAD `src/ui/settings-shell.tsx:25-32` 写明向导已拆。分组名与其余�
 `ui/settings/SettingsScreen.kt` / `ui/settings/SettingsEntries.kt`(行);
 设置项本身在 `data/` 的 settings store;手势那一头在 `ui/nav/Navigator.kt` 与
 `ui/drawer/DrawerGesture.kt` 附近。
+
+**主控裁定(2026-08-23)**:不修。「手势返回」开关是所有者 2026-08-22 明确裁掉的(保留系统返回语义,commit d026c7b);Expo 包是 08-13 的旧版本还带着它。

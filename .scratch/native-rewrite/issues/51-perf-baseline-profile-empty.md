@@ -51,3 +51,7 @@ at com.chasel.ng2n.benchmark.BaselineProfileGenerator.startup(BaselineProfileGen
 - 测试报告:`native/benchmark/build/reports/androidTests/connected/nonMinifiedRelease/index.html`
 - 测试结果:`native/benchmark/build/outputs/androidTest-results/connected/nonMinifiedRelease/`
 
+
+**主控修复(2026-08-23)**:根因两条——① 手机 `dalvik.vm.ps-min-first-save-ms=8000`,原 profileBlock 冷启即返回,flush 早于 ART 首次落盘;② 若 block 末尾把 app 退到后台,MIUI 拦掉 `SAVE_PROFILE` 广播。profileBlock 改为首页→版块→详情→甩动、驻留 ≥12s、不按返回;另 gradle 装包时 MIUI 弹「继续安装」需自动点(`autotap.sh`)。生成 `baseline-prof.txt` 23,899 行,已随 release 打入。
+
+**Status:** resolved
