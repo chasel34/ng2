@@ -1,7 +1,6 @@
 package com.chasel.ng2n.ui.lists
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +47,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.Navigator
@@ -267,7 +267,7 @@ private fun NotificationRow(item: NgaNotification, nowMs: Long, onClick: () -> U
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clickable(onClickLabel = item.subject, onClick = onClick)
+      .rowClickable(onClickLabel = item.subject, onClick = onClick)
       .drawBehind {
         val y = size.height - 1f
         drawLine(colors.divider, Offset(0f, y), Offset(size.width, y), 1f)

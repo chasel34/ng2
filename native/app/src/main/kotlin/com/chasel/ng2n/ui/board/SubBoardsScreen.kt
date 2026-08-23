@@ -45,6 +45,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.BoardKey
@@ -187,7 +188,7 @@ private fun SubBoardRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clickable(onClickLabel = subBoard.name, onClick = onOpen)
+      .rowClickable(onClickLabel = subBoard.name, onClick = onOpen)
       .drawBehind {
         val y = size.height - 1f
         drawLine(colors.divider, Offset(0f, y), Offset(size.width, y), 1f)

@@ -11,7 +11,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -83,8 +86,20 @@ const val NOT_AVAILABLE_MESSAGE = "本版本未开放"
 /** 设计稿:snack 条距底 92(给 FAB 让路)、左右 16,滑入走 omup 的 .22s。 */
 private val BOTTOM_OFFSET = 92.dp
 
-/** 自动消失时长。带撤销的提示给 4 秒反应时间。 */
+/** 自动消失时长(RN 侧 `ui/snackbar.tsx` 同值)。 */
 private const val AUTO_DISMISS_MS = 4000L
+
+/**
+ * 带动作的那一档给更长的窗口(票 25,**对 RN 版的有意偏离**)。
+ *
+ * 4 秒是「读完一句话」的时间,不是「读完 + 认出右边那枚小字 + 抬手点中」的时间;
+ * 撤销是误操作的安全网,窗口关早了等于没有。
+ */
+private const val AUTO_DISMISS_ACTION_MS = 8000L
+
+/** 这一条该挂多久。 */
+private fun autoDismissMs(hasAction: Boolean): Long =
+  if (hasAction) AUTO_DISMISS_ACTION_MS else AUTO_DISMISS_MS
 
 private val SNACK_BG_LIGHT = Color(0xFF33322C)
 private val SNACK_BG_DARK = Color(0xFF3A3A36)
@@ -103,9 +118,12 @@ fun SnackbarHost(modifier: Modifier = Modifier) {
   var shown by remember(item.id) { mutableStateOf(false) }
   LaunchedEffect(item.id) {
     shown = true
-    delay(AUTO_DISMISS_MS)
+    delay(autoDismissMs(item.action != null))
     Snackbars.hide()
   }
+  // 设计稿的 92 是「距底」——底部系统栏那一截不算在内。不加这个 inset,提示条会压进
+  // 导航栏区域并与让开了 inset 的右下角 FAB 重叠(票 25 顺带)
+  val navBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
   val progress by animateFloatAsState(
     targetValue = if (shown) 1f else 0f,
     animationSpec = tween(Motion.DURATION_PANEL, easing = Motion.easeStandard),
@@ -117,7 +135,7 @@ fun SnackbarHost(modifier: Modifier = Modifier) {
     Row(
       modifier = Modifier
         .padding(horizontal = Spacing.lg)
-        .padding(bottom = BOTTOM_OFFSET)
+        .padding(bottom = BOTTOM_OFFSET + navBar)
         .fillMaxWidth()
         .graphicsLayer { translationY = (1f - progress) * rise }
         .alpha(progress)

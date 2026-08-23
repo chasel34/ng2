@@ -1,7 +1,6 @@
 package com.chasel.ng2n.ui.lists
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,6 +31,7 @@ import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import com.chasel.ng2n.ui.theme.avatarColorFor
+import com.chasel.ng2n.ui.common.rowClickable
 import kotlinx.coroutines.delay
 
 /**
@@ -60,7 +60,7 @@ fun ListSubtitle(
     modifier = modifier
       .fillMaxWidth()
       .background(colors.surface2)
-      .let { if (onClick == null) it else it.clickable(onClickLabel = text, onClick = onClick) }
+      .let { if (onClick == null) it else it.rowClickable(onClickLabel = text, onClick = onClick) }
       .drawBehind {
         val y = size.height - 1f
         drawLine(colors.divider, Offset(0f, y), Offset(size.width, y), 1f)

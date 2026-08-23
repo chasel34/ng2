@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -311,14 +314,18 @@ fun SnackbarHost(message: SnackbarMessage?, dark: Boolean, onDismiss: () -> Unit
   val progress = remember(message) { Animatable(0f) }
   LaunchedEffect(message) {
     progress.animateTo(1f, tween(PANEL_MS))
-    kotlinx.coroutines.delay(AUTO_DISMISS_MS)
+    kotlinx.coroutines.delay(autoDismissMs(message.action != null))
     onDismiss()
   }
+  // 设计稿的 92 是「距底」——底部系统栏那一截不算在内。不加这个 inset,提示条就压进
+  // 导航栏区域,与同样让开了 inset 的右下角 FAB 横向重叠(票 25 顺带):
+  // FAB 占 [24+inset, 74+inset],提示条占 [92, 134],inset 一超过 18dp 就压上了
+  val navBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
   Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
     Row(
       modifier = Modifier
-        .padding(start = Spacing.lg, end = Spacing.lg, bottom = SNACK_BOTTOM)
+        .padding(start = Spacing.lg, end = Spacing.lg, bottom = SNACK_BOTTOM + navBar)
         .fillMaxWidth()
         .graphicsLayer {
           alpha = progress.value
@@ -361,8 +368,20 @@ fun SnackbarHost(message: SnackbarMessage?, dark: Boolean, onDismiss: () -> Unit
 /** 设计稿:snack 条距底 92(给 FAB 让路)、左右 16,滑入走 omup 的 .22s。 */
 private val SNACK_BOTTOM = 92.dp
 
-/** 自动消失时长。带撤销的提示给 4 秒反应时间。 */
+/** 自动消失时长(RN 侧 `ui/snackbar.tsx` 同值)。 */
 private const val AUTO_DISMISS_MS = 4000L
+
+/**
+ * 带动作的那一档给更长的窗口(票 25,**对 RN 版的有意偏离**)。
+ *
+ * 4 秒是「读完一句话」的时间,不是「读完 + 认出右边那枚小字 + 抬手点中」的时间;
+ * 撤销是误操作的安全网,窗口关早了等于没有。Material 的口径也是带动作的提示要更久。
+ */
+private const val AUTO_DISMISS_ACTION_MS = 8000L
+
+/** 这一条该挂多久。 */
+private fun autoDismissMs(hasAction: Boolean): Long =
+  if (hasAction) AUTO_DISMISS_ACTION_MS else AUTO_DISMISS_MS
 
 /** 设计稿 `snackbarColors`(浅色 `#33322C`,深色 `#3A3A36`;字 `#F4F1E8`、动作 `#8FD8C9`)。 */
 private val SNACK_BG_LIGHT = Color(0xFF33322C)

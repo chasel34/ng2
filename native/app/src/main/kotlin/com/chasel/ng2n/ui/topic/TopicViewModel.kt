@@ -453,6 +453,13 @@ class TopicViewModel(
    * 楼层菜单「屏蔽此人」:加一条本地用户规则,加完这一楼当场折起来。
    * 撤销就是把刚加的那条删掉 —— 规则 id 是内容算出来的,删的一定是这一条,
    * 不会误伤用户早先加过的同名规则以外的东西。
+   *
+   * **两次写都挂在 `deps.scope` 上**(票 25):这是全 app 一个的后台 scope,
+   * `viewModelScope` 会随这一屏退场被取消 —— 提示条(带「撤销」)本来就设计成
+   * 「发起它的页面退场之后还活着」(`ui/common/Snackbar.kt` 的原话),
+   * 用 `viewModelScope` 就等于让撤销在最需要它的那一刻变成一句 no-op:
+   * 往已取消的 scope 上 `launch` 不抛也不跑,盘上那条规则就留下了。
+   * 落盘本身也不该被「用户手快退了一屏」打断。
    */
   fun blockAuthor(floor: FloorRenderItem) {
     val name = floor.user?.name ?: "该用户"
@@ -460,22 +467,30 @@ class TopicViewModel(
       FilterRuleInput(kind = FilterRuleKind.USER, value = name, uid = floor.profileUid),
       System.currentTimeMillis() / 1000,
     )
-    viewModelScope.launch {
+    deps.scope.launch {
       deps.settings.updateFilterRules { current ->
         upsertFilterRule(current.mapNotNull { it.toMatchRule() }, rule).map { it.toStoredRule() }
       }
       snackbarState.value = SnackbarMessage(
         text = "已屏蔽 $name,其发言将折叠",
         actionLabel = "撤销",
-        action = {
-          viewModelScope.launch {
-            deps.settings.updateFilterRules { current ->
-              removeFilterRule(current.mapNotNull { it.toMatchRule() }, rule.id)
-                .map { it.toStoredRule() }
-            }
-          }
-        },
+        action = { undoBlockAuthor(rule.id) },
       )
+    }
+  }
+
+  /**
+   * 「屏蔽此人」的撤销:把刚加的那条按 id 删掉。
+   *
+   * 单独一个具名入口而不是提示条里的一段闭包 —— 闭包里那点逻辑没法单独回归,
+   * 而这一步「有没有真的落到盘上」正是票 25 的全部内容。
+   * 删不存在的 id 是 no-op(`removeFilterRule` 的合同),所以连点两下也没有副作用。
+   */
+  fun undoBlockAuthor(ruleId: String) {
+    deps.scope.launch {
+      deps.settings.updateFilterRules { current ->
+        removeFilterRule(current.mapNotNull { it.toMatchRule() }, ruleId).map { it.toStoredRule() }
+      }
     }
   }
 
