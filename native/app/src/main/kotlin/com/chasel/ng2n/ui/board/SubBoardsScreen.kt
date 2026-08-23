@@ -36,6 +36,7 @@ import com.chasel.ng2n.core.api.TopicSort
 import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.data.board.TopicListRepository
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingState
 import com.chasel.ng2n.ui.common.Snackbars
@@ -159,7 +160,7 @@ fun SubBoardsScreen(key: SubBoardsKey, nav: Navigator, modifier: Modifier = Modi
             },
           )
         }
-        item(key = "footnote") {
+        item(key = ListKeys.FOOTNOTE) {
           Text(
             text = "订阅后这个子版块的主题会出现在版块列表里,屏蔽则不再出现。",
             modifier = Modifier.padding(Spacing.lg),

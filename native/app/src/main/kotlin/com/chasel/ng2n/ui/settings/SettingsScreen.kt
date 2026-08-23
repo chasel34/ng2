@@ -50,6 +50,51 @@ private val QUALITY_OPTIONS = listOf(
 )
 
 /**
+ * 设置屏那一个 `LazyColumn` 的静态 key(分组标题也是一项)。
+ *
+ * 摊成常量是为了让 [com.chasel.ng2n.ui.common.SCREEN_LAZY_KEYS] 的单测把重复 key
+ * 挡在真机之外 —— 重复 key 会让 Compose 在首次布局就抛,整屏一帧都画不出来(票 28)。
+ * [SETTINGS_TAIL_KEY] 是 `SettingsShell` 自己补在末尾的那一项,一并算进来。
+ */
+internal object SettingsKeys {
+  const val S_GENERAL = "s-general"
+  const val HOST = "host"
+  const val ACCOUNTS = "accounts"
+  const val NIGHT = "night"
+  const val NIGHT_SYSTEM = "night-system"
+  const val THEME_STYLE = "theme-style"
+  const val LEFT_HANDED = "left-handed"
+  const val SOLID_BG = "solid-bg"
+  const val S_READING = "s-reading"
+  const val AUTO_NEXT = "auto-next"
+  const val WIFI_ONLY = "wifi-only"
+  const val IMAGE_QUALITY = "image-quality"
+  const val SIGNATURE = "signature"
+  const val KEEP_SCREEN_ON = "keep-screen-on"
+  const val FONT_SIZE = "font-size"
+  const val S_NOTICE = "s-notice"
+  const val SPRAY = "spray"
+  const val NOTICE_SOUND = "notice-sound"
+  const val S_STORAGE = "s-storage"
+  const val FILTERS = "filters"
+  const val HISTORY = "history"
+  const val CACHE = "cache"
+  const val S_ADVANCED = "s-advanced"
+  const val LAB = "lab"
+  const val RESET = "reset"
+
+  /** 这一屏 LazyColumn 会用到的静态 key,顺序即屏上顺序。 */
+  val all: List<String> = listOf(
+    S_GENERAL, HOST, ACCOUNTS, NIGHT, NIGHT_SYSTEM, THEME_STYLE, LEFT_HANDED, SOLID_BG,
+    S_READING, AUTO_NEXT, WIFI_ONLY, IMAGE_QUALITY, SIGNATURE, KEEP_SCREEN_ON, FONT_SIZE,
+    S_NOTICE, SPRAY, NOTICE_SOUND,
+    S_STORAGE, FILTERS, HISTORY, CACHE,
+    S_ADVANCED, LAB, RESET,
+    SETTINGS_TAIL_KEY,
+  )
+}
+
+/**
  * 设置根屏(设计稿 `settings` 屏)—— `src/app/settings/index.tsx` 的移植。
  *
  * 五组:通用 / 阅读 / 通知 / 内容与存储 / 高级。分组的边界按「用户什么时候会想起它」划,
@@ -205,12 +250,12 @@ fun SettingsScreen(
       )
     },
   ) {
-    item("s-general") { SettingsSection("通用") }
+    item(SettingsKeys.S_GENERAL) { SettingsSection("通用") }
 
-    item("host") {
+    item(SettingsKeys.HOST) {
       SettingsNavRow(label = "NGA 域名", sub = settings.host) { hostOpen = true }
     }
-    item("accounts") {
+    item(SettingsKeys.ACCOUNTS) {
       val count = accounts?.accounts?.size ?: 0
       SettingsNavRow(
         label = "账号管理",
@@ -220,7 +265,7 @@ fun SettingsScreen(
     }
     // 夜间模式与「跟随系统」是同一个档位的两面:开关记的是最终深浅,
     // 跟随系统打开时那个开关只是在显示系统现在是深还是浅
-    item("night") {
+    item(SettingsKeys.NIGHT) {
       SettingsSwitchRow(
         label = "夜间模式",
         sub = if (mode == ThemeMode.SYSTEM) "当前跟随系统" else null,
@@ -228,7 +273,7 @@ fun SettingsScreen(
         onChange = { next -> setMode(if (next) ThemeMode.DARK else ThemeMode.LIGHT) },
       )
     }
-    item("night-system") {
+    item(SettingsKeys.NIGHT_SYSTEM) {
       SettingsSwitchRow(
         label = "夜间模式跟随系统",
         value = mode == ThemeMode.SYSTEM,
@@ -237,13 +282,13 @@ fun SettingsScreen(
         },
       )
     }
-    item("theme-style") {
+    item(SettingsKeys.THEME_STYLE) {
       SettingsNavRow(
         label = "主题风格",
         sub = if (dark) "夜间近黑" else settings.themeStyle.label,
       ) { themeOpen = true }
     }
-    item("left-handed") {
+    item(SettingsKeys.LEFT_HANDED) {
       SettingsSwitchRow(
         label = "左手模式",
         sub = "FAB 与菜单移到左侧",
@@ -251,7 +296,7 @@ fun SettingsScreen(
         onChange = { next -> update { it.copy(leftHanded = next) } },
       )
     }
-    item("solid-bg") {
+    item(SettingsKeys.SOLID_BG) {
       SettingsSwitchRow(
         label = "使用纯色背景",
         sub = "主题列表和详情页使用纯色背景",
@@ -260,9 +305,9 @@ fun SettingsScreen(
       )
     }
 
-    item("s-reading") { SettingsSection("阅读") }
+    item(SettingsKeys.S_READING) { SettingsSection("阅读") }
 
-    item("auto-next") {
+    item(SettingsKeys.AUTO_NEXT) {
       SettingsSwitchRow(
         label = "自动加载下一页",
         sub = "滚动到底部时自动翻页",
@@ -270,7 +315,7 @@ fun SettingsScreen(
         onChange = { next -> update { it.copy(autoLoadNextPage = next) } },
       )
     }
-    item("wifi-only") {
+    item(SettingsKeys.WIFI_ONLY) {
       SettingsSwitchRow(
         label = "仅 Wi-Fi 下加载图片",
         sub = "移动网络显示「点击显示附件」",
@@ -278,10 +323,10 @@ fun SettingsScreen(
         onChange = { next -> update { it.copy(wifiOnlyImages = next) } },
       )
     }
-    item("image-quality") {
+    item(SettingsKeys.IMAGE_QUALITY) {
       SettingsNavRow(label = "图片加载策略", sub = settings.imageQuality.label) { qualityOpen = true }
     }
-    item("signature") {
+    item(SettingsKeys.SIGNATURE) {
       SettingsSwitchRow(
         label = "显示签名档",
         sub = "在楼层正文下面显示作者签名",
@@ -291,7 +336,7 @@ fun SettingsScreen(
     }
     // 「手势返回」这一行不移植:原生的左边缘返回是系统手势(预测性返回),app 关不掉;
     // 所有者 2026-08-22 裁决「保留系统语义」。`Settings.gestureBack` 字段留着不读。
-    item("keep-screen-on") {
+    item(SettingsKeys.KEEP_SCREEN_ON) {
       SettingsSwitchRow(
         label = "阅读时常亮",
         sub = "看帖子详情时屏幕不自动熄灭",
@@ -299,7 +344,7 @@ fun SettingsScreen(
         onChange = { next -> update { it.copy(keepScreenOn = next) } },
       )
     }
-    item("font-size") {
+    item(SettingsKeys.FONT_SIZE) {
       val a = settings.appearance
       SettingsNavRow(
         label = "字体和头像大小",
@@ -308,9 +353,9 @@ fun SettingsScreen(
       )
     }
 
-    item("s-notice") { SettingsSection("通知") }
+    item(SettingsKeys.S_NOTICE) { SettingsSection("通知") }
 
-    item("spray") {
+    item(SettingsKeys.SPRAY) {
       SettingsSwitchRow(
         label = "启用被喷提示",
         sub = "关掉后不再轮询通知,抽屉也不显示未读角标",
@@ -318,7 +363,7 @@ fun SettingsScreen(
         onChange = { next -> update { it.copy(sprayNotice = next) } },
       )
     }
-    item("notice-sound") {
+    item(SettingsKeys.NOTICE_SOUND) {
       SettingsSwitchRow(
         label = "提示声音",
         value = settings.noticeSound,
@@ -326,16 +371,16 @@ fun SettingsScreen(
       )
     }
 
-    item("s-storage") { SettingsSection("内容与存储") }
+    item(SettingsKeys.S_STORAGE) { SettingsSection("内容与存储") }
 
-    item("filters") {
+    item(SettingsKeys.FILTERS) {
       SettingsNavRow(
         label = "屏蔽规则",
         sub = if (rules.isEmpty()) "还没有本地规则" else "本地 ${rules.size} 条",
         onClick = onOpenFilters,
       )
     }
-    item("history") {
+    item(SettingsKeys.HISTORY) {
       SettingsNavRow(
         label = "阅读进度记录",
         sub = if (history.isEmpty()) "还没有记录(最多留最近 $HISTORY_LIMIT 个主题)"
@@ -344,7 +389,7 @@ fun SettingsScreen(
         if (history.isEmpty()) toast("还没有阅读进度可清") else clearHistoryOpen = true
       }
     }
-    item("cache") {
+    item(SettingsKeys.CACHE) {
       SettingsNavRow(
         label = "清理缓存",
         sub = if (topics.isEmpty()) "还没有缓存的帖子"
@@ -354,12 +399,12 @@ fun SettingsScreen(
       }
     }
 
-    item("s-advanced") { SettingsSection("高级") }
+    item(SettingsKeys.S_ADVANCED) { SettingsSection("高级") }
 
-    item("lab") {
+    item(SettingsKeys.LAB) {
       SettingsNavRow(label = "实验室与诊断", sub = "网页兜底 · 请求组合 · 诊断日志", onClick = onOpenLab)
     }
-    item("reset") {
+    item(SettingsKeys.RESET) {
       SettingsNavRow(label = "恢复默认设置", sub = "全部设置回默认值,不动账号与缓存") { resetOpen = true }
     }
   }

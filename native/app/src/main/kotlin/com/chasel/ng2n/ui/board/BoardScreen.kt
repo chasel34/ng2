@@ -53,7 +53,9 @@ import com.chasel.ng2n.core.net.NgaError
 import com.chasel.ng2n.core.net.NgaErrorKind
 import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.data.board.TopicListRepository
+import com.chasel.ng2n.data.filters.filterTopics
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingFooter
 import com.chasel.ng2n.ui.common.LoadingState
@@ -70,6 +72,7 @@ import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
+import com.chasel.ng2n.ui.filters.rememberFilterRules
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.BoardFace
@@ -130,9 +133,13 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
   val headTid = firstPage?.board?.head
   val subBoards = firstPage?.subBoards.orEmpty()
 
+  // 屏蔽规则(票 29):命中的主题**整行不画**(楼层是折叠,列表是隐藏 —— 屏蔽规则页
+  // 顶上那句说明写的就是这个)。判定与楼层流共用 `matchFilterRules`
+  val filterRules = rememberFilterRules()
+
   // 彩色标题 → AnnotatedString:**一次构建**,滚动路径上零计算(anzong 四原则第一条)
-  val rows = remember(state.topics, colors, titleColors) {
-    buildTopicRows(state.topics, colors, titleColors)
+  val rows = remember(state.topics, filterRules, colors, titleColors) {
+    buildTopicRows(filterTopics(filterRules, state.topics), colors, titleColors)
   }
 
   val openBoard: (Board) -> Unit = { board ->
@@ -385,6 +392,16 @@ private fun TopicListBody(
 
   if (rows.isEmpty()) {
     val listStructure = state.pages.firstOrNull()?.listStructure
+    // 拉回来了、被自己的屏蔽规则挡光了:得说清是规则挡的,别当成「这个版块没帖子」
+    val allFiltered = state.topics.isNotEmpty()
+    if (allFiltered) {
+      EmptyState(
+        icon = Ng2nIcon.FILTER_ALT,
+        text = "这一页的主题都被屏蔽规则挡住了",
+        action = StateAction("刷新", onRetry),
+      )
+      return
+    }
     // 服务端连「主题列表」这个结构都没给:这不是空版块。正常情况下 core/api 已经把它
     // 变成错误了,这里是最后一道防线——别再让「没拿到」和「没帖子」共用一句话
     if (listStructure == false) {
@@ -427,10 +444,10 @@ private fun TopicListBody(
       contentPadding = PaddingValues(bottom = 70.dp),
     ) {
       if (headTid != null) {
-        item(key = "head", contentType = "head") { HeadRow(onClick = { onOpenHead(headTid) }) }
+        item(key = ListKeys.HEAD, contentType = "head") { HeadRow(onClick = { onOpenHead(headTid) }) }
       }
       if (subBoards.isNotEmpty()) {
-        item(key = "sub-boards", contentType = "sub-boards") {
+        item(key = ListKeys.SUB_BOARDS, contentType = "sub-boards") {
           SubBoardBar(subBoards, onOpenBoard)
         }
       }
@@ -442,7 +459,7 @@ private fun TopicListBody(
       ) { index ->
         TopicRow(rows[index], onOpenTopic)
       }
-      item(key = "footer", contentType = "footer") {
+      item(key = ListKeys.FOOTER, contentType = "footer") {
         Column {
           if (state.loadingNextPage) LoadingFooter("正在载入第 ${state.pages.size + 1} 页…")
           if (!state.loadingNextPage && error != null) {

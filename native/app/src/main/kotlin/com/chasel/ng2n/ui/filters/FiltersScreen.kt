@@ -231,11 +231,11 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
           modifier = Modifier.fillMaxSize(),
           contentPadding = PaddingValues(bottom = 80.dp),
         ) {
-          item(key = "hint", contentType = "hint") { HintBar(tab.hint) }
+          item(key = FiltersKeys.HINT, contentType = "hint") { HintBar(tab.hint) }
 
           if (tab == FilterTab.LOCAL) {
             if (rules.isEmpty()) {
-              item(key = "empty", contentType = "state") {
+              item(key = FiltersKeys.EMPTY_LOCAL, contentType = "state") {
                 EmptyState(
                   icon = Ng2nIcon.BLOCK,
                   text = "还没有本地屏蔽规则",
@@ -243,7 +243,7 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
                 )
               }
             } else {
-              items(count = rules.size, key = { rules[it].id }, contentType = { "rule" }) { index ->
+              items(count = rules.size, key = { FiltersKeys.rule(rules[it].id) }, contentType = { "rule" }) { index ->
                 val rule = rules[index]
                 FilterRow(
                   icon = iconOf(rule.kind),
@@ -357,11 +357,11 @@ private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
 ) {
   if (!uidKnown) {
     // 账号表还没从磁盘读回来:先转圈,别拿游客态措辞
-    item(key = "unknown", contentType = "state") { LoadingState(variant = StateVariant.INLINE) }
+    item(key = FiltersKeys.UNKNOWN, contentType = "state") { LoadingState(variant = StateVariant.INLINE) }
     return
   }
   if (!signedIn) {
-    item(key = "guest", contentType = "state") {
+    item(key = FiltersKeys.GUEST, contentType = "state") {
       EmptyState(
         icon = Ng2nIcon.PERSON,
         text = "登录后才能读写官方屏蔽词",
@@ -372,7 +372,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
   }
   val list: BlockWordList? = state.list
   if (list == null) {
-    item(key = "cloud-state", contentType = "state") {
+    item(key = FiltersKeys.CLOUD_STATE, contentType = "state") {
       if (state.loading) {
         LoadingState(variant = StateVariant.INLINE)
       } else {
@@ -384,17 +384,18 @@ private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
 
   if (tab == FilterTab.OFFICIAL_USERS) {
     if (list.users.isEmpty()) {
-      item(key = "empty-users", contentType = "state") {
+      item(key = FiltersKeys.EMPTY_USERS, contentType = "state") {
         EmptyState(icon = Ng2nIcon.BLOCK, text = "云端还没有屏蔽的用户", variant = StateVariant.INLINE)
       }
       return
     }
+    val users = distinctBlockUsers(list.users)
     items(
-      count = list.users.size,
-      key = { list.users[it].uid?.toString() ?: list.users[it].name },
+      count = users.size,
+      key = { FiltersKeys.user(users[it]) },
       contentType = { "rule" },
     ) { index ->
-      val user = list.users[index]
+      val user = users[index]
       FilterRow(
         icon = Ng2nIcon.PERSON,
         text = "用户:${user.name}",
@@ -406,13 +407,14 @@ private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
   }
 
   if (list.words.isEmpty()) {
-    item(key = "empty-words", contentType = "state") {
+    item(key = FiltersKeys.EMPTY_WORDS, contentType = "state") {
       EmptyState(icon = Ng2nIcon.BLOCK, text = "云端还没有屏蔽关键词", variant = StateVariant.INLINE)
     }
     return
   }
-  items(count = list.words.size, key = { list.words[it] }, contentType = { "rule" }) { index ->
-    val word = list.words[index]
+  val words = distinctBlockWords(list.words)
+  items(count = words.size, key = { FiltersKeys.word(words[it]) }, contentType = { "rule" }) { index ->
+    val word = words[index]
     FilterRow(
       icon = Ng2nIcon.TEXT_FIELDS,
       text = "关键词:$word",
@@ -421,6 +423,44 @@ private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
     )
   }
 }
+
+/**
+ * 屏蔽规则屏那一个 `LazyColumn` 的 key。
+ *
+ * 状态行(空表 / 游客 / 云端加载)是字面量,规则行是**数据里来的**:本地规则的 id、
+ * 云端的关键词原文与用户名。数据里来的那半一律带前缀 —— 用户把「hint」加成屏蔽词时,
+ * 裸 key 会和 [HINT] 撞成同一个 key,Compose 当场抛(票 28 同一类崩溃)。
+ */
+internal object FiltersKeys {
+  const val HINT = "hint"
+  const val EMPTY_LOCAL = "empty"
+  const val UNKNOWN = "unknown"
+  const val GUEST = "guest"
+  const val CLOUD_STATE = "cloud-state"
+  const val EMPTY_USERS = "empty-users"
+  const val EMPTY_WORDS = "empty-words"
+
+  /** 静态那半;数据行的 key 由下面三个函数带前缀生成,与它们不可能相等。 */
+  val all: List<String> =
+    listOf(HINT, EMPTY_LOCAL, UNKNOWN, GUEST, CLOUD_STATE, EMPTY_USERS, EMPTY_WORDS)
+
+  fun rule(id: String): String = "rule/$id"
+
+  fun word(word: String): String = "word/$word"
+
+  fun user(user: BlockedUser): String = "user/${user.uid?.toString() ?: user.name}"
+}
+
+/**
+ * 云端那张表是**空格分隔的一行文本**(`core/api/BlockWord.kt`),同一个词加两遍在
+ * 网页版那边是合法的,读回来就是两个一模一样的条目 —— 直接铺进 `LazyColumn` 会撞 key。
+ * 显示前按 key 去重(留第一条),写回云端的仍是仓库里那张原表。
+ */
+internal fun distinctBlockWords(words: List<String>): List<String> = words.distinct()
+
+/** 同 [distinctBlockWords]:有 uid 的按 uid 去重,没 uid 的按名字。 */
+internal fun distinctBlockUsers(users: List<BlockedUser>): List<BlockedUser> =
+  users.distinctBy { it.uid?.toString() ?: it.name }
 
 /** 本地规则行的第二行灰字。设计稿在这行放添加时间与生效范围。 */
 internal fun localRuleSub(rule: FilterRule): String {

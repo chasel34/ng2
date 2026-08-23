@@ -56,6 +56,32 @@ import com.chasel.ng2n.ui.theme.Typo
 /** uiautomator / 票 18 找关于屏的锚点。 */
 const val ABOUT_SCREEN_TAG: String = "ng2n-about-screen"
 
+/**
+ * 关于屏那一个 `LazyColumn` 里的全部 key,顺序即屏上从上到下的顺序。
+ *
+ * **为什么要摊成常量**:票 28 —— 页脚那段免责文案原本也叫 `disclaimer`,与行表里
+ * 「免责声明」那一行撞了,Compose 在首次布局就抛
+ * `Key "disclaimer" was already used`,整屏一帧都没画出来、进程直接没了。
+ * 两处 key 各写各的字面量时,人眼看不出它们在同一张表里;摊成一份清单之后,
+ * [com.chasel.ng2n.ui.common.SCREEN_LAZY_KEYS] 的单测能在编译期之外把重复挡下来。
+ */
+internal object AboutKeys {
+  const val HEADER = "header"
+  const val SOURCE = "source"
+  const val LINKS = "links"
+  const val DIAGNOSTIC = "diagnostic"
+  const val LICENSES = "licenses"
+  const val DISCLAIMER = "disclaimer"
+
+  /** 页脚那段居中的短版免责声明。**不能叫 `disclaimer`** —— 行表里已经有一条了。 */
+  const val FOOTER = "disclaimer-footer"
+
+  /** 行表(`items`)铺出来的 key,顺序即 `rows` 的顺序。 */
+  val rows: List<String> = listOf(SOURCE, LINKS, DIAGNOSTIC, LICENSES, DISCLAIMER)
+
+  val all: List<String> = listOf(HEADER) + rows + FOOTER
+}
+
 /** 设计稿底部那句免责声明。 */
 private const val DISCLAIMER =
   "本客户端与 NGA 官方无关,仅供个人学习与自用。所有内容版权归原作者与 NGA 所有,不做任何分发。"
@@ -114,9 +140,9 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
 
   val rows = remember(version) {
     listOf(
-      AboutRow("source", Ng2nIcon.ACCOUNT_TREE, "数据来源", "直接读 NGA 官方接口", detail = DATA_SOURCE),
+      AboutRow(AboutKeys.SOURCE, Ng2nIcon.ACCOUNT_TREE, "数据来源", "直接读 NGA 官方接口", detail = DATA_SOURCE),
       AboutRow(
-        key = "links",
+        key = AboutKeys.LINKS,
         icon = Ng2nIcon.SETTINGS,
         label = "系统设置",
         // Android 12+ 要用户自己在系统设置里开「打开支持的链接」。
@@ -126,14 +152,14 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
         onClick = { openAppSettings(context) },
       ),
       AboutRow(
-        key = "diagnostic",
+        key = AboutKeys.DIAGNOSTIC,
         icon = Ng2nIcon.SCIENCE,
         label = "诊断日志",
         sub = "接口失败的记录在「设置 · 实验室与诊断」里导出",
         onClick = onOpenLab,
       ),
-      AboutRow("licenses", Ng2nIcon.ARTICLE, "开源许可", "${LICENSES.size} 个第三方组件", detail = LICENSES.joinToString("\n")),
-      AboutRow("disclaimer", Ng2nIcon.WARNING, "免责声明", detail = DISCLAIMER_DETAIL),
+      AboutRow(AboutKeys.LICENSES, Ng2nIcon.ARTICLE, "开源许可", "${LICENSES.size} 个第三方组件", detail = LICENSES.joinToString("\n")),
+      AboutRow(AboutKeys.DISCLAIMER, Ng2nIcon.WARNING, "免责声明", detail = DISCLAIMER_DETAIL),
     )
   }
 
@@ -156,7 +182,7 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
 
     LazyColumn(Modifier.fillMaxSize()) {
       // 设计稿:76 见方的圆角方块 logo + 应用名 + 版本行,整块居中(34 上 / 26 下)
-      item("header") {
+      item(AboutKeys.HEADER) {
         Column(
           Modifier
             .fillMaxWidth()
@@ -272,7 +298,7 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
       }
 
       // 设计稿:20 内距、11.5 · 1.7、居中
-      item("disclaimer") {
+      item(AboutKeys.FOOTER) {
         Text(
           text = DISCLAIMER,
           textAlign = TextAlign.Center,

@@ -41,6 +41,7 @@ import com.chasel.ng2n.ui.board.TopicRow
 import com.chasel.ng2n.ui.board.buildTopicRows
 import com.chasel.ng2n.ui.board.dateText
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingFooter
 import com.chasel.ng2n.ui.common.LoadingState
@@ -220,7 +221,7 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
               TopicRow(topicRows[index], onClick = openTopic)
             }
           }
-          item(key = "footer", contentType = "footer") {
+          item(key = ListKeys.FOOTER, contentType = "footer") {
             Column {
               if (state.loadingNextPage) LoadingFooter("正在载入第 ${state.pages.size + 1} 页…")
               val error = state.error

@@ -1,5 +1,6 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.nav.TopicKey
 import com.chasel.ng2n.ui.nav.ChainKey
 import com.chasel.ng2n.ui.nav.UserKey
@@ -524,7 +525,7 @@ private fun FloorList(
     modifier = Modifier.fillMaxSize(),
   ) {
     if (live) {
-      item(key = "header", contentType = "header") {
+      item(key = ListKeys.HEADER, contentType = "header") {
         Column {
           vm.onlyUser?.let { OnlyUserBar(name = it.name, onExit = vm::exitOnlyUser) }
           // 热门回复是服务端在主楼里标的,只有第 1 页拿得到
@@ -568,7 +569,7 @@ private fun FloorList(
     }
 
     // 设计稿在列表末尾留 90 给 FAB 让路
-    item(key = "footer", contentType = "footer") {
+    item(key = ListKeys.FOOTER, contentType = "footer") {
       Box(Modifier.height(90.dp + bottomInset))
     }
   }
