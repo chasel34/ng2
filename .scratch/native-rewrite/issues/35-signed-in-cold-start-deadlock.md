@@ -239,3 +239,5 @@ UA 语义照抄没简化:兜底值仍是 `USER_AGENT_PROFILES[WEBVIEW]`,与 RN �
   `advanceUntilIdle()` 驱动 `cacheTopicPages`,正确的修法是照着同文件里现成的
   `@ComputeDispatcher` 再注入一个 `@IoDispatcher`(生产 `Dispatchers.IO`、单测给测试调度器),
   那是票 13 的地盘,建议单开一张。死锁本身已经与它无关(UA 那把锁没了)。
+
+**主控验收(2026-08-23)**:合并后 956 单测全绿;登录态(lemon43)连做 5 次冷启动(间隔 60s),5/5 首页 skeleton-ready,logcat ANR 计数 0。
