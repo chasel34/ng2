@@ -4,8 +4,12 @@
 
 **Blocked by:** 13, 16, 17
 
-**Status:** open
+**Status:** in-review
 
-- [ ] checklist 文档落 `.scratch/native-rewrite/acceptance/functional-checklist.md`
-- [ ] 全部 24 屏走查完成,结果逐项记录
+- [x] checklist 文档落 `.scratch/native-rewrite/acceptance/functional-checklist.md`
+- [x] 全部 24 屏走查完成,结果逐项记录
 - [ ] 缺陷票清零(或余项经所有者豁免并记录)
+
+## Comments
+
+**主控(2026-08-23)**:A/B/C 三段模拟器走查完成(`acceptance/functional-checklist.md`),缺陷票 20–34 共 15 张全部修复合并并复验(25 判为假缺陷)。checklist 160 项:通过 132,剩 28 项 —— 27 项「待所有者」(需真实 NGA 登录:签到、版块/主题收藏写、通知、账号切换、用户资料、我的主题/回复、搜索版块等),1 项双指缩放待真机(票 19)。本票转 in-review,等所有者登录验收批完成后 resolved。
