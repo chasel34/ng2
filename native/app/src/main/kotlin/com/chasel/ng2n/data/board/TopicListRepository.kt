@@ -1,5 +1,6 @@
 package com.chasel.ng2n.data.board
 
+import com.chasel.ng2n.core.api.Board
 import com.chasel.ng2n.core.api.BoardKind
 import com.chasel.ng2n.core.api.Topic
 import com.chasel.ng2n.core.api.TopicList
@@ -155,7 +156,9 @@ class TopicListRepository @Inject constructor(
         recommend = key.recommend,
       )
       put(key) { state ->
-        val pages = if (replace) listOf(fetched) else state.pages + fetched
+        // 刷新是「整份换成新拉到的第一页」,但版块元信息不跟着一起换掉(票 36)
+        val page = if (replace) keepBoardMeta(state.pages.firstOrNull(), fetched) else fetched
+        val pages = if (replace) listOf(page) else state.pages + page
         state.copy(
           loading = false,
           pages = pages,
@@ -185,4 +188,44 @@ class TopicListRepository @Inject constructor(
       return pages.size + 1 <= last.totalPages
     }
   }
+}
+
+/**
+ * 刷新时把上一份第一页的**版块元信息**带过来(票 36)。
+ *
+ * 版头(`__F.topped_topic`)与子版块(`__F.sub_forums`)都挂在 `__F` 上,同生共死:
+ * 刷新那一发要是没带 `__F`(合集 fid < 0 在登录态下的行为、`thread.php` 六个业务
+ * 共用一槽轮换到别的组合……现场没能坐实是哪一种),`refresh` 用新页整份替换旧页之后
+ * 版头行与子版块 chip 行会一起消失,而 `ensureFirstPage` 看见 `pages` 非空就不再拉,
+ * **坏状态一直留到进程重启**——退出重进都救不回来。
+ *
+ * 口径与分类树那边的 `mergeBoardTree` 一条:**新的有就用新的,新的没有才留旧的**。
+ * 主题列表本身(`__T`)不参与合并,它就该以服务端这一发为准。
+ */
+internal fun keepBoardMeta(previous: TopicList?, fresh: TopicList): TopicList {
+  if (previous == null) return fresh
+  return fresh.copy(
+    board = keepBoardFields(previous.board, fresh.board),
+    // 子版块整块缺席才回落。服务端真把子版块下线时会连着 `__F` 一起给出新的 `sub_forums`,
+    // 那一份是空对象也照样是「新的有」——但解析出来同样是空列表,两者在这一层分不开。
+    // 分不开时选「留旧的」:子版块下线是罕事,`__F` 缺席是本票的现场。
+    subBoards = fresh.subBoards.ifEmpty { previous.subBoards },
+  )
+}
+
+/**
+ * 版块本身的字段级回落,照抄 `BoardTreeLoad.mergeBoard` 的口径:
+ * 结构以服务端为准,只有服务端这次没给的字段才用旧值补齐。
+ *
+ * 身份对不上(换了版块)时不合并——那是两个版块的元信息,补齐等于串味。
+ */
+private fun keepBoardFields(previous: Board?, fresh: Board?): Board? {
+  if (fresh == null) return previous
+  if (previous == null || previous.id != fresh.id || previous.kind != fresh.kind) return fresh
+  return fresh.copy(
+    info = fresh.info ?: previous.info,
+    iconUrl = fresh.iconUrl ?: previous.iconUrl,
+    // 版头:`topped_topic` 为 0/空串时解析成 null,与「`__F` 没给」在这一层同形
+    head = fresh.head ?: previous.head,
+  )
 }

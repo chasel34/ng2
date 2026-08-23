@@ -6,6 +6,7 @@ import com.chasel.ng2n.core.api.UserPostKind
 import com.chasel.ng2n.core.net.NgaClient
 import com.chasel.ng2n.core.net.RecordingTransport
 import com.chasel.ng2n.core.net.UserAgents
+import com.chasel.ng2n.core.net.OK_JSON
 import com.chasel.ng2n.core.net.ok
 import com.chasel.ng2n.core.net.testClient
 import com.chasel.ng2n.data.board.BoardFavoriteRepository
@@ -14,6 +15,11 @@ import com.chasel.ng2n.data.board.TopicListRepository
 import com.chasel.ng2n.data.search.SearchRepository
 import com.chasel.ng2n.data.user.UserPostsRepository
 import com.chasel.ng2n.data.user.UserProfileRepository
+import com.chasel.ng2n.ui.topic.FakeSnapshotSink
+import com.chasel.ng2n.ui.topic.TopicFixtures
+import com.chasel.ng2n.ui.topic.TopicPageParams
+import com.chasel.ng2n.ui.topic.TopicRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -41,10 +47,10 @@ class RepositoryDispatcherTest {
     @Volatile
     var userAgentThread: Thread? = null
 
-    fun client(): NgaClient = testClient(
+    fun client(body: () -> String = { OK_JSON }): NgaClient = testClient(
       transport = RecordingTransport {
         transportThread = Thread.currentThread()
-        ok()
+        ok(body())
       },
       userAgents = UserAgents {
         userAgentThread = Thread.currentThread()
@@ -126,6 +132,34 @@ class RepositoryDispatcherTest {
     val caller = Thread.currentThread()
     val probe = ThreadProbe()
     SearchRepository(probe.client()).ensureBoards("第六感")
+    probe.assertOffThread(caller)
+  }
+
+  /**
+   * 票 37:详情页是同一类缺陷的最后一处 —— [TopicRepository.loadDetail] 里的
+   * `fetchTopicDetail` 原本跟着调用方走,而 `TopicViewModel` / `ChainViewModel` 一律
+   * `viewModelScope.launch`(= `Main.immediate`),于是每翻一页请求链前半段都在主线程上。
+   *
+   * 这里给的 `io` 是真的 [Dispatchers.IO](不是测试调度器),判据才有意义:
+   * **发请求的线程不是调用方线程**。
+   */
+  @Test
+  fun `主题详情 loadDetail 切走`() = runTest {
+    val caller = Thread.currentThread()
+    val probe = ThreadProbe()
+    val page = TopicFixtures.pageEnvelope(
+      floors = listOf(TopicFixtures.FloorSpec(pid = 0, lou = 0, authorId = 41417929)),
+    )
+    val repository = TopicRepository(
+      client = probe.client { page },
+      cachePayloads = FakeSnapshotSink(),
+      scope = backgroundScope,
+      compute = Dispatchers.Unconfined,
+      io = Dispatchers.IO,
+    )
+
+    repository.loadDetail(TopicPageParams(tid = 45150945, page = 1))
+
     probe.assertOffThread(caller)
   }
 }

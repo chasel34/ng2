@@ -12,6 +12,7 @@ import com.chasel.ng2n.core.net.utf8
 import com.chasel.ng2n.ui.theme.LightColors
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlin.coroutines.ContinuationInterceptor
 import kotlinx.coroutines.Dispatchers
 import java.net.URI
 
@@ -135,4 +136,19 @@ fun testRepository(
   scope: CoroutineScope,
   sink: TopicSnapshotSink = FakeSnapshotSink(),
   compute: CoroutineDispatcher = Dispatchers.Unconfined,
-) = TopicRepository(client = client, cachePayloads = sink, scope = scope, compute = compute)
+  io: CoroutineDispatcher = scope.testDispatcher(),
+) = TopicRepository(
+  client = client,
+  cachePayloads = sink,
+  scope = scope,
+  compute = compute,
+  io = io,
+)
+
+/**
+ * 请求那一发的调度器(票 37)。默认跟传进来的 scope 用**同一个**——单测给的是
+ * `StandardTestDispatcher(testScheduler)`,`advanceUntilIdle()` 才推得动 `withContext(io)`
+ * 里的活;换成 `Dispatchers.IO` 就跑到真线程池上去了,虚拟时间管不着。
+ */
+fun CoroutineScope.testDispatcher(): CoroutineDispatcher =
+  coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher ?: Dispatchers.Unconfined

@@ -136,8 +136,13 @@ class FakeTopicDeps(
   val snapshotSink: FakeSnapshotSink = FakeSnapshotSink(),
 ) {
   val settingsStore = SettingsStore(InMemoryPreferences())
-  val repository =
-    TopicRepository(client = client, cachePayloads = snapshotSink, scope = scope, compute = compute)
+  val repository = TopicRepository(
+    client = client,
+    cachePayloads = snapshotSink,
+    scope = scope,
+    compute = compute,
+    io = scope.testDispatcher(),
+  )
   val history = HistoryRepository(dao = historyDao, scope = scope)
   val topicCache = TopicCacheRepository(dao = cacheDao)
 

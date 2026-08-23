@@ -103,6 +103,14 @@ class TopicRepository @Inject constructor(
    * 单测换成测试调度器 —— 不换的话 `advanceUntilIdle()` 管不到真线程池里的活。
    */
   @ComputeDispatcher private val compute: CoroutineDispatcher,
+  /**
+   * 请求跑在哪。生产是 [Dispatchers.IO];**不能跟着调用方走**——[TopicViewModel] /
+   * [ChainViewModel] 一律 `viewModelScope.launch`(= `Main.immediate`),不切上下文的话
+   * `fetchTopicDetail` 的前半段(组装请求、取 UA、清洗响应)就落在主线程上,详情页每翻
+   * 一页卡一次首帧(票 37;票 35 的仓库层是同一条口径)。单测换成测试调度器 ——
+   * 不换的话 `advanceUntilIdle()` 管不到真线程池里的活。
+   */
+  @IoDispatcher private val io: CoroutineDispatcher,
 ) {
 
   private val details = LinkedHashMap<TopicPageParams, CachedDetail>()
@@ -158,23 +166,25 @@ class TopicRepository @Inject constructor(
       if (cached != null && nowMs - cached.atMs < TOPIC_DETAIL_STALE_MS) return cached.detail
     }
 
-    val detail = fetchTopicDetail(
-      client = client,
-      tid = params.tid,
-      page = params.page,
-      favCode = params.favCode,
-      pid = params.pid,
-      authorId = params.authorId,
-      // 浏览过的整帖页顺手写进 Room(过滤视图 `topicCacheKeyOf` 会挡掉)。
-      // 延后一拍:页面转场只有 220ms,序列化整页 + 写库不必跟首帧抢 CPU
-      // (RN 侧 `deferCachedPage` 的同一条理由,那边是为了不跟 Fabric 提交抢帧)
-      deferSnapshot = { createSnapshot ->
-        scope.launch {
-          delay(FOREGROUND_CACHE_DELAY_MS)
-          runCatching { cachePayloads.save(createSnapshot()) }
-        }
-      },
-    )
+    val detail = withContext(io) {
+      fetchTopicDetail(
+        client = client,
+        tid = params.tid,
+        page = params.page,
+        favCode = params.favCode,
+        pid = params.pid,
+        authorId = params.authorId,
+        // 浏览过的整帖页顺手写进 Room(过滤视图 `topicCacheKeyOf` 会挡掉)。
+        // 延后一拍:页面转场只有 220ms,序列化整页 + 写库不必跟首帧抢 CPU
+        // (RN 侧 `deferCachedPage` 的同一条理由,那边是为了不跟 Fabric 提交抢帧)
+        deferSnapshot = { createSnapshot ->
+          scope.launch {
+            delay(FOREGROUND_CACHE_DELAY_MS)
+            runCatching { cachePayloads.save(createSnapshot()) }
+          }
+        },
+      )
+    }
 
     detailsLock.withLock { remember(params, detail, nowMs) }
     return detail
@@ -256,15 +266,19 @@ class TopicRepository @Inject constructor(
 
         try {
           var snapshot: TopicPageSnapshot? = null
-          fetchTopicDetail(
-            client = client,
-            tid = tid,
-            page = page,
-            favCode = favCode,
-            // 后台批量下载**就地写盘**(不像前台那样延后一拍):这一趟本来就是慢活,
-            // 而且顺序确定 —— 丢给别的 scope 的话「跑完了没」与「存完了没」会脱节
-            onSnapshot = { snapshot = it },
-          )
+          // 请求下 IO,**限速与进度留在调用方上下文**(票 37):`delay` 的节拍与
+          // `downloadState` 的更新次序不该跟着换线程
+          withContext(io) {
+            fetchTopicDetail(
+              client = client,
+              tid = tid,
+              page = page,
+              favCode = favCode,
+              // 后台批量下载**就地写盘**(不像前台那样延后一拍):这一趟本来就是慢活,
+              // 而且顺序确定 —— 丢给别的 scope 的话「跑完了没」与「存完了没」会脱节
+              onSnapshot = { snapshot = it },
+            )
+          }
           snapshot?.let { runCatching { cachePayloads.save(it) } }
         } catch (cause: CancellationException) {
           throw cause
@@ -323,6 +337,11 @@ fun interface TopicSnapshotSink {
 @Retention(AnnotationRetention.BINARY)
 annotation class ComputeDispatcher
 
+/** 发请求用的 IO 调度器。同上,抠成 qualifier 只为单测能换掉它(票 37)。 */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class IoDispatcher
+
 @Module
 @InstallIn(SingletonComponent::class)
 object TopicRepositoryModule {
@@ -335,4 +354,8 @@ object TopicRepositoryModule {
   @Provides
   @ComputeDispatcher
   fun provideComputeDispatcher(): CoroutineDispatcher = Dispatchers.Default
+
+  @Provides
+  @IoDispatcher
+  fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
 }
