@@ -91,3 +91,5 @@ runCatching { deps.notifications.clearAll() }.fold(
 **票外发现**
 
 - 无。
+
+**主控验收(2026-08-23)**:游客态「清空全部通知」→ 「登录后才能清空通知」+ 去登录,不再谎报成功。

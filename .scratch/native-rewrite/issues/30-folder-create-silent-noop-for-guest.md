@@ -98,3 +98,5 @@ fun signedInGate(uid: String?, message: String): SignedInGate
 **票外发现**
 
 - 无。
+
+**主控验收(2026-08-23)**:游客态「新建收藏夹」点创建 → 「登录后才能管理云端收藏夹」+ 去登录。

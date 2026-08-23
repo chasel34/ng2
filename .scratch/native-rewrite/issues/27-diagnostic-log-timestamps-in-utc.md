@@ -97,3 +97,5 @@ internal fun runLogClock(atMillis: Long, zone: ZoneId = ZoneId.systemDefault()):
 **票外发现**
 
 - 无。
+
+**主控验收(2026-08-23)**:屏上不直接显示时间戳(仅导出),以 LabClockTest 单测为准;合并后 926 单测全绿。

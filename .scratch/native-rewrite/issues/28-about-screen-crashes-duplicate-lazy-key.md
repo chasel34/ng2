@@ -107,3 +107,5 @@ JVM 单测,拦的是同一类崩溃且不引新依赖。要补 UI 冒烟请另�
 **票外发现**:`ui/topic/FilterBridge.kt` 与 `data/filters/FilterRepository.kt` 各有一份
 存储↔判定形态的映射(`toMatchRule`/`toStoredRule` vs `toCore`/`toStored`),内容一样。
 本票不动(票外重构)。
+
+**主控验收(2026-08-23)**:模拟器复验通过,抽屉→关于正常渲染,logcat 无 FATAL。
