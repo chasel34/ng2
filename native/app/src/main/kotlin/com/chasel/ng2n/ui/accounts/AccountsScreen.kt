@@ -28,7 +28,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -47,6 +54,7 @@ import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
+import com.chasel.ng2n.ui.theme.avatarColorFor
 
 /** uiautomator 找账号管理屏的锚点。 */
 const val ACCOUNTS_SCREEN_TAG: String = "ng2n-accounts-screen"
@@ -120,12 +128,28 @@ fun AccountsScreen(
         Spacer(Modifier.height(10.dp))
       }
 
+      // 「添加账号」是**虚线**描边的空框(RN 侧 `borderStyle: 'dashed'` + `colors.track`)——
+      // Compose 的 `Modifier.border` 只画实线,虚线要自己 `drawBehind` 一条带
+      // `dashPathEffect` 的描边(票 48)
+      val dash = with(LocalDensity.current) {
+        PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))
+      }
+      val dashStroke = with(LocalDensity.current) { 1.5.dp.toPx() }
+      val dashRadius = with(LocalDensity.current) { CornerRadius(Radius.lg.toPx(), Radius.lg.toPx()) }
       Row(
         modifier = Modifier
           .fillMaxWidth()
           .height(48.dp)
           .clip(RoundedCornerShape(Radius.lg))
-          .border(1.5.dp, colors.divider, RoundedCornerShape(Radius.lg))
+          .drawBehind {
+            drawRoundRect(
+              color = colors.track,
+              topLeft = Offset(dashStroke / 2f, dashStroke / 2f),
+              size = Size(size.width - dashStroke, size.height - dashStroke),
+              cornerRadius = dashRadius,
+              style = Stroke(width = dashStroke, pathEffect = dash),
+            )
+          }
           .clickable(onClick = onAddAccount)
           .semantics { contentDescription = "添加账号" },
         verticalAlignment = Alignment.CenterVertically,
@@ -180,11 +204,15 @@ private fun AccountRow(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(13.dp),
   ) {
+    // 头像方块按 **uid** 散列取色 + 白字(RN 侧 `accounts.tsx` 的
+    // `avatarColorFor(account.uid)` + `onPrimary`)。票 32 当时选的
+    // 「primaryContainer 底 + primary 字」是照收藏夹「默认」徽标抄的,语义不同:
+    // 那是一个状态徽标,这是**身份**色 —— 登了多个账号时全屏一个色就分不出人了(票 48)
     Box(
       modifier = Modifier
         .size(46.dp)
         .clip(RoundedCornerShape(15.dp))
-        .background(colors.primaryContainer),
+        .background(avatarColorFor(account.uid)),
       contentAlignment = Alignment.Center,
     ) {
       Text(
@@ -193,7 +221,7 @@ private fun AccountRow(
           fontSize = Typo.avatarInitial.size,
           lineHeight = Typo.avatarInitial.lineHeight,
           fontWeight = FontWeight.Bold,
-          color = colors.primary,
+          color = colors.onPrimary,
         ),
       )
     }

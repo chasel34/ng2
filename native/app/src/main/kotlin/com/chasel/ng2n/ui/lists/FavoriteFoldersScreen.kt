@@ -189,7 +189,9 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
               EmptyState(
                 icon = Ng2nIcon.FOLDER,
                 text = "还没有收藏夹，点右上角新建一个",
-                variant = StateVariant.INLINE,
+                // 下面紧跟着那段说明文字,用 INLINE 的下 56 会把两者拉开约 36dp
+                // (票 50);RN 侧这一屏的空态是上 60 / 下 20
+                variant = StateVariant.INLINE_HEAD,
               )
             }
           }

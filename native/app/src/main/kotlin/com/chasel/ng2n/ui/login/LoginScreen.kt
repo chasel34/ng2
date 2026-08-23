@@ -18,13 +18,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,15 +33,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.chasel.ng2n.ui.accounts.CloseIcon
-import com.chasel.ng2n.ui.accounts.LockIcon
-import com.chasel.ng2n.ui.accounts.RefreshIcon
+import com.chasel.ng2n.ui.common.TopBar
+import com.chasel.ng2n.ui.common.TopBarButton
+import com.chasel.ng2n.ui.common.TopBarTitle
+import com.chasel.ng2n.ui.common.TopBarTitleVariant
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
+import com.chasel.ng2n.ui.theme.LocalNg2nColors
+import com.chasel.ng2n.ui.theme.MonoFontFamily
+import com.chasel.ng2n.ui.theme.Spacing
+import com.chasel.ng2n.ui.theme.Typo
 
 /** uiautomator 找登录屏的锚点(票 18 / 手验用)。 */
 const val LOGIN_SCREEN_TAG: String = "ng2n-login-screen"
@@ -68,12 +71,23 @@ const val LOGIN_SCREEN_TAG: String = "ng2n-login-screen"
  * 二是 [LoginViewModel] 经 `WebCookieVault` 做的「进场清空 / 收割后清空」。
  * app 自己的 HTTP 请求一枚 WebView cookie 都不用(票 06 的自管 CookieJar)——
  * 这就是 P1-03 的修法:账号状态**只有 `AccountStore` 一个来源**。
+ *
+ * ## 换皮(票 45)
+ *
+ * 顶栏与地址条原先用的是 Material3 默认配色(`MaterialTheme.colorScheme.*`):
+ * 顶栏奶白底黑字、地址条是 M3 的淡紫 `surfaceVariant`、锁图标是紫的 —— 这是新用户
+ * 见到的第一屏,却是全 app 最后一屏不跟主题走的。改法与票 32 给账号管理屏做的那份
+ * 一样:顶栏换全 app 同一套 [TopBar] / [TopBarButton] / [TopBarTitle],颜色全取
+ * `LocalNg2nColors`(`surfaceVariant` → `surface2`、`onSurfaceVariant` → `fg2`)。
+ * 状态栏图标不用在这里管:它由 `StatusBarIconsEffect` 按顶栏底色统一翻(票 39),
+ * 顶栏一变回墨绿,图标自己就是白的。
  */
 @Composable
 fun LoginScreen(onBack: () -> Unit) {
   val viewModel: LoginViewModel = hiltViewModel()
   val state by viewModel.state.collectAsStateWithLifecycle()
   val context = LocalContext.current
+  val colors = LocalNg2nColors.current
   var webView by remember { mutableStateOf<WebView?>(null) }
 
   // 收割成功:提示一句然后退场(RN 版 `showToast` + `router.back()`)
@@ -86,55 +100,52 @@ fun LoginScreen(onBack: () -> Unit) {
   Column(
     modifier = Modifier
       .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
+      .background(colors.bg)
       .semantics { contentDescription = LOGIN_SCREEN_TAG },
   ) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .windowInsetsPadding(WindowInsets.statusBars)
-        .padding(horizontal = 4.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      IconButton(onClick = onBack, modifier = Modifier.size(46.dp)) {
-        CloseIcon(tint = MaterialTheme.colorScheme.onBackground)
-      }
-      Text(
-        text = "登录 NGA 账号",
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier
-          .weight(1f)
-          .padding(start = 4.dp),
+    // 状态栏安全区归 TopBar 自己撑(edge-to-edge),这里不再叠 windowInsetsPadding
+    TopBar(paddingHorizontal = 4.dp) {
+      TopBarButton(
+        icon = Ng2nIcon.CLOSE,
+        size = 24.dp,
+        box = 46.dp,
+        contentDescription = "关闭登录页",
+        onClick = onBack,
       )
-      IconButton(
+      TopBarTitle(text = "登录 NGA 账号", variant = TopBarTitleVariant.SUB)
+      Spacer(Modifier.weight(1f))
+      TopBarButton(
+        icon = Ng2nIcon.REFRESH,
+        size = 22.dp,
+        contentDescription = "刷新登录页",
         onClick = { webView?.reload() },
-        modifier = Modifier
-          .size(46.dp)
-          .semantics { contentDescription = "刷新登录页" },
-      ) {
-        RefreshIcon(tint = MaterialTheme.colorScheme.onBackground)
-      }
+      )
     }
 
     // 地址提示条:让用户看得见自己在跟哪个域名打交道(照设计稿只到 __lib=login 一段)
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.surfaceVariant)
-        .padding(horizontal = 14.dp, vertical = 9.dp),
+        .background(colors.surface2)
+        .padding(horizontal = Spacing.row, vertical = 9.dp),
       verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
     ) {
-      LockIcon(tint = MaterialTheme.colorScheme.primary)
+      AppIcon(icon = Ng2nIcon.LOCK, tint = colors.primary, size = 16.dp)
       Text(
         text = urlHint(state),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = TextStyle(
+          fontSize = Typo.meta.size,
+          lineHeight = Typo.meta.lineHeight,
+          fontFamily = MonoFontFamily,
+          color = colors.fg2,
+        ),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )
     }
-    HorizontalDivider()
+    // RN 侧地址条那条 `borderBottomWidth: 1` —— 用主题的分隔线色,不是 M3 的默认描边
+    Box(Modifier.fillMaxWidth().height(1.dp).background(colors.divider))
 
     Box(
       modifier = Modifier
@@ -181,20 +192,22 @@ fun LoginScreen(onBack: () -> Unit) {
     Column(
       modifier = Modifier
         .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.background)
+        .background(colors.bg)
         .windowInsetsPadding(WindowInsets.navigationBars)
-        .padding(12.dp),
+        .padding(Spacing.md),
     ) {
       Text(
         text = "客户端仅托管官方登录页，不接触你的密码；cookie 保存在本地，可在「账号管理」中随时删除。",
-        fontSize = 11.5.sp,
-        lineHeight = 18.4.sp,
-        color = Color(0xFF8A6D1F),
+        style = TextStyle(
+          fontSize = 11.5.sp,
+          lineHeight = 18.4.sp,
+          color = Color(0xFF8A6D1F),
+        ),
         modifier = Modifier
           .fillMaxWidth()
           .background(Color(0xFFFFF8E6), RoundedCornerShape(6.dp))
           .border(1.dp, Color(0xFFF0E0B0), RoundedCornerShape(6.dp))
-          .padding(12.dp),
+          .padding(Spacing.md),
       )
       Spacer(Modifier.height(4.dp))
     }

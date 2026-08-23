@@ -1,6 +1,6 @@
 # 48 — P3:账号管理屏头像方块没用散列色,「添加账号」少了虚线边框
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P3(纯视觉;多账号时头像失去辨识度)
 
@@ -38,3 +38,31 @@
 ## 疑似代码位置
 
 `ui/accounts/AccountsScreen.kt`(头像方块与添加钮)、`ui/theme/Tokens.kt`(补 `avatarColors` 色表)。
+
+## Comments
+
+**2026-08-23 — 修复**(`ui/accounts/AccountsScreen.kt`)
+
+**1. 头像方块**:`primaryContainer` 底 + `primary` 字 → `avatarColorFor(account.uid)` 底 +
+`colors.onPrimary`(白)字,与 RN 侧 `accounts.tsx:56` 的
+`{ backgroundColor: avatarColorFor(account.uid) }` + `avatarText.color = onPrimary` 同源。
+散列与色表**没有新写一份**:`ui/theme/Tokens.kt` 里早就有一份逐字照抄 TS 的
+`avatarColorFor`(`hash = (hash*31 + Char.code) % 0xffffff`)与七档 `AvatarColors`,
+这一屏直接 import 它 —— 也就是票里说的「落在 token 层比落在这一屏更合适」。
+
+顺手把票 47 那一屏本地重复的那份删了(见票 47 Comments),现在 token 层这一份的使用者
+是:楼层/列表头像占位(`ui/lists/ListCommon.kt`)、资料页 banner、账号管理。
+
+**2. 「添加账号」**:`Modifier.border(1.5dp, colors.divider, …)` 实线 →
+`drawBehind` 画一条带 `PathEffect.dashPathEffect(6dp on / 4dp off)` 的圆角虚线描边,
+颜色改成 RN 用的 `colors.track`(原来错拿了 `divider`)。Compose 的 `Modifier.border`
+只画实线,虚线只能自己画;描边整体内缩半个线宽,免得被外层 `clip` 削掉一半。
+虚线的 6/4 节奏是实现时定的(RN 的 `borderStyle:'dashed'` 由平台决定节奏,没有可抄的
+数值),**不进 token**:全 app 只有这一处虚线。
+
+**没做**:真机/模拟器复看(本轮不许上设备);「添加账号」的加号在人形右侧那条归票 40,
+未动。
+
+**单测**:头像散列色本来就有两处覆盖(`ui/lists/ListScreenTextTest.kt`、
+`ui/user/UserScreenTextTest.kt`),后者的 import 跟着改到 token 层,断言未动、仍全绿 ——
+账号管理屏用的是同一个函数,不再另写重复用例。

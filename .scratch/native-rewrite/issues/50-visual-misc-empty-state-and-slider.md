@@ -1,6 +1,6 @@
 # 50 — P3:收藏夹顶栏图标拿错、空态间距偏大、滑杆轨道偏粗
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P3(三条零散视觉差,合成一张票)
 
@@ -44,3 +44,40 @@
 - 设置行尾 chevron 原生略粗略高(1–2px 量级)
 
 这三条都在测量噪声边缘,单看不足以判定。
+
+## Comments
+
+**2026-08-23 — 处理结果:1 已随票 40 修掉、2 已修、3 判不成立**
+
+**#1 顶栏图标**——不用改,票 40 已经修掉了。`ui/lists/FavoritesScreen.kt:147` 引的一直
+是 `Ng2nIcon.FOLDER_SPECIAL`(与 RN `favorites/index.tsx:178` 的 `folder_special` 同名),
+问题出在票 40 之前那套「Canvas 手画几何近似」把 folder-special 和 create-new-folder
+画成了同一个形状。票 40(commit `95ba926`,22:28)换成从
+`MaterialIconsOutlined-Regular.otf` 导出的真字形之后,`IconPaths.generated.kt` 里
+`folder_special` 的路径末段就是那颗星(`M13.08 14.06 12.38 17.02 15 15.47 …`)。
+本票是 21:55 写的,截图早于票 40。
+
+**#2 空态间距**——已修。`ui/common/StateView.kt` 新增 `StateVariant.INLINE_HEAD`
+(上 60 / 下 20 / 左右 20),`ui/lists/FavoriteFoldersScreen.kt` 的空态改用它。
+原来用的 `INLINE` 是上下各 56(为了和 `LoadFailedNotice` 对齐),而 RN 侧这一屏
+**根本没走共用的 `EmptyState`**:`favorites/folders.tsx` 自己写了一份 `center`
+(`paddingTop: 60` + `padding: 20`),说明段 `hint` 再加 `paddingVertical: 6`。
+所以两边的差是 `56+6` vs `20+6` = **36dp**,不是票里估的 17dp ——
+票里 60px/106px 两个测量值是对的,只是 px→dp 的换算系数用大了:
+按顶部留白反推(Expo `12+60=72dp` 对 103px、原生 `12+56=68dp` 对 98px)是
+1.435 px/dp,46px 的差就是 32dp,与代码算出来的 36dp 对得上。
+
+**#3 滑杆轨道粗细——判不成立**。两边的轨道都是 3dp、都取 `colors.track`,
+代码(`ui/settings/SettingsUi.kt` 的 `SLIDER_TRACK_HEIGHT` / RN `ui/slider.tsx` 的
+`TRACK_HEIGHT`)与像素两头都对得上。逐像素采样 `17-fontsize.png` 第一根滑杆的
+未填充段(Expo x=450 / 原生 x=1000,同一张图):
+
+| | 完全着色的行 | 折算 |
+|---|---|---|
+| Expo | y 550–553(220,212,190) | ≈ 4.1 px |
+| 原生 | y 504–508(217,209,187,含两行半透) | ≈ 3.8 px |
+
+原生反而**略细**,差值在半个像素以内,肉眼上的「更粗」应该是缩略图上的错觉。
+填充段(青色)同样量了一遍:Expo 4 行、原生 ≈3.8 行,同样一致。**没改代码**。
+
+**没做**:真机/模拟器复看(本轮不许上设备)。#2 建议复验时看 11-folders。

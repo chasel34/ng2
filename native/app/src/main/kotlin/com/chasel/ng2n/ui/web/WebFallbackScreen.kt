@@ -198,6 +198,9 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
                 )
                 view.settings.javaScriptEnabled = true
                 view.settings.domStorageEnabled = true
+                // 缩放口径照 RN 侧那套默认(票 46):不开 useWideViewPort 的话
+                // WebView 不认页面的 viewport meta,同一张移动页会整体放大约 30%
+                view.applyRnWebViewZoom()
                 // 页内跳转留在 WebView 里,别甩给系统浏览器
                 view.webViewClient = object : WebViewClient() {
                   override fun onPageStarted(v: WebView?, u: String?, favicon: android.graphics.Bitmap?) {

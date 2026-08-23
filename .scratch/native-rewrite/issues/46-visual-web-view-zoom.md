@@ -1,6 +1,6 @@
 # 46 — P2:网页版 WebView 内容比 Expo 放大约 30%
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P2(单屏信息量明显少一截)
 
@@ -41,3 +41,37 @@ WebView 缩放与 RN 侧 `react-native-webview` 的默认一致(RN 那边没有�
 `ui/web/WebFallbackScreen.kt` 里 `WebView` 的 `settings`(`textZoom`、`loadWithOverviewMode`、
 `useWideViewPort`、`initialScale`)。登录屏那个 WebView(`ui/login/LoginScreen.kt`)
 在 22 的对照里内容缩放是**对的**,可以直接拿它的 settings 对拍。
+
+## Comments
+
+**2026-08-23 — 修复**
+
+根因是 `useWideViewPort`。原生这边两个 WebView 都只开了 `javaScriptEnabled` /
+`domStorageEnabled`,`useWideViewPort` 留在 Android 的默认值 **false** —— 为 false 时
+WebView **不认页面的 `<meta name="viewport">`**,直接按 view 的物理宽当 CSS 视口铺,
+于是同一张 NGA 移动页整体放大了约 30%(票里量到 68→90、56→76)。
+
+RN 那边 `scalesPageToFit` 不写时默认 `true`,而
+`node_modules/react-native-webview/android/…/RNCWebViewManagerImpl.kt:682`
+的 `setScalesPageToFit` 一句同时开 `loadWithOverviewMode` 与 `useWideViewPort`;
+缩放钮两项的默认在 `src/WebView.android.tsx:77-78`(`setBuiltInZoomControls = true`、
+`setDisplayZoomControls = false`)。
+
+新增 `ui/web/WebViewZoom.kt`:`applyRnWebViewZoom()` 把这四项落下去,
+`WebFallbackScreen.kt` 的 `factory` 里调一次。**故意不设** `textZoom` 与
+`initialScale` —— RN 侧一次都没调过它们(`textZoom` 只在传了那个 prop 时才写),
+写死任何一个都会把 `useWideViewPort` 刚谈妥的视口再顶掉一次,也会让系统「字体大小」
+无障碍设置在两版里表现不同。
+
+**单测**:`ui/web/WebViewZoomTest.kt`(3 例)。设置面抽成 `WebViewZoomSink` 接口就是
+为了能在 JVM 上核对——`android.webkit.WebSettings` 在 unit test 的 android.jar 里只有
+会抛的桩。第三例断言调用集合**恰好**是那四项,textZoom / initialScale 一次都没被调。
+
+**有意偏离票里的建议**:票里写「登录屏那个 WebView 缩放是对的,可以直接拿它的
+settings 对拍」—— 实际两屏的 settings **一模一样**(都没设 `useWideViewPort`),
+登录页看着对是因为那张页面本身的排版,不是配置差异。所以登录屏的 WebView **没动**:
+它在票 22 的对照里是通过项,而本轮不许上真机/模拟器,不能验证改完是否仍然正确。
+helper 已经抽出来了,后续要统一直接在 `LoginScreen.kt` 的 factory 里加一行即可。
+
+**顺带那条**(「用 APP 阅读这一页」的手机图标)属票 40,已随票 40 的图标集重做修掉:
+`WebFallbackScreen.kt` 用的是 `Ng2nIcon.SMARTPHONE`。

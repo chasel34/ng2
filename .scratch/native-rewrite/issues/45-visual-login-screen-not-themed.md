@@ -1,6 +1,6 @@
 # 45 — P2:登录屏顶栏与 URL 条没接主题,用的是 Material3 默认皮
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P2(与票 32 同族的最后一处;登录是新用户见到的第一屏)
 
@@ -32,3 +32,33 @@ WebView 里的内容、底部「客户端仅托管官方登录页……」提示
 `MaterialTheme.colorScheme.*` 全换 `LocalNg2nColors.current`,
 映射照票 32 给 `AccountsScreen.kt` 做过的那份(`surfaceVariant→surface2`、`primary→primary`)。
 状态栏图标色跟着顶栏翻(见票 39)。
+
+## Comments
+
+**2026-08-23 — 修复**
+
+`ui/login/LoginScreen.kt` 的 chrome 全部换皮,改法与票 32 给 `AccountsScreen.kt` 做的那份一致:
+
+- 顶栏:就地拼的 `Row` + `IconButton` + `MaterialTheme.typography.titleMedium`
+  → 全 app 同一套 `TopBar` / `TopBarButton(CLOSE, 24, box 46)` / `TopBarTitle(SUB)` /
+  `TopBarButton(REFRESH, 22)`。底色随之变回 `colors.topbar`(墨绿),图标与标题走
+  `colors.onTopbar`(白)。状态栏安全区不再由本屏 `windowInsetsPadding` 撑,归 `TopBar`。
+- URL 条:`MaterialTheme.colorScheme.surfaceVariant`(M3 淡紫)→ `colors.surface2`;
+  文字 `onSurfaceVariant` → `colors.fg2` 且补上 RN 侧的等宽字体(`MonoFontFamily` +
+  `Typo.meta`,原先用的是 M3 `labelMedium`);锁图标 `colorScheme.primary`(紫)→
+  `colors.primary`(青)。
+- `HorizontalDivider()`(M3 默认描边色)→ 1dp `colors.divider`,对上 RN 的
+  `borderBottomColor: theme.colors.divider`。
+- 根底色与提示卡外层 `colorScheme.background` → `colors.bg`;写死的 12/14/8 换成
+  `Spacing.md` / `Spacing.row` / `Spacing.sm`。
+- 关闭钮补了 `contentDescription = "关闭登录页"`(RN 有 `accessibilityLabel`,原生这颗
+  之前在无障碍树里没名字)。
+
+**状态栏图标**:不在本屏处理。`Theme.kt` 里的 `StatusBarIconsEffect(palette.topbar)`
+按顶栏底色统一投票(票 39),顶栏一变回墨绿,图标自己就是白的。
+
+**没动**:WebView 本身(内容缩放在票 22 的对照里是对的)、琥珀色提示卡的写死配色
+(RN 侧同样写死,不跟主题走)。
+
+**发现的票外问题**:`ui/accounts/AccountIcons.kt` 里的 `CloseIcon` / `LockIcon` /
+`RefreshIcon` 现在没有调用点了(本屏是它们唯一的使用者)。没删——删了是票外改动。

@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -37,8 +39,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -82,6 +87,7 @@ import com.chasel.ng2n.ui.theme.Ng2nColors
 import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
+import com.chasel.ng2n.ui.theme.avatarColorFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -105,33 +111,6 @@ private const val STRIPE_COUNT = 20
 
 /** 设计稿:声望条 96 宽、6 高。 */
 private val REPUTATION_BAR_WIDTH = 96.dp
-
-/** 占位头像的一档底色(RN 侧 `tokens.ts` 的 `avatarColors`,值一个没改)。 */
-private val AVATAR_COLORS = listOf(
-  Color(0xFF3E6B7E),
-  Color(0xFF7E5A3E),
-  Color(0xFF5A6E3E),
-  Color(0xFF6E3E5A),
-  Color(0xFF3E5A7E),
-  Color(0xFF7E6B3E),
-  Color(0xFF4A4A6E),
-)
-
-/**
- * 按用户 key 稳定取一档占位底色 —— 直译 RN 侧 `ui/avatar.tsx` 的 `avatarColorFor`。
- * 要的只是「同一个人每次都同一个颜色」,所以一个逐字符累加的弱散列足够。
- *
- * 散列用 `Char.code`(= JS 的 `charCodeAt`,都是 UTF-16 码元)且逐步取模,
- * 与 RN 版同一个数 —— 同一个 uid 在两版里落在同一档色上。
- */
-fun avatarColorFor(key: String): Color {
-  var hash = 0L
-  for (char in key) hash = (hash * 31 + char.code) % 0xFFFFFF
-  return avatarColorAt((hash % AVATAR_COLORS.size).toInt())
-}
-
-/** 第 [index] 档占位底色。单测按 RN 侧算出来的档位对拍用。 */
-internal fun avatarColorAt(index: Int): Color = AVATAR_COLORS[index]
 
 @Composable
 fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifier) {
@@ -251,8 +230,12 @@ private fun Banner(uid: Long, name: String, avatarUrl: String?) {
           // RN 侧是 `top:-BANNER_HEIGHT; left:index*PITCH`,旋转绕自身中心 ——
           // 三倍高的窄条要先上移一整屏高,转 45° 之后才正好斜穿过 banner
           .offset(x = STRIPE_PITCH * index, y = -BANNER_HEIGHT)
-          .width(STRIPE_WIDTH)
-          .height(BANNER_HEIGHT * 3)
+          // ⚠️ 必须是 required 档(票 47):`width`/`height` 会把尺寸**夹进父级传下来的
+          // 约束**,banner 只有 118 高,三倍高的窄条会被压成 118 —— 压完再绕中心转 45°,
+          // 整条就落在 y<0 那一半,被 `clipToBounds` 裁得一根不剩,于是斜纹整层看不见。
+          // `requiredWidth`/`requiredHeight` 不吃父约束,窄条才真有 354 长。
+          .requiredWidth(STRIPE_WIDTH)
+          .requiredHeight(BANNER_HEIGHT * 3)
           .rotate(45f)
           .background(colors.primaryDark),
       )
@@ -307,7 +290,9 @@ private fun Banner(uid: Long, name: String, avatarUrl: String?) {
           ),
         )
         Text(
-          text = "用户 ID:$uid",
+          // 全角冒号,与 RN 侧 `用户 ID：{uid}` 逐字一致 —— 半角冒号后没有间隔,
+          // 标签和值会挤成一坨(票 47)
+          text = "用户 ID：$uid",
           modifier = Modifier.padding(top = Spacing.xs),
           style = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp, color = colors.onPrimary.copy(alpha = 0.85f)),
         )
@@ -361,7 +346,14 @@ private fun ProfileBody(profile: UserProfile, onEditSignature: (() -> Unit)?) {
           Row(Modifier.fillMaxWidth()) {
             for ((column, field) in row.withIndex()) {
               Text(
-                text = "${field.label}:${field.value}",
+                // 一格 = 「标签」+ 「值」两段,颜色分开(票 47):RN 侧外层 `gridCell` 是
+                // fg2、内层那段值才是 `field.color ?? fg`,所以「状态:」的标签是正文色、
+                // 只有「已激活」是绿的 —— 整行染绿是把两段并成一段染出来的。
+                // 冒号用全角,与 RN 侧逐字一致:半角冒号后没有间隔。
+                text = buildAnnotatedString {
+                  withStyle(SpanStyle(color = colors.fg2)) { append("${field.label}：") }
+                  withStyle(SpanStyle(color = field.color ?: colors.fg)) { append(field.value) }
+                },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = if (column == 1) TextAlign.End else TextAlign.Start,
@@ -371,7 +363,7 @@ private fun ProfileBody(profile: UserProfile, onEditSignature: (() -> Unit)?) {
                     start = if (column == 1) Spacing.md / 2 else 0.dp,
                     end = if (column == 1) 0.dp else Spacing.md / 2,
                   ),
-                style = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, color = field.color ?: colors.fg2),
+                style = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, color = colors.fg2),
               )
             }
             // 奇数格补一个空位,最后一行才不会把唯一那格拉满宽

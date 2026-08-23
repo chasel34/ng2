@@ -260,6 +260,12 @@ fun avatarColorFor(key: String): Color {
   return AvatarColors[(hash % AvatarColors.size).toInt()]
 }
 
+/**
+ * 第 [index] 档占位底色。单测按 RN 侧算出来的档位对拍用 ——
+ * 生产代码一律走 [avatarColorFor],不要按下标取色。
+ */
+internal fun avatarColorAt(index: Int): Color = AvatarColors[index]
+
 /** 等宽字体。设计稿用 `ui-monospace,Menlo,monospace`,Android 侧就是系统 monospace。 */
 val MonoFontFamily: FontFamily = FontFamily.Monospace
 

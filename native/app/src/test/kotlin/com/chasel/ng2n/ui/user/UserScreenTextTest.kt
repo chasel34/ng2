@@ -4,6 +4,8 @@ import com.chasel.ng2n.core.api.Topic
 import com.chasel.ng2n.core.api.TopicReply
 import com.chasel.ng2n.core.api.UserPostKind
 import com.chasel.ng2n.ui.board.dateText
+import com.chasel.ng2n.ui.theme.avatarColorAt
+import com.chasel.ng2n.ui.theme.avatarColorFor
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals

@@ -48,6 +48,15 @@ enum class StateVariant {
 
   /** 只占一段固定高度(嵌在列表里、上面还有筛选条或分组头时用) */
   INLINE,
+
+  /**
+   * 列表**头部**的空态:上留白撑开、下留白只留一档。
+   *
+   * 收藏夹管理屏的空态下面还紧跟着一段说明文字([INLINE] 的下 56 会把两者拉开
+   * 一屏那么远,票 50)。RN 侧这一屏本来就没走共用的 `EmptyState`,而是自己写了
+   * 一份 `center`(`paddingTop: 60` + `padding: 20`),这一档就是它。
+   */
+  INLINE_HEAD,
 }
 
 data class StateAction(val label: String, val onClick: () -> Unit)
@@ -57,11 +66,15 @@ private fun StateBox(
   variant: StateVariant,
   content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
 ) {
-  val base = if (variant == StateVariant.SCREEN) {
-    Modifier.fillMaxSize().padding(Spacing.xl)
-  } else {
+  val base = when (variant) {
+    StateVariant.SCREEN -> Modifier.fillMaxSize().padding(Spacing.xl)
     // 与 LoadFailedNotice 的纵向 56 对齐,列表里两种块换着出现时高度不跳
-    Modifier.fillMaxWidth().padding(vertical = 56.dp, horizontal = Spacing.xl)
+    StateVariant.INLINE ->
+      Modifier.fillMaxWidth().padding(vertical = 56.dp, horizontal = Spacing.xl)
+    // RN 侧 `favorites/folders.tsx` 的 `center`:上 60、下 20(左右仍是 20)
+    StateVariant.INLINE_HEAD -> Modifier
+      .fillMaxWidth()
+      .padding(top = 60.dp, bottom = Spacing.xl, start = Spacing.xl, end = Spacing.xl)
   }
   Column(
     modifier = base,
