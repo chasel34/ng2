@@ -72,3 +72,25 @@ Expo 39×19px、原生 35×17px(半缩放),比值 1.11 ≈ 15.5/13.5。已改为
 - 楼层菜单面板没有阴影(RN 面板带 `elevation2`),顶栏 kebab 那份有。同样记在票 40 里,本票没动。
 - 顶栏 kebab 菜单的分组分隔线左右内缩了 `Spacing.lg`(16),RN 那条 hairline 是**通宽不留外距**
   (`menu.tsx` 的 `separator` 注释专门写了这一点)。属于票 40/43 之外的细节,没动。
+
+---
+
+## 主控复验(2026-08-23,`emulator-5554`,HEAD 8f07588)
+
+**通过 —— 两个菜单的面板宽与右边距和 Expo 逐像素相同。**
+
+面板底(`#f7f4ee`)在同一行上的像素跨度:
+
+| 菜单 | Expo | 原生(修后) | 原生(修前) |
+|---|---|---|---|
+| 版块顶栏 kebab | x 571–1058,**488px = 186dp**,右边距 21px = 8dp | **x 571–1058,488px = 186dp,右边距 21px** | 206dp |
+| 楼层长按菜单 | x 571–1058,**488px = 186dp**,右边距 21px = 8dp | **x 571–1058,488px = 186dp,右边距 21px** | 394dp(几乎满屏) |
+
+修票 Comments 里「两个菜单实际都应该正好是 186dp」的预测**一字不差地兑现**。
+右边距 8dp 也与「票面量到的 ≈14dp 是 RN 阴影模糊边」的判断一致 —— Expo 实测就是 21px。
+
+条目字号:同一条「贴条」两边视觉一致(原生节点 bounds 83px 宽,含左右 bearing),
+`Typo.menuItem` 15.5 那一改在设备上看不出偏差。条目行距两边同为 65.7px。
+
+对照图 [`../acceptance/visual/after/03b.png`](../acceptance/visual/after/03b.png)、
+[`../acceptance/visual/after/05.png`](../acceptance/visual/after/05.png)

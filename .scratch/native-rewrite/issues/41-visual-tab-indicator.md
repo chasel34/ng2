@@ -68,3 +68,30 @@ RN 侧对应 `src/app/index.tsx:676-688`(tab `paddingHorizontal: lg`,indicator �
 
 - 效果要在设备上看:首页选中格下划线应为「文字 + 左右各 16」且左端与 tab 左沿齐(6dp 起),
   屏蔽规则三 tab 的指示条应为「文字 + 左右各 15」。
+
+---
+
+## 主控复验(2026-08-23,`emulator-5554`,HEAD 8f07588)
+
+**宽度通过;夜间颜色那条按修票的结论收敛(两边本来都是白)。**
+
+指示条像素扫描(全分辨率,不是半缩放;判据 = 顶栏底上的近白像素行):
+
+| 屏 / tab | Expo | 原生(修后) | 原生(修前) |
+|---|---|---|---|
+| 首页「我的收藏」 | x 16–259,**244px = 93dp** | **x 16–255,240px = 91.4dp** | 156px |
+| 屏蔽规则「本地规则」 | x 16–242,227px | **x 16–237,222px** | 82px |
+| 屏蔽规则「官方用户屏蔽」 | x 243–542,300px | **x 238–531,294px** | 112px |
+| 屏蔽规则「官方关键词」 | x 543–806,264px | **x 532–789,258px** | 88px |
+| 首页(夜间)「我的收藏」 | x 16–259,244px | **x 16–255,240px** | — |
+
+四处的**左沿都与 Expo 同位**,宽度差 4–6px(1.5–2.3%),就是 CJK 字形整体窄约 2% 的连带
+(同一现象见票 42 复验),不是内距设错。
+
+**夜间颜色**:`N1-home` 复截取样 —— Expo 指示条 `#f2f0eb`、原生 `#f2f0eb`,**同一色**;
+夜间底两边都是 `#1c1c1b`、顶栏都是 `#1c1c1b`。修票 Comments 里「票面把青底上的白线判成了青」
+的结论在设备上坐实。
+
+对照图 [`after/01.png`](../acceptance/visual/after/01.png)、[`after/12a.png`](../acceptance/visual/after/12a.png)、
+[`after/12b.png`](../acceptance/visual/after/12b.png)、[`after/12c.png`](../acceptance/visual/after/12c.png)、
+[`after/N1.png`](../acceptance/visual/after/N1.png)

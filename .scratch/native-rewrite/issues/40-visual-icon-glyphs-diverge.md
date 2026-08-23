@@ -101,3 +101,24 @@
 
 - `ui/topic/TopicOverlays.kt` 的楼层菜单没有阴影(RN `ui/menu.tsx` 的面板带 `elevation2`),
   顶栏 kebab 那份有。本票没动。
+
+---
+
+## 主控复验(2026-08-23,`emulator-5554`,HEAD 8f07588)
+
+**通过 —— 票面 17 处逐屏复截,形状与视觉尺寸全部对上。**
+
+| 屏 | 复验对照图 | 结论 |
+|---|---|---|
+| 抽屉(清空收藏 / 我的回复 / 我的缓存 / 设置 / 最近被喷) | [`after/02.png`](../acceptance/visual/after/02.png) | 实心三角警告、实心折返箭头、双箭头循环、带齿齿轮、带响铃弧铃铛 —— 逐颗与 Expo 同形 |
+| 主题详情顶栏地球 / 页码条跳页 | [`after/04.png`](../acceptance/visual/after/04.png) | 经纬线地球、`⊂≡` 跳页,3× 放大逐像素对形通过 |
+| 浏览历史 / 我的缓存 顶栏清空 | [`after/08.png`](../acceptance/visual/after/08.png)、[`after/09.png`](../acceptance/visual/after/09.png) | 细线垃圾桶 + 左侧三短横,同形 |
+| 已收藏的主题 顶栏 | [`after/10.png`](../acceptance/visual/after/10.png) | **folder + 星**(修前是 folder + 加号) |
+| 我的被喷 空态铃铛 | [`after/13.png`](../acceptance/visual/after/13.png) | 墨迹框 **Expo 87×85px @ (496,1252) / 原生 87×85px @ (497,1254)**,修前小 22% |
+| 账号管理 添加账号 | [`after/14.png`](../acceptance/visual/after/14.png) | 加号在人形**左**侧 |
+| 看图屏 保存 | [`after/20.png`](../acceptance/visual/after/20.png) | 软盘 |
+| 网页版「用 APP 阅读这一页」 | [`after/21.png`](../acceptance/visual/after/21.png) | 手机(smartphone) |
+| 关于 五行 | [`after/19.png`](../acceptance/visual/after/19.png) | `<>` / 齿轮带回退箭头 / 虫子 / 文档 / 法槌 —— 五颗全对 |
+
+**顺带那条(版块顶栏「收藏本版块」星)**:[`after/03.png`](../acceptance/visual/after/03.png)
+上两边**都是实心星**,不再是「实心 vs 线框」—— 票里的猜测(换字形后同一颗)成立,收敛。

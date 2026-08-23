@@ -66,3 +66,23 @@
 **单测**:头像散列色本来就有两处覆盖(`ui/lists/ListScreenTextTest.kt`、
 `ui/user/UserScreenTextTest.kt`),后者的 import 跟着改到 token 层,断言未动、仍全绿 ——
 账号管理屏用的是同一个函数,不再另写重复用例。
+
+---
+
+## 主控复验(2026-08-23,`emulator-5554`,HEAD 8f07588)
+
+**两条都通过。**
+
+**1. 头像方块**:两边同一个 uid 67296151,取样底色 **`#5a6e3e`(橄榄绿)双方相同**,
+字为白 —— 说明原生走的确实是 `avatarColorFor(uid)` 那张散列表,不再是 `primaryContainer`。
+「同一 uid 到处同色」这条语义在设备上成立。
+
+**2.「添加账号」**:虚线描边空框,节奏与 Expo 目视一致(RN 的 dashed 由平台定节奏,
+本来就没有可逐点对拍的数值);描边色改成 `track` 后与 Expo 的浅度同档。
+
+**顺带**(归票 40):加号已在人形**左**侧。
+
+其余(账号卡青描边与圆角、当前账号青色单选圈、红色退出钮、底部说明段落)两半同位同色。
+cookie 天数 20 vs 30 是状态差异。
+
+对照图 [`../acceptance/visual/after/14.png`](../acceptance/visual/after/14.png)

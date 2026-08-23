@@ -77,3 +77,22 @@
 
 - 其余屏的顶栏标题仍是 `TopBarTitle(...)` 不带 `maxWidth`(靠 `weight(1f)` 或自然宽度),
   与 RN 一致(RN 只给版块列表 150、详情 190 两处标了截断宽度),没动。
+
+---
+
+## 主控复验(2026-08-23,`emulator-5554`,HEAD 8f07588)
+
+**两条都通过。**
+
+**#1 浅色档状态栏图标**:`(990,66)` 取样 —— 首页 / 版块 / 主题详情 / 看图屏 / 登录屏
+五屏在浅色档均为 **`#ffffff`**(修前 `#000000`)。夜间档仍是白(N1 复截确认)。
+登录屏那种「顶栏也是墨绿」的屏跟色判据没跑偏。
+
+**#2 顶栏标题可用宽度**:同一帖同一顶栏,uiautomator 取标题节点 bounds ——
+原生 `[143,172][631,235]`,**宽 488px = 186dp**(修前 ≈278dp;Expo 票面量到 ≈191dp)。
+落在 `TOPIC_TITLE_MAX_WIDTH = 190dp` 上,与 RN 的 `maxWidth={190}` 同档。
+同图上标题墨迹:Expo x144–606(463px)、原生 x146–567(422px)——
+原生少截一个字,是 CJK 字形整体窄约 2% 的连带(见票 42 复验),不是宽度设错。
+
+对照图 [`../acceptance/visual/after/04b.png`](../acceptance/visual/after/04b.png)、
+[`../acceptance/visual/after/01.png`](../acceptance/visual/after/01.png)

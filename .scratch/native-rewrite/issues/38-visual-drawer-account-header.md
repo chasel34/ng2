@@ -75,3 +75,18 @@
 - `ui/drawer/AppDrawerContent.kt` 的占位 `GuestAccountHeader` 用了 `Typo.listSubtitle`(12),
   RN 侧那行是 `listMeta`(12.5)。它只是 `accountHeader` 参数的缺省值(实际由票 15 的
   `AccountHeader` 顶掉),没动。
+
+---
+
+## 主控复验(2026-08-23,Pixel_8 AVD `emulator-5554`,HEAD 8f07588 debug 包)
+
+**通过。** 对照图 [`../acceptance/visual/after/02.png`](../acceptance/visual/after/02.png)
+
+| 量 | Expo | 原生(修后) | 原生(修前) |
+|---|---|---|---|
+| 账号头底色 | `#14796b` | **`#14796b`** | M3 淡紫 |
+| 头像圆(叠在底上取样) | `#48968c` | **`#48968c`** | 浅紫 |
+| 账号头块高(顶到分隔) | y 0–558px = 212.6dp | **y 0–552px = 210.3dp** | ≈159dp |
+
+底色与头像圆的取样值**逐位相同**;头高差 6px = 2.3dp,头像整个落在状态栏之下,
+与 Expo 同一档。安全区那条(`accountHeaderTopPadding`)在设备上成立。
