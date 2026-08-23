@@ -1,75 +1,29 @@
 package com.chasel.ng2n.ui.image
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
 
 /**
- * 查看器顶栏的四个图标,直接用 Canvas 画。
+ * 查看器顶栏的四个图标。
  *
- * RN 版走的是打进包里的 Material Icons OTF(84 字形,331KB)+ `<Text>` 渲染,
- * 那是 RN 侧「等字体加载完才放行首屏」那套方案的一部分,原生这边没有理由继承。
- * 票 17 会把完整图标体系(vector drawable)铺开;票 12 只需要这四个,
- * 手画比先引一套资源省事,也不给票 17 留下要清理的半套东西。
+ * 票 12 是 Canvas 手画的几何近似;票 40 逐颗对形时发现「保存」画的是**下载箭头**,
+ * 而 RN 侧那一颗是 `save`(软盘)——不是画得不像,是画的不是同一个东西。
+ * 现在四颗都走 [AppIcon],轮廓取自 RN 同一份 Material 字体的字形。
+ * 尺寸保留票 12 定的那几档(与 RN 调用点的 `size` 一致)。
  */
-private const val ICON_STROKE_RATIO = 0.085f
 
 @Composable
-fun BackIcon(tint: Color, size: Dp = 24.dp) {
-  Canvas(Modifier.size(size)) {
-    val w = this.size.width
-    val stroke = Stroke(width = w * ICON_STROKE_RATIO, cap = StrokeCap.Round)
-    // 横轴 + 左端两撇
-    drawLine(tint, Offset(w * 0.20f, w * 0.5f), Offset(w * 0.82f, w * 0.5f), stroke.width, StrokeCap.Round)
-    drawLine(tint, Offset(w * 0.20f, w * 0.5f), Offset(w * 0.46f, w * 0.24f), stroke.width, StrokeCap.Round)
-    drawLine(tint, Offset(w * 0.20f, w * 0.5f), Offset(w * 0.46f, w * 0.76f), stroke.width, StrokeCap.Round)
-  }
-}
+fun BackIcon(tint: Color, size: Dp = 24.dp) = AppIcon(Ng2nIcon.ARROW_BACK, tint, size)
 
 @Composable
-fun SaveIcon(tint: Color, size: Dp = 23.dp) {
-  Canvas(Modifier.size(size)) {
-    val w = this.size.width
-    val width = w * ICON_STROKE_RATIO
-    // 竖杆 + 下箭头 + 底托盘
-    drawLine(tint, Offset(w * 0.5f, w * 0.16f), Offset(w * 0.5f, w * 0.62f), width, StrokeCap.Round)
-    drawLine(tint, Offset(w * 0.29f, w * 0.42f), Offset(w * 0.5f, w * 0.63f), width, StrokeCap.Round)
-    drawLine(tint, Offset(w * 0.71f, w * 0.42f), Offset(w * 0.5f, w * 0.63f), width, StrokeCap.Round)
-    drawLine(tint, Offset(w * 0.20f, w * 0.82f), Offset(w * 0.80f, w * 0.82f), width, StrokeCap.Round)
-  }
-}
+fun SaveIcon(tint: Color, size: Dp = 23.dp) = AppIcon(Ng2nIcon.SAVE, tint, size)
 
 @Composable
-fun ShareIcon(tint: Color, size: Dp = 23.dp) {
-  Canvas(Modifier.size(size)) {
-    val w = this.size.width
-    val width = w * ICON_STROKE_RATIO
-    val r = w * 0.10f
-    val a = Offset(w * 0.74f, w * 0.20f)
-    val b = Offset(w * 0.26f, w * 0.50f)
-    val c = Offset(w * 0.74f, w * 0.80f)
-    drawLine(tint, a, b, width)
-    drawLine(tint, b, c, width)
-    drawCircle(tint, r, a)
-    drawCircle(tint, r, b)
-    drawCircle(tint, r, c)
-  }
-}
+fun ShareIcon(tint: Color, size: Dp = 23.dp) = AppIcon(Ng2nIcon.SHARE, tint, size)
 
 @Composable
-fun MoreIcon(tint: Color, size: Dp = 22.dp) {
-  Canvas(Modifier.size(size)) {
-    val w = this.size.width
-    val r = w * 0.085f
-    drawCircle(tint, r, Offset(w * 0.5f, w * 0.22f))
-    drawCircle(tint, r, Offset(w * 0.5f, w * 0.50f))
-    drawCircle(tint, r, Offset(w * 0.5f, w * 0.78f))
-  }
-}
+fun MoreIcon(tint: Color, size: Dp = 22.dp) = AppIcon(Ng2nIcon.MORE_VERT, tint, size)

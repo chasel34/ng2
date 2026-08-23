@@ -140,10 +140,12 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
 
   val rows = remember(version) {
     listOf(
-      AboutRow(AboutKeys.SOURCE, Ng2nIcon.ACCOUNT_TREE, "数据来源", "直接读 NGA 官方接口", detail = DATA_SOURCE),
+      // 五行的图标名对着 RN 侧 `src/app/settings/about.tsx` 的 rows:
+      // code / update / bug_report / description / gavel(票 40:原来五颗全挑错了)
+      AboutRow(AboutKeys.SOURCE, Ng2nIcon.CODE, "数据来源", "直接读 NGA 官方接口", detail = DATA_SOURCE),
       AboutRow(
         key = AboutKeys.LINKS,
-        icon = Ng2nIcon.SETTINGS,
+        icon = Ng2nIcon.UPDATE,
         label = "系统设置",
         // Android 12+ 要用户自己在系统设置里开「打开支持的链接」。
         // 并行期本 app **没有注册 NGA 域名**(spec §三),只认 `ng2n://`;
@@ -153,13 +155,13 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
       ),
       AboutRow(
         key = AboutKeys.DIAGNOSTIC,
-        icon = Ng2nIcon.SCIENCE,
+        icon = Ng2nIcon.BUG_REPORT,
         label = "诊断日志",
         sub = "接口失败的记录在「设置 · 实验室与诊断」里导出",
         onClick = onOpenLab,
       ),
-      AboutRow(AboutKeys.LICENSES, Ng2nIcon.ARTICLE, "开源许可", "${LICENSES.size} 个第三方组件", detail = LICENSES.joinToString("\n")),
-      AboutRow(AboutKeys.DISCLAIMER, Ng2nIcon.WARNING, "免责声明", detail = DISCLAIMER_DETAIL),
+      AboutRow(AboutKeys.LICENSES, Ng2nIcon.DESCRIPTION, "开源许可", "${LICENSES.size} 个第三方组件", detail = LICENSES.joinToString("\n")),
+      AboutRow(AboutKeys.DISCLAIMER, Ng2nIcon.GAVEL, "免责声明", detail = DISCLAIMER_DETAIL),
     )
   }
 

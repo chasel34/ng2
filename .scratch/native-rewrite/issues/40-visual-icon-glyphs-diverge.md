@@ -1,6 +1,6 @@
 # 40 — P3:手画图标与 RN 图标集不同形,散布 10+ 处
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P3(纯视觉;每一处都不大,但铺满全 app)
 
@@ -51,3 +51,53 @@
 
 版块屏顶栏的「收藏本版块」星,Expo 是实心、原生是线框 —— 但两台的收藏态未必相同,
 **没有并进本票**,复验时确认同态后再决定。
+
+## Comments
+
+**完成摘要**(2026-08-23)
+
+图标不再手画:RN 侧那份 `assets/fonts/MaterialIconsOutlined-Regular.otf` 的字形轮廓,
+按 24 格设计栅格导成路径常量,原生填充绘制 —— 与 RN 是**同一颗字形**,不是「画得像」。
+
+- 新增 `native/tools/gen_icon_paths.py`(fontTools):读 `src/ui/icons.generated.ts` 的名字表 →
+  取同名字形轮廓 → `x·24/512`、`24 − y·24/512` 翻成 y 向下的 24 视口 → 生成
+  `ui/icons/IconPaths.generated.kt`(85 颗,29KB;84 颗来自 RN 的 `ICON_GLYPHS`,外加 `science`)。
+- `ui/icons/AppIcons.kt` 改为路径填充(`PathParser` 解析 + 按 `边长/24` 等比缩放,解析结果按枚举序缓存)。
+  `Ng2nIcon` 枚举 API 不变(旧成员一个没删,含已不再使用的 `SCIENCE`),新增 35 个成员补齐 RN 那张表;
+  约定 **枚举名小写 = Material 图标名 = RN 的键**。`AppIcon()` 与 `DrawScope.drawIcon()` 签名不变。
+- 各屏自带的四套手画图标(`ui/topic/TopicIcons.kt`、`ui/image/ViewerIcons.kt`、
+  `ui/accounts/AccountIcons.kt`、`ui/bbcode/BBCodeIcons.kt`)函数签名与默认尺寸全保留,函数体改为委托
+  `AppIcon`,逐个对上 RN 调用点的 `Icon name=`(地球 → `public`、跳页 → `low_priority`、
+  保存 → `save`、发帖设备 → `android`/`phone_iphone`/`devices`、投票勾选 → `check_box*`/`radio_button_*`、
+  `[flash]` → `open_in_browser`、外链角标 → `north_east`、对话链 → `account_tree` 等)。
+- **拿错图标**的三处按 RN 源码改回:
+  - 关于屏五行 `ACCOUNT_TREE/SETTINGS/SCIENCE/ARTICLE/WARNING` → `CODE/UPDATE/BUG_REPORT/DESCRIPTION/GAVEL`
+    (RN `src/app/settings/about.tsx` 的 rows);
+  - 网页版屏「用 APP 阅读这一页」`ARTICLE` → `SMARTPHONE`(RN `src/app/web.tsx:130`);
+  - 「已收藏的主题」顶栏那颗**枚举本来就是** `FOLDER_SPECIAL`(与 RN `favorites/index.tsx:178` 一致),
+    看着像 folder-plus 是手画版把 folder_special 画成了加号 —— 换字形后自动成为 folder + 星。
+- 「我的被喷」空态铃铛偏小 22%:空态尺寸档两边本来就一样(都是 40),小是因为手画的铃铛
+  只占了 0.36 个格。改成字形后与其它空态同尺寸,不需要单独调数值。
+
+**单测**:`ui/icons/IconGlyphsTest.kt`,8 条 —— 每颗枚举都有路径、枚举与生成表**互为全集**、
+枚举名小写 = 图标名、所有轮廓落在 24 格栅格内(半格容差)、轮廓量级不是被压扁的一条、
+`arrow_back` / `add` 的完整路径钉死(挡住导出变换写反,比如漏了 y 翻转)、`ICON_VIEWPORT == 24`。
+
+**关键决定**
+
+- 选「导出路径常量」而不是「把 OTF 打进包用 Text 画」:字体加载时序与字形回退是 RN 那套
+  「等字体 ready 才放行首屏」方案的一部分,原生这边没有理由继承;路径是编译期常量,JVM 单测能钉。
+  代价是 29KB 源码而不是 331KB 资源,且改图标要重跑脚本(脚本头写了跑法)。
+- fontTools 用 `uv run --with fonttools` 跑,不进项目依赖。
+
+**未验证 / 待所有者**
+
+- 没上模拟器/真机(票面要求不上)。形状是否逐颗对得上,复验时看
+  `02/04/08/09/10/13/14/19/20/21` 那几屏。
+- 顺带那条(版块顶栏「收藏本版块」星 实心 vs 线框):星的字形是 `star`(实心),
+  两版现在同一颗;若复验仍不同,那就是收藏态不同,不是图标问题。
+
+**发现的票外问题**
+
+- `ui/topic/TopicOverlays.kt` 的楼层菜单没有阴影(RN `ui/menu.tsx` 的面板带 `elevation2`),
+  顶栏 kebab 那份有。本票没动。

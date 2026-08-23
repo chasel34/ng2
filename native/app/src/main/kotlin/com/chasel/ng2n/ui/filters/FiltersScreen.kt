@@ -181,7 +181,9 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
               modifier = Modifier
                 .height(TAB_HEIGHT)
                 .clickable(onClickLabel = item.label) { tab = item }
-                .padding(horizontal = 15.dp)
+                // 票 41:指示条画**整格**宽(含左右 15 内距)。drawBehind 量的是它
+                // 右边那截链子的尺寸,挂在 padding 后面就只有文字宽了 ——
+                // RN 那份是 `position:absolute; left:0; right:0` 的独立 View,铺满整格。
                 .then(
                   if (!on) Modifier else Modifier.drawBehind {
                     val h = 3.dp.toPx()
@@ -191,7 +193,8 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
                       size = androidx.compose.ui.geometry.Size(size.width, h),
                     )
                   },
-                ),
+                )
+                .padding(horizontal = 15.dp),
               contentAlignment = Alignment.Center,
             ) {
               Text(

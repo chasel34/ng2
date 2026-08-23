@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -47,6 +49,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.chasel.ng2n.ui.common.MENU_ITEM_HEIGHT
+import com.chasel.ng2n.ui.common.MENU_ITEM_PADDING
+import com.chasel.ng2n.ui.common.MENU_MAX_HEIGHT
+import com.chasel.ng2n.ui.common.MENU_MIN_WIDTH
 import com.chasel.ng2n.ui.bbcode.BBCodeCallbacks
 import com.chasel.ng2n.ui.bbcode.BBCodeContent
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
@@ -102,8 +108,13 @@ fun OverflowMenu(
       modifier = Modifier
         .align(if (leftHanded) Alignment.TopStart else Alignment.TopEnd)
         .padding(top = top, start = Spacing.sm, end = Spacing.sm)
-        .defaultMinSize(minWidth = 186.dp)
-        .heightIn(max = 520.dp)
+        // 票 43:条目是 `fillMaxWidth` 的,而这一列原来没有任何上界 —— 于是整块菜单
+        // 铺到 394(几乎占满屏宽),和顶栏 kebab 那份(208)自家都不一致。
+        // `width(IntrinsicSize.Max)` 把宽度收到最长那条条目上,再由 defaultMinSize
+        // 兜到 186 —— 与 RN 侧 `ui/menu.tsx` 的 `minWidth: 186` + wrap-content 同义。
+        .defaultMinSize(minWidth = MENU_MIN_WIDTH)
+        .width(IntrinsicSize.Max)
+        .heightIn(max = MENU_MAX_HEIGHT)
         .graphicsLayer {
           alpha = progress.value
           scaleX = POP_SCALE + (1f - POP_SCALE) * progress.value
@@ -121,12 +132,19 @@ fun OverflowMenu(
         Box(
           modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp)
+            .height(MENU_ITEM_HEIGHT)
             .clickable(onClick = item.onClick)
-            .padding(horizontal = 22.dp),
+            .padding(horizontal = MENU_ITEM_PADDING),
           contentAlignment = Alignment.CenterStart,
         ) {
-          Text(item.label, fontSize = Typo.notice.size, color = colors.fg)
+          // 菜单条目是 `menuItem` 那一档 15.5(RN `ui/menu.tsx` 的 `label`),
+          // 不是提示条的 13.5 —— 票 43 复量:同一条「贴条」Expo 39px、原生 35px
+          Text(
+            text = item.label,
+            fontSize = Typo.menuItem.size,
+            lineHeight = Typo.menuItem.lineHeight,
+            color = colors.fg,
+          )
         }
       }
     }
