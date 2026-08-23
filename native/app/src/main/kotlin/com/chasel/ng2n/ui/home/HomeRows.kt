@@ -80,7 +80,7 @@ fun buildHomeRows(category: BoardCategory, announcement: HomeAnnouncement?): Lis
     )
     pushBoards(rows, group.id, group.boards)
   }
-  return rows
+  return rows.distinctByKey()
 }
 
 /**
@@ -102,5 +102,15 @@ fun buildFavoriteRows(
   }
   rows += HomeRow.Group("group/favorites", "我的收藏", FAVORITES_INITIAL, first = true)
   pushBoards(rows, "favorites", boards)
-  return rows
+  return rows.distinctByKey()
 }
+
+/**
+ * 同 key 的行只留第一条。
+ *
+ * 版块树是服务端下发的,同一个版块在同一个分组里出现两次(或两个分组同 id)时,
+ * 格子的 key `cell/<组>/<版块>` 就重了 —— `LazyVerticalGrid` 遇到重复 key 会在首次布局
+ * 直接抛 `Key … was already used`,首页当场崩(票 28 同一类)。少画一格远好过崩掉。
+ * 收藏那份同理:云端收藏表里出现两条同 id 的版块并非不可能。
+ */
+private fun List<HomeRow>.distinctByKey(): List<HomeRow> = distinctBy { it.key }

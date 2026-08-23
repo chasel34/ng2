@@ -40,6 +40,7 @@ import com.chasel.ng2n.ui.Login
 import com.chasel.ng2n.ui.common.ConfirmDialog
 import com.chasel.ng2n.ui.common.EmptyState
 import com.chasel.ng2n.ui.common.InputDialog
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingState
 import com.chasel.ng2n.ui.common.Snackbars
@@ -163,7 +164,7 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
           ),
         ) {
           if (folders.isEmpty()) {
-            item(key = "empty", contentType = "empty") {
+            item(key = ListKeys.EMPTY, contentType = "empty") {
               EmptyState(
                 icon = Ng2nIcon.FOLDER,
                 text = "还没有收藏夹，点右上角新建一个",
@@ -196,7 +197,7 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
               onDelete = { dialog = FolderDialog.Delete(folder) },
             )
           }
-          item(key = "hint", contentType = "hint") {
+          item(key = ListKeys.HINT, contentType = "hint") {
             Text(
               text = "收藏帖子时会弹出这份列表，一个主题可以同时归入多个收藏夹；" +
                 "删掉收藏夹会连同夹里的收藏一起删掉，删了找不回来。",

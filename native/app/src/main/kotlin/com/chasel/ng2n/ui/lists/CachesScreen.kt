@@ -37,6 +37,7 @@ import com.chasel.ng2n.data.cache.formatCacheSize
 import com.chasel.ng2n.data.history.formatHistoryTime
 import com.chasel.ng2n.ui.common.ConfirmDialog
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.Snackbars
 import com.chasel.ng2n.ui.common.TopBar
 import com.chasel.ng2n.ui.common.TopBarButton
@@ -101,7 +102,7 @@ fun CachesScreen(nav: Navigator, modifier: Modifier = Modifier) {
     }
 
     LazyColumn(Modifier.fillMaxSize()) {
-      item(key = "sub", contentType = "sub") {
+      item(key = ListKeys.SUB, contentType = "sub") {
         ListSubtitle("离线可读 · 已占用 ${formatCacheSize(total)}")
       }
       items(
@@ -132,7 +133,7 @@ fun CachesScreen(nav: Navigator, modifier: Modifier = Modifier) {
           },
         )
       }
-      item(key = "tail", contentType = "tail") { ListTail() }
+      item(key = ListKeys.TAIL, contentType = "tail") { ListTail() }
     }
   }
 

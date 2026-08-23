@@ -33,7 +33,9 @@ import com.chasel.ng2n.core.api.TopicSort
 import com.chasel.ng2n.core.local.HOT_WINDOW_HOURS
 import com.chasel.ng2n.data.board.HotTopicsRepository
 import com.chasel.ng2n.data.board.TopicListRepository
+import com.chasel.ng2n.data.filters.filterTopics
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingFooter
 import com.chasel.ng2n.ui.common.LoadingState
@@ -46,6 +48,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.filters.rememberFilterRules
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.BoardKey
 import com.chasel.ng2n.ui.nav.Navigator
@@ -100,8 +103,10 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   val state = all[hotKey] ?: HotTopicsRepository.State()
   LaunchedEffect(hotKey) { deps.hotTopics.ensureLoaded(hotKey) }
 
-  val rows = remember(state.topics, state.fetchedAt, colors, titleColors) {
-    buildTopicRows(state.topics, colors, titleColors, simple = true) { topic ->
+  // 榜单也是主题列表,一样过屏蔽规则(票 29):命中的整行不画
+  val filterRules = rememberFilterRules()
+  val rows = remember(state.topics, filterRules, colors, titleColors, state.fetchedAt) {
+    buildTopicRows(filterTopics(filterRules, state.topics), colors, titleColors, simple = true) { topic ->
       relativeTimeText(topic.postedAt, state.fetchedAt)
     }
   }
@@ -144,9 +149,14 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
           variant = StateVariant.SCREEN,
         )
       }
+      // 榜单有货、过完屏蔽规则空了,得说清是被自己的规则挡的,别当成「没有新主题」
       rows.isEmpty() -> EmptyState(
-        icon = Ng2nIcon.LOCAL_FIRE_DEPARTMENT,
-        text = "近 $HOT_WINDOW_HOURS 小时没有新主题",
+        icon = if (state.topics.isEmpty()) Ng2nIcon.LOCAL_FIRE_DEPARTMENT else Ng2nIcon.FILTER_ALT,
+        text = if (state.topics.isEmpty()) {
+          "近 $HOT_WINDOW_HOURS 小时没有新主题"
+        } else {
+          "榜单上的主题都被屏蔽规则挡住了"
+        },
         action = StateAction("刷新") { scope.launch { deps.hotTopics.refresh(hotKey) } },
       )
       else -> PullToRefreshBox(
@@ -199,8 +209,12 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   val state = all[listKey] ?: TopicListRepository.State()
   LaunchedEffect(listKey) { deps.topicLists.ensureFirstPage(listKey) }
 
-  val rows = remember(state.topics, colors, titleColors) {
-    buildTopicRows(state.topics, colors, titleColors, simple = true) { dateText(it.postedAt) }
+  // 精华区也是主题列表,不该漏网(票 29)
+  val filterRules = rememberFilterRules()
+  val rows = remember(state.topics, filterRules, colors, titleColors) {
+    buildTopicRows(filterTopics(filterRules, state.topics), colors, titleColors, simple = true) {
+      dateText(it.postedAt)
+    }
   }
 
   // 副标题条(设计稿 listSub:「版面推荐 · 共 148 篇」,「版面」沿用设计稿原字)
@@ -253,8 +267,12 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
         )
       }
       rows.isEmpty() -> EmptyState(
-        icon = Ng2nIcon.ARTICLE,
-        text = "这个版块还没有精华主题",
+        icon = if (state.topics.isEmpty()) Ng2nIcon.ARTICLE else Ng2nIcon.FILTER_ALT,
+        text = if (state.topics.isEmpty()) {
+          "这个版块还没有精华主题"
+        } else {
+          "这一页的主题都被屏蔽规则挡住了"
+        },
         action = StateAction("刷新") { scope.launch { deps.topicLists.refresh(listKey) } },
       )
       else -> PullToRefreshBox(
@@ -287,7 +305,7 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
               }
             })
           }
-          item(key = "footer", contentType = "footer") {
+          item(key = ListKeys.FOOTER, contentType = "footer") {
             Column {
               if (state.loadingNextPage) LoadingFooter("正在载入第 ${state.pages.size + 1} 页…")
               val error = state.error

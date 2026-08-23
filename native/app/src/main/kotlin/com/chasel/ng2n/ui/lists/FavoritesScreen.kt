@@ -30,10 +30,12 @@ import com.chasel.ng2n.core.api.Topic
 import com.chasel.ng2n.data.account.EMPTY_ACCOUNTS
 import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.data.favorites.pickFavoriteFolder
+import com.chasel.ng2n.data.filters.filterTopics
 import com.chasel.ng2n.ui.board.TopicRow
 import com.chasel.ng2n.ui.board.buildTopicRows
 import com.chasel.ng2n.ui.board.dateText
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingFooter
 import com.chasel.ng2n.ui.common.LoadingState
@@ -46,6 +48,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.filters.rememberFilterRules
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
@@ -102,10 +105,12 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
   LaunchedEffect(uid) { deps.topicFavorites.ensureFolders(uid) }
   LaunchedEffect(uid, folder?.id) { deps.topicFavorites.ensureTopics(uid, folder?.id) }
 
-  val rows = remember(state.topics, colors, titleColors) {
+  // 收藏夹也是主题列表(票 29 的「顺带」,RN 版这一屏没接)
+  val filterRules = rememberFilterRules()
+  val rows = remember(state.topics, filterRules, colors, titleColors) {
     // 收藏夹是二级列表(设计稿 simple-list):标题 16、右侧那格换成发帖日期
     buildTopicRows(
-      topics = state.topics,
+      topics = filterTopics(filterRules, state.topics),
       colors = colors,
       titleColors = titleColors,
       simple = true,
@@ -184,8 +189,12 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
       )
 
       rows.isEmpty() -> EmptyState(
-        icon = Ng2nIcon.STAR,
-        text = "「${folder.name}」里还没有主题",
+        icon = if (state.topics.isEmpty()) Ng2nIcon.STAR else Ng2nIcon.FILTER_ALT,
+        text = if (state.topics.isEmpty()) {
+          "「${folder.name}」里还没有主题"
+        } else {
+          "「${folder.name}」里的主题都被屏蔽规则挡住了"
+        },
         action = StateAction("刷新") {
           scope.launch { deps.topicFavorites.refreshTopics(uid, folder.id) }
         },
@@ -222,7 +231,7 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
               key = { index -> rows[index].topic.tid },
               contentType = { "topic" },
             ) { index -> TopicRow(rows[index], openTopic) }
-            item(key = "footer", contentType = "footer") {
+            item(key = ListKeys.FOOTER, contentType = "footer") {
               Column {
                 if (state.loadingNextPage) {
                   LoadingFooter("正在载入第 ${state.pages.size + 1} 页…")

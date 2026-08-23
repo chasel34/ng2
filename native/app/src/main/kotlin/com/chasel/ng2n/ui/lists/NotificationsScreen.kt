@@ -36,6 +36,7 @@ import com.chasel.ng2n.data.notifications.groupNotifications
 import com.chasel.ng2n.ui.Login
 import com.chasel.ng2n.ui.board.relativeTimeText
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingState
 import com.chasel.ng2n.ui.common.NOT_AVAILABLE_MESSAGE
@@ -99,7 +100,7 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
   }
 
   val groups = remember(items) {
-    groupNotifications(items, GROUP_ORDER) { it.kind }
+    groupNotifications(dedupeNotifications(items), GROUP_ORDER) { it.kind }
   }
   val nowMs = remember(items) { System.currentTimeMillis() }
 
@@ -151,7 +152,7 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
       else -> LazyColumn(Modifier.fillMaxSize()) {
         groups.forEach { group ->
           val meta = GROUPS.getValue(group.kind)
-          item(key = "head/${group.kind}", contentType = "group-head") {
+          item(key = ListKeys.groupHead(group.kind), contentType = "group-head") {
             GroupHeader(icon = meta.icon, label = meta.label, count = group.items.size)
           }
           items(
@@ -170,11 +171,23 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
             }
           }
         }
-        item(key = "tail", contentType = "tail") { ListTail() }
+        item(key = ListKeys.TAIL, contentType = "tail") { ListTail() }
       }
     }
   }
 }
+
+/**
+ * 按稳定 id 去重(留第一条)。
+ *
+ * `get_all` 的三个容器装的是同一批通知的不同视图,分类看的是条目自己的类型码而不是
+ * 所在容器(`core/api/Notifications.kt`),所以同一条通知**可以在两个容器里各出现一次**,
+ * 解出来就是两个 id 相同的条目。列表行的 key 正是这个 id —— 重复 key 会让 Compose
+ * 在首次布局抛 `Key … was already used`,整屏必崩(票 28 同一类)。
+ * RN 侧的 LegendList 只是打一条警告,所以这个坑在那边一直没响。
+ */
+internal fun dedupeNotifications(items: List<NgaNotification>): List<NgaNotification> =
+  items.distinctBy { it.id }
 
 /** 分组的展示文案与图标。组名照设计稿,设计稿没画的组(评价/短信)按同款式补。 */
 private data class GroupMeta(val label: String, val icon: Ng2nIcon)

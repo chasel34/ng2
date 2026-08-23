@@ -97,6 +97,12 @@ private val SLIDER_VALUE_SIZE = 14.sp
  * [overlays] 单开一个口子而不是混在 [content] 里:对话框铺的是**视口**,
  * 混进滚动内容里会被摆到内容中段。
  */
+/**
+ * [SettingsShell] 自己补在列表末尾的那一项。用这个壳的屏(设置 / 实验室 / 字号)
+ * 各自的 key 清单里都得带上它 —— 屏里再写一个同名 key 就是票 28 那种必崩。
+ */
+internal const val SETTINGS_TAIL_KEY: String = "settings-tail"
+
 @Composable
 fun SettingsShell(
   title: String,
@@ -123,7 +129,7 @@ fun SettingsShell(
       LazyColumn(Modifier.fillMaxSize()) {
         content()
         // 最后一行的分隔线不该贴着屏幕底边
-        item("settings-tail") {
+        item(SETTINGS_TAIL_KEY) {
           Spacer(Modifier.height(30.dp))
           Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }

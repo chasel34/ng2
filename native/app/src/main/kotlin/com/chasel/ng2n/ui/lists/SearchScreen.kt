@@ -55,6 +55,7 @@ import com.chasel.ng2n.core.api.Topic
 import com.chasel.ng2n.core.api.UserProfile
 import com.chasel.ng2n.data.account.EMPTY_ACCOUNTS
 import com.chasel.ng2n.data.account.currentAccountOf
+import com.chasel.ng2n.data.filters.filterTopics
 import com.chasel.ng2n.data.search.SearchRepository
 import com.chasel.ng2n.data.settings.EMPTY_SEARCH_HISTORY
 import com.chasel.ng2n.data.settings.SearchBoardScope
@@ -66,6 +67,7 @@ import com.chasel.ng2n.data.settings.removeSearchHistory
 import com.chasel.ng2n.ui.board.TopicRow
 import com.chasel.ng2n.ui.board.buildTopicRows
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingFooter
 import com.chasel.ng2n.ui.common.LoadingState
@@ -76,6 +78,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
+import com.chasel.ng2n.ui.filters.rememberFilterRules
 import com.chasel.ng2n.ui.home.BoardIcon
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
@@ -574,8 +577,11 @@ private fun TopicResults(
 
   LaunchedEffect(searchKey) { deps.search.ensureTopicPage(searchKey) }
 
-  val rows = remember(state.topics, colors, titleColors) {
-    buildTopicRows(state.topics, colors, titleColors)
+  // 搜索结果也是主题列表(票 29 的「顺带」:RN 版这一屏没接,这一版接上 —— 屏蔽规则
+  // 页承诺的是「命中的主题在列表里隐藏」,没说除了搜索)
+  val filterRules = rememberFilterRules()
+  val rows = remember(state.topics, filterRules, colors, titleColors) {
+    buildTopicRows(filterTopics(filterRules, state.topics), colors, titleColors)
   }
 
   val openTopic: (Topic) -> Unit = { topic ->
@@ -594,10 +600,16 @@ private fun TopicResults(
     return
   }
   if (rows.isEmpty()) {
+    // 搜到了、被自己的屏蔽规则挡光了:别说成「没搜到」
+    val allFiltered = state.topics.isNotEmpty()
     SearchOutcome(
       error = state.error,
-      emptyIcon = Ng2nIcon.SEARCH,
-      emptyText = "没有找到与「$query」相关的主题",
+      emptyIcon = if (allFiltered) Ng2nIcon.FILTER_ALT else Ng2nIcon.SEARCH,
+      emptyText = if (allFiltered) {
+        "找到的主题都被屏蔽规则挡住了"
+      } else {
+        "没有找到与「$query」相关的主题"
+      },
       onRetry = { scope.launch { deps.search.retryTopics(searchKey) } },
     )
     return
@@ -636,7 +648,7 @@ private fun TopicResults(
         key = { index -> rows[index].topic.tid },
         contentType = { "topic" },
       ) { index -> TopicRow(rows[index], openTopic) }
-      item(key = "footer", contentType = "footer") {
+      item(key = ListKeys.FOOTER, contentType = "footer") {
         Column {
           if (state.loadingNextPage) LoadingFooter("正在载入第 ${state.pages.size + 1} 页…")
           if (!state.loadingNextPage && state.error != null) {

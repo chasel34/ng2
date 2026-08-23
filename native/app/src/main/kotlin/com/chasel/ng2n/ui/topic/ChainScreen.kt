@@ -1,5 +1,6 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.nav.ChainKey
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -91,7 +92,7 @@ fun ChainScreen(key: ChainKey, nav: Navigator) {
       ),
     ) {
       vm.startLou?.let { lou ->
-        item(key = "intro", contentType = "intro") {
+        item(key = ListKeys.INTRO, contentType = "intro") {
           Text(
             text = "从第 $lou 楼展开:上游是它引用的楼层,下游是引用它的楼层。",
             fontSize = Typo.meta.size,

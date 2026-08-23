@@ -41,6 +41,19 @@ private const val RUN_LOG_EXPORT_LIMIT = 20
 
 private val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneOffset.UTC)
 
+/** 实验室与诊断屏的静态 key(票 28:同一张表里不许有重复 key)。 */
+internal object LabKeys {
+  const val S_LAB = "s-lab"
+  const val FALLBACK = "fallback"
+  const val WP_UA = "wp-ua"
+  const val S_DIAG = "s-diag"
+  const val COMBOS = "combos"
+  const val EXPORT = "export"
+
+  /** 这一屏 LazyColumn 会用到的静态 key,顺序即屏上顺序。 */
+  val all: List<String> = listOf(S_LAB, FALLBACK, WP_UA, S_DIAG, COMBOS, EXPORT) + SETTINGS_TAIL_KEY
+}
+
 /**
  * 实验室与诊断(设置的二级页)—— `src/app/settings/lab.tsx` 的移植。
  *
@@ -131,12 +144,12 @@ fun LabScreen(onBack: () -> Unit) {
       )
     },
   ) {
-    item("s-lab") { SettingsSection("实验室") }
+    item(LabKeys.S_LAB) { SettingsSection("实验室") }
 
-    item("fallback") {
+    item(LabKeys.FALLBACK) {
       SettingsNavRow(label = "网页数据源兜底", sub = labelOf(net.webFallbackMode)) { fallbackOpen = true }
     }
-    item("wp-ua") {
+    item(LabKeys.WP_UA) {
       SettingsSwitchRow(
         label = "帖子接口使用 Windows Phone UA",
         sub = "实测更不容易被封;被封表现变了可以关掉试试",
@@ -145,12 +158,12 @@ fun LabScreen(onBack: () -> Unit) {
       )
     }
 
-    item("s-diag") { SettingsSection("诊断") }
+    item(LabKeys.S_DIAG) { SettingsSection("诊断") }
 
-    item("combos") {
+    item(LabKeys.COMBOS) {
       SettingsNavRow(label = "本次运行的组合", sub = comboSummary) { shareRunLog() }
     }
-    item("export") {
+    item(LabKeys.EXPORT) {
       SettingsNavRow(label = "导出诊断日志", sub = "最近 $EXPORT_LIMIT 条") { exportLog() }
     }
   }

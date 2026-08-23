@@ -35,6 +35,7 @@ import com.chasel.ng2n.data.history.formatHistoryTime
 import com.chasel.ng2n.data.history.historyProgressLabel
 import com.chasel.ng2n.ui.common.ConfirmDialog
 import com.chasel.ng2n.ui.common.EmptyState
+import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.Snackbars
 import com.chasel.ng2n.ui.common.TopBar
 import com.chasel.ng2n.ui.common.TopBarButton
@@ -93,7 +94,7 @@ fun HistoryScreen(nav: Navigator, modifier: Modifier = Modifier) {
     }
 
     LazyColumn(Modifier.fillMaxSize()) {
-      item(key = "sub", contentType = "sub") {
+      item(key = ListKeys.SUB, contentType = "sub") {
         ListSubtitle("本机记录 · 保留最近 $HISTORY_LIMIT 条")
       }
       items(
@@ -104,7 +105,7 @@ fun HistoryScreen(nav: Navigator, modifier: Modifier = Modifier) {
         val entry = entries[index]
         HistoryRow(entry = entry, now = now) { nav.push(historyTopicKey(entry)) }
       }
-      item(key = "tail", contentType = "tail") { ListTail() }
+      item(key = ListKeys.TAIL, contentType = "tail") { ListTail() }
     }
   }
 
