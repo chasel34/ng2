@@ -551,5 +551,9 @@
   ——`TopicListRepository.refresh` 用刷新到的 page1 整个替换 `pages`
   (`:109-112` + `:145-162` 的 `replace=true`),`subBoards` 取的是 `pages.first().subBoards`,
   于是这一份「没有 `__F`」的 page1 会一直留在内存里。
-  **没做 curl 对拍**,分不清是 NGA 对刷新请求不下发 `__F`、还是解析这一路把它丢了 ——
+  **curl 对拍只做了一半**:游客态连打两次 `POST thread.php?fid=7|414&page=1&__output=8`
+  (带 `X-User-Agent: Nga_Official`),四次响应**字节数完全一致**、`__F` / `sub_forums` /
+  `topped_topic` 三个键**每次都在** —— 服务端至少对公开版块不会「第二次就不下发 `__F`」。
+  但现场那个 fid=-7 是**登录态才打得开的合集**(游客 curl 直接回 `1:未登录`),
+  用所有者的 cookie 去 curl 又越了「绝不碰 cookie 值」的线,所以**没能坐实**。
   被票 35 打断,留给下一轮。复现只要两步:进 fid=-7 → 下拉刷新 → 更多 → 子版块。
