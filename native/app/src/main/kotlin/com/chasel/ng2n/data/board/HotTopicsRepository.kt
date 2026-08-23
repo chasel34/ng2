@@ -5,9 +5,11 @@ import com.chasel.ng2n.core.api.Topic
 import com.chasel.ng2n.core.api.fetchHotTopics
 import com.chasel.ng2n.core.net.NgaClient
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,7 +60,7 @@ class HotTopicsRepository @Inject constructor(
   suspend fun refresh(key: Key, now: Long = System.currentTimeMillis()) =
     load(key, now, refreshing = true)
 
-  private suspend fun load(key: Key, now: Long, refreshing: Boolean) {
+  private suspend fun load(key: Key, now: Long, refreshing: Boolean) = withContext(Dispatchers.IO) {
     put(key) { it.copy(loading = it.fetchedAt == 0L, refreshing = refreshing, error = null) }
     try {
       val result = fetchHotTopics(

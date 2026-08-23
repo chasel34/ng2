@@ -8,11 +8,13 @@ import com.chasel.ng2n.core.api.hasMoreUserPosts
 import com.chasel.ng2n.core.api.mergeUserPostPages
 import com.chasel.ng2n.core.net.NgaClient
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -121,7 +123,7 @@ class UserPostsRepository @Inject constructor(
     }
   }
 
-  private suspend fun fetchInto(key: Key, page: Int, replace: Boolean) {
+  private suspend fun fetchInto(key: Key, page: Int, replace: Boolean) = withContext(Dispatchers.IO) {
     try {
       val fetched = fetchUserTopics(client, uid = key.uid, kind = key.kind, page = page)
       put(key) { state ->

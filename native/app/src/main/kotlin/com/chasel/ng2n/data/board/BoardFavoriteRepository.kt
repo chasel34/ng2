@@ -6,11 +6,13 @@ import com.chasel.ng2n.core.api.clearBoardFavorites
 import com.chasel.ng2n.core.api.fetchBoardFavorites
 import com.chasel.ng2n.core.api.removeBoardFavorite
 import com.chasel.ng2n.core.net.NgaClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -70,15 +72,19 @@ class BoardFavoriteRepository @Inject constructor(
 
   suspend fun reload(uid: String?, now: Long = System.currentTimeMillis()) {
     if (uid == null) return
-    put(uid) { it.copy(loading = true) }
-    try {
-      val boards = fetchBoardFavorites(client)
-      put(uid) { FavoritesState(loading = false, boards = boards, error = null, fetchedAt = now) }
-    } catch (cancelled: kotlinx.coroutines.CancellationException) {
-      put(uid) { it.copy(loading = false) }
-      throw cancelled
-    } catch (error: Throwable) {
-      put(uid) { it.copy(loading = false, error = error) }
+    // 网络这一段一律切到 IO(票 35):调用方常常是 `LaunchedEffect` / `viewModelScope`,
+    // 那是 `AndroidUiDispatcher`(主线程)—— 请求链不许跑在那上面。仓库层保证,不靠调用方。
+    withContext(Dispatchers.IO) {
+      put(uid) { it.copy(loading = true) }
+      try {
+        val boards = fetchBoardFavorites(client)
+        put(uid) { FavoritesState(loading = false, boards = boards, error = null, fetchedAt = now) }
+      } catch (cancelled: kotlinx.coroutines.CancellationException) {
+        put(uid) { it.copy(loading = false) }
+        throw cancelled
+      } catch (error: Throwable) {
+        put(uid) { it.copy(loading = false, error = error) }
+      }
     }
   }
 
@@ -99,10 +105,10 @@ class BoardFavoriteRepository @Inject constructor(
    * 服务端没有批量接口,`clearBoardFavorites` 里是**串行逐删**——收藏一般就十来个,
    * 不值得为它冒被风控的险(ADR-0002 的克制原则,这条是 RN 版唯一的一处克制)。
    */
-  suspend fun clear(uid: String): List<Board> {
+  suspend fun clear(uid: String): List<Board> = withContext(Dispatchers.IO) {
     val previous = stateOf(uid).boards
     put(uid) { it.copy(boards = emptyList()) }
-    return try {
+    try {
       val removed = clearBoardFavorites(client)
       reload(uid)
       removed
@@ -133,9 +139,11 @@ class BoardFavoriteRepository @Inject constructor(
   }
 
   private suspend fun mutate(uid: String, block: suspend (List<Board>) -> Unit) {
-    lock.withLock {
-      val previous = stateOf(uid).boards
-      block(previous)
+    withContext(Dispatchers.IO) {
+      lock.withLock {
+        val previous = stateOf(uid).boards
+        block(previous)
+      }
     }
   }
 

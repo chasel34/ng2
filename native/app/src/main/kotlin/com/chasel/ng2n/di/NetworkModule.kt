@@ -1,6 +1,8 @@
 package com.chasel.ng2n.di
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.webkit.WebSettings
 import com.chasel.ng2n.core.net.ComboCache
 import com.chasel.ng2n.core.net.Credential
@@ -17,6 +19,7 @@ import com.chasel.ng2n.data.net.CurrentCredentialCache
 import com.chasel.ng2n.data.net.NgaCookieJar
 import com.chasel.ng2n.data.net.OkHttpTransportFactory
 import com.chasel.ng2n.data.net.SettingsNetworkSource
+import com.chasel.ng2n.data.net.SystemUserAgent
 import com.chasel.ng2n.data.net.TopicCachePayloadReader
 import com.chasel.ng2n.data.net.ngaHttpClientBuilder
 import com.chasel.ng2n.data.net.toRecord
@@ -79,21 +82,33 @@ object NetworkModule {
   fun provideComboCache(): ComboCache = InMemoryComboCache()
 
   /**
-   * 系统 WebView UA(Android v4 的现行做法,API 文档 §0.3)。
+   * 系统 WebView UA 的取值器(票 35)。
    *
-   * `WebSettings.getDefaultUserAgent()` 第一次调用要把 WebView provider 拉起来,
-   * 不便宜 —— 所以是 `lazy` 且**只在第一发请求时**才求值(那时已经在 IO 协程里),
-   * 冷启动路径上碰不到它(P2-04 的纪律)。
+   * `WebSettings.getDefaultUserAgent()` 只在**主线程**上调用:第一次调用要把 WebView
+   * provider 拉起来,而 provider 的启动只能在 UI 线程跑 —— 在后台线程调它,它会
+   * `CountDownLatch.await()` 等主线程。旧实现把这一句包在 `lazy` 里(求值全程持锁),
+   * 于是「等主线程」变成「攥着锁等主线程」,主线程随后来求同一把锁 → 死锁 → ANR。
+   * 三条纪律(主线程求值 / 非主线程不阻塞 / 全程不持锁)写在 [SystemUserAgent] 的 KDoc 里。
+   *
+   * 预热在 `Ng2nApplication.onCreate`。
    */
   @Provides
   @Singleton
-  fun provideUserAgents(@ApplicationContext context: Context): UserAgents {
-    val systemUserAgent by lazy {
-      runCatching { WebSettings.getDefaultUserAgent(context) }
-        .getOrElse { com.chasel.ng2n.core.net.USER_AGENT_PROFILES.getValue(com.chasel.ng2n.core.net.UserAgentProfile.WEBVIEW) }
-    }
-    return UserAgents { systemUserAgent }
-  }
+  fun provideSystemUserAgent(@ApplicationContext context: Context): SystemUserAgent =
+    SystemUserAgent(
+      onMainThread = { Looper.myLooper() == Looper.getMainLooper() },
+      readSystemUserAgent = { WebSettings.getDefaultUserAgent(context) },
+      postToMainThread = { task -> Handler(Looper.getMainLooper()).post { task() } },
+    )
+
+  /**
+   * 一次请求能用的 UA 表(Android v4 的现行做法,API 文档 §0.3):`webview` 档取设备侧
+   * 现值,其余档位是 `core/net/Constants.kt` 里的常量。**取值永不阻塞调用线程**。
+   */
+  @Provides
+  @Singleton
+  fun provideUserAgents(systemUserAgent: SystemUserAgent): UserAgents =
+    UserAgents { systemUserAgent.get() }
 
   /**
    * 反封锁链。链的顺序即 ADR-0002 的顺序,写请求走另一条只有 direct 的链(修 P1-01)。

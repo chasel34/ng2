@@ -8,11 +8,13 @@ import com.chasel.ng2n.core.api.fetchTopicList
 import com.chasel.ng2n.core.api.mergeTopicPages
 import com.chasel.ng2n.core.net.NgaClient
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -142,7 +144,7 @@ class TopicListRepository @Inject constructor(
     }
   }
 
-  private suspend fun fetchInto(key: Key, page: Int, replace: Boolean) {
+  private suspend fun fetchInto(key: Key, page: Int, replace: Boolean) = withContext(Dispatchers.IO) {
     try {
       val fetched = fetchTopicList(
         client = client,

@@ -8,6 +8,8 @@ import com.chasel.ng2n.core.api.setSubBoardOption
 import com.chasel.ng2n.core.api.subBoardState
 import com.chasel.ng2n.core.net.NgaClient
 import com.chasel.ng2n.data.session.SubBoardOverrides
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,13 +55,16 @@ class SubBoardRepository @Inject constructor(
     // (「已经在途」与「本来就没有覆盖」),分不开(票外问题,已记进票 16 Comments)
     if (key in overrides.inFlight.value) return
     val previous = overrides.beginToggle(key, action == SubBoardAction.SUBSCRIBE)
-    try {
-      setSubBoardOption(client, subBoard = subBoard, parentFid = parentFid, action = action)
-    } catch (error: Throwable) {
-      overrides.rollback(key, previous)
-      throw error
-    } finally {
-      overrides.endToggle(key)
+    // 网络切 IO(票 35):调用方是主线程上的 `LaunchedEffect` / `viewModelScope`
+    withContext(Dispatchers.IO) {
+      try {
+        setSubBoardOption(client, subBoard = subBoard, parentFid = parentFid, action = action)
+      } catch (error: Throwable) {
+        overrides.rollback(key, previous)
+        throw error
+      } finally {
+        overrides.endToggle(key)
+      }
     }
   }
 

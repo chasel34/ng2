@@ -6,9 +6,11 @@ import com.chasel.ng2n.core.net.NgaClient
 import com.chasel.ng2n.data.settings.CheckInDays
 import com.chasel.ng2n.data.settings.SettingsStore
 import com.chasel.ng2n.data.settings.isCheckedInOn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -73,13 +75,16 @@ class CheckInRepository @Inject constructor(
     }
 
     pending.value = uid
-    try {
-      val result = checkIn(client)
-      // 服务端说「今天已经签到」也记上:今天剩下的时间不必再问了
-      settings.markCheckedIn(uid, System.currentTimeMillis())
-      return CheckInOutcome.CheckedIn(result)
-    } finally {
-      pending.value = null
+    // 网络切 IO(票 35):调用方是主线程上的 `LaunchedEffect` / `viewModelScope`
+    return withContext(Dispatchers.IO) {
+      try {
+        val result = checkIn(client)
+        // 服务端说「今天已经签到」也记上:今天剩下的时间不必再问了
+        settings.markCheckedIn(uid, System.currentTimeMillis())
+        CheckInOutcome.CheckedIn(result)
+      } finally {
+        pending.value = null
+      }
     }
   }
 }

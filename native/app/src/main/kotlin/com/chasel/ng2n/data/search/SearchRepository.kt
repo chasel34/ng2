@@ -14,11 +14,13 @@ import com.chasel.ng2n.core.api.mergeTopicPages
 import com.chasel.ng2n.core.api.parseUserSearchInput
 import com.chasel.ng2n.core.net.NgaClient
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -146,7 +148,8 @@ class SearchRepository @Inject constructor(
     }
   }
 
-  private suspend fun fetchTopicsInto(key: TopicKey, page: Int, replace: Boolean) {
+  // 网络切 IO(票 35):调用方是主线程上的 `LaunchedEffect` / `viewModelScope`
+  private suspend fun fetchTopicsInto(key: TopicKey, page: Int, replace: Boolean) = withContext(Dispatchers.IO) {
     try {
       val fetched = fetchTopicSearch(
         client = client,
@@ -190,16 +193,18 @@ class SearchRepository @Inject constructor(
 
   suspend fun reloadBoards(query: String) {
     if (query.isEmpty()) return
-    lockOf("boards/$query").withLock {
-      putBoard(query) { it.copy(loading = true, error = null) }
-      try {
-        val items = fetchBoardSearch(client, query)
-        putBoard(query) { BoardState(loading = false, items = items, loaded = true) }
-      } catch (cancelled: CancellationException) {
-        putBoard(query) { it.copy(loading = false) }
-        throw cancelled
-      } catch (error: Throwable) {
-        putBoard(query) { it.copy(loading = false, error = error) }
+    withContext(Dispatchers.IO) {
+      lockOf("boards/$query").withLock {
+        putBoard(query) { it.copy(loading = true, error = null) }
+        try {
+          val items = fetchBoardSearch(client, query)
+          putBoard(query) { BoardState(loading = false, items = items, loaded = true) }
+        } catch (cancelled: CancellationException) {
+          putBoard(query) { it.copy(loading = false) }
+          throw cancelled
+        } catch (error: Throwable) {
+          putBoard(query) { it.copy(loading = false, error = error) }
+        }
       }
     }
   }
@@ -225,19 +230,21 @@ class SearchRepository @Inject constructor(
 
   suspend fun reloadUser(query: String, now: Long = System.currentTimeMillis()) {
     val parsed = parseUserSearchInput(query) ?: return
-    lockOf("user/$query").withLock {
-      putUser(query) { it.copy(loading = true, error = null) }
-      try {
-        val profile = when (parsed) {
-          is UserSearchQuery.Uid -> fetchUserProfile(client, parsed.uid)
-          is UserSearchQuery.Username -> fetchUserProfileByName(client, parsed.username)
+    withContext(Dispatchers.IO) {
+      lockOf("user/$query").withLock {
+        putUser(query) { it.copy(loading = true, error = null) }
+        try {
+          val profile = when (parsed) {
+            is UserSearchQuery.Uid -> fetchUserProfile(client, parsed.uid)
+            is UserSearchQuery.Username -> fetchUserProfileByName(client, parsed.username)
+          }
+          putUser(query) { UserState(loading = false, profile = profile, fetchedAt = now) }
+        } catch (cancelled: CancellationException) {
+          putUser(query) { it.copy(loading = false) }
+          throw cancelled
+        } catch (error: Throwable) {
+          putUser(query) { it.copy(loading = false, error = error) }
         }
-        putUser(query) { UserState(loading = false, profile = profile, fetchedAt = now) }
-      } catch (cancelled: CancellationException) {
-        putUser(query) { it.copy(loading = false) }
-        throw cancelled
-      } catch (error: Throwable) {
-        putUser(query) { it.copy(loading = false, error = error) }
       }
     }
   }

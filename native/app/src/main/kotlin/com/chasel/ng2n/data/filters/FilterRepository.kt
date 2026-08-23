@@ -17,6 +17,7 @@ import com.chasel.ng2n.core.net.NgaClient
 import com.chasel.ng2n.data.account.AccountStore
 import com.chasel.ng2n.data.settings.SettingsStore
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.chasel.ng2n.data.settings.FilterRule as StoredRule
@@ -162,34 +164,37 @@ class FilterRepository @Inject constructor(
     load(uid, refreshing = true, nowMs = nowMs)
   }
 
-  private suspend fun load(uid: String, refreshing: Boolean, nowMs: Long) = blockWordsLock.withLock {
-    val sameUid = blockWordsState.value.uid == uid
-    blockWordsState.value = blockWordsState.value.copy(
-      uid = uid,
-      loading = !refreshing,
-      refreshing = refreshing,
-      // 换号时先把上一个号的表摘掉,免得新号的屏上闪一下别人的屏蔽词
-      list = if (sameUid) blockWordsState.value.list else null,
-      error = null,
-    )
-    try {
-      val list = fetchBlockWords(client, uid)
+  // 网络切 IO(票 35):调用方是主线程上的 `LaunchedEffect` / `viewModelScope`
+  private suspend fun load(uid: String, refreshing: Boolean, nowMs: Long) = withContext(Dispatchers.IO) {
+    blockWordsLock.withLock {
+      val sameUid = blockWordsState.value.uid == uid
       blockWordsState.value = blockWordsState.value.copy(
-        loading = false,
-        refreshing = false,
-        list = list,
+        uid = uid,
+        loading = !refreshing,
+        refreshing = refreshing,
+        // 换号时先把上一个号的表摘掉,免得新号的屏上闪一下别人的屏蔽词
+        list = if (sameUid) blockWordsState.value.list else null,
         error = null,
-        fetchedAtMs = nowMs,
       )
-    } catch (cancelled: CancellationException) {
-      blockWordsState.value = blockWordsState.value.copy(loading = false, refreshing = false)
-      throw cancelled
-    } catch (error: Throwable) {
-      blockWordsState.value = blockWordsState.value.copy(
-        loading = false,
-        refreshing = false,
-        error = error,
-      )
+      try {
+        val list = fetchBlockWords(client, uid)
+        blockWordsState.value = blockWordsState.value.copy(
+          loading = false,
+          refreshing = false,
+          list = list,
+          error = null,
+          fetchedAtMs = nowMs,
+        )
+      } catch (cancelled: CancellationException) {
+        blockWordsState.value = blockWordsState.value.copy(loading = false, refreshing = false)
+        throw cancelled
+      } catch (error: Throwable) {
+        blockWordsState.value = blockWordsState.value.copy(
+          loading = false,
+          refreshing = false,
+          error = error,
+        )
+      }
     }
   }
 
@@ -208,12 +213,14 @@ class FilterRepository @Inject constructor(
     val next = change(current)
 
     blockWordsState.value = before.copy(list = next, error = null)
-    try {
-      setBlockWords(client, uid, next)
-    } catch (error: Throwable) {
-      // 回滚。只还原表本身:期间可能已经有一次重拉把 fetchedAt 推进了
-      blockWordsState.value = blockWordsState.value.copy(list = before.list)
-      throw error
+    withContext(Dispatchers.IO) {
+      try {
+        setBlockWords(client, uid, next)
+      } catch (error: Throwable) {
+        // 回滚。只还原表本身:期间可能已经有一次重拉把 fetchedAt 推进了
+        blockWordsState.value = blockWordsState.value.copy(list = before.list)
+        throw error
+      }
     }
   }
 

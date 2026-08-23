@@ -1,6 +1,6 @@
 # 35 — P0:登录后每次冷启动都死锁(白屏 → ANR),游客态永远碰不到
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P0(**已登录用户的 app 起不来**:冷启动后首页永远停在转圈,15s 后系统弹
 「NG2N isn't responding」。不是偶发,**7/7 全中**(普通冷启 5 次 + `ng2n://` 深链冷启 2 次)。这多半就是所有者在票 15 里
@@ -164,3 +164,78 @@ provider 在**主线程**上初始化完了,所以那个进程里 `getDefaultUse
   这条是**有效**的,但设置页够不着(app 起不来),直接改 DataStore 又被权限系统挡下了。
   票 35 修完之前,谁要在这台机器上做登录态走查,可以让所有者在**登录当次会话里**
   先把这个开关关掉 —— 之后的冷启动就都能起来。
+
+## Comments
+
+### 2026-08-23 修复(两处断点各怎么修)
+
+**断点一:UA 求值「攥着锁等主线程」** —— `di/NetworkModule.kt` 里那个
+`val systemUserAgent by lazy { WebSettings.getDefaultUserAgent(context) }` 整个删掉,
+换成新的 `data/net/SystemUserAgent.kt`(纯 Kotlin,JVM 可测:「在不在主线程」「怎么把活儿
+丢给主线程」「怎么问系统要 UA」都是构造参数,生产实现由 `NetworkModule` 注入
+`Looper` / `Handler` / `WebSettings`)。三条纪律:
+
+1. **求值只在主线程发生**:`Ng2nApplication.onCreate` 里 `systemUserAgent.prewarm()`
+   (主线程调 `getDefaultUserAgent` 是安全的 —— provider 的初始化任务就在这条线程上跑);
+2. **非主线程读永不阻塞**:`get()` 拿不到现成值时把求值 `post` 给主线程,自己立刻返回
+   兜底 UA。多求一遍没有副作用,多等一次就是本票;
+3. **全程不持锁**:值放 `@Volatile`,一次引用赋值;`AtomicBoolean` 只是「别重复往主线程
+   排队」的去重旗,不是互斥锁。求值失败 / 拿到空串 = 当没求到,下次再说。
+
+UA 语义照抄没简化:兜底值仍是 `USER_AGENT_PROFILES[WEBVIEW]`,与 RN 版
+`src/core/net/constants.ts` 的 `webview` 档**同一个常量、同一条口径**;`UserAgents` 这个
+类、四个档位、`X-User-Agent: Nga_Official` 辅助头、`runAttempt` 里的档位轮换一行没动。
+**没有**用 `System.getProperty("http.agent")` 兜底:Android 上它是 Dalvik 的 UA
+(`Dalvik/2.1.0 (Linux; U; Android …)`),拿它冒充 WebView 档等于给服务端递一个新的
+识别特征,比常量兜底更危险(理由写进了 `SystemUserAgent` 的 KDoc)。
+
+**断点二:请求链跑在主 dispatcher 上** —— 按票面第 3 条,**仓库层保证**,不改屏幕侧:
+仓库里凡是能摸到网络的入口一律 `withContext(Dispatchers.IO)`。
+`BoardFavoriteRepository`(`reload` / `clear` / 三个写操作共用的 `mutate`,`ensureLoaded`
+经 `reload` 覆盖)、`TopicListRepository`、`HotTopicsRepository`、`UserPostsRepository`、
+`UserProfileRepository`(含 `saveSignature`)、`SearchRepository`(主题 / 版块 / 用户三条)、
+`TopicFavoriteRepository`(夹列表、夹内主题、夹的增删改、`applyTopicFavorites`)、
+`FilterRepository`(`load` / 官方屏蔽表的 `edit`)、`SubBoardRepository.toggle`、
+`CheckInRepository.checkInNow`、`NotificationPoller`(`refresh` / `clearAll` / `markRead`;
+轮询循环本来就在 `@IoScope` 上)。`BoardTreeRepository` 本来就是 `scope.launch`(IoScope),
+不用改。
+
+### 验收项
+
+- [x] 判据 3(单测断言仓库入口的 dispatcher):新增 `data/RepositoryDispatcherTest`(8 例)——
+  假 transport 与假 `UserAgents` 各记一次「我在哪条线程上被调的」,断言都不是调用方线程。
+  **UA 那一发单独断**:它是死锁现场主线程栈的最后一帧。这两个探针在改动前都会命中调用方
+  线程(假 transport 不切上下文),所以是真回归网。
+- [x] UA provider 在非主线程读不阻塞:`data/net/SystemUserAgentTest`(11 例)。核心那例用
+  一个**永不放行的 `CountDownLatch`** 复刻 `getDefaultUserAgent` 等主线程的行为,
+  真起一条线程读 UA,断言 5s 内拿到兜底值 —— 旧实现在这里会挂死。另有:主线程就地求值、
+  预热后后台直接读真值、排队跑完后读到真值、求值抛异常 / 空串退回兜底、8 线程并发只排一次队、
+  失败后还能再排一次、兜底值不会被当成真值记住。
+- [ ] 判据 1 / 2(登录态连做 5 次 `force-stop` → `start`,`uiautomator dump` 非空 +
+  0 条 ANR):**没做,模拟器被另一个代理占用**(本票开工时的约束)。需要真机 / 模拟器复验:
+  装 `native/app/build/outputs/apk/debug/app-debug.apk`,登录态冷启动 5 次。
+  顺带提醒:票里记了「设备上 `board-tree/v1/fetchedAt` 被改过」与「`sprayNotice` 关掉能规避」
+  两条现场改动,复验前最好把 `sprayNotice` 打回**开**,否则轮询不发请求 = 抢锁那一半不出场,
+  测不到东西。
+
+`./gradlew :app:assembleDebug :app:testDebugUnitTest` 通过:956 例、0 失败、4 跳过
+(跳过的是原有的两个联网冒烟,默认 `assumeTrue` 关着)。
+
+### 有意偏离 / 决定
+
+- **预热放在 `Application.onCreate` 同步调**,没有 `post` 到主线程后面去:两种写法在冷启动
+  的主线程时间上其实一样(`onCreate` 之后主线程立刻就空,post 的活儿马上就跑),同步调
+  少一层不确定性 —— 「第一发请求一定用真 UA」。代价是冷启动主线程上多一次 WebView provider
+  初始化,**票 19 真机裁性能时值得单量一下这一笔**;真嫌贵可以退回 `post` 版本,
+  兜底 UA 本来就是合法档位,退化只是「头几发用兜底 UA」,不会死锁。
+- debug 变体的 StrictMode 会因此在冷启动多报几条主线程磁盘读(WebView 拉 provider),
+  这是预期内的噪声,`Ng2nApplication.installStrictMode` 的 KDoc 早就写了这一类。
+
+### 发现的票外问题
+
+- `ui/topic/TopicRepository.loadDetail` 是**同一类缺陷**:`fetchTopicDetail` 跑在调用方
+  dispatcher 上,而 `TopicViewModel` 一律 `viewModelScope.launch`(= `Main.immediate`),
+  于是详情页每翻一页,请求链的前半段都在主线程上组装。本票没动它:它的单测用
+  `advanceUntilIdle()` 驱动 `cacheTopicPages`,正确的修法是照着同文件里现成的
+  `@ComputeDispatcher` 再注入一个 `@IoDispatcher`(生产 `Dispatchers.IO`、单测给测试调度器),
+  那是票 13 的地盘,建议单开一张。死锁本身已经与它无关(UA 那把锁没了)。

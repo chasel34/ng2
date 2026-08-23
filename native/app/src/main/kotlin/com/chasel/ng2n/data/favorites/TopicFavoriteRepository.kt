@@ -20,6 +20,7 @@ import com.chasel.ng2n.data.settings.foldersOfTopic
 import com.chasel.ng2n.data.settings.pruneFolders
 import com.chasel.ng2n.data.settings.seedFolderTopics
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -119,7 +121,7 @@ class TopicFavoriteRepository @Inject constructor(
     folderLock.withLock { reloadFoldersLocked(uid) }
   }
 
-  private suspend fun reloadFoldersLocked(uid: String) {
+  private suspend fun reloadFoldersLocked(uid: String) = withContext(Dispatchers.IO) {
     putFolders(uid) { it.copy(loading = true, error = null) }
     try {
       val folders = fetchFavoriteFolders(client)
@@ -180,7 +182,7 @@ class TopicFavoriteRepository @Inject constructor(
     }
   }
 
-  private suspend fun fetchTopicsInto(key: TopicsKey, page: Int, replace: Boolean) {
+  private suspend fun fetchTopicsInto(key: TopicsKey, page: Int, replace: Boolean) = withContext(Dispatchers.IO) {
     try {
       val fetched = fetchFavoriteTopics(client, folderId = key.folderId, page = page)
       putTopics(key) { state ->
@@ -231,28 +233,34 @@ class TopicFavoriteRepository @Inject constructor(
 
   /** 新建收藏夹,返回新夹 id(服务端没给就是 null,调用方反正读重拉的列表)。 */
   suspend fun createFolder(uid: String, name: String, asDefault: Boolean = false): Long? =
-    folderLock.withLock {
-      val id = createFavoriteFolder(client, name = name, asDefault = asDefault)
-      afterFolderChange(uid)
-      id
+    withContext(Dispatchers.IO) {
+      folderLock.withLock {
+        val id = createFavoriteFolder(client, name = name, asDefault = asDefault)
+        afterFolderChange(uid)
+        id
+      }
     }
 
   /** 重命名 / 设为默认(服务端是同一个 `modify_folder`,`name` 必传)。 */
   suspend fun modifyFolder(uid: String, folderId: Long, name: String, asDefault: Boolean = false) {
-    folderLock.withLock {
-      modifyFavoriteFolder(client, folderId = folderId, name = name, asDefault = asDefault)
-      afterFolderChange(uid, folderId)
+    withContext(Dispatchers.IO) {
+      folderLock.withLock {
+        modifyFavoriteFolder(client, folderId = folderId, name = name, asDefault = asDefault)
+        afterFolderChange(uid, folderId)
+      }
     }
   }
 
   /** 删除收藏夹。夹里的收藏一并没了,所以本机索引也要把这个夹摘干净。 */
   suspend fun deleteFolder(uid: String, folderId: Long) {
-    folderLock.withLock {
-      deleteFavoriteFolder(client, folderId = folderId)
-      afterFolderChange(uid, folderId)
-      // 以重拉回来的服务端列表为准,把已经不存在的夹从索引里摘掉
-      val alive = folderBuckets.value[uid]?.folders.orEmpty().map { it.id.toInt() }
-      settings.updateTopicFavorIndex(uid) { pruneFolders(it, alive) }
+    withContext(Dispatchers.IO) {
+      folderLock.withLock {
+        deleteFavoriteFolder(client, folderId = folderId)
+        afterFolderChange(uid, folderId)
+        // 以重拉回来的服务端列表为准,把已经不存在的夹从索引里摘掉
+        val alive = folderBuckets.value[uid]?.folders.orEmpty().map { it.id.toInt() }
+        settings.updateTopicFavorIndex(uid) { pruneFolders(it, alive) }
+      }
     }
   }
 
@@ -269,18 +277,20 @@ class TopicFavoriteRepository @Inject constructor(
     added: List<Long>,
     removed: List<Long>,
   ) {
-    try {
-      for (folderId in added) {
-        addTopicFavorite(client, tid = tid, folderId = folderId)
-        applyChange(uid, FavoriteChange(tid, folderId.toInt(), favored = true))
+    withContext(Dispatchers.IO) {
+      try {
+        for (folderId in added) {
+          addTopicFavorite(client, tid = tid, folderId = folderId)
+          applyChange(uid, FavoriteChange(tid, folderId.toInt(), favored = true))
+        }
+        for (folderId in removed) {
+          removeTopicFavorite(client, tid = tid, folderId = folderId)
+          applyChange(uid, FavoriteChange(tid, folderId.toInt(), favored = false))
+        }
+      } finally {
+        // 成功失败都要善后:失败也可能是做了一半,夹里的计数已经变了
+        folderLock.withLock { afterFolderChange(uid, *(added + removed).toLongArray()) }
       }
-      for (folderId in removed) {
-        removeTopicFavorite(client, tid = tid, folderId = folderId)
-        applyChange(uid, FavoriteChange(tid, folderId.toInt(), favored = false))
-      }
-    } finally {
-      // 成功失败都要善后:失败也可能是做了一半,夹里的计数已经变了
-      folderLock.withLock { afterFolderChange(uid, *(added + removed).toLongArray()) }
     }
   }
 
