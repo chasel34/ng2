@@ -65,7 +65,7 @@ import com.chasel.ng2n.ui.theme.Typo
  * 「同时起跑」。返回键关闭由 [BackHandler] 接。
  */
 @Composable
-private fun DialogShell(
+internal fun DialogShell(
   open: Boolean,
   onDismiss: () -> Unit,
   content: @Composable () -> Unit,
@@ -273,11 +273,12 @@ private const val MULTILINE_MIN_LINES = 3
 private const val MULTILINE_MAX_LINES = 8
 
 @Composable
-private fun DialogActions(
+internal fun DialogActions(
   confirmLabel: String,
   destructive: Boolean,
   onCancel: () -> Unit,
   onConfirm: () -> Unit,
+  enabled: Boolean = true,
 ) {
   val colors = LocalNg2nColors.current
   Row(
@@ -289,7 +290,7 @@ private fun DialogActions(
       modifier = Modifier
         .height(40.dp)
         .clip(RoundedCornerShape(Radius.full))
-        .clickable(onClick = onCancel)
+        .clickable(enabled = enabled, onClick = onCancel)
         .padding(horizontal = Spacing.lg),
       contentAlignment = Alignment.Center,
     ) {
@@ -306,8 +307,12 @@ private fun DialogActions(
       modifier = Modifier
         .height(40.dp)
         .clip(RoundedCornerShape(Radius.full))
-        .background(if (destructive) colors.danger else colors.primary)
-        .clickable(onClick = onConfirm)
+        .background(
+          (if (destructive) colors.danger else colors.primary)
+            // 写操作在飞的时候钮压暗(设计稿 confirmBusy 的 opacity .6)
+            .copy(alpha = if (enabled) 1f else 0.6f),
+        )
+        .clickable(enabled = enabled, onClick = onConfirm)
         .padding(horizontal = Spacing.xl),
       contentAlignment = Alignment.Center,
     ) {

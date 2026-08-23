@@ -143,13 +143,29 @@ private fun buildTopicTitle(
 /** meta 行的图标字号(RN 侧 `META_ICON_SIZE`:与 12.5 正文的视觉中心对齐的那一档)。 */
 private val META_ICON = 9.dp
 
+/**
+ * 一行主题。
+ *
+ * [onLongClick] 是收藏夹列表那一档的「取消收藏」入口(票 33):列表屏本来没有长按语义,
+ * 传了才挂 —— 不传就还是原来那个只认单击的 [rowClickable],长按不会在别的列表上
+ * 凭空多出一段震动。
+ */
 @Composable
-fun TopicRow(model: TopicRowModel, onClick: (Topic) -> Unit, modifier: Modifier = Modifier) {
+fun TopicRow(
+  model: TopicRowModel,
+  onClick: (Topic) -> Unit,
+  modifier: Modifier = Modifier,
+  onLongClick: ((Topic) -> Unit)? = null,
+) {
   val colors = LocalNg2nColors.current
   Column(
     modifier = modifier
       .fillMaxWidth()
-      .rowClickable(onClickLabel = model.topic.subject) { onClick(model.topic) }
+      .rowClickable(
+        onClickLabel = model.topic.subject,
+        onLongClick = onLongClick?.let { handler -> { handler(model.topic) } },
+        onLongClickLabel = if (onLongClick == null) null else "更多操作",
+      ) { onClick(model.topic) }
       .drawBehind {
         // 设计稿:1px 分隔线。画出来比多一个 Box 便宜
         val y = size.height - 1f

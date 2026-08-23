@@ -262,6 +262,65 @@ class TopicFavoriteRepositoryTest {
     assertFalse(body.contains("&tid=") || body.startsWith("tid="), body)
   }
 
+  // ------------------------------------------------------------ 票 33:列表里取消收藏
+
+  @Test
+  fun `列表里取消收藏走 del，并把这个夹的主题列表重取回来`() = runTest {
+    var listed = 0
+    val transport = RecordingTransport { request ->
+      when {
+        request.url.contains("thread.php") -> {
+          listed += 1
+          // 第二次拉(取消之后的那一次)少一条
+          if (listed == 1) ok(topicsBody(topic(111), topic(222))) else ok(topicsBody(topic(222)))
+        }
+        request.url.contains("list_folder") -> ok(foldersBody(folder(7, "夹", length = 1)))
+        else -> ok("""{"data":{"0":"操作成功"}}""")
+      }
+    }
+    val store = settings()
+    val repo = TopicFavoriteRepository(testClient(transport), store)
+
+    repo.ensureTopics("1001", 7)
+    assertEquals(listOf(111L, 222L), repo.topicsOf("1001", 7).topics.map { it.tid })
+
+    repo.unfavoriteTopic("1001", tid = 111, folderId = 7)
+
+    val del = transport.requests.first { it.url.contains("__act=del") }
+    assertTrue(del.body?.toString(Charsets.UTF_8).orEmpty().contains("tidarray=111"))
+    // 屏还开着,`ensureTopics` 的 key 没变不会再跑 —— 这一发必须由仓库自己补上,
+    // 否则 `afterFolderChange` 把桶丢掉之后屏上永远停在 loading
+    assertEquals(listOf(222L), repo.topicsOf("1001", 7).topics.map { it.tid })
+    assertFalse(repo.topicsOf("1001", 7).loading)
+    // 计数以服务端为准:善后必重拉夹列表
+    assertTrue(transport.requests.count { it.url.contains("list_folder") } >= 1)
+    // 本机索引里这一帖也不再属于这个夹
+    assertEquals(emptyList(), foldersOfTopic(store.currentTopicFavorIndex("1001"), 111))
+  }
+
+  @Test
+  fun `取消收藏失败也要把列表重取回来 —— 桶已经被善后丢掉了`() = runTest {
+    var listed = 0
+    val transport = RecordingTransport { request ->
+      when {
+        request.url.contains("thread.php") -> {
+          listed += 1
+          ok(topicsBody(topic(111)))
+        }
+        request.url.contains("list_folder") -> ok(foldersBody(folder(7, "夹", length = 1)))
+        request.url.contains("__act=del") -> ok("""{"error":["你没有权限"]}""")
+        else -> ok("""{"data":{"0":"操作成功"}}""")
+      }
+    }
+    val repo = TopicFavoriteRepository(testClient(transport), settings())
+
+    repo.ensureTopics("1001", 7)
+    runCatching { repo.unfavoriteTopic("1001", tid = 111, folderId = 7) }
+
+    assertTrue(listed >= 2, "失败之后也要重取,实际只拉了 $listed 次")
+    assertFalse(repo.topicsOf("1001", 7).loading)
+  }
+
   // ------------------------------------------------------------ pickFavoriteFolder
 
   @Test

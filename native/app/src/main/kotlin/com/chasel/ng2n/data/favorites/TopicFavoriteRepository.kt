@@ -284,6 +284,22 @@ class TopicFavoriteRepository @Inject constructor(
     }
   }
 
+  /**
+   * 收藏夹列表里的「取消收藏」(票 33)。
+   *
+   * 走的还是 [applyTopicFavorites] 的 removed 那半(`removeTopicFavorite`,参数名 `tidarray`),
+   * 但**必须自己把这个夹的主题列表重取回来**:`afterFolderChange` 会把受影响的夹连同已翻的页
+   * 一起丢掉,而屏还开着 —— 进屏那个 `ensureTopics` 的 key 没变、不会再跑,不补这一发
+   * 屏上就永远停在 loading。成功失败都补(失败也可能是服务端已经删了、只是回包没读到)。
+   */
+  suspend fun unfavoriteTopic(uid: String, tid: Long, folderId: Long) {
+    try {
+      applyTopicFavorites(uid, tid, added = emptyList(), removed = listOf(folderId))
+    } finally {
+      refreshTopics(uid, folderId)
+    }
+  }
+
   private suspend fun applyChange(uid: String, change: FavoriteChange) {
     settings.updateTopicFavorIndex(uid) { applyFavoriteChange(it, change) }
   }
