@@ -601,20 +601,21 @@ class TopicViewModel(
   /**
    * 目标页的数据到位后给出滚动目标。
    *
-   * 翻页期间屏上可能还是旧页,所以必须核对 `model.page` —— 不然会拿旧页的
-   * 楼层号错滚一通(RN 侧同一条注释)。
+   * 换算(含页码核对、被删楼的空洞、header 占的那一格)整个在 [floorScrollIndex] 里,
+   * 这里只负责「什么时候算」:目标页的数据落地那一刻。算不出来(目标楼不在本页)
+   * 就**留着 [pendingFloor] 不清**,等真正那一页回来再兑现。
    */
   private fun redeemPendingFloor() {
     val floor = pendingFloor ?: return
     val model = (pages[page] as? PageState.Loaded)?.model ?: return
-    if (model.page != pageOfFloor(floor.toInt(), model.rowsPerPage)) return
+    val index = floorScrollIndex(
+      floorLous = model.floors.map { it.lou },
+      targetFloor = floor,
+      page = model.page,
+      rowsPerPage = model.rowsPerPage,
+    ) ?: return
     pendingFloor = null
-    // 有楼层被删时 lou 有空洞,目标楼可能不在了:落到它后面最近的一楼
-    val index = model.floors.indexOfFirst { it.lou >= floor }
-    scrollTarget = ScrollTarget(
-      page = page,
-      index = if (index >= 0) index else (model.floors.size - 1).coerceAtLeast(0),
-    )
+    scrollTarget = ScrollTarget(page = page, listIndex = index)
   }
 
   fun consumeScrollTarget() {
@@ -820,9 +821,15 @@ sealed interface PageState {
 @Immutable
 data class OnlyUser(val uid: Long, val name: String)
 
-/** 待兑现的滚动目标(带楼号进场 / 「回到那里」)。 */
+/**
+ * 待兑现的滚动目标(带楼号进场 / 「回到那里」)。
+ *
+ * [listIndex] 是**列表 item 的下标**、不是楼层下标 —— header 那一格已经算进去了
+ * (票 34:两个 index 空间同名叫 `index`,屏幕那头又补了一次 offset,于是差一楼)。
+ * 屏幕拿到它直接喂 `scrollToItem`,不再做任何算术。
+ */
 @Immutable
-data class ScrollTarget(val page: Int, val index: Int)
+data class ScrollTarget(val page: Int, val listIndex: Int)
 
 @Immutable
 data class SignatureDialogState(val user: FloorUser, val model: FloorRenderModel?)

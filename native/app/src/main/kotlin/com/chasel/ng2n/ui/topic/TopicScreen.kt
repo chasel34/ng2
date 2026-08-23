@@ -15,6 +15,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,6 +78,7 @@ import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.LocalTextScale
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
+import kotlinx.coroutines.flow.first
 
 /** 楼层流与横滑翻页请求的刷新率(Hz)。120Hz 屏上把这两面钉在满帧档。 */
 private const val PAGER_FRAME_RATE = 120f
@@ -461,18 +463,35 @@ private fun TopicPageView(
     // 「自动加载下一页」的到底判据
     EndReachedReporter(vm = vm, listState = listState, count = model.floors.size)
     // 待兑现的跳楼目标(带楼号进场 / 「回到那里」)
-    LaunchedEffect(vm.scrollTarget, page) {
-      val target = vm.scrollTarget ?: return@LaunchedEffect
-      if (target.page != page) return@LaunchedEffect
-      vm.consumeScrollTarget()
-      // 头部有热门回复区时列表第 0 项是它,楼层要往后挪一格
-      val offset = if (model.hotReplies.isNotEmpty()) 1 else 0
-      listState.animateScrollToItem((target.index + offset).coerceAtLeast(0))
+    //
+    // **key 里绝不能有 `vm.scrollTarget`**(票 34):`consumeScrollTarget()` 改的就是
+    // 这个 key,下一帧重组时旧协程被取消、新协程以 `scrollTarget == null` 立刻返回 ——
+    // 滚动挂起函数活不过一帧,于是四条带楼号的入口页码全对、楼层一个都不到。
+    // 收进 `snapshotFlow` 之后,消费与滚动都不再动这条协程的生死。
+    LaunchedEffect(listState, page) {
+      snapshotFlow { vm.scrollTarget }.collect { target ->
+        if (target == null || target.page != page) return@collect
+        // 数据到位只是一半:列表这一帧还没量出来时滚了是空转(`layoutInfo` 是空的),
+        // 等目标那一格真的 compose 出来再滚
+        snapshotFlow { listState.layoutInfo.totalItemsCount }.first { it > target.listIndex }
+        vm.consumeScrollTarget()
+        // 瞬时 `scrollToItem` 而不是 `animateScrollToItem`:动画型滚动要占着
+        // `MutatePriority.Default` 好几百毫秒,期间被下拉刷新 / pager 收尾 / 手指
+        // 抢走就停在半路,而这条路径的验收判据是「目标楼落到视口顶部」。
+        // RN 侧用 `scrollToIndex` + 700ms 补一脚是因为 LegendList 按估高滚会短滚,
+        // Compose 的 snap 本身就是精确的,不需要那一脚。
+        listState.scrollToItem(target.listIndex)
+      }
     }
-    // 手指一拖就把「上次读到」浮层淡掉:它盖在楼层上,用户开始读了就该让路
+    // 手指一拖就把「上次读到」浮层淡掉:它盖在楼层上,用户开始读了就该让路。
+    //
+    // 接的是**拖拽交互**而不是 `isScrollInProgress`(票 34 顺带一处):后者连
+    // 程序化滚动一起认,跳楼落到页尾那一下会顺手把 `userScrolled` 点亮,
+    // 而 [TopicViewModel.onReachedEnd] 明写着「程序化滚动不算」—— 跳楼刚定位好的楼
+    // 会被自动翻页直接翻走。RN 侧接的就是 `onScrollBeginDrag`。
     LaunchedEffect(listState) {
-      snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
-        if (scrolling) {
+      listState.interactionSource.interactions.collect { interaction ->
+        if (interaction is DragInteraction.Start) {
           vm.userScrolled = true
           vm.dismissResume()
         }

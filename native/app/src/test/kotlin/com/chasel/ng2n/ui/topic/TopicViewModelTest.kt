@@ -356,7 +356,7 @@ class TopicViewModelTest {
 
     val target = assertNotNull(vm.scrollTarget)
     assertEquals(2, target.page)
-    assertEquals(1, target.index, "21 楼是这一页的第 2 条")
+    assertEquals(2, target.listIndex, "21 楼是这一页的第 2 条,前面还有 header 一格")
     vm.consumeScrollTarget()
     assertNull(vm.scrollTarget)
   }
@@ -524,8 +524,95 @@ class TopicViewModelTest {
     assertEquals(3, vm.page)
     val target = assertNotNull(vm.scrollTarget, "楼层锚点要兑现,不能被 model.page 的守卫挡掉")
     assertEquals(3, target.page)
-    assertEquals(0, target.index, "40 楼是第 3 页的第 1 条")
+    assertEquals(1, target.listIndex, "40 楼是第 3 页的第 1 条,header 占了第 0 格")
   }
+
+  @Test
+  fun `跳楼给的是列表 index —— 目标楼离页顶远也算得准,热门回复区不多占一格`() =
+    runTest(dispatcher) {
+      // 票 34 的判据:目标楼必须离该页页顶 ≥ 5 楼。页顶那几楼「只落到页顶」与
+      // 「真滚到了」长得一模一样,老代码就是这么被误读成「修好了」的
+      val (client, _) = TopicFixtures.client { page, _ ->
+        okJson(
+          pageEnvelope(
+            page = page,
+            floors = ((page - 1) * 20 until page * 20).map {
+              FloorSpec(pid = 800000000L + it, lou = it.toLong(), authorId = 1)
+            },
+            rows = 400,
+            // 热门回复只在主楼里标,所以只有第 1 页有
+            hotReplies = if (page == 1) {
+              listOf(FloorSpec(pid = 900000003, lou = 3, authorId = 1))
+            } else {
+              emptyList()
+            },
+          ),
+        )
+      }
+      val fakes = FakeTopicDeps(client, appScope, dispatcher)
+
+      // 74 楼 → 第 4 页(60–79)的第 15 条,列表下标 14 + header 一格
+      val far = viewModel(TopicKey(tid = 45150945, floor = 74), fakes)
+      assertEquals(4, far.page)
+      far.applyStyle(TopicFixtures.STYLE)
+      advanceUntilIdle()
+      val farTarget = assertNotNull(far.scrollTarget)
+      assertEquals(4, farTarget.page)
+      assertEquals(15, farTarget.listIndex, "74 楼是第 4 页第 15 条,前面只有 header 一格")
+
+      // 第 1 页有热门回复区,但它整段折在同一个 header item 里,不多占一行
+      val hot = viewModel(TopicKey(tid = 45150945, floor = 7), fakes)
+      assertEquals(1, hot.page)
+      hot.applyStyle(TopicFixtures.STYLE)
+      advanceUntilIdle()
+      assertTrue(hot.currentModel!!.hotReplies.isNotEmpty(), "这一页确实有热门回复区")
+      val hotTarget = assertNotNull(hot.scrollTarget)
+      assertEquals(8, hotTarget.listIndex, "7 楼是第 1 页第 8 条,热门回复区不额外占一行")
+    }
+
+  @Test
+  fun `「回到那里」跨页跳楼 —— 目标页回来才兑现,兑现的是列表 index`() =
+    runTest(dispatcher) {
+      val (client, _) = TopicFixtures.client { page, _ ->
+        okJson(
+          pageEnvelope(
+            page = page,
+            floors = ((page - 1) * 20 until page * 20).map {
+              FloorSpec(pid = 800000000L + it, lou = it.toLong(), authorId = 1)
+            },
+            rows = 400,
+          ),
+        )
+      }
+      val fakes = FakeTopicDeps(client, appScope, dispatcher)
+
+      // 攒一条「读到 74 楼」的进度
+      val first = viewModel(TopicKey(tid = 45150945), fakes)
+      first.applyStyle(TopicFixtures.STYLE)
+      advanceUntilIdle()
+      first.reportVisibleFloor(74)
+      first.flushReadFloor()
+      advanceUntilIdle()
+
+      // 再进来:浮条报 74 楼,点「回到那里」
+      // (key 显式带 page=1 只是为了拿一个新的 ViewModel 实例 —— 上面那个 key 一样的
+      //  会被 ViewModelStore 复用,进场时机就对不上了)
+      val vm = viewModel(TopicKey(tid = 45150945, page = 1), fakes)
+      vm.applyStyle(TopicFixtures.STYLE)
+      advanceUntilIdle()
+      assertEquals(1, vm.page)
+      assertEquals(74L, vm.resumeFloor)
+
+      vm.jumpToResume()
+      assertEquals(4, vm.page, "74 楼 / 每页 20 → 第 4 页")
+      // 第 4 页还没回来,这时候不许给滚动目标(给了就是拿旧页的楼号错滚)
+      assertNull(vm.scrollTarget, "目标页数据没到位之前不给滚动目标")
+
+      advanceUntilIdle()
+      val target = assertNotNull(vm.scrollTarget, "目标页回来了就要兑现")
+      assertEquals(4, target.page)
+      assertEquals(15, target.listIndex)
+    }
 
   @Test
   fun `历史页带进度楼层进场 —— 落到那一楼,不再重复弹「上次读到」浮条`() = runTest(dispatcher) {
