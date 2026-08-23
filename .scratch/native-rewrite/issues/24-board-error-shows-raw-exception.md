@@ -87,3 +87,5 @@ fun failureText(error: Throwable?): String = when {
 **发现的票外问题**:同类漏法还有两处(本票没改,归主控排期):
 `ui/topic/TopicViewModel.kt` 点赞失败的 `toast(cause.message ?: "操作失败,稍后再试")`、
 `ui/topic/TopicRepository.kt` 缓存失败的 `cause.message ?: "缓存失败"`。
+
+**主控验收(2026-08-23)**:合并后重打包装模拟器复验通过(飞行模式进版块 → 「连不上服务器」+重试)。

@@ -58,3 +58,5 @@ cookie / UA(`inventory.md` §3:反封锁链链外第 6 步是 `/web` 页);跳出
 **未做 / 待所有者**:模拟器被另一个代理占用,`uiautomator dump` 复验没做。
 
 **发现的票外问题**:无。
+
+**主控验收(2026-08-23)**:合并后重打包装模拟器复验通过(顶栏钮进站内 web 屏,topResumedActivity 仍是本 app)。
