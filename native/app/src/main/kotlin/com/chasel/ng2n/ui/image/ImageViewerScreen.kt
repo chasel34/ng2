@@ -10,17 +10,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,7 +36,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -48,7 +43,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,6 +58,12 @@ import coil3.request.crossfade
 import com.chasel.ng2n.core.local.ImagePolicy
 import com.chasel.ng2n.data.ImageSaver
 import com.chasel.ng2n.di.ImageModule
+import com.chasel.ng2n.ui.common.TopBar
+import com.chasel.ng2n.ui.common.TopBarTitle
+import com.chasel.ng2n.ui.common.TopBarTitleVariant
+import com.chasel.ng2n.ui.theme.LocalNg2nColors
+import com.chasel.ng2n.ui.theme.Ng2nColors
+import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -100,6 +103,12 @@ data class ImageViewerKey(
  * 页边回弹。`research/inventory.md` §8 就是这么记的 ——「RN 的收尾弹簧
  * stiffness 500/damping 48 是对拍原生 ViewPager 逐帧调出来的,Kotlin 用 Pager 免费获得」。
  * 图自己的边界回弹(阻尼 0.55 / 220ms)仍是手写,那一条 Pager 给不了。
+ *
+ * **配色(票 44)**:页面底 `bg`、顶栏 `topbar` + `onTopbar`,跟主题风格与夜间档走。
+ * 这一屏一度是「纯黑看图态」,但 RN 侧 HEAD 从来不是那样
+ * (`src/app/image-viewer.tsx` 的 `root.backgroundColor: theme.colors.bg`),
+ * 纯黑是偏离不是设计。顶栏也从这屏自己那份换成全 app 那套 [TopBar]:
+ * 高度 54(原来 52)、安全区与底色都由它统一撑。
  */
 @Composable
 fun ImageViewerScreen(
@@ -111,22 +120,27 @@ fun ImageViewerScreen(
   val pipeline = rememberImagePipeline()
   val scope = rememberCoroutineScope()
 
+  val colors = LocalNg2nColors.current
+
   if (key.urls.isEmpty()) {
-    Box(
-      modifier = modifier
-        .fillMaxSize()
-        .background(Color.Black),
-      contentAlignment = Alignment.Center,
-    ) {
-      ViewerTopBar(
-        counter = "图片",
-        onBack = onBack,
-        onSave = {},
-        onShare = {},
-        menuItems = emptyList(),
-        modifier = Modifier.align(Alignment.TopCenter),
-      )
-      Text("没有可查看的图片", color = Color.White.copy(alpha = 0.7f))
+    ViewerRoot(colors = colors, modifier = modifier) {
+      TopBar(paddingHorizontal = VIEWER_BAR_PADDING) {
+        IconSlot(size = 46.dp, onClick = onBack, description = "返回") {
+          BackIcon(colors.onTopbar, 24.dp)
+        }
+        TopBarTitle(text = "图片", variant = TopBarTitleVariant.SUB)
+      }
+      Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Text(
+          text = "没有可查看的图片",
+          textAlign = TextAlign.Center,
+          style = TextStyle(
+            fontSize = Typo.notice.size,
+            lineHeight = Typo.notice.lineHeight,
+            color = colors.fg2,
+          ),
+        )
+      }
     }
     return
   }
@@ -154,35 +168,9 @@ fun ImageViewerScreen(
   val currentUrl = key.urls[index.coerceIn(0, key.urls.lastIndex)]
   val zoomed by remember { derivedStateOf { zoom.zoomed } }
 
-  Box(
-    modifier = modifier
-      .fillMaxSize()
-      .background(Color.Black),
-  ) {
-    HorizontalPager(
-      state = pagerState,
-      // 只挂当前页与两侧邻页,几十张的楼不至于一进来全拉原图(RN 侧 ±1 判断同)
-      beyondViewportPageCount = 1,
-      // 放大之后单指拖的是图不是页:这条与手势里的分流是同一件事的两半
-      userScrollEnabled = !zoomed,
-      modifier = Modifier.fillMaxSize(),
-    ) { page ->
-      val plan = ImagePolicy.resolveViewer(
-        url = key.urls[page],
-        thumbnailUrl = key.thumbnailAt(page),
-        quality = settings.imageQuality,
-        metered = metered,
-        forceOriginal = forcedOriginal.contains(page),
-      )
-      ViewerPage(
-        url = plan.url,
-        placeholderUrl = plan.placeholderUrl,
-        zoom = if (page == index) zoom else null,
-        scope = scope,
-      )
-    }
-
+  ViewerRoot(colors = colors, modifier = modifier) {
     ViewerTopBar(
+      colors = colors,
       counter = "${index + 1} / ${key.urls.size}",
       onBack = onBack,
       onSave = { scope.launch { saveCurrent(context, pipeline.saver, currentUrl) } },
@@ -236,8 +224,31 @@ fun ImageViewerScreen(
           }
         },
       ),
-      modifier = Modifier.align(Alignment.TopCenter),
     )
+    HorizontalPager(
+      state = pagerState,
+      // 只挂当前页与两侧邻页,几十张的楼不至于一进来全拉原图(RN 侧 ±1 判断同)
+      beyondViewportPageCount = 1,
+      // 放大之后单指拖的是图不是页:这条与手势里的分流是同一件事的两半
+      userScrollEnabled = !zoomed,
+      // 顶栏在流里(RN 侧同),图占的是顶栏**下面**那块 —— Column 里给非加权子项的
+      // 竖向约束是无界的,这里必须 weight 而不是 fillMaxSize,否则量不出高度
+      modifier = Modifier.weight(1f).fillMaxWidth(),
+    ) { page ->
+      val plan = ImagePolicy.resolveViewer(
+        url = key.urls[page],
+        thumbnailUrl = key.thumbnailAt(page),
+        quality = settings.imageQuality,
+        metered = metered,
+        forceOriginal = forcedOriginal.contains(page),
+      )
+      ViewerPage(
+        url = plan.url,
+        placeholderUrl = plan.placeholderUrl,
+        zoom = if (page == index) zoom else null,
+        scope = scope,
+      )
+    }
   }
 }
 
@@ -378,7 +389,8 @@ private fun ViewerPage(
     )
 
     if (loading && placeholderUrl == null) {
-      CircularProgressIndicator(color = Color.White)
+      // RN 侧 `image-gallery.tsx` 给的 spinnerColor 就是 primary,不是白
+      CircularProgressIndicator(color = LocalNg2nColors.current.primary)
     }
   }
 }
@@ -389,44 +401,69 @@ data class ViewerMenuItem(
   val onClick: () -> Unit,
 )
 
+/** 设计稿给这一屏的顶栏内距(RN 侧 `paddingHorizontal={4}`)。 */
+private val VIEWER_BAR_PADDING = 4.dp
+
+/**
+ * 这一屏的根:主题底 + 竖排(顶栏在流里,图占下面那块)。
+ *
+ * RN 侧 `image-viewer.tsx` 的 `root` 就是这样 —— 顶栏不是浮在图上的遮罩,
+ * 它把可视区往下压一截。原生这边原来是「整屏黑 + 顶栏 align TopCenter 浮着」,
+ * 底色与可视区两处都跟基准对不上(票 44)。
+ */
+@Composable
+private fun ViewerRoot(
+  colors: Ng2nColors,
+  modifier: Modifier = Modifier,
+  content: @Composable ColumnScope.() -> Unit,
+) {
+  Column(
+    modifier = modifier
+      .fillMaxSize()
+      .background(colors.bg),
+    content = content,
+  )
+}
+
+/**
+ * 查看器顶栏。壳走全 app 那套 [TopBar](底色 `topbar`、高 54、自己撑安全区),
+ * 里头的图标仍是本屏手画的那四枚(字形归票 40)。
+ */
 @Composable
 private fun ViewerTopBar(
+  colors: Ng2nColors,
   counter: String,
   onBack: () -> Unit,
   onSave: () -> Unit,
   onShare: () -> Unit,
   menuItems: List<ViewerMenuItem>,
-  modifier: Modifier = Modifier,
   menuOpen: Boolean = false,
   onMenuOpenChange: (Boolean) -> Unit = {},
 ) {
-  Row(
-    modifier = modifier
-      .fillMaxWidth()
-      .windowInsetsPadding(WindowInsets.statusBars)
-      .height(52.dp)
-      .padding(horizontal = 4.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    IconSlot(size = 46.dp, onClick = onBack, description = "返回") { BackIcon(Color.White, 24.dp) }
+  TopBar(paddingHorizontal = VIEWER_BAR_PADDING) {
+    IconSlot(size = 46.dp, onClick = onBack, description = "返回") {
+      BackIcon(colors.onTopbar, 24.dp)
+    }
+    // 设计稿:计数 18/500、左距 8、字距 .5,顶栏前景色
     Text(
       text = counter,
-      color = Color.White,
+      color = colors.onTopbar,
       fontSize = 18.sp,
       fontWeight = FontWeight.Medium,
+      letterSpacing = 0.5.sp,
       modifier = Modifier.padding(start = 8.dp),
     )
     Spacer(Modifier.weight(1f))
     if (menuItems.isNotEmpty()) {
       IconSlot(size = 46.dp, onClick = onSave, description = "保存到相册") {
-        SaveIcon(Color.White, 23.dp)
+        SaveIcon(colors.onTopbar, 23.dp)
       }
       IconSlot(size = 46.dp, onClick = onShare, description = "分享") {
-        ShareIcon(Color.White, 23.dp)
+        ShareIcon(colors.onTopbar, 23.dp)
       }
       Box {
         IconSlot(size = 44.dp, onClick = { onMenuOpenChange(true) }, description = "更多") {
-          MoreIcon(Color.White, 22.dp)
+          MoreIcon(colors.onTopbar, 22.dp)
         }
         DropdownMenu(expanded = menuOpen, onDismissRequest = { onMenuOpenChange(false) }) {
           for (item in menuItems) {

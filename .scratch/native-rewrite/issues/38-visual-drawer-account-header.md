@@ -1,6 +1,6 @@
 # 38 — P2:抽屉账号头用 Material3 默认紫,且没吃状态栏安全区
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P2(全 app 最显眼的一块面积用了错色;头像被状态栏压住)
 
@@ -43,3 +43,35 @@
 - 安全区:这块头是抽屉内容的第一项(`ui/drawer/AppDrawerContent.kt` → `AccountHeader`),
   抽屉是 edge-to-edge 容器,需要在头这一块自己 `windowInsetsPadding(WindowInsets.statusBars)`
   (或 `statusBarsPadding()`),而不是靠外层。
+
+## Comments
+
+**完成摘要**
+
+- `ui/accounts/AccountHeader.kt` 整块换主题 token:`MaterialTheme.colorScheme.primary/onPrimary`
+  → `LocalNg2nColors.current.primary/onPrimary`,`MaterialTheme.typography.labelMedium/titleMedium`
+  → `Typo.listMeta` / `Typo.tab`(照 RN 侧 `app-drawer.tsx` 的 `headerCaption` / `headerTitle`)。
+  文件里已无 `MaterialTheme` 引用。
+- 头像圆底原来是 `onPrimary.copy(alpha = 0.16f)`,改成 `TopbarOverlay`
+  (= RN 侧 `tokens.ts:183` 的 `topbarOverlay` = 白 22%),两处(游客态 / 登录态)一致。
+- 左右内距 `20.dp` 换成 `Spacing.xl`(同值,少一个魔法数)。
+- 安全区:`padding(top = accountHeaderTopPadding(WindowInsets.statusBars…calculateTopPadding()))`,
+  即 RN 的 `insets.top + 22`。抽屉是 edge-to-edge 容器,这一段只能由头自己吃。
+
+**关键决定**
+
+- 顶部内距抽成纯函数 `accountHeaderTopPadding(statusBarTop: Dp): Dp` + 常量
+  `ACCOUNT_HEADER_TOP_GAP = 22.dp`,好让 JVM 单测能对拍(`AccountHeaderInsetTest`,3 例:
+  0dp → 22dp;47dp → 69dp(= 对照图 206 − 159);单调性)。
+- 副文案字号取 `Typo.listMeta`(12.5)而不是抽屉占位 `GuestAccountHeader` 用的
+  `Typo.listSubtitle`(12)—— RN 侧 `headerCaption` 用的是 `typography.listMeta`。
+
+**未完成 / 待所有者**
+
+- 真机/模拟器视觉复验没做(本次要求不开模拟器)。改动是纯换色 + 加内距,布局数值一个没动。
+
+**发现的票外问题**
+
+- `ui/drawer/AppDrawerContent.kt` 的占位 `GuestAccountHeader` 用了 `Typo.listSubtitle`(12),
+  RN 侧那行是 `listMeta`(12.5)。它只是 `accountHeader` 参数的缺省值(实际由票 15 的
+  `AccountHeader` 顶掉),没动。

@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
@@ -82,6 +83,12 @@ import kotlinx.coroutines.flow.first
 
 /** 楼层流与横滑翻页请求的刷新率(Hz)。120Hz 屏上把这两面钉在满帧档。 */
 private const val PAGER_FRAME_RATE = 120f
+
+/**
+ * 详情页顶栏标题的截断宽度。设计稿给二级页标了两档(列表 150、详情 190),
+ * RN 侧 `topic/[tid].tsx:871` 用的就是 190 —— 两边的截断点必须一样(票 39)。
+ */
+private val TOPIC_TITLE_MAX_WIDTH = 190.dp
 
 /** 未实现功能的统一提示文案(RN 侧 `NOT_AVAILABLE_MESSAGE`)。 */
 const val NOT_AVAILABLE_MESSAGE: String = "本版本未开放"
@@ -245,10 +252,15 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
       TopBarButton(onClick = nav::pop, label = "返回", box = 46.dp) {
         BackArrowIcon(tint = colors.onTopbar)
       }
+      // 截断宽度 190 是设计稿给详情页标的那档(RN 侧 `topic/[tid].tsx` 的
+      // `maxWidth={190}`)—— 不用 weight(1f) 铺满剩余空间:两边的截断点得一样,
+      // 否则同一个帖子在两边显示成不同的标题(票 39)
       TopBarTitle(
         text = key.title ?: vm.currentModel?.subject ?: "主题 ${key.tid}",
-        modifier = Modifier.weight(1f),
+        maxWidth = TOPIC_TITLE_MAX_WIDTH,
       )
+      // RN 侧「地球」那枚带 `topBarSpacer`(margin-left:auto),把右侧两枚推到底
+      Spacer(Modifier.weight(1f))
       // 「用网页版打开」= **站内**网页兜底屏(反封锁链链外第 6 步,票 22),
       // 与版块页同一条路(`ui/board/BoardScreen.kt`)。跳系统浏览器等于把这一屏的
       // cookie / UA 交给 Chrome 的 cookie 罐,登录态与反封锁的那套请求头全丢

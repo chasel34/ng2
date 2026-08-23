@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,11 +28,18 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.chasel.ng2n.ui.theme.LocalNg2nColors
+import com.chasel.ng2n.ui.theme.Ng2nColors
+import com.chasel.ng2n.ui.theme.Spacing
+import com.chasel.ng2n.ui.theme.TopbarOverlay
+import com.chasel.ng2n.ui.theme.Typo
 import kotlin.math.abs
 
 /**
@@ -52,6 +61,12 @@ import kotlin.math.abs
  * RN 用 `PanResponder`(JS 线程判定);这里用 Compose 的 `awaitEachGesture`,
  * 判定在 UI 线程完成 —— 阈值语义一样,只是不再有跨线程延迟。
  * 头像左右两颗 chevron 照旧可点(RN 版也有),不足两个账号时它们变暗且不响应。
+ *
+ * ## 配色(票 38)
+ *
+ * 一律取 [LocalNg2nColors] 与 [Typo],**不碰 `MaterialTheme.colorScheme`** ——
+ * 那套是 M3 默认调色板,`primary` 是淡紫,一拉开抽屉整块压在墨绿/奶油的 app 上。
+ * 头像圆底走 [TopbarOverlay](= RN 侧 `topbarOverlay`,白 22%),不是 `onPrimary` 调透明度。
  */
 private val GESTURE_SLOP = 12.dp
 private val SWIPE_COMMIT = 40.dp
@@ -61,6 +76,17 @@ private const val SWIPE_VELOCITY_DP_PER_MS = 0.5f
 
 /** uiautomator 找账号头的锚点。 */
 const val ACCOUNT_HEADER_TAG: String = "ng2n-account-header"
+
+/** 账号头的顶部留白(状态栏安全区**之外**再留这么多)。RN 侧 `insets.top + 22` 的那个 22。 */
+val ACCOUNT_HEADER_TOP_GAP: Dp = 22.dp
+
+/**
+ * 账号头的顶部内距 = 状态栏安全区 + [ACCOUNT_HEADER_TOP_GAP]。
+ *
+ * 抽屉是 edge-to-edge 容器,它自己不吃安全区 —— 头像整块得自己躲开状态栏
+ * (票 38:原生这边漏了这一段,头像圆心跟状态栏时间并排,整块头比 Expo 矮一个状态栏)。
+ */
+fun accountHeaderTopPadding(statusBarTop: Dp): Dp = statusBarTop + ACCOUNT_HEADER_TOP_GAP
 
 @Composable
 fun AccountHeader(
@@ -72,14 +98,16 @@ fun AccountHeader(
   val state by viewModel.state.collectAsStateWithLifecycle()
   val current = state.current()
   val canCycle = state.accounts.size >= 2
+  val colors = LocalNg2nColors.current
+  val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
   Column(
     modifier = modifier
       .fillMaxWidth()
-      .background(MaterialTheme.colorScheme.primary)
+      .background(colors.primary)
       .then(if (canCycle) Modifier.cycleOnSwipe(viewModel::cycle) else Modifier)
-      .padding(horizontal = 20.dp)
-      .padding(top = 22.dp, bottom = 18.dp)
+      .padding(horizontal = Spacing.xl)
+      .padding(top = accountHeaderTopPadding(statusBarTop), bottom = 18.dp)
       .semantics { contentDescription = ACCOUNT_HEADER_TAG },
   ) {
     if (current == null) {
@@ -89,24 +117,21 @@ fun AccountHeader(
           modifier = Modifier
             .size(64.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.16f)),
+            .background(TopbarOverlay),
           contentAlignment = Alignment.Center,
         ) {
-          PersonAddIcon(tint = MaterialTheme.colorScheme.onPrimary, size = 26.dp)
+          PersonAddIcon(tint = colors.onPrimary, size = 26.dp)
         }
       }
       Spacer(Modifier.height(14.dp))
       Text(
         text = "未登录 · 登录多个账号可少跳系统浏览器",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+        style = captionStyle(colors),
       )
       Spacer(Modifier.height(3.dp))
       Text(
         text = "点此登录账号",
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onPrimary,
+        style = headlineStyle(colors),
         modifier = Modifier
           .clickable(onClick = onLogin)
           .semantics { contentDescription = "点此登录账号" },
@@ -122,41 +147,40 @@ fun AccountHeader(
         pointsLeft = true,
         enabled = canCycle,
         label = "上一个账号",
+        colors = colors,
         onClick = { viewModel.cycle(-1) },
       )
       Box(
         modifier = Modifier
           .size(64.dp)
           .clip(RoundedCornerShape(22.dp))
-          .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.16f)),
+          .background(TopbarOverlay),
         contentAlignment = Alignment.Center,
       ) {
         Text(
           text = nameAbbrev(current.name, 4),
           fontSize = 22.sp,
           fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onPrimary,
+          color = colors.onPrimary,
         )
       }
       CycleButton(
         pointsLeft = false,
         enabled = canCycle,
         label = "下一个账号",
+        colors = colors,
         onClick = { viewModel.cycle(1) },
       )
     }
     Spacer(Modifier.height(14.dp))
     Text(
       text = "已登录 ${state.accounts.size} 个账号 · 左右滑动切换",
-      style = MaterialTheme.typography.labelMedium,
-      color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+      style = captionStyle(colors),
     )
     Spacer(Modifier.height(3.dp))
     Text(
       text = "当前：${current.name}(${current.uid})",
-      style = MaterialTheme.typography.titleMedium,
-      fontWeight = FontWeight.SemiBold,
-      color = MaterialTheme.colorScheme.onPrimary,
+      style = headlineStyle(colors),
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       modifier = Modifier
@@ -166,11 +190,27 @@ fun AccountHeader(
   }
 }
 
+/** 两行副文案的上一行(RN 侧 `headerCaption`:listMeta 12.5,onPrimary 压到 0.8)。 */
+private fun captionStyle(colors: Ng2nColors) = TextStyle(
+  fontSize = Typo.listMeta.size,
+  lineHeight = Typo.listMeta.lineHeight,
+  color = colors.onPrimary.copy(alpha = 0.8f),
+)
+
+/** 两行副文案的下一行(RN 侧 `headerTitle`:tab 15 · 600)。 */
+private fun headlineStyle(colors: Ng2nColors) = TextStyle(
+  fontSize = Typo.tab.size,
+  lineHeight = Typo.tab.lineHeight,
+  fontWeight = FontWeight.SemiBold,
+  color = colors.onPrimary,
+)
+
 @Composable
 private fun CycleButton(
   pointsLeft: Boolean,
   enabled: Boolean,
   label: String,
+  colors: Ng2nColors,
   onClick: () -> Unit,
 ) {
   Box(
@@ -181,7 +221,7 @@ private fun CycleButton(
       .semantics { contentDescription = label },
     contentAlignment = Alignment.Center,
   ) {
-    ChevronIcon(tint = MaterialTheme.colorScheme.onPrimary, pointsLeft = pointsLeft)
+    ChevronIcon(tint = colors.onPrimary, pointsLeft = pointsLeft)
   }
 }
 

@@ -44,8 +44,11 @@ fun Ng2nTheme(
   textScale: TextScale = TextScale(),
   content: @Composable () -> Unit,
 ) {
+  val palette = paletteOf(dark = darkTheme, plain = plain)
+  // 状态栏图标明暗跟顶栏底色走(票 39),主题一变就重投
+  StatusBarIconsEffect(palette.topbar)
   CompositionLocalProvider(
-    LocalNg2nColors provides paletteOf(dark = darkTheme, plain = plain),
+    LocalNg2nColors provides palette,
     LocalNg2nTitleColors provides titleColorsOf(dark = darkTheme),
     LocalTextScale provides textScale,
   ) {

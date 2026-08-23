@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -112,7 +113,13 @@ fun TopBarButton(
   ) { icon() }
 }
 
-/** 顶栏标题。详情页那一档 16.5/600(标题后面还跟着两枚图标,所以再矮半档)。 */
+/**
+ * 顶栏标题。详情页那一档 16.5/600(标题后面还跟着两枚图标,所以再矮半档)。
+ *
+ * [maxWidth] 是设计稿给的截断宽度(详情 190),语义与 RN 侧
+ * `top-bar.tsx` 的 `maxWidth` + `flexShrink:1` 一致:**上限**而不是定宽 ——
+ * 短标题照样只占自己那么宽,右边的图标不会被顶开(票 39)。
+ */
 @Composable
 fun TopBarTitle(text: String, modifier: Modifier = Modifier, maxWidth: Dp? = null) {
   val colors = LocalNg2nColors.current
@@ -123,7 +130,7 @@ fun TopBarTitle(text: String, modifier: Modifier = Modifier, maxWidth: Dp? = nul
     fontSize = 16.5.sp(),
     fontWeight = FontWeight.SemiBold,
     color = colors.onTopbar,
-    modifier = (if (maxWidth == null) modifier else modifier.width(maxWidth))
+    modifier = (if (maxWidth == null) modifier else modifier.widthIn(max = maxWidth))
       .padding(start = Spacing.xs),
   )
 }

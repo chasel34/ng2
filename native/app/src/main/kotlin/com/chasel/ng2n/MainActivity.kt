@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.chasel.ng2n.ui.Ng2nApp
@@ -15,7 +16,13 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    enableEdgeToEdge()
+    // 状态栏一律**透明 + 白图标**:三套配色的顶栏都是深色(见 `ui/theme/SystemBars.kt`)。
+    // 不带参的 enableEdgeToEdge() 按系统夜间模式投票,浅色档会把图标刷成黑的,
+    // 压在深青顶栏上几乎看不见(票 39)。首帧就定下来,免得开屏闪一下黑图标;
+    // 之后主题真变了由 `StatusBarIconsEffect` 重投。
+    enableEdgeToEdge(
+      statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+    )
     super.onCreate(savedInstanceState)
 
     // 冷启动深链:intent 比第一次 composition 还早,先投进收件箱,导航宿主起来后取件。
