@@ -288,11 +288,15 @@ private fun FloorActionRow(
     horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.End),
     verticalAlignment = Alignment.CenterVertically,
   ) {
+    // 点赞钮为了把图标和赞数排进同一个圆角背景,没走 [IconAction],语义得自己挂:
+    // 不挂的话无障碍树里是个 text 与 content-desc 都为空的可点节点(票 26),
+    // TalkBack 只念得出里面那个赞数。**不合并子节点** —— 赞数那条 Text 仍要单独读得到。
     Row(
       modifier = Modifier
         .height(40.dp)
         .clip(RoundedCornerShape(10.dp))
         .clickable { actions.onRecommend(floor, RecommendAction.LIKE) }
+        .semantics { contentDescription = "点赞" }
         .padding(horizontal = Spacing.sm),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(6.dp),

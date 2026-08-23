@@ -39,6 +39,7 @@ import com.chasel.ng2n.ui.common.EmptyState
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingState
 import com.chasel.ng2n.ui.common.NOT_AVAILABLE_MESSAGE
+import com.chasel.ng2n.ui.common.SignedInGate
 import com.chasel.ng2n.ui.common.Snackbars
 import com.chasel.ng2n.ui.common.StateAction
 import com.chasel.ng2n.ui.common.StateVariant
@@ -48,6 +49,8 @@ import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.rowClickable
+import com.chasel.ng2n.ui.common.showLoginPrompt
+import com.chasel.ng2n.ui.common.signedInGate
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.Navigator
@@ -80,7 +83,8 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
   val accountsState by deps.accounts.accounts.collectAsStateWithLifecycle(
     initialValue = EMPTY_ACCOUNTS,
   )
-  val loggedIn = currentAccountOf(accountsState) != null
+  val uid = currentAccountOf(accountsState)?.uid
+  val loggedIn = uid != null
 
   val items by deps.notifications.notifications.collectAsStateWithLifecycle()
   val refreshing by deps.notifications.refreshing.collectAsStateWithLifecycle()
@@ -119,12 +123,19 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
         size = 23.dp,
         contentDescription = "清空全部通知",
         onClick = {
-          scope.launch {
-            runCatching { deps.notifications.clearAll() }.fold(
-              onSuccess = { Snackbars.show("已清空全部通知") },
-              // 服务端怎么说就怎么显示(与全 app 同一套话术)
-              onFailure = { Snackbars.show(failureText(it)) },
-            )
+          // 游客态先挡住(票 31):`clearAll()` 对游客是「正常返回」而不是抛,
+          // 直接跑下去会走进 onSuccess 报一句「已清空全部通知」—— 没登录、没通知、
+          // 连 `noti&__act=del` 都没发出去,纯粹是句谎话。
+          when (val gate = signedInGate(uid, "登录后才能清空通知")) {
+            is SignedInGate.NeedLogin -> showLoginPrompt(nav, gate.message)
+
+            is SignedInGate.Proceed -> scope.launch {
+              runCatching { deps.notifications.clearAll() }.fold(
+                onSuccess = { Snackbars.show("已清空全部通知") },
+                // 服务端怎么说就怎么显示(与全 app 同一套话术)
+                onFailure = { Snackbars.show(failureText(it)) },
+              )
+            }
           }
         },
       )

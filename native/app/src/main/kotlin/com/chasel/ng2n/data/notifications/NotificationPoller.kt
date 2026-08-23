@@ -164,6 +164,10 @@ class NotificationPoller @Inject constructor(
   /**
    * 一键清空:服务端 `del` 成功之后才动本地(条目 + 已读桶一起清)。
    * 失败原样抛给调用方去说 —— 通知屏要把服务端那句话带出来。
+   *
+   * 游客态这里是**正常返回**,调用方拿不到「没做」这个信号(票 31 就是这么谎报成功的)。
+   * 所以门在 UI 那一侧:`ui/lists/NotificationsScreen.kt` 的垃圾桶钮先过 `signedInGate`,
+   * 游客根本走不到这儿。这一句留着当兜底 —— 切号与点击之间有一帧的空档。
    */
   suspend fun clearAll() {
     val uid = currentAccountOf(accounts.accounts.first())?.uid ?: return

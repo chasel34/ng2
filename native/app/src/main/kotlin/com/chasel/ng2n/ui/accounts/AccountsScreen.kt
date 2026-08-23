@@ -16,13 +16,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,13 +31,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chasel.ng2n.data.account.NgaAccount
 import com.chasel.ng2n.data.account.formatCookieExpiry
-import com.chasel.ng2n.ui.image.BackIcon
+import com.chasel.ng2n.ui.common.TopBar
+import com.chasel.ng2n.ui.common.TopBarButton
+import com.chasel.ng2n.ui.common.TopBarTitle
+import com.chasel.ng2n.ui.common.TopBarTitleVariant
+import com.chasel.ng2n.ui.icons.Ng2nIcon
+import com.chasel.ng2n.ui.theme.LocalNg2nColors
+import com.chasel.ng2n.ui.theme.Radius
+import com.chasel.ng2n.ui.theme.Spacing
+import com.chasel.ng2n.ui.theme.Typo
 
 /** uiautomator 找账号管理屏的锚点。 */
 const val ACCOUNTS_SCREEN_TAG: String = "ng2n-accounts-screen"
@@ -53,7 +59,11 @@ const val ACCOUNTS_SCREEN_TAG: String = "ng2n-accounts-screen"
  * `Set-Cookie` 的真实 expires 拿不到,按 passport 的 30 天惯例从登录时刻推算,
  * 只作展示、不做任何强制(见 `data/account/Accounts.kt`)。
  *
- * 视觉这一版按 Material3 的默认配色摆,**不自造 token**:完整设计 token 是票 17 的活。
+ * 视觉走全 app 同一套(票 32 补的是票 15 留下的欠账):顶栏用 [TopBar] +
+ * [TopBarButton] / [TopBarTitle],配色取 `LocalNg2nColors`、字号取 `Typo`。
+ * 票 15 落地时设计 token 还没铺完,这一屏当时用的是 Material3 默认配色与就地拼的
+ * `Row` 顶栏 —— 于是它成了唯一一屏换主题不跟着变、顶栏尺寸和别处对不齐、
+ * 返回钮在无障碍树里没名字的屏(TalkBack 念不出,uiautomator 也点不到)。
  */
 @Composable
 fun AccountsScreen(
@@ -63,6 +73,7 @@ fun AccountsScreen(
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   val context = LocalContext.current
+  val colors = LocalNg2nColors.current
   // 过期天数只随进屏那一刻算一次:秒级刷新对「还剩 29 天」毫无意义
   val now = remember { System.currentTimeMillis() }
 
@@ -75,24 +86,19 @@ fun AccountsScreen(
   Column(
     modifier = Modifier
       .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
+      .background(colors.bg)
       .semantics { contentDescription = ACCOUNTS_SCREEN_TAG },
   ) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .windowInsetsPadding(WindowInsets.statusBars)
-        .padding(horizontal = 4.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      IconButton(onClick = onBack, modifier = Modifier.size(46.dp)) {
-        BackIcon(tint = MaterialTheme.colorScheme.onBackground)
-      }
-      Text(
-        text = "账号管理",
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(start = 4.dp),
+    // 状态栏安全区归 TopBar 自己撑(edge-to-edge),这里不再叠 windowInsetsPadding
+    TopBar(paddingHorizontal = 4.dp) {
+      TopBarButton(
+        icon = Ng2nIcon.ARROW_BACK,
+        size = 24.dp,
+        box = 46.dp,
+        contentDescription = "返回",
+        onClick = onBack,
       )
+      TopBarTitle(text = "账号管理", variant = TopBarTitleVariant.SUB)
     }
 
     Column(
@@ -118,28 +124,35 @@ fun AccountsScreen(
         modifier = Modifier
           .fillMaxWidth()
           .height(48.dp)
-          .clip(RoundedCornerShape(14.dp))
-          .border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp))
+          .clip(RoundedCornerShape(Radius.lg))
+          .border(1.5.dp, colors.divider, RoundedCornerShape(Radius.lg))
           .clickable(onClick = onAddAccount)
           .semantics { contentDescription = "添加账号" },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
       ) {
-        PersonAddIcon(tint = MaterialTheme.colorScheme.primary)
+        PersonAddIcon(tint = colors.primary)
         Spacer(Modifier.size(9.dp))
         Text(
           text = "添加账号",
-          style = MaterialTheme.typography.titleSmall,
-          color = MaterialTheme.colorScheme.primary,
+          style = TextStyle(
+            fontSize = Typo.drawerItem.size,
+            lineHeight = Typo.drawerItem.lineHeight,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.primary,
+          ),
         )
       }
 
       Spacer(Modifier.height(18.dp))
       Text(
         text = "登录多个账号可减少跳转系统浏览器的概率；抽屉头部左右滑动即可快速切换当前账号。",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 4.dp),
+        style = TextStyle(
+          fontSize = Typo.note.size,
+          lineHeight = Typo.note.lineHeight,
+          color = colors.meta,
+        ),
+        modifier = Modifier.padding(horizontal = Spacing.xs),
       )
     }
   }
@@ -153,17 +166,17 @@ private fun AccountRow(
   onSwitch: () -> Unit,
   onLogout: () -> Unit,
 ) {
-  val borderColor =
-    if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+  val colors = LocalNg2nColors.current
+  val borderColor = if (isCurrent) colors.primary else colors.divider
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clip(RoundedCornerShape(14.dp))
-      .background(MaterialTheme.colorScheme.surface)
-      .border(1.5.dp, borderColor, RoundedCornerShape(14.dp))
+      .clip(RoundedCornerShape(Radius.lg))
+      .background(colors.surface)
+      .border(1.5.dp, borderColor, RoundedCornerShape(Radius.lg))
       .clickable(onClick = onSwitch)
       .semantics { contentDescription = "切换到 ${account.name}" }
-      .padding(14.dp),
+      .padding(Spacing.row),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(13.dp),
   ) {
@@ -171,42 +184,54 @@ private fun AccountRow(
       modifier = Modifier
         .size(46.dp)
         .clip(RoundedCornerShape(15.dp))
-        .background(MaterialTheme.colorScheme.primaryContainer),
+        .background(colors.primaryContainer),
       contentAlignment = Alignment.Center,
     ) {
       Text(
         text = nameAbbrev(account.name, 2),
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        style = TextStyle(
+          fontSize = Typo.avatarInitial.size,
+          lineHeight = Typo.avatarInitial.lineHeight,
+          fontWeight = FontWeight.Bold,
+          color = colors.primary,
+        ),
       )
     }
     Column(modifier = Modifier.weight(1f)) {
       Text(
         text = account.name,
-        style = MaterialTheme.typography.titleSmall,
+        style = TextStyle(
+          fontSize = Typo.listTitle.size,
+          lineHeight = Typo.listTitle.lineHeight,
+          fontWeight = FontWeight.SemiBold,
+          color = colors.fg,
+        ),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )
       Text(
         text = "UID ${account.uid} · cookie $expiry",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = TextStyle(
+          fontSize = Typo.listSubtitle.size,
+          lineHeight = Typo.listSubtitle.lineHeight,
+          color = colors.meta,
+        ),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )
     }
-    RadioIcon(
-      tint = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-      checked = isCurrent,
-    )
-    IconButton(
-      onClick = onLogout,
+    RadioIcon(tint = if (isCurrent) colors.primary else colors.meta, checked = isCurrent)
+    // 原先是 Material3 的 IconButton(涟漪取 M3 色);换成与全 app 同款的圆形触控盒,
+    // onClickLabel 让 TalkBack 的「双击以…」也念得出这是「退出」
+    Box(
       modifier = Modifier
         .size(32.dp)
+        .clip(RoundedCornerShape(Radius.full))
+        .clickable(onClickLabel = "退出 ${account.name}", onClick = onLogout)
         .semantics { contentDescription = "退出 ${account.name}" },
+      contentAlignment = Alignment.Center,
     ) {
-      LogoutIcon(tint = MaterialTheme.colorScheme.error)
+      LogoutIcon(tint = colors.danger)
     }
   }
 }

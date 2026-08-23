@@ -15,9 +15,6 @@ import com.chasel.ng2n.data.settings.NetSettings
 import com.chasel.ng2n.ui.common.rememberToaster
 import com.chasel.ng2n.ui.rememberAppDeps
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 /**
  * 网页数据源兜底的四档(ADR-0002 / API 文档 §0.8)。设计稿这行画的是开关,
@@ -38,8 +35,6 @@ private const val EXPORT_LIMIT = 50
 
 /** 「本次运行」里分享出去的请求条数。 */
 private const val RUN_LOG_EXPORT_LIMIT = 20
-
-private val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneOffset.UTC)
 
 /**
  * 实验室与诊断(设置的二级页)—— `src/app/settings/lab.tsx` 的移植。
@@ -92,7 +87,7 @@ fun LabScreen(onBack: () -> Unit) {
         // entry.params 在 `DiagnosticLogStore` 入库时就已经脱敏过了
         val query = entry.params.entries.joinToString("&") { "${it.key}=${it.value}" }
         val target = if (query.isEmpty()) entry.path else "${entry.path}?$query"
-        val time = CLOCK.format(Instant.ofEpochMilli(entry.at))
+        val time = runLogClock(entry.at)
         add("$time ${if (entry.ok) "成功" else "失败"} $target (${entry.attempts} 次尝试) ${entry.message}")
       }
     }
