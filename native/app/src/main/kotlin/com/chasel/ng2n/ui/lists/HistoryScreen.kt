@@ -102,9 +102,7 @@ fun HistoryScreen(nav: Navigator, modifier: Modifier = Modifier) {
         contentType = { "history" },
       ) { index ->
         val entry = entries[index]
-        HistoryRow(entry = entry, now = now) {
-          nav.push(TopicKey(tid = entry.tid, title = entry.subject, fav = entry.favCode))
-        }
+        HistoryRow(entry = entry, now = now) { nav.push(historyTopicKey(entry)) }
       }
       item(key = "tail", contentType = "tail") { ListTail() }
     }
@@ -128,6 +126,25 @@ fun HistoryScreen(nav: Navigator, modifier: Modifier = Modifier) {
     },
   )
 }
+
+/**
+ * 一条历史记录重新打开时的主题键。
+ *
+ * **带上进度楼层**:这一屏右边那格写着「读到 96 楼」,点进去却落在第 1 页顶部,
+ * 是在自己打自己的脸(功能走查 checklist #11)。RN 版只传了 tid/title/fav,
+ * 这是对它的有意偏离 —— 是**修已知缺陷**,不是加功能。
+ *
+ * 只传 `floor` 不传 `page`:历史里没存 `rowsPerPage`,页码由
+ * [com.chasel.ng2n.ui.topic.TopicViewModel] 按每页 20 楼估,真实值回来后
+ * `redeemPendingFloor` 再核对一次 —— 估错也只是多翻一页,不会落错楼。
+ * 主楼(`lastFloor` 0)不带:那本来就是第 1 页顶部,带了反而多一次滚动。
+ */
+internal fun historyTopicKey(entry: HistoryEntry): TopicKey = TopicKey(
+  tid = entry.tid,
+  title = entry.subject,
+  fav = entry.favCode,
+  floor = entry.lastFloor.takeIf { it >= 1 }?.toLong(),
+)
 
 /**
  * 历史的一行(设计稿:padding 14/16/12,下分隔线;信息行上距 9、gap 6、12.5 号)。

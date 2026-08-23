@@ -71,4 +71,32 @@ class PagingTest {
       assertNull(parseJumpTarget(bad, 13), "「$bad」不该被当成页码")
     }
   }
+
+  // --------------------------------------------------------- pagerPageCount(票 20)
+
+  @Test
+  fun `pagerPageCount 至少装得下当前页 —— 总页数还没回来也不许把页码钳掉`() {
+    // 首帧:数据没回来,totalPages 还是进场页兜的底
+    assertEquals(3, pagerPageCount(1, 3))
+    assertEquals(3, pagerPageCount(3, 3))
+    // 真实页数回来后由 totalPages 说了算
+    assertEquals(47, pagerPageCount(47, 3))
+  }
+
+  @Test
+  fun `pagerPageCount 永远不小于 1`() {
+    assertEquals(1, pagerPageCount(0, 0))
+    assertEquals(1, pagerPageCount(-2, -5))
+    assertEquals(1, pagerPageCount(1, 1))
+  }
+
+  @Test
+  fun `pagerPageCount 与 clampPage 合起来 首帧不会把带页码进场的页码打回第 1 页`() {
+    // 票 20 的现场:pager 把 currentPage 钳进 [0, pageCount-1],
+    // 再由 settledPage 回写给 ViewModel。pageCount 装得下,这一圈就是恒等
+    val page = 3
+    val totalPages = 3 // TopicViewModel 的初值 = 进场页
+    val settled = (page - 1).coerceIn(0, pagerPageCount(totalPages, page) - 1)
+    assertEquals(page, clampPage(settled + 1, totalPages))
+  }
 }

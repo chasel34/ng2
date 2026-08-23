@@ -94,7 +94,15 @@ class TopicViewModel(
   /** 页级渲染成品。key 是**请求的页码**(不是响应的 `__PAGE`)。 */
   val pages: SnapshotStateMap<Int, PageState> = mutableStateMapOf()
 
-  var totalPages by mutableStateOf(1)
+  /**
+   * 总页数。数据回来之前**兜到进场页**而不是 1(票 20)。
+   *
+   * 初值给 1 的话,首帧的 [page] 就是个「超出总页数」的页码,一路被夹逼:
+   * [goToPage] 的 [clampPage] 把它按回第 1 页,`HorizontalPager` 的 pageCount
+   * 也装不下它 —— 带页码/楼层进场的四条入口全部落在第 1 页顶部。
+   * 真实页数在 [onPageLoaded] 里覆盖它,估多的那几页只活到第一发响应回来。
+   */
+  var totalPages by mutableStateOf(page)
     private set
 
   /**
@@ -207,7 +215,11 @@ class TopicViewModel(
       // 进场那一刻的存档楼层。主楼都没读过(lastFloor 0)就不打扰
       deps.history.warmUp()
       val entry = deps.history.peek(tid)
-      if (entry != null && entry.lastFloor >= 1) resumeFloor = entry.lastFloor.toLong()
+      if (entry == null || entry.lastFloor < 1) return@launch
+      // 历史页点条目已经带着这个楼号进场了(票 11),人已经在那一楼上,
+      // 再弹一句「上次读到第 N 楼 · 回到那里」是自问自答
+      if (key.floor == entry.lastFloor.toLong()) return@launch
+      resumeFloor = entry.lastFloor.toLong()
     }
   }
 

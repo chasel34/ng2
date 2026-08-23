@@ -432,7 +432,94 @@ class TopicViewModelTest {
     vm.cacheWholeTopic { }
     assertEquals("这一页还没加载出来", vm.toast.value?.text)
   }
+
+  // --------------------------------------------------------------- 票 20 / 票 11
+
+  @Test
+  fun `带页码进场 —— 总页数先兜到进场页,首帧那一下夹逼吃不掉页码`() = runTest(dispatcher) {
+    val (client, transport) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    val vm = viewModel(TopicKey(tid = 45150945, page = 3), fakes)
+
+    // 数据一个字节都还没回来。totalPages 若是 1,下面这两条都会把第 3 页碾成第 1 页
+    assertEquals(3, vm.page)
+    assertEquals(3, vm.totalPages, "总页数没回来之前先兜到进场页")
+    assertEquals(3, clampPage(vm.page, vm.totalPages), "goToPage 的夹逼不许动它")
+
+    // pager 首帧:currentPage 被钳进 [0, pageCount-1],settledPage 再回写给 VM
+    val settled = (vm.page - 1).coerceIn(0, pagerPageCount(vm.totalPages, vm.page) - 1)
+    vm.goToPage(settled + 1)
+    assertEquals(3, vm.page, "首帧的回写不该把页码打回第 1 页")
+
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+
+    // 第一发请求就是第 3 页(不是第 1 页),真实页数回来后覆盖掉兜底值
+    assertEquals(listOf(3), transport.requests.mapNotNull { pageParamOf(it) }.take(1))
+    assertEquals(3, vm.page)
+    assertEquals(3, vm.totalPages)
+    assertTrue(vm.pages[3] is PageState.Loaded)
+  }
+
+  @Test
+  fun `在原帖中查看 —— 带第 3 页的楼号进场,数据到位后落到那一楼`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ ->
+      okJson(
+        pageEnvelope(
+          page = page,
+          floors = (40L..42L).map { FloorSpec(pid = 800000000 + it, lou = it, authorId = 1) },
+          rows = 47,
+        ),
+      )
+    }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    // 回复链「在原帖中查看」给的就是这种键:只有楼号,页码由每页 20 楼估
+    val vm = viewModel(TopicKey(tid = 45150945, floor = 40), fakes)
+    assertEquals(3, vm.page, "40 楼 / 每页 20 → 第 3 页")
+
+    // 首帧的 pager 回写
+    val settled = (vm.page - 1).coerceIn(0, pagerPageCount(vm.totalPages, vm.page) - 1)
+    vm.goToPage(settled + 1)
+
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+
+    assertEquals(3, vm.page)
+    val target = assertNotNull(vm.scrollTarget, "楼层锚点要兑现,不能被 model.page 的守卫挡掉")
+    assertEquals(3, target.page)
+    assertEquals(0, target.index, "40 楼是第 3 页的第 1 条")
+  }
+
+  @Test
+  fun `历史页带进度楼层进场 —— 落到那一楼,不再重复弹「上次读到」浮条`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+
+    // 攒一条「读到 7 楼」的进度
+    val first = viewModel(TopicKey(tid = 45150945), fakes)
+    first.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    first.reportVisibleFloor(7)
+    first.flushReadFloor()
+    advanceUntilIdle()
+
+    // 历史页点条目:键上带着同一个楼号,人已经被送到那一楼,浮条就是自问自答
+    val resumed = viewModel(TopicKey(tid = 45150945, floor = 7), fakes)
+    resumed.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    assertNull(resumed.resumeFloor, "已经带着进度楼层进场了,不再弹浮条")
+
+    // 别的楼号进场(回复链的「在原帖中查看」)照旧提示「上次读到第 7 楼」
+    val elsewhere = viewModel(TopicKey(tid = 45150945, floor = 3), fakes)
+    elsewhere.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    assertEquals(7L, elsewhere.resumeFloor)
+  }
 }
+
+/** `read.php` 请求上的 `page` 参数(断言「第一发就是第 3 页」用)。 */
+private fun pageParamOf(request: com.chasel.ng2n.core.net.HttpRequest): Int? =
+  Regex("[?&]page=(\\d+)").find(request.url)?.groupValues?.get(1)?.toIntOrNull()
 
 /** 快照 core → 存储层(生产里由 `TopicCachePayloadReader` 搬,单测手工搬一次)。 */
 private fun com.chasel.ng2n.core.api.TopicPageSnapshot.toCachedSnapshot() =

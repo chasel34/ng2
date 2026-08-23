@@ -1,6 +1,6 @@
 # 22 — P2:主题页顶栏「用网页版打开」跳系统浏览器,不进站内网页兜底屏
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P2(功能可用但走错屏;#20 `/web` 从主题页进不去)
 
@@ -37,3 +37,24 @@ cookie / UA(`inventory.md` §3:反封锁链链外第 6 步是 `/web` 页);跳出
 ## 相关
 
 票 21(失败面板上的同名按钮是空实现)。
+
+## Comments
+
+**修复(2026-08-23)**
+
+`TopicScreen.kt` 顶栏地球钮从 `uriHandler.openUri(webUrl)` 改成
+`nav.push(webKey)`,与版块页同一条路。`webKey` 由 `topicWebKey()` 造
+(见票 21 Comments),`remember` 的键带上 `settings.host` / `vm.page` /
+`currentModel?.subject`,翻页后再点开的就是当前这一页。
+
+`uriHandler` 没有删:楼层正文里的外链(`FloorActions.onOpenLink`)本来就该跳系统浏览器,
+那是别人的站。改掉的只是**本站自己那一页**。
+
+**没做「用外部浏览器打开」这条菜单项**:票里说「真要保留它,该是另一条菜单项、另一个文案」
+—— 那是加功能,不是修缺陷,留给主控决定要不要开票。
+
+**单测**:与票 21 共用 `TopicNavKeysTest` 的 4 例(同一个 `topicWebKey`)。
+
+**未做 / 待所有者**:模拟器被另一个代理占用,`uiautomator dump` 复验没做。
+
+**发现的票外问题**:无。

@@ -3,6 +3,8 @@ package com.chasel.ng2n.ui.topic
 import com.chasel.ng2n.ui.nav.TopicKey
 import com.chasel.ng2n.ui.nav.ChainKey
 import com.chasel.ng2n.ui.nav.UserKey
+import com.chasel.ng2n.ui.nav.WebKey
+import com.chasel.ng2n.ui.Login
 import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
@@ -140,7 +142,9 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
   var floorMenu by remember { mutableStateOf<FloorRenderItem?>(null) }
 
   val notAvailable = remember(context) { { showNotAvailable(context) } }
-  val webUrl = remember(settings.host, vm.page) { webUrlOf(key.tid, vm.page, key.fav, settings.host) }
+  val webKey = remember(key, settings.host, vm.page, vm.currentModel?.subject) {
+    topicWebKey(key, vm.page, settings.host, vm.currentModel?.subject)
+  }
 
   val actions = remember(vm, nav, uriHandler, notAvailable) {
     FloorActions(
@@ -217,7 +221,13 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
         text = key.title ?: vm.currentModel?.subject ?: "主题 ${key.tid}",
         modifier = Modifier.weight(1f),
       )
-      TopBarButton(onClick = { runCatching { uriHandler.openUri(webUrl) } }, label = "用网页版打开") {
+      // 「用网页版打开」= **站内**网页兜底屏(反封锁链链外第 6 步,票 22),
+      // 与版块页同一条路(`ui/board/BoardScreen.kt`)。跳系统浏览器等于把这一屏的
+      // cookie / UA 交给 Chrome 的 cookie 罐,登录态与反封锁的那套请求头全丢
+      TopBarButton(
+        onClick = { nav.push(webKey) },
+        label = "用网页版打开",
+      ) {
         GlobeIcon(tint = colors.onTopbar)
       }
       TopBarButton(onClick = { menuOpen = true }, label = "更多") {
@@ -328,14 +338,16 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TopicPager(vm: TopicViewModel, actions: FloorActions, nav: Navigator) {
+  // pageCount 必须装得下当前页,否则 `PagerState` 会把 `currentPage` 钳回 0,
+  // 紧接着 settledPage 把这一下回写成「用户翻到第 1 页」(票 20,见 [pagerPageCount])
   val pagerState = rememberPagerState(
     initialPage = (vm.page - 1).coerceAtLeast(0),
-    pageCount = { vm.totalPages.coerceAtLeast(1) },
+    pageCount = { pagerPageCount(vm.totalPages, vm.page) },
   )
 
   // 外部换页(页码条 / 跳页 / 自动翻页)→ 把 pager 挪过去
   LaunchedEffect(vm.page) {
-    val target = (vm.page - 1).coerceIn(0, (vm.totalPages - 1).coerceAtLeast(0))
+    val target = (vm.page - 1).coerceIn(0, pagerPageCount(vm.totalPages, vm.page) - 1)
     if (pagerState.currentPage != target) pagerState.scrollToPage(target)
   }
   // 横滑松手 → 停稳后才换数据
@@ -393,11 +405,13 @@ private fun TopicPageView(
     return
   }
   if (state is PageState.Failed) {
+    // 三个出路都要真的通:失败面板的兜底文案(`core/net/FetchDiagnostic.kt`)
+    // 就在往「用网页版打开」和「重新登录账号」上引导,点不动等于教人点死钮(票 21)
     LoadFailed(
       error = state.error,
       onRetry = { vm.refresh(page) },
-      onOpenWeb = { },
-      onRelogin = { },
+      onOpenWeb = { nav.push(topicWebKey(vm.key, page, vm.settings.host, vm.currentModel?.subject)) },
+      onRelogin = { nav.push(Login) },
     )
     return
   }
@@ -712,11 +726,25 @@ private fun floorMenuItems(
   )
 }
 
-/** 「在浏览器里打开」用的网页地址。 */
+/** 「用网页版打开」的网页地址。域名走设置里选的那个 —— 原生被封往往是整个域名被封。 */
 internal fun webUrlOf(tid: Long, page: Int, favCode: String?, host: String): String {
   val fav = if (favCode == null) "" else "&fav=$favCode"
   return "$host/read.php?tid=$tid&page=$page$fav"
 }
+
+/**
+ * 「用网页版打开」落到的**站内**兜底屏(票 21 / 票 22)。
+ *
+ * 顶栏那颗地球钮与失败面板上的同名按钮说的是同一件事,所以只有这一处在造键:
+ * 两边各写一遍,迟早会像票 22 那样一边进站内、一边跳系统浏览器。
+ *
+ * 标题优先用键上带的(列表页点进来时就有),没有再退到这一帖真正的标题。
+ */
+internal fun topicWebKey(key: TopicKey, page: Int, host: String, subject: String? = null): WebKey =
+  WebKey(
+    url = webUrlOf(key.tid, page, key.fav, host),
+    title = key.title ?: subject,
+  )
 
 private fun showNotAvailable(context: Context) {
   Toast.makeText(context, NOT_AVAILABLE_MESSAGE, Toast.LENGTH_SHORT).show()

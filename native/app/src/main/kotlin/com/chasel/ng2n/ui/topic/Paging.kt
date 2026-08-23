@@ -52,3 +52,16 @@ fun parseJumpTarget(input: String, totalPages: Int): Int? {
   val page = value.toInt()
   return if (page >= 1 && page <= maxOf(1, totalPages)) page else null
 }
+
+/**
+ * 横滑 pager 的 `pageCount`。
+ *
+ * 数据回来之前 `totalPages` 只是个估值(进场页兜的底),而 `PagerState` 会把
+ * `currentPage` 无条件钳进 `[0, pageCount - 1]` —— 被钳掉的那一下会顺着
+ * `settledPage` 回写成「用户翻到了第 1 页」,于是「在原帖中查看」「上次读到第 N 楼」
+ * 「通知点进来」「我的回复」四条带页码进场的入口一起报废(票 20)。
+ *
+ * 所以这里立一条结构性的下界:**pager 至少要装得下当前页**。真实页数回来后
+ * 它自然被 [totalPages] 顶上去,估多了也只是多一格空页,不会再把页码吃掉。
+ */
+fun pagerPageCount(totalPages: Int, page: Int): Int = maxOf(1, totalPages, page)
