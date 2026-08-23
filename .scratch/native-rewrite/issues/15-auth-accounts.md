@@ -207,3 +207,27 @@ NGA 登录页经宿主代理走不通(当时 RN 版也是空白页,已作为环�
 「轮询有没有在跑」「读到的 cookie 里有哪几个名字」。建议加两句只打 **cookie 名字集合**
 (绝不打值,P1-04)的诊断日志,接到「实验室与诊断 → 导出诊断日志」里,
 所有者下次失败就能直接导出来给结论。
+
+### 票 18 D 段追记:所有者本次登录成功,「登录失败」的真身多半是票 35(2026-08-23)
+
+**所有者在 `emulator-5554` 上把 lemon43(67296151)登进去了,登录本身是成功的。**
+证据只看结果(过程没人在场,也没有记录任何 cookie 值):
+`files/datastore/ng2n-accounts.preferences_pb` 出现(258 B,18:16),抽屉账号头写
+「当前:lemon43(67296151)」——名字是 `lemon43` 而不是兜底的 `UID 67296151`,
+说明 `urlencodedUname` 也一并收到并过了 `decodeLoginUsername`;随后签到、版块收藏、
+`noti&__act=get_all`、`ucp&__act=get_block_word` 四个只认登录态的接口全部返回成功。
+
+**上面那份「需要所有者补的信息」大概率不用补了。** D 段走查在同一台机器上抓到了
+[票 35](35-signed-in-cold-start-deadlock.md)(P0):**登录之后每一次冷启动都死锁**——
+首页永远转圈、15s 后系统 ANR。根因是通知轮询在后台线程攥着
+`NetworkModule.provideUserAgents` 的 `lazy` 锁去调 `WebSettings.getDefaultUserAgent()`
+(该调用在非主线程要等主线程拉起 WebView provider),而主线程的
+`HomeScreen.kt:153 LaunchedEffect(uid){ boardFavorites.ensureLoaded(uid) }` 同时卡在同一把锁上。
+两条路都在 `uid == null` 时直接 return,所以**游客态永远碰不到,登录后 100% 中招**。
+
+登录当次会话是好的——登录屏自己就是 WebView,provider 已经在主线程上初始化完了;
+**下一次打开 app 才第一次让后台线程去初始化它**,于是卡死。所有者看到的顺序很可能是
+「登录 → 好像成功了 → 关掉 app → 再打开 → 白屏/没反应」→ 归结成「登录失败」。
+
+`harvest()` 加诊断日志那条建议**仍然值得做**(下次真出收割问题时能自证),但优先级
+排在票 35 后面。
