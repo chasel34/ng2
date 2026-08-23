@@ -117,6 +117,14 @@ private const val GRID_COLUMNS = 3
 private val TAB_SCROLL_LEAD = 56.dp
 
 /**
+ * tab 条内容的左右留白(RN 侧 `tabBar.paddingHorizontal: 6`,跟着内容一起滚)。
+ *
+ * 下划线是画在 tab 条**外层** Box 上的,而每格量到的 x 是它在 Row **内容**里的位置
+ * (不含这一档 padding),所以画的时候要补回来。
+ */
+private val TAB_BAR_PADDING = 6.dp
+
+/**
  * 首页 —— 直译 RN 侧 `src/app/index.tsx`。
  *
  * 分类 tab 横滑 pager + 版块宫格 + 版头公告 + 抽屉宿主。
@@ -583,21 +591,24 @@ private fun CategoryTabs(
   }
 
   Box(Modifier.fillMaxWidth().height(TAB_BAR_HEIGHT)) {
-    Row(Modifier.horizontalScroll(scroll).padding(horizontal = 6.dp)) {
+    Row(Modifier.horizontalScroll(scroll).padding(horizontal = TAB_BAR_PADDING)) {
       categories.forEachIndexed { index, category ->
         val selected = pagerState.currentPage == index
         Box(
           modifier = Modifier
-            .height(TAB_BAR_HEIGHT)
-            .clickable(onClickLabel = category.name) { onSelect(index) }
-            .padding(horizontal = Spacing.lg)
+            // 票 41:几何要量**整格**(含 paddingHorizontal),下划线是整格宽不是文字宽。
+            // onGloballyPositioned 报的是它右边那截修饰符链的坐标 —— 挂在 padding
+            // 后面量到的是内容框(RN 那份是 tab 容器的 onLayout,含内距),所以放最前。
             .onGloballyPositioned { coordinates ->
               raw[index] = TabLayout(
                 x = coordinates.positionInParent().x.toInt(),
                 width = coordinates.size.width,
               )
               layouts.value = raw.filterNotNull()
-            },
+            }
+            .height(TAB_BAR_HEIGHT)
+            .clickable(onClickLabel = category.name) { onSelect(index) }
+            .padding(horizontal = Spacing.lg),
           contentAlignment = Alignment.Center,
         ) {
           Text(
@@ -629,7 +640,7 @@ private fun CategoryTabs(
       val fraction = position - index
       val from = tabs.getOrNull(index) ?: return@Canvas
       val to = tabs.getOrNull(index + 1) ?: from
-      val x = from.x + (to.x - from.x) * fraction - scroll.value
+      val x = TAB_BAR_PADDING.toPx() + from.x + (to.x - from.x) * fraction - scroll.value
       val width = from.width + (to.width - from.width) * fraction
       drawRect(color = colors.onTopbar, topLeft = Offset(x, 0f), size = Size(width, size.height))
     }

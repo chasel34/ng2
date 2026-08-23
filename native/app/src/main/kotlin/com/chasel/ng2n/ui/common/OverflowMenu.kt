@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -59,9 +61,20 @@ data class MenuItem(
   val onClick: () -> Unit,
 )
 
-private val MENU_WIDTH = 208.dp
-private val MENU_MAX_HEIGHT = 520.dp
-private val MENU_ITEM_HEIGHT = 50.dp
+/**
+ * 面板宽度:**最小 186,再宽就跟着最长那条走**(RN 侧 `ui/menu.tsx` 的
+ * `minWidth: 186`,面板本身是 wrap-content)。
+ *
+ * 票 43:原来这里写死 208,比 Expo 宽 22 —— 而楼层菜单那一份(`ui/topic/TopicOverlays.kt`)
+ * 因为条目 `fillMaxWidth` 又没限宽,直接铺到 394 占满屏。两处现在共用这三档,
+ * 免得同一个 app 里两个菜单长得不一样。
+ */
+internal val MENU_MIN_WIDTH = 186.dp
+internal val MENU_MAX_HEIGHT = 520.dp
+internal val MENU_ITEM_HEIGHT = 50.dp
+
+/** 条目左右内距(RN 侧 `item.paddingHorizontal: 22`)。 */
+internal val MENU_ITEM_PADDING = 22.dp
 
 @Composable
 fun OverflowMenu(
@@ -100,7 +113,11 @@ fun OverflowMenu(
       modifier = Modifier
         .align(Alignment.TopEnd)
         .padding(top = statusBar + 6.dp, end = Spacing.sm)
-        .width(MENU_WIDTH)
+        // 最小 186 + 内容撑宽:`width(IntrinsicSize.Max)` 量的是最长那条条目
+        // (文字 + 左右 22 内距),再由 defaultMinSize 兜到 186 —— 与 RN 的
+        // `minWidth: 186` + wrap-content 同义。条目的 fillMaxWidth 也因此有了边界。
+        .defaultMinSize(minWidth = MENU_MIN_WIDTH)
+        .width(IntrinsicSize.Max)
         .graphicsLayer {
           val scale = Motion.POP_SCALE + (1f - Motion.POP_SCALE) * pop
           scaleX = scale
@@ -130,7 +147,8 @@ fun OverflowMenu(
             .fillMaxWidth()
             .height(MENU_ITEM_HEIGHT)
             .clickable(onClick = item.onClick)
-            .padding(horizontal = Spacing.xl),
+            // RN 侧 `ui/menu.tsx` 的 `item.paddingHorizontal: 22`(票 43:原来是 20)
+            .padding(horizontal = MENU_ITEM_PADDING),
           contentAlignment = Alignment.CenterStart,
         ) {
           Text(

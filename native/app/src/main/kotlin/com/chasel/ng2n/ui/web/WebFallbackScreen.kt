@@ -253,7 +253,8 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterHorizontally),
     ) {
-      AppIcon(icon = Ng2nIcon.ARTICLE, tint = colors.onFab, size = 21.dp)
+      // RN 侧 `src/app/web.tsx:130` 写死的是 `smartphone`(票 40:原来错拿了文档图标)
+      AppIcon(icon = Ng2nIcon.SMARTPHONE, tint = colors.onFab, size = 21.dp)
       Text(
         text = "用 APP 阅读这一页",
         style = TextStyle(
