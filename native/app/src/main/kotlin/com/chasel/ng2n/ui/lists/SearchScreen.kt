@@ -74,6 +74,7 @@ import com.chasel.ng2n.ui.common.StateVariant
 import com.chasel.ng2n.ui.common.TopBar
 import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.home.BoardIcon
 import com.chasel.ng2n.ui.icons.AppIcon
@@ -507,7 +508,7 @@ private fun HistoryRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clickable(onClickLabel = entry.query, onClick = onClick)
+      .rowClickable(onClickLabel = entry.query, onClick = onClick)
       .drawBehind {
         val y = size.height - 1f
         drawLine(colors.divider, Offset(0f, y), Offset(size.width, y), 1f)
@@ -721,7 +722,7 @@ private fun BoardResultRow(item: BoardSearchItem, nav: Navigator) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clickable(onClickLabel = board.name) {
+      .rowClickable(onClickLabel = board.name) {
         nav.push(BoardKey(id = board.id, name = board.name, kind = board.kind))
       }
       .drawBehind {
@@ -829,7 +830,7 @@ private fun UserResult(query: String, nav: Navigator) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clickable(onClickLabel = profile.name) {
+      .rowClickable(onClickLabel = profile.name) {
         nav.push(UserKey(uid = profile.uid, name = profile.name))
       }
       .drawBehind {

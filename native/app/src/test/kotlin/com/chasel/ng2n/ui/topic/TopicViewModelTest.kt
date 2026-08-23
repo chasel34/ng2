@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -256,10 +257,46 @@ class TopicViewModelTest {
     val snack = assertNotNull(vm.snackbar.value)
     assertEquals("已屏蔽 甲,其发言将折叠", snack.text)
     assertEquals("撤销", snack.actionLabel)
+    assertEquals(
+      listOf("local:user:甲"),
+      fakes.settingsStore.localFilterRules.first().map { it.id },
+      "规则要真的落到盘上",
+    )
 
     snack.action!!.invoke()
     advanceUntilIdle()
     assertNull(vm.blockedRuleOf(target), "撤销之后不再折")
+    // 票 25:现场是「提示条消失了、规则还在盘上」,所以这里必须查盘而不是只查折叠状态
+    assertEquals(
+      emptyList(),
+      fakes.settingsStore.localFilterRules.first(),
+      "撤销要把刚加的那条从 DataStore 里删掉",
+    )
+  }
+
+  @Test
+  fun `票 25 撤销挂在 app scope 上 这一屏退场了也照样删得掉`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    val vm = viewModel(TopicKey(tid = 45150945), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+
+    vm.blockAuthor(vm.currentModel!!.floors.single { it.lou == 1L })
+    advanceUntilIdle()
+    val snack = assertNotNull(vm.snackbar.value)
+    assertEquals(1, fakes.settingsStore.localFilterRules.first().size)
+
+    // 提示条本来就设计成「发起它的页面退场之后还活着」:退场之后点撤销仍要生效。
+    // 挂 viewModelScope 时这里是一句 no-op —— 往已取消的 scope 上 launch 不抛也不跑
+    store.clear()
+    snack.action!!.invoke()
+    advanceUntilIdle()
+    assertEquals(
+      emptyList(),
+      fakes.settingsStore.localFilterRules.first(),
+      "撤销不该随 ViewModel 一起被取消",
+    )
   }
 
   @Test

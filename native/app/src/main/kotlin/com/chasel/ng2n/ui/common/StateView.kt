@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.chasel.ng2n.core.net.NgaError
+import com.chasel.ng2n.core.net.describeFetchFailure
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
@@ -175,8 +176,7 @@ fun PillButton(action: StateAction, modifier: Modifier = Modifier) {
 /**
  * 「拉失败了」的轻量形态(RN 侧 `LoadFailedNotice`)。
  *
- * 文案取服务端/传输层给的那句话 —— 反封锁链把「为什么失败」写进了 [NgaError.text],
- * 换成「网络错误」这种通用话术等于把排障线索丢掉(ADR-0002)。
+ * 文案统一走 [failureText] —— 见那里对「为什么不能直接印 [NgaError.text]」的说明。
  */
 @Composable
 fun LoadFailedNotice(
@@ -194,9 +194,31 @@ fun LoadFailedNotice(
   )
 }
 
-/** 一句话说清这次失败。 */
-fun failureText(error: Throwable?): String = when {
-  error == null -> "没能拿到数据"
-  error is NgaError -> error.text
-  else -> error.message ?: "没能拿到数据"
+/** 谁都说不清这次失败时的兜底话术。 */
+const val FAILURE_FALLBACK = "没能拿到数据"
+
+/**
+ * 一句话说清这次失败。**全 app 只有这一处**把异常翻成用户看的话(票 24)。
+ *
+ * ## 为什么不能直接印 `error.message`
+ *
+ * 反封锁链在传输层失败时包的是 `NgaError(NETWORK, cause.message)`
+ * (`core/net/strategies/Attempt.kt`),而 `cause` 是 okhttp 抛的 `UnknownHostException`
+ * ——`message` 就是 `Unable to resolve host "bbs.ngacn.cc": No address associated with
+ * hostname`。这句话有两个毛病:一是英文异常原文,二是里面那个域名是**轮换链当时试到的
+ * 那一个**,不是用户在设置里选的,把反封锁链的内部状态漏给了用户(票 24 现象)。
+ *
+ * 所以这里与主题详情的失败面板走**同一张文案表**([describeFetchFailure]):
+ * 按 [NgaErrorKind] 分档翻成中文,只有服务端自己把话说清楚的那一档(`server`)
+ * 才照搬原文 —— 那是论坛给用户看的中文说明,比我们编的强。
+ * 状态码那一截跟在后面(`服务端返回 HTTP 403`),它不含域名也不含异常原文。
+ *
+ * 认不出的异常一律退化成 [FAILURE_FALLBACK]:排障线索该进诊断日志
+ * (`NgaError.cause` 与 `NgaError.diagnostic` 都还留着整条链的记录),不该进屏。
+ */
+fun failureText(error: Throwable?): String {
+  if (error !is NgaError) return FAILURE_FALLBACK
+  val copy = describeFetchFailure(error.kind.wire, error.status, error.text)
+  val headline = copy.headline.ifBlank { FAILURE_FALLBACK }
+  return if (copy.code == null) headline else "$headline ${copy.code}"
 }

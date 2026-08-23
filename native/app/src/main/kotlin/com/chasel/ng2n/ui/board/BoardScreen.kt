@@ -68,6 +68,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
@@ -489,7 +490,7 @@ private fun HeadRow(onClick: () -> Unit) {
     modifier = Modifier
       .fillMaxWidth()
       .background(colors.surface2)
-      .clickable(onClickLabel = "打开版头", onClick = onClick)
+      .rowClickable(onClickLabel = "打开版头", onClick = onClick)
       .drawBehind {
         val y = size.height - 1f
         drawLine(colors.divider, Offset(0f, y), Offset(size.width, y), 1f)

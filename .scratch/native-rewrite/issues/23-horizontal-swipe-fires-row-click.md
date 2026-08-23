@@ -1,6 +1,6 @@
 # 23 — P2:列表屏横划会误触发落点那一行的点击
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P2(误导航,每个列表屏都中;主题页练出来的「横划翻页」肌肉记忆到列表上就翻车)
 
@@ -39,3 +39,42 @@
 
 行的点击手势在横向位移超过 touch slop 后取消(例如行上挂一个只认横向、认领后 consume 的
 `pointerInput`,或用带 slop 判定的自定义 tap),横划不产生导航。
+
+## Comments
+
+### 2026-08-23 修复
+
+**改了什么**:新增 `ui/common/RowTap.kt` —— `Modifier.rowClickable()`(= 横划取消 +
+`clickable`)与纯函数判据 `shouldCancelRowTap(dx, dy, slopPx)`,并把列表**整行**那一档
+的 `Modifier.clickable` 换成它:
+
+- `ui/board/TopicRow.kt`(版块列表 / 搜索结果 / 收藏 / 精华区 / 24h 热帖 / 某人的主题共用这一行)
+- `ui/lists/HistoryScreen.kt`(浏览历史)、`ui/lists/CachesScreen.kt`(我的缓存)
+- `ui/lists/NotificationsScreen.kt`(通知)、`ui/lists/SearchScreen.kt`(搜索历史 / 版块结果 / 用户结果)
+- `ui/board/SubBoardsScreen.kt`(子版块行)、`ui/board/BoardScreen.kt`(版头行)、`ui/lists/ListCommon.kt`(`ListSubtitle`)
+
+**做法照抄抽屉那处**(`ui/drawer/DrawerHost.kt` 的 2026-08-22 结论):手势跑
+`PointerEventPass.Initial`,**认领前一个事件都不消费**(纵向滚动、长按、行内小按钮照常走);
+一旦横向位移过 touch slop 且横向压过纵向,就把这一发起每一发都 `consume()` ——
+内层 `clickable` 收到已消费的事件即取消按压,抬手不再报点击。Initial 是父 → 子,
+消费一定早于 `clickable` 处理这一发;挂 Main 通道就是抽屉那次漏过去的原因。
+
+判据与抽屉的 `shouldClaimDrawerDrag` 有一处**有意不同**:这里不看方向也不要求横纵比
+过 1.3,只要 `|dx| > slop && |dx| > |dy|` 就取消 —— 抽屉要判「往哪边拉」,行只要判
+「这不是一次点」,宁可多取消一次点击,也不要平白跳进一个主题。
+
+**没动的地方**(有意):
+
+- 行内的小按钮(缓存页的删除、子版块的订阅钮、搜索历史的删除)不单独挂 ——
+  整行那一层的 Initial 消费是它们的祖先,已经把它们一起保护了;
+- 首页版块格子(`ui/home/HomeScreen.kt` 的 `BoardCell`)、首页分类 tab、版块页子版块 chip:
+  这三处的祖先分别是 `HorizontalPager` 与 `horizontalScroll`,**横向手势本来就有人接**
+  (所以它们也不在本票的现象里),挂上去反而会把父容器的横滑吃掉;
+- 顶栏 / 对话框 / 提示条的按钮:小目标上划不出 slop,不值得多一个 `pointerInput`。
+
+**单测**:`ui/common/RowTapTest.kt` 4 条(复现票里那一发 `swipe 900 1200 200 1200`
+的纯横向 700px;按住不动的抖动仍算点击;纵向滚动不归它管;斜着但横向占优也取消)。
+手势接线(Initial 通道 + consume)只有真机能验,**待所有者**在真机上按复现步骤回归一次。
+
+**发现的票外问题**:首页分类 tab、版块页子版块 chip 这类「横向滚动条里的可点项」是另一
+套问题(横划它们本来就该滚动而不是点),本票没碰。

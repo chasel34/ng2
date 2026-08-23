@@ -1,6 +1,5 @@
 package com.chasel.ng2n.ui.board
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +34,7 @@ import com.chasel.ng2n.ui.theme.Ng2nColors
 import com.chasel.ng2n.ui.theme.Ng2nTitleColors
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
+import com.chasel.ng2n.ui.common.rowClickable
 
 /**
  * 主题列表的一行 —— 直译 RN 侧 `src/ui/topic-row.tsx`,两行布局(设计稿 `isList`):
@@ -149,7 +149,7 @@ fun TopicRow(model: TopicRowModel, onClick: (Topic) -> Unit, modifier: Modifier 
   Column(
     modifier = modifier
       .fillMaxWidth()
-      .clickable(onClickLabel = model.topic.subject) { onClick(model.topic) }
+      .rowClickable(onClickLabel = model.topic.subject) { onClick(model.topic) }
       .drawBehind {
         // 设计稿:1px 分隔线。画出来比多一个 Box 便宜
         val y = size.height - 1f

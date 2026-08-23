@@ -42,6 +42,7 @@ import com.chasel.ng2n.ui.common.TopBar
 import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
+import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.Navigator
@@ -173,7 +174,7 @@ private fun CacheRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clickable(onClickLabel = topic.subject, onClick = onClick)
+      .rowClickable(onClickLabel = topic.subject, onClick = onClick)
       .drawBehind {
         val y = size.height - 1f
         drawLine(colors.divider, Offset(0f, y), Offset(size.width, y), 1f)
