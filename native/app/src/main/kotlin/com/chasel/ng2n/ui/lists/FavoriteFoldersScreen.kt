@@ -42,6 +42,7 @@ import com.chasel.ng2n.ui.common.EmptyState
 import com.chasel.ng2n.ui.common.InputDialog
 import com.chasel.ng2n.ui.common.LoadFailedNotice
 import com.chasel.ng2n.ui.common.LoadingState
+import com.chasel.ng2n.ui.common.SignedInGate
 import com.chasel.ng2n.ui.common.Snackbars
 import com.chasel.ng2n.ui.common.StateAction
 import com.chasel.ng2n.ui.common.StateVariant
@@ -50,6 +51,8 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.showLoginPrompt
+import com.chasel.ng2n.ui.common.signedInGate
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.Navigator
@@ -73,6 +76,9 @@ private sealed interface FolderDialog {
   data class Delete(val folder: FavoriteFolder) : FolderDialog
 }
 
+/** 游客态碰到写操作时递出去的那句话 —— 与空态的文案同一句,不各说各话。 */
+private const val GUEST_PROMPT = "登录后才能管理云端收藏夹"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
@@ -94,9 +100,24 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
 
   LaunchedEffect(uid) { deps.topicFavorites.ensureFolders(uid) }
 
-  /** 写操作的统一善后:成功报一句,失败把服务端的话原样带出来。 */
+  /**
+   * 写操作的统一善后:成功报一句,失败把服务端的话原样带出来。
+   *
+   * 游客态走登录引导(票 30)。原先这里是 `val currentUid = uid ?: return` ——
+   * 新建 / 重命名 / 设默认 / 删除四件事全过这个函数,于是游客填完名字点「创建」
+   * 是彻底的静默:对话框不关、不报错、连一发请求都没有。先收对话框再弹提示条,
+   * 不然 snackbar 会被对话框压住。
+   */
   fun run(done: String, action: suspend (String) -> Unit) {
-    val currentUid = uid ?: return
+    val currentUid = when (val gate = signedInGate(uid, GUEST_PROMPT)) {
+      is SignedInGate.NeedLogin -> {
+        dialog = null
+        showLoginPrompt(nav, gate.message)
+        return
+      }
+
+      is SignedInGate.Proceed -> gate.uid
+    }
     busy = true
     scope.launch {
       runCatching { action(currentUid) }.fold(
@@ -138,7 +159,7 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
     when {
       uid == null -> EmptyState(
         icon = Ng2nIcon.PERSON_ADD,
-        text = "登录后才能管理云端收藏夹",
+        text = GUEST_PROMPT,
         action = StateAction("去登录") { nav.push(Login) },
       )
 

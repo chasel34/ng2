@@ -1,6 +1,6 @@
 # 32 — P3:账号管理屏没接 app 的主题与顶栏,用的还是 Material3 默认皮
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P3(纯视觉 + 一个无障碍缺口;功能正常)
 
@@ -52,3 +52,53 @@
 ## 顺带
 
 同一族的无障碍缺口还有一个:楼层「点赞」钮也没有 `contentDescription`(票 26)。
+
+## Comments
+
+**完成摘要(B 段,2026-08-23)**
+
+`ui/accounts/AccountsScreen.kt` 整屏接上全 app 那一套:
+
+1. **顶栏**:就地拼的 `Row` + `IconButton` 换成 `TopBar(paddingHorizontal = 4.dp)` +
+   `TopBarButton(icon = ARROW_BACK, size = 24.dp, box = 46.dp, contentDescription = "返回")` +
+   `TopBarTitle(variant = SUB)` —— 与收藏夹管理、通知屏逐参数同款,高度(54 + 状态栏)、
+   标题字号(`Typo.subTitle` 17/600)、返回钮位置这才和别处对得齐。
+   顺带删掉屏上自己叠的 `windowInsetsPadding(WindowInsets.statusBars)`:`TopBar` 自己
+   撑安全区(edge-to-edge),留着会叠两层。
+2. **返回钮有名字了**:`TopBarButton` 同时挂 `onClickLabel` 与 `contentDescription`,
+   无障碍树里是 `[返回]`,TalkBack 念得出、uiautomator 也点得到 —— 这一屏不再只能靠系统返回键退。
+3. **配色**:`MaterialTheme.colorScheme.*` 全换 `LocalNg2nColors.current`。映射
+   `background→bg`、`surface→surface`、`outlineVariant→divider`、`outline→meta`、
+   `onSurfaceVariant→meta`、`error→danger`、`primary/primaryContainer` 同名。
+   头像方块沿用全 app 既有搭配「`primaryContainer` 底 + `primary` 字」
+   (对照 `FavoriteFoldersScreen` 的「默认」徽标),不再用 `onPrimaryContainer`。
+4. **字号**:`MaterialTheme.typography.*` 全换 `Typo` —— 账号名 `listTitle`、
+   副行 `listSubtitle`、头像缩写 `avatarInitial`、「添加账号」`drawerItem`(与 `PillButton` 同档)、
+   底部说明 `note`。圆角换 `Radius.lg`(原来写死的 14.dp,值不变)、内距换 `Spacing.row`/`Spacing.xs`。
+5. 退出钮的 M3 `IconButton` 换成与全 app 同款的圆形触控盒(`clickable(onClickLabel = …)`),
+   涟漪不再取 M3 色;`contentDescription` 原样保留。
+
+**关键决定**
+
+- **只换皮,不改版式**:46 的头像、48 高的「添加账号」、10/18 的间隔、
+  `nameAbbrev(name, 2)` 全部原值搬过来 —— 票 32 是 P3 视觉/无障碍缺陷,
+  不是重排这一屏。`git diff` 里没有一个尺寸被顺手调过。
+- `MaterialTheme` 这一屏彻底不用了,`IconButton` / `BackIcon` 两个 import 一并删。
+  `BackIcon` 在 `ui/image/ImageViewerScreen.kt` 还在用(那一屏是纯黑看图态、
+  故意不吃主题色),没动它。
+
+**没做 / 待所有者(票外,已按简报写进这里而不是顺手改)**
+
+- **`ui/accounts/AccountHeader.kt` 还是 Material3 默认色**(`colorScheme.primary` 当底、
+  `onPrimary` 当字,`typography.titleMedium/labelMedium`)。它是抽屉顶部那块账号头
+  (`ui/home/HomeScreen.kt:256` 挂上去的),同样是票 15 留下的欠账,同样会在抽屉里显紫。
+  票 32 的口径是「账号管理**屏**」,而且 `HomeScreen.kt` 这轮有别的子代理在动,
+  所以**没碰**。建议主控单开一张小票或并进后续走查。
+- 没开模拟器(派活要求),所以「换主题跟着变」「dump 里有 `返回`」两条
+  **没有实机证据**,靠与其它屏逐参数对拍。真机走查时值得复看一眼。
+- 纯 Compose 视觉/语义,没有可在 JVM 单测里钉的纯函数;同文件的 `nameAbbrev`
+  本票一个字没改(它眼下也没有单测,那是票 15 的地盘,不在本票范围内)。
+
+**票外发现**
+
+- 见上条(`AccountHeader.kt`)。
