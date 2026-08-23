@@ -10,6 +10,7 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import com.chasel.ng2n.core.local.ImageSizeCache
 import com.chasel.ng2n.data.StorageBootstrap
+import com.chasel.ng2n.data.net.SystemUserAgent
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import javax.inject.Provider
@@ -24,6 +25,9 @@ class Ng2nApplication : Application(), SingletonImageLoader.Factory {
 
   @Inject lateinit var imageSizeCache: ImageSizeCache
 
+  /** 系统 WebView UA。在**主线程**预热,后台线程之后只读现成值(票 35)。 */
+  @Inject lateinit var systemUserAgent: SystemUserAgent
+
   /**
    * 已经造出来的那个 loader。**不用 `SingletonImageLoader.get()` 兜底**:那个调用会
    * 顺手把 loader 造出来,于是「内存紧张时清缓存」反而变成「内存紧张时建缓存」。
@@ -34,6 +38,11 @@ class Ng2nApplication : Application(), SingletonImageLoader.Factory {
     // StrictMode 要在 Hilt 注入(super.onCreate)之前装上,不然装配本身的违规看不见
     installStrictMode()
     super.onCreate()
+    // 系统 WebView UA 就在这条(主)线程上算好(票 35):`WebSettings.getDefaultUserAgent`
+    // 在后台线程调会等主线程,等出来的那把 `lazy` 锁就是登录态冷启动 ANR 的根因。
+    // 这里是**同步**的一次 WebView provider 初始化 —— 冷启动的定价明摆着,
+    // 换的是「任何线程取 UA 都不会被挡住」。算不出来时下游用兜底 UA,不阻塞。
+    systemUserAgent.prewarm()
     // 存储层的预热:全在 IO 协程里,首屏不等它(修 P2-04)
     storageBootstrap.start()
     // 尺寸记忆表回灌落盘条目。**异步**:走查 P2-04 记的「冷启同步 IO」是不随迁的已知缺陷,

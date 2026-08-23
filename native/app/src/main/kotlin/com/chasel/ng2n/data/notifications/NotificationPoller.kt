@@ -10,6 +10,7 @@ import com.chasel.ng2n.data.settings.SettingsStore
 import com.chasel.ng2n.di.IoScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -105,7 +107,7 @@ class NotificationPoller @Inject constructor(
   }
 
   /** 手动拉一次(通知屏进页与下拉刷新)。不吃退避 —— 那是用户主动看的。 */
-  suspend fun refresh() = pollOnce()
+  suspend fun refresh() = withContext(Dispatchers.IO) { pollOnce() }
 
   /** 轮询的一格:该跳就跳,拉到新东西就把退避清零。 */
   private suspend fun tick() {
@@ -171,19 +173,23 @@ class NotificationPoller @Inject constructor(
    */
   suspend fun clearAll() {
     val uid = currentAccountOf(accounts.accounts.first())?.uid ?: return
-    clearNotificationFeed(client)
-    if (activeUid != uid) return
-    items.value = emptyList()
-    unreadCount.value = 0
-    failure.value = null
-    readRepository.clear(uid)
+    withContext(Dispatchers.IO) {
+      clearNotificationFeed(client)
+      if (activeUid != uid) return@withContext
+      items.value = emptyList()
+      unreadCount.value = 0
+      failure.value = null
+      readRepository.clear(uid)
+    }
   }
 
   /** 标记一批已读并立刻把角标算新。 */
   suspend fun markRead(ids: List<String>) {
     val uid = currentAccountOf(accounts.accounts.first())?.uid ?: return
-    readRepository.markRead(uid, ids)
-    unreadCount.value = unreadCount(items.value.map(::Wrapped), readRepository.readIds(uid))
+    withContext(Dispatchers.IO) {
+      readRepository.markRead(uid, ids)
+      unreadCount.value = unreadCount(items.value.map(::Wrapped), readRepository.readIds(uid))
+    }
   }
 
   /**

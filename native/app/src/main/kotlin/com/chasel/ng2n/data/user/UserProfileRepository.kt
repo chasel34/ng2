@@ -6,11 +6,13 @@ import com.chasel.ng2n.core.api.fetchUserProfile
 import com.chasel.ng2n.core.api.updateSignature
 import com.chasel.ng2n.core.net.NgaClient
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -79,29 +81,32 @@ class UserProfileRepository @Inject constructor(
     load(uid, nowMs)
   }
 
-  private suspend fun load(uid: Long, nowMs: Long) = lockOf(uid).withLock {
-    put(uid) { it.copy(loading = true, error = null) }
-    try {
-      val profile = fetchUserProfile(client, uid)
-      val withAvatar = if (profile.avatarUrl != null) {
-        profile
-      } else {
-        // 补查头像:失败就算了,不该为一张头像把整页变成错误页
-        val url = try {
-          fetchUserAvatar(client, uid)
-        } catch (cancelled: CancellationException) {
-          throw cancelled
-        } catch (_: Throwable) {
-          null
+  // 网络切 IO(票 35):调用方是主线程上的 `LaunchedEffect` / `viewModelScope`
+  private suspend fun load(uid: Long, nowMs: Long) = withContext(Dispatchers.IO) {
+    lockOf(uid).withLock {
+      put(uid) { it.copy(loading = true, error = null) }
+      try {
+        val profile = fetchUserProfile(client, uid)
+        val withAvatar = if (profile.avatarUrl != null) {
+          profile
+        } else {
+          // 补查头像:失败就算了,不该为一张头像把整页变成错误页
+          val url = try {
+            fetchUserAvatar(client, uid)
+          } catch (cancelled: CancellationException) {
+            throw cancelled
+          } catch (_: Throwable) {
+            null
+          }
+          if (url == null) profile else profile.copy(avatarUrl = url)
         }
-        if (url == null) profile else profile.copy(avatarUrl = url)
+        put(uid) { it.copy(loading = false, profile = withAvatar, error = null, fetchedAtMs = nowMs) }
+      } catch (cancelled: CancellationException) {
+        put(uid) { it.copy(loading = false) }
+        throw cancelled
+      } catch (error: Throwable) {
+        put(uid) { it.copy(loading = false, error = error) }
       }
-      put(uid) { it.copy(loading = false, profile = withAvatar, error = null, fetchedAtMs = nowMs) }
-    } catch (cancelled: CancellationException) {
-      put(uid) { it.copy(loading = false) }
-      throw cancelled
-    } catch (error: Throwable) {
-      put(uid) { it.copy(loading = false, error = error) }
     }
   }
 
@@ -113,8 +118,10 @@ class UserProfileRepository @Inject constructor(
    * 只能改自己的 —— 服务端认 cookie 里的账号,入口由 UI 挡住(资料页只对当前账号显示编辑)。
    */
   suspend fun saveSignature(uid: String, signature: String) {
-    updateSignature(client, uid, signature)
-    uid.toLongOrNull()?.let { reload(it) }
+    withContext(Dispatchers.IO) {
+      updateSignature(client, uid, signature)
+      uid.toLongOrNull()?.let { reload(it) }
+    }
   }
 
   private companion object {
