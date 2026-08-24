@@ -33,7 +33,7 @@
 | 编号 | 判据 | 出处 |
 |---|---|---|
 | **C5** | **app 每帧 CPU** = framestats `HandleInputStart → SwapBuffers` 之和(输入+动画+测量布局+录制+同步+下发)。之后的交换缓冲不归 app。这是对 app 侧改动**唯一敏感**的量,也是真机上唯一挤占 8.33ms 预算的部分。真机基线:版块列表 2.52ms、帖子详情 2.16ms | 模拟器报告 §2.4;真机报告 §2 |
-| **C6** | **丢帧(framestats 口径)** = 相邻帧 `IntendedVsync` 间隔 > 13ms(120Hz)。换刷新率时阈值取 ≈1.5× 帧间隔 | 史 §六;转场 §测量方法 2 |
+| **C6** | **丢帧(framestats 口径)** = 相邻帧 `IntendedVsync` 间隔 > 13ms(120Hz)。换刷新率时阈值取 ≈1.5× 帧间隔。**只在运动段内算**:≥100ms 的空档是 app 没内容要画(静止/换阶段),单独列出不计丢帧,否则一段静止就能刷出几千「丢帧」(票 52) | 史 §六;转场 §测量方法 2 |
 | **C7** | **丢帧(Perfetto 口径)** = `actual_frame_timeline_slice` 里 `present_type='Dropped Frame'` 的行数——**不是 name 列**。判 drop 成不成簇:成簇(如 8 个落在 170ms 内)=肉眼可见停格+双倍跳;孤立单帧 drop 属平台余量 | 诊断 §第五轮;史 §六 |
 | **C8** | **latch2present 单峰/双峰**(`SurfaceFlinger --timestats`)。**单峰**(9–10ms @120Hz)= 缓冲队列深度恒定 = 无感;**双峰**(9–10ms 与 17–18ms 两簇)= 深度在 1↔2 之间振荡 = 「有帧率没手感」的微顿,内容时间轴每跳一次错位 8.3ms,且多背 1 帧触摸延迟。实测:anzong 单峰 411/415;ng2 修复前双峰 342/194;ng2 修复后单峰 524/527 | 诊断 §第二轮 + §第二轮复测 |
 | **C9** | **present2present** = 送显间隔。满帧送显的旁证(8ms @120Hz),但**双峰问题上它两边都好看**(411/415 vs 443/447),单看必漏判 → 只能配 C8 使用 | 诊断 §第二轮 |
@@ -69,6 +69,7 @@
 | **T11** | **release 可测量性靠 `<profileable android:shell="true"/>`**(RN 版做成常驻的 `plugins/with-profileable.js`)。没有它,C3 在 release 包上抓不到 app 线程。安全审计曾建议把它限制到 dev/preview——与性能纪律冲突,**原生版保留 profileable** | 诊断 §第二轮「测量陷阱」;史 §六「基建缺口」 |
 | **T12** | **同一次采样必须确认测的是哪个变体**:release 与 dev 变体并装时容易测错对象(RN 版 `com.chasel.ng2` / `com.chasel.ng2.dev`,原生版 `com.chasel.ng2.n` 又是第三个) | 史 §六;spec §三 |
 | **T13** | **首屏耗时不是本次验收对象**:冷启首屏 2.4–2.8s 是 NGA RTT + 反封锁链轮换,同期 app 每帧 CPU 只有 2.2–2.5ms,与渲染无关 | 史 §七;真机报告 §4;spec §一.4 |
+| **T14** | **framestats 的 `Flags` 不能按「非 0 即无效」过滤**:hwui 只有低 4 位语义稳定(`WindowLayoutChanged=1`/`RTAnimation=2`/`SurfaceCanvas=4`/`SkippedFrame=8`),bit4 以上是新版追加的常态位。Android 16(API 36)真机上 bit5(=32)几乎覆盖每一个交互/滚动帧,老口径会把整份采样清空。只按 `Flags & 13` 剔除,再用时间戳单调性兜底跳过帧 | 票 52;`scripts/perf/README.md` |
 
 ## 五、模式备忘
 
