@@ -1,5 +1,13 @@
 package com.chasel.ng2n.ui.topic
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -48,6 +56,7 @@ import com.chasel.ng2n.ui.bbcode.BBCodeCallbacks
 import com.chasel.ng2n.ui.bbcode.BBCodeContent
 import com.chasel.ng2n.ui.bbcode.CommentStrip
 import com.chasel.ng2n.ui.bbcode.SignatureBlock
+import com.chasel.ng2n.ui.common.Motion
 import com.chasel.ng2n.ui.theme.AVATAR_BASE_SIZE
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Radius
@@ -347,6 +356,23 @@ private fun IconAction(label: String, width: Dp, content: @Composable () -> Unit
  * 默认折叠不只是照设计稿:附件常常是几张几 MB 的原图,一进帖子全量拉图既费流量又慢。
  * 「仅 Wi-Fi 下加载图片」关掉自动展开的那条路 —— 折叠条上多一句「移动网络」,
  * 点了照样能看。
+ *
+ * **展开/收起是有动画的(票 54)**。原先这里写的是「`if (!open) { 折叠条; return }`」,
+ * 折叠条与宫格瞬时互换、正文下方整块跳位;票 19 场景 7 的 120Hz 录屏里因此根本
+ * 裁不出速度曲线。现在折叠条与宫格各挂一个 [AnimatedVisibility],同一条时间轴上
+ * **一个收、一个放**:任一时刻的总高 = `折叠条高 × (1-t) + 宫格高 × t`,连续变化,
+ * 楼层在 LazyColumn 里只是被逐帧推高/推低,不会出现整块突现。
+ *
+ * 为什么不用 `Modifier.animateContentSize()`:那个只补容器高度,内容在第 0 帧就已经
+ * 换成宫格了,首帧还是一次肉眼可见的像素突变(42dp 高的窗口里直接露出宫格顶部)。
+ * 双 `AnimatedVisibility` 顺带把两块内容交叉淡入淡出,首帧不跳。
+ *
+ * 曲线与时长取 [Motion] 那份唯一 token(`DURATION_BASE` 200ms + `easeStandard`),
+ * 与正文 `[collapse]` 折叠卡([com.chasel.ng2n.ui.bbcode.CollapsibleCard])同一档。
+ *
+ * 反复展开收起不重新发请求:宫格会随 [AnimatedVisibility] 一起进出 composition,
+ * 但 [com.chasel.ng2n.di.ImageModule] 给全局 ImageLoader 配了内存缓存(默认策略
+ * ENABLED),第二次展开是内存命中;Coil 对内存命中不放 crossfade,所以也不会再闪一下。
  */
 @Composable
 private fun AttachmentGrid(
@@ -360,99 +386,114 @@ private fun AttachmentGrid(
   var open by remember { mutableStateOf(false) }
   val count = images.size + files.size
 
-  if (!open) {
-    Row(
-      modifier = Modifier
-        .padding(top = Spacing.md)
-        .fillMaxWidth()
-        .height(42.dp)
-        .clip(RoundedCornerShape(Radius.md))
-        .background(colors.surface2)
-        .clickable { open = true },
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterHorizontally),
-    ) {
-      if (unlocked) AttachImageIcon(tint = colors.fg2) else CellularIcon(tint = colors.fg2)
-      Text(
-        text = if (unlocked) "点击显示附件($count)" else "移动网络 · 点击显示附件($count)",
-        fontSize = Typo.notice.size,
-        fontWeight = FontWeight.SemiBold,
-        color = colors.fg2,
-      )
-    }
-    return
-  }
-
   Column(Modifier.padding(top = Spacing.md).fillMaxWidth()) {
-    // 三列方格,格间距 6(设计稿)。只有图片进宫格 —— 压缩包、种子当图片渲染
-    // 就是一格加载失败,所以另起一行按「文件名 · 大小」列出来
-    images.chunked(ATTACH_COLUMNS).forEach { row ->
-      Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = ATTACH_GAP),
-        horizontalArrangement = Arrangement.spacedBy(ATTACH_GAP),
-      ) {
-        row.forEach { attachment ->
-          Box(
-            modifier = Modifier
-              .weight(1f)
-              .aspectRatio(1f)
-              .clip(RoundedCornerShape(10.dp))
-              .background(colors.surface2)
-              .clickable { onOpenImage(attachment.url) },
-          ) {
-            AsyncImage(
-              // 宫格里用缩略图,点开大图才拉原图
-              model = attachment.thumbnailUrl ?: attachment.url,
-              contentDescription = null,
-              contentScale = ContentScale.Crop,
-              modifier = Modifier.fillMaxWidth().aspectRatio(1f),
-            )
-          }
-        }
-        // 最后一行不足三格时补空,免得那一两张被拉宽
-        repeat(ATTACH_COLUMNS - row.size) { Box(Modifier.weight(1f)) }
-      }
-    }
-
-    files.forEach { attachment ->
+    AnimatedVisibility(visible = !open, enter = ATTACH_ENTER, exit = ATTACH_EXIT) {
       Row(
         modifier = Modifier
-          .padding(top = 7.dp)
           .fillMaxWidth()
+          .height(42.dp)
           .clip(RoundedCornerShape(Radius.md))
           .background(colors.surface2)
-          .clickable { onOpenFile(attachment.url) }
-          .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+          .clickable { open = true },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterHorizontally),
       ) {
-        DownloadIcon(tint = colors.link, size = 16.dp)
+        if (unlocked) AttachImageIcon(tint = colors.fg2) else CellularIcon(tint = colors.fg2)
         Text(
-          text = attachment.name ?: attachment.url,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          fontSize = Typo.listMeta.size,
-          color = colors.link,
-          modifier = Modifier.weight(1f),
+          text = if (unlocked) "点击显示附件($count)" else "移动网络 · 点击显示附件($count)",
+          fontSize = Typo.notice.size,
+          fontWeight = FontWeight.SemiBold,
+          color = colors.fg2,
         )
-        attachment.sizeKb?.let {
-          Text(formatSize(it), fontSize = Typo.meta.size, color = colors.meta)
-        }
       }
     }
 
-    Text(
-      text = "收起附件",
-      fontSize = Typo.listMeta.size,
-      color = colors.meta,
-      modifier = Modifier
-        .padding(top = 7.dp)
-        .fillMaxWidth()
-        .clickable { open = false },
-      textAlign = TextAlign.Center,
-    )
+    AnimatedVisibility(visible = open, enter = ATTACH_ENTER, exit = ATTACH_EXIT) {
+      Column(Modifier.fillMaxWidth()) {
+        // 三列方格,格间距 6(设计稿)。只有图片进宫格 —— 压缩包、种子当图片渲染
+        // 就是一格加载失败,所以另起一行按「文件名 · 大小」列出来
+        images.chunked(ATTACH_COLUMNS).forEach { row ->
+          Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = ATTACH_GAP),
+            horizontalArrangement = Arrangement.spacedBy(ATTACH_GAP),
+          ) {
+            row.forEach { attachment ->
+              Box(
+                modifier = Modifier
+                  .weight(1f)
+                  .aspectRatio(1f)
+                  .clip(RoundedCornerShape(10.dp))
+                  .background(colors.surface2)
+                  .clickable { onOpenImage(attachment.url) },
+              ) {
+                AsyncImage(
+                  // 宫格里用缩略图,点开大图才拉原图
+                  model = attachment.thumbnailUrl ?: attachment.url,
+                  contentDescription = null,
+                  contentScale = ContentScale.Crop,
+                  modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+                )
+              }
+            }
+            // 最后一行不足三格时补空,免得那一两张被拉宽
+            repeat(ATTACH_COLUMNS - row.size) { Box(Modifier.weight(1f)) }
+          }
+        }
+
+        files.forEach { attachment ->
+          Row(
+            modifier = Modifier
+              .padding(top = 7.dp)
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(Radius.md))
+              .background(colors.surface2)
+              .clickable { onOpenFile(attachment.url) }
+              .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+          ) {
+            DownloadIcon(tint = colors.link, size = 16.dp)
+            Text(
+              text = attachment.name ?: attachment.url,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              fontSize = Typo.listMeta.size,
+              color = colors.link,
+              modifier = Modifier.weight(1f),
+            )
+            attachment.sizeKb?.let {
+              Text(formatSize(it), fontSize = Typo.meta.size, color = colors.meta)
+            }
+          }
+        }
+
+        Text(
+          text = "收起附件",
+          fontSize = Typo.listMeta.size,
+          color = colors.meta,
+          modifier = Modifier
+            .padding(top = 7.dp)
+            .fillMaxWidth()
+            .clickable { open = false },
+          textAlign = TextAlign.Center,
+        )
+      }
+    }
   }
 }
+
+/**
+ * 折叠条 ↔ 宫格的进出场。两边共用同一组曲线与时长,交叉时总高才是连续的
+ * (见 [AttachmentGrid] 的说明)。放在顶层是因为这几个对象是不可变的纯数据,
+ * 没必要每次重组都重新造一遍。
+ */
+private val ATTACH_ENTER: EnterTransition =
+  expandVertically(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)) +
+    fadeIn(tween(Motion.DURATION_BASE, easing = Motion.easeStandard))
+
+private val ATTACH_EXIT: ExitTransition =
+  shrinkVertically(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)) +
+    fadeOut(tween(Motion.DURATION_BASE, easing = Motion.easeStandard))
 
 /** 设计稿:附件宫格三列、格间距 6、方格圆角 10。 */
 private const val ATTACH_COLUMNS = 3
