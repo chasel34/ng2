@@ -1,6 +1,6 @@
 # 57 — P1:连续快甩时滚动速度塌陷/停滞
 
-**Status:** open
+**Status:** resolved
 
 **Severity:** P1（用户可感知，主题列表稳定复现；楼层流可放大成数百毫秒停滞）
 
@@ -200,3 +200,126 @@ RN 在同一设备、同一 `adb input swipe` 注入节奏下未复现，因此�
 /Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-rn-topic-fixed.mp4
 /Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-native-manual.mp4
 ```
+## 修复(2026-08-24)
+
+### 复盘:先把「渲染/内容耗尽」两条排掉
+
+拿本票留下的录屏重做逐帧,把 `t57-topic-fixed-3` 的 `-phase.csv` 与同轮
+`-logcat.txt` 里的 MIUIInput DOWN/UP 时间轴对齐(以运动窗口起点对 DOWN1/3/5/7,
+四点误差 ≤5ms,δ=0.922s),得到比票面更细的形态:
+
+| 段 | 帧 | 形态 |
+|---|---|---|
+| drag2 | 55–66 | 逐帧 128px 恒定(= 注入 12 个 MOVE × 129px) |
+| UP2 | 67 | dy 0 |
+| fling2 | 68–81 | 124→116px,**与 fling7/fling8 起手完全同形**(spline 前段本来就平) |
+| 塌陷 | 82–85 | 32 / 40 / 12 / 4px,约 33ms 掉到 ~0.5k px/s |
+| 尾巴 | 86–106 | 帧间灰度差 3.2(全静止帧是 0.016、4px/帧是 2.2),约 170ms 的亚像素蠕动后停死 |
+
+两条结论:
+
+1. **不是内容耗尽**。塌陷当帧截图(`ffmpeg -ss 1.72`)是版块列表正中段,底部那一行
+   被屏幕边缘切断;真到底时 `contentPadding(bottom=70.dp)` 会让最后一行整行留白,
+   `LoadingFooter` 也会在场。四轮里三处塌陷都这样。
+2. **fling 确实跑起来了、又被砍断**。fling2 只跑了约 1.8k px 就停,而同速的 fling8
+   完整跑了 1.7s/约 9k px —— 与 15k px/s 的 spline 理论值(约 10.1k px、1.94s)吻合。
+
+### 根因一:楼层流 = 到底自动翻页打在 fling 中段(实锤)
+
+`t57-floor-fixed-2` 停滞窗口两端截图直接对上:
+
+- t=2.58s 页码条高亮 **4**;
+- t=2.90s 页码条高亮 **5**。
+
+链路是 `EndReachedReporter`(footer 一进视口就算到底)→ `TopicViewModel.onReachedEnd()`
+→ `goToPage(page + 1)` → `TopicPager` 的 `LaunchedEffect(vm.page)` → **`pagerState.scrollToPage()`**。
+`scrollToPage` 是瞬时换页:新的一页是另一棵子树、另一个 `LazyListState`、纵向偏移
+从 0 开始,当前这一把的纵向动量当场丢光,再叠上新页楼层组合 + `SkJpegCodec` 解码 + GC,
+就是票面记的 117–126ms 无新内容帧 + 约 0.43s 静止。票面把 GC/解码当「放大因素」是对的,
+但**触发器是翻页本身**,不是 GC。
+
+### 根因二:`PullToRefreshBox` 的 nested-scroll 节点挡在每一次 fling 前面
+
+两屏共有的那一层。material3 1.4 `PullToRefresh.kt`:
+
+```kotlin
+override suspend fun onPreFling(available: Velocity): Velocity =
+  Velocity(0f, onRelease(available.y))
+
+private suspend fun onRelease(velocity: Float): Float {
+  ...
+  animateToHidden()          // 无条件 await,不看 distancePulled、也不看 enabled
+  ...
+}
+
+override fun onPostScroll(consumed, available, source): Offset = when {
+  source == NestedScrollSource.UserInput -> {         // 注释写「Swiping down」但没判方向
+    ...
+    coroutineScope.launch { if (!state.isAnimating) state.snapTo(verticalOffset / thresholdPx) }
+    ...
+  }
+}
+```
+
+而 `Scrollable.kt` 的 `ScrollingLogic.onScrollStopped` 是
+`dispatchPreFling(velocity)` 拿到结果**之后**才 `doFlingAnimation(available)`。于是:
+
+1. 哪怕 `distanceFraction` 全程 0、`animateTo(0f)` 时长算出来是 0,`Animatable.animateTo`
+   也要先 `withFrameNanos` 挂一帧 —— 120Hz 上每次松手白等 8.3ms 才起 fling
+   (录屏里 UP→首个 fling 帧的 18–30ms 里就有这一份);
+2. 它跑在 `Animatable` 的 `MutatorMutex` 上,而同一个 state 的 `snapTo` 被 `onPostScroll`
+   **每个滚动帧**都 `launch` 一发(向上滚也发)。排在后面的 `snapTo` 只要落在 `animateTo`
+   拿到 mutex 之后,就以 `MutationInterruptedException`(`CancellationException` 的子类)
+   把它掐掉;`Animatable.runAnimation` 原样往外抛 → `onRelease` → `onPreFling` →
+   `NestedScrollNode.onPreFling` → `dispatchPreFling` → 冒到 `onScrollStopped`,
+   **整个 fling 协程当场取消,`doFlingAnimation` 一次都没跑**。全程无日志、不算 jank、
+   不掉帧、不降刷新率 —— 与票面「C2 全绿、C1 塌陷」的组合完全一致。
+
+`NestedScrollNode.onPreFling` 是 `parentConnection?.onPreFling(available)` 先行(外层优先),
+所以在列表和 `PullToRefreshBox` 之间再插一个 connection 挡不住;`enabled = false` 也不行,
+`onRelease` 根本不读 `enabled`。
+
+### 改动
+
+- 新增 `ui/common/ListPullToRefresh.kt`:自实现 `PullToRefreshState`
+  (material3 把它开成了 `PullToRefreshBox(state = ...)` 的公开参数),
+  `animateToHidden()` / `snapTo()` 在「本来就归零 / 值没变且没有动画在跑」时**同步返回**,
+  不碰 `Animatable`、不碰 `MutatorMutex`。真下拉过时行为与默认实现一字不差。
+  判据抽成 `pullToRefreshNeedsHide` / `pullToRefreshNeedsSnap` 两个纯函数,配
+  `ui/common/ListPullToRefreshTest.kt`(6 例)。
+- 全部 8 处 `PullToRefreshBox` 调用点(版块列表、楼层流、热帖/主题列表、收藏夹、
+  收藏主题、他的主题、过滤词)统一传 `state = rememberListPullToRefreshState()`。
+- `ui/topic/TopicScreen.kt` 的到底判据加一条「这一把已经滚停」:
+  新的纯函数 `shouldTurnPageAtEnd(lastVisibleIndex, totalItemsCount, scrolling)`,
+  接 `listState.isScrollInProgress`。fling 能完整跑到本页页尾,换页发生在静止态;
+  手指还按着时同理,抬手落定再翻。配 `ui/topic/EndReachedTest.kt`(4 例)。
+
+### 为什么能消塌陷
+
+- 楼层流那条:换页不再打断 fling,0.43–0.56s 的静止段没有了触发器;
+  新页的组合与图片解码也移到静止态,117–126ms 的无新内容帧同样落在静止态里
+  (静止态出帧空洞按 C10 判据本来就不计缺陷)。
+- 两屏共有那条:`onPreFling` 不再挂帧、也不再有可被取消的挂起点,
+  「fling 协程被 `MutationInterruptedException` 静默取消 ⇒ 松手即停」这条路彻底断掉;
+  顺带每个滚动帧少一次 `launch` + `MutatorMutex.mutate`。
+
+### 还没定死的部分(留给真机复验)
+
+用同一台设备、同一脚本录的 RN 版对照(`t57-rn-topic-fixed.mp4`,LegendList + 原生
+ScrollView 的 fling,与 Compose 毫无共享代码)拿同一套帧间灰度差跑出来,**同样有两处
+约 100–200ms 的速度塌陷**(1.85–1.95s、2.65–2.80s;塌陷段 diff 3.5–5,高速段 18–20),
+形态与 native 的三处(1.65–1.78、2.55–2.72、3.50–3.58)一个量级。也就是说主题列表的
+残余塌陷**未必全部来自 app 代码**:`adb input swipe` 的注入时序(本轮 framestats
+`Number High input latency` 高达 2020)在两个栈上都能压出同一形态。
+
+本票的两处改动都是有代码实锤的真缺陷,先修;复验时按验收期望重跑:
+
+- 同脚本下逐帧速度不得掉到前一高速段的 10% 以下;
+- 不得出现 >100ms 无新内容帧;
+- 滚动期间保持 120Hz;
+- 不回退票 19 场景 3/4 的 janky 基线。
+
+若主题列表仍残留同量级塌陷,请把 RN 版同轮对照一起交上来 —— 两边同时残留即判为
+注入器/输入链量化,不再往 app 代码里追。
+
+**待真机复验。**

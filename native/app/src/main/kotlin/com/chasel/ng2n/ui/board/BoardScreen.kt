@@ -70,6 +70,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.filters.rememberFilterRules
@@ -436,6 +437,7 @@ private fun TopicListBody(
     // 翻下一页时不要亮:不然底部转圈会连带把顶部也拽出来
     isRefreshing = state.refreshing && !state.loadingNextPage,
     onRefresh = onRefresh,
+    state = rememberListPullToRefreshState(),
     modifier = Modifier.fillMaxSize(),
   ) {
     LazyColumn(

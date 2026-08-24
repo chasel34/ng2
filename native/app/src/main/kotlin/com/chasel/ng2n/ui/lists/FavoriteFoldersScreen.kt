@@ -52,6 +52,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.common.signedInGate
 import com.chasel.ng2n.ui.icons.AppIcon
@@ -175,6 +176,7 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
       else -> PullToRefreshBox(
         isRefreshing = state.loading,
         onRefresh = { scope.launch { deps.topicFavorites.reloadFolders(uid) } },
+        state = rememberListPullToRefreshState(),
         modifier = Modifier.fillMaxSize(),
       ) {
         LazyColumn(
