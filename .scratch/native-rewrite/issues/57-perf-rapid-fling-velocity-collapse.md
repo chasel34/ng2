@@ -150,3 +150,53 @@ nested-scroll 后是否消失；楼层流随后再隔离图片解码/GC。
 在 8–10 次、100ms swipe、200–300ms 间隔的连续输入下，逐帧速度曲线允许正常衰减，
 但不得在下一次输入前后突然降到前一高速段的 10% 以下；不得出现 >100ms 无新内容帧。
 滚动期间保持 120Hz，且修复不回退票 19 场景 3/4 的 janky 基线。
+
+## 对拍(2026-08-24)
+
+### 同一固定节奏脚本
+
+在 RN `com.chasel.ng2` 的“网事杂谈”主题列表复用本票完全相同的 10 次
+`100ms swipe + 250ms 间隔`脚本。录屏共 641 帧/6.30s，基准 8.36ms；相位速度
+p10/p50/p90 为 7.59k/11.17k/17.55k px/s。三段有效运动窗口内没有原生那种
+“高速 → 0–0.5k → 下一手恢复高速”的塌陷，现代 janky 为 1/1,280(0.08%)，
+missed-vsync 0。
+
+| 包 | 同脚本有效性 | 逐帧速度结果 | 裁决 |
+|---|---|---|---|
+| 原生 `com.chasel.ng2.n` | 有效 | 主题列表 4/4 塌陷；fixed-2 有连续 13 帧 0px、随后约 0.5k px/s | **复现** |
+| RN `com.chasel.ng2` | 有效 | 0 次同型塌陷；每次手势后平滑衰减并由下一手重新抬速 | **未复现** |
+| anzong `gov.anzong.androidnga` | 无效 | “网事杂谈”持续“加载失败，请重试！”，未拿失败页冒充主题列表样本 | 不裁决 |
+
+RN 在同一设备、同一 `adb input swipe` 注入节奏下未复现，因此可排除“三包共有的
+注入器/系统量化”解释。anzong 本轮受 NGA 链路限制，不能作为有效反证。
+
+### 原生真手连甩
+
+所有者在同一原生 release 包上直接连续快甩，并现场确认：**按手指幅度本应大幅移动，
+实际只小幅移动，有很明显的滑不动感**。录屏相位曲线在约 28.44–28.81s 连续落到
+2.2k–5.7k px/s，明显低于该样本常见的 8k–16k px/s；约 28.82s 后下一手又回到
+8k–14k px/s。该段方向连续，不是脚本预置停顿，故记为真手复现，也证明现象并非
+`adb input swipe` 特有。
+
+同期 SurfaceFlinger 活跃样本全部为 UID 10375 / 120Hz，没有掉到 60Hz；gfxinfo
+现代 janky 3/1,282(0.23%)、missed-vsync 0，logcat 没有 GC 暂停证据。真手样本仍呈现
+“有帧、120Hz，但位移速度塌掉”，继续支持 fling/drag 速度交接方向，而不是刷新率、
+持续帧耗时或 GC。
+
+### 对拍结论
+
+结论为 **native-only（在有效可比包中）**：原生固定注入稳定复现且真手也复现；RN
+同脚本未复现，已否定全包共有。anzong 因主题列表网络失败保持“不可用”，不对其作
+阴性推断。
+
+新增证据位于 `.scratch/native-rewrite/acceptance/perf/`：
+
+- `t57-rn-topic-fixed-{framestats,phase-summary,phase,rec}.txt/csv`
+- `t57-native-manual-{framestats,logcat,phase-summary,phase,rec,sf}.txt/csv`
+
+对应录屏（不进 git）：
+
+```text
+/Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-rn-topic-fixed.mp4
+/Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-native-manual.mp4
+```

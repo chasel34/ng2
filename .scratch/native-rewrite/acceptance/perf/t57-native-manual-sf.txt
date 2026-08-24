@@ -1,0 +1,120 @@
+sample=000 none
+sample=001 none
+sample=002 none
+sample=003 none
+sample=004 none
+sample=005 none
+sample=006 none
+sample=007 none
+sample=008 none
+sample=009 none
+sample=010 none
+sample=011 none
+sample=012 none
+sample=013 none
+sample=014 none
+sample=015 none
+sample=016 none
+sample=017 none
+sample=018 none
+sample=019 none
+sample=020 none
+sample=021 none
+sample=022 none
+sample=023 none
+sample=024 none
+sample=025 none
+sample=026 none
+sample=027 none
+sample=028 none
+sample=029 none
+sample=030 none
+sample=031 none
+sample=032 none
+sample=033 none
+sample=034 none
+sample=035 none
+sample=036 none
+sample=037 none
+sample=038 none
+sample=039 none
+sample=040 none
+sample=041 none
+sample=042 none
+sample=043 none
+sample=044 none
+sample=045 none
+sample=046 none
+sample=047 none
+sample=048 none
+sample=049 none
+sample=050 none
+sample=051 none
+sample=052 none
+sample=053 none
+sample=054 none
+sample=055 none
+sample=056 none
+sample=057 none
+sample=058 none
+sample=059 none
+sample=060 none
+sample=061 none
+sample=062 none
+sample=063 none
+sample=064 none
+sample=065 none
+sample=066         (uid, frameRate)={10375, 120.00 Hz}
+sample=067         (uid, frameRate)={10375, 120.00 Hz}
+sample=068         (uid, frameRate)={10375, 120.00 Hz}
+sample=069         (uid, frameRate)={10375, 120.00 Hz}
+sample=070         (uid, frameRate)={10375, 120.00 Hz}
+sample=071         (uid, frameRate)={10375, 120.00 Hz}
+sample=072         (uid, frameRate)={10375, 120.00 Hz}
+sample=073         (uid, frameRate)={10375, 120.00 Hz}
+sample=074         (uid, frameRate)={10375, 120.00 Hz}
+sample=075         (uid, frameRate)={10375, 120.00 Hz}
+sample=076         (uid, frameRate)={10375, 120.00 Hz}
+sample=077         (uid, frameRate)={10375, 120.00 Hz}
+sample=078         (uid, frameRate)={10375, 120.00 Hz}
+sample=079         (uid, frameRate)={10375, 120.00 Hz}
+sample=080         (uid, frameRate)={10375, 120.00 Hz}
+sample=081         (uid, frameRate)={10375, 120.00 Hz}
+sample=082         (uid, frameRate)={10375, 120.00 Hz}
+sample=083         (uid, frameRate)={10375, 120.00 Hz}
+sample=084         (uid, frameRate)={10375, 120.00 Hz}
+sample=085         (uid, frameRate)={10375, 120.00 Hz}
+sample=086         (uid, frameRate)={10375, 120.00 Hz}
+sample=087         (uid, frameRate)={10375, 120.00 Hz}
+sample=088         (uid, frameRate)={10375, 120.00 Hz}
+sample=089         (uid, frameRate)={10375, 120.00 Hz}
+sample=090         (uid, frameRate)={10375, 120.00 Hz}
+sample=091         (uid, frameRate)={10375, 120.00 Hz}
+sample=092         (uid, frameRate)={10375, 120.00 Hz}
+sample=093         (uid, frameRate)={10375, 120.00 Hz}
+sample=094         (uid, frameRate)={10375, 120.00 Hz}
+sample=095         (uid, frameRate)={10375, 120.00 Hz}
+sample=096         (uid, frameRate)={10375, 120.00 Hz}
+sample=097         (uid, frameRate)={10375, 120.00 Hz}
+sample=098         (uid, frameRate)={10375, 120.00 Hz}
+sample=099         (uid, frameRate)={10375, 120.00 Hz}
+sample=100         (uid, frameRate)={10375, 120.00 Hz}
+sample=101         (uid, frameRate)={10375, 120.00 Hz}
+sample=102         (uid, frameRate)={10375, 120.00 Hz}
+sample=103         (uid, frameRate)={10375, 120.00 Hz}
+sample=104         (uid, frameRate)={10375, 120.00 Hz}
+sample=105         (uid, frameRate)={10375, 120.00 Hz}
+sample=106         (uid, frameRate)={10375, 120.00 Hz}
+sample=107         (uid, frameRate)={10375, 120.00 Hz}
+sample=108         (uid, frameRate)={10375, 120.00 Hz}
+sample=109         (uid, frameRate)={10375, 120.00 Hz}
+sample=110         (uid, frameRate)={10375, 120.00 Hz}
+sample=111         (uid, frameRate)={10375, 120.00 Hz}
+sample=112         (uid, frameRate)={10375, 120.00 Hz}
+sample=113         (uid, frameRate)={10375, 120.00 Hz}
+sample=114         (uid, frameRate)={10375, 120.00 Hz}
+sample=115         (uid, frameRate)={10375, 120.00 Hz}
+sample=116         (uid, frameRate)={10375, 120.00 Hz}
+sample=117         (uid, frameRate)={10375, 120.00 Hz}
+sample=118 none
+sample=119 none

@@ -139,3 +139,27 @@ if any(s <= i <= e for s, e in windows):   # i == s 时,这一格跨的是「静
 2. 若重新采样,脚本采样段与票面一致;裁决只看「C10 停格」那一行,
    「动画起步前的静止空洞」按 C10 / X6 不计;
 3. 场景 6 的不通过结论(`acceptance/perf-report.md` §场景 6、总表)需要按新口径重开。
+
+## 复验(2026-08-24)
+
+验收者使用修复后的 `scripts/perf/analyze_rec.py` 重跑原票三份录屏，没有重新采样。
+另对原生 t=1.55–2.00s 代表窗口用 ffmpeg `-fps_mode passthrough` 原样提帧核对，避免
+默认恒帧率补帧改变 VFR 帧序。
+
+| 包 | 运动窗口 | 动画起步前静止空洞 | 修正后动画内 C10 | C11 |
+|---|---:|---:|---:|---:|
+| 原生 | 30 | 15 处，59–196ms，中位 119.4ms | 6 处，均为孤立 16.5–17.7ms | 0 |
+| RN | 30 | 15 处，58.9–207.9ms，中位 182.4ms | 1 处，27.9ms | 0 |
+| anzong | 30 | 同型空洞落在运动窗口外 | 0 | 0 |
+
+复验认可 X6。原票用于“停格”裁决的 59–196ms 大洞确实都跨在最后一帧静止画面与
+动画首帧之间，不是关闭动画中途停住；anzong 的同型空洞只因动画晚一个 vsync 而落在
+窗口外。原生余下 6 个 dt 只等价孤立丢 1 个 vsync，max 17.7ms、无一处 >18ms，按
+C7 属平台余量，逐帧无可见停格，也没有 C11 爆点。
+
+因此撤销“原生 21 / anzong 0 构成可见差”的旧裁决：**场景 6 改判通过，票 53 复验
+通过并维持 resolved**。复算输出：
+
+- `acceptance/perf/s6-native-reanalysis-x6.txt`
+- `acceptance/perf/s6-rn-reanalysis-x6.txt`
+- `acceptance/perf/s6-anzong-reanalysis-x6.txt`
