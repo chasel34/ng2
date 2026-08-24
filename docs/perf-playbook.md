@@ -35,7 +35,7 @@
 | **C5** | **app 每帧 CPU** = framestats `HandleInputStart → SwapBuffers` 之和(输入+动画+测量布局+录制+同步+下发)。之后的交换缓冲不归 app。这是对 app 侧改动**唯一敏感**的量,也是真机上唯一挤占 8.33ms 预算的部分。真机基线:版块列表 2.52ms、帖子详情 2.16ms | 模拟器报告 §2.4;真机报告 §2 |
 | **C6** | **丢帧(framestats 口径)** = 相邻帧 `IntendedVsync` 间隔 > 13ms(120Hz)。换刷新率时阈值取 ≈1.5× 帧间隔。**只在运动段内算**:≥100ms 的空档是 app 没内容要画(静止/换阶段),单独列出不计丢帧,否则一段静止就能刷出几千「丢帧」(票 52) | 史 §六;转场 §测量方法 2 |
 | **C7** | **丢帧(Perfetto 口径)** = `actual_frame_timeline_slice` 里 `present_type='Dropped Frame'` 的行数——**不是 name 列**。判 drop 成不成簇:成簇(如 8 个落在 170ms 内)=肉眼可见停格+双倍跳;孤立单帧 drop 属平台余量 | 诊断 §第五轮;史 §六 |
-| **C8** | **latch2present 单峰/双峰**(`SurfaceFlinger --timestats`)。**单峰**(9–10ms @120Hz)= 缓冲队列深度恒定 = 无感;**双峰**(9–10ms 与 17–18ms 两簇)= 深度在 1↔2 之间振荡 = 「有帧率没手感」的微顿,内容时间轴每跳一次错位 8.3ms,且多背 1 帧触摸延迟。实测:anzong 单峰 411/415;ng2 修复前双峰 342/194;ng2 修复后单峰 524/527 | 诊断 §第二轮 + §第二轮复测 |
+| **C8** | **latch2present 单峰/双峰**。timestats 正常时沿用原口径；若已触发 T2，改采 `android.surfaceflinger.frametimeline`，把 app actual surface frame 按 `display_frame_token` 配到 actual display frame，以 display slice `dur`（SF actual frame start→present）作等价峰形。Android 16 FrameTimeline 不暴露 `lastLatchTime`，故不得把 app surface `dur`（只到 buffer ready/acquire fence）冒充 latch2present。@120Hz **低延迟单峰**=9–11ms；**双峰**=9–11ms 与相隔一档 vsync 的 17–20ms 两簇，表示队列深度在 1↔2 间振荡。工具 `analyze_frametimeline.py`：次峰≥5% 即双峰；高延迟单峰也不能按低峰通过。实测:票 56 原生 383/183(67.7%/32.3%)双峰，两个模式的 present2present 都为 8.32ms | 诊断 §第二轮 + §第二轮复测；票 56 |
 | **C9** | **present2present** = 送显间隔。满帧送显的旁证(8ms @120Hz),但**双峰问题上它两边都好看**(411/415 vs 443/447),单看必漏判 → 只能配 C8 使用 | 诊断 §第二轮 |
 | **C10** | **停格(录屏口径)** = **运动窗口内**的 dt 大洞。**静止画面的出帧空洞不算缺陷**,且窗口的**第一个 dt 也不算**——它跨的是「最后一帧静止画面 → 动画首帧」,即点击到起步的延迟,期间屏幕一动不动。真机点一下会把屏幕顶到 120Hz 保持约 600ms(touch boost),boost 退了就停帧,于是每个「点击 → 动画」前都有 60–210ms 空洞,三个包都有;它算不算进窗口只差一帧(见 X6) | 史 §六;转场 §测量方法 1;票 53 |
 | **C11** | **内容突现(录屏口径)** = 灰度 diff 爆点。冷启动闸要求:无白/黑闪、无内容两跳突现(两个相邻爆点即两跳) | 转场 §测量方法 1;spec §五 场景 1 |
@@ -58,7 +58,7 @@
 | 编号 | 陷阱 | 出处 |
 |---|---|---|
 | **T1** | **屏幕闲置变暗后 HyperOS 把刷新率锁到 60Hz**,app 窗口投票失效,latch2present 全落 17–18ms,看起来像队列回退。判定前必须**在滚动中**确认 `dumpsys display` 里有 `frameRateOverride {uid=<app> 120}` / `renderFrameRate=120` | 诊断 §第二轮「测量陷阱」 |
-| **T2** | **`SurfaceFlinger --timestats` 反复 enable/clear 若干轮后会卡死**(dump 出 0 层),disable/enable 也救不回。退回 framestats 的 IntendedVsync 间隔 + FrameCompleted 总耗时 | 诊断 §第三轮「边界与陷阱」 |
+| **T2** | **`SurfaceFlinger --timestats` 反复 enable/clear 若干轮后会卡死**(dump 出 0 层),disable/enable 也救不回。卡死设备上禁止再碰 enable/clear；C8 改走票 56 的单轮 Perfetto：`adb shell perfetto -c - --txt -o /data/misc/perfetto-traces/s9.pb < scripts/perf/frametimeline.cfg`，15 秒内操作，pull 后跑 `analyze_frametimeline.py`。采样前后按 T4 验前台、运动中按 T1 验 120Hz；trace 首尾越过目标包则整轮作废。framestats 只保留为连续丢帧旁证，不能替代峰形 | 诊断 §第三轮「边界与陷阱」；票 56 |
 | **T3** | **framestats 的列必须按表头名定位**:新版在 `Flags` 后插了 `FrameTimelineVsyncId`,按固定下标取列会整体错位一格 | 史 §六;模拟器报告 §2.3 |
 | **T4** | **测量前确认前台焦点是被测 app**(`dumpsys window` 的 `mCurrentFocus`)。通知栏/锁屏盖住时 gfxinfo 读数是垃圾 | 诊断 §第三轮「边界与陷阱」;转场 §复现/验收脚本 |
 | **T5** | **`adb shell input swipe` ≤80ms 的起步段不作证据**:注入时序 artifact,两家 app 都有。注入拖拽整体也与真手指不同(事件点更稀疏、t=100–250ms 区间每隔一帧丢 vsync),不能当缺陷 | 诊断 §第四轮;转场 §遗留 3;模拟器报告 §1「已知的口径局限」 |
@@ -96,5 +96,7 @@
 
 - `analyze_framestats.py` — C2 / C5 / C6 层,纯标准库。
 - `analyze_rec.py` — C1 / C10 / C11 层,依赖 pyav + numpy(venv)。
+- `analyze_frametimeline.py` — C8 单峰/双峰,依赖 perfetto(venv)；采样配置
+  `frametimeline.cfg`，不调用 timestats enable/clear。
 
-两个脚本都要求 `--source`,非 `device` 时在输出首段打「本次数据不可用于性能裁决」。
+三个分析脚本都要求 `--source`,非 `device` 时在输出首段打「本次数据不可用于性能裁决」。

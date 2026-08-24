@@ -1,0 +1,17 @@
+sample=s9-native-frametimeline
+date=2026-08-24
+device=pudding / 25113PN0EC / Android 16
+adb_serial=192.168.0.101:41641
+package=com.chasel.ng2.n release 0.1.0(1)
+duration=15s
+datasource=android.surfaceflinger.frametimeline
+remote_trace=/data/misc/perfetto-traces/s9.pb
+local_trace=/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s9-frametimeline.pb
+trace_size=256219 bytes
+trace_sha256=5b7e7eeece306cfa646961cf6746f6f1bd4872d505bbfea8e1aac0baef39b509
+focus_before=com.chasel.ng2.n/com.chasel.ng2n.MainActivity
+focus_after=com.chasel.ng2.n/com.chasel.ng2n.MainActivity
+active_frame_rate_override=(uid, frameRate)={10375, 120.00 Hz}
+actions=settings open/back; drawer open/close; home tab transitions
+invalid_preflight=discarded because tail focus crossed to gov.anzong.androidnga
+timestats_enable_clear=not invoked

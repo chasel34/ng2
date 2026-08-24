@@ -2,7 +2,7 @@
 
 **状态:** 已完成，性能总闸不通过
 **已复验缺陷:** 票 51 Baseline Profile 采集为空(修复基线 `34589c6`)；票 53 抽屉
-关闭动画停格误判(X6 复验通过)
+关闭动画停格误判(X6 复验通过)；票 56 timestats 无证据(Perfetto 替代流程已打通)
 
 ## 环境
 
@@ -73,17 +73,17 @@ APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过�
 | 6 | 抽屉开合 | **通过** | X6 剔除动画起步前静止空洞；动画内 max 17.7ms，无可见停格；票 53 已复验 |
 | 7 | 附件展开/收起 | **不通过** | 宫格瞬时替换且现代 janky 20.16%;票 54 |
 | 8 | 大图/画廊开合与缩放 | **不通过** | 缩放平移可将图片整体移出视口并持续黑屏;票 55 |
-| 9 | 各转场 latch2present / 连续丢帧 | **不通过(未证明)** | 连续丢帧子项过；timestats 0 层，latch 子项无证据；票 56 |
+| 9 | 各转场 latch2present / 连续丢帧 | **不通过** | 连续丢帧子项过；Perfetto C8 为 383/183 双峰；票 58 |
 | 10 | 动画交互伞条款 | **不通过** | 对话框/FAB/页码/菜单/抽屉通过，但附件、画廊仍有可见缺陷 |
 
 ## 结论
 
 十场景全部完成，**6 通过 / 4 不通过，票 19 性能总闸不通过**。通过项为场景
 1–6；不过项为场景 7 附件瞬时跳变、场景 8 画廊可平移至黑屏、场景 9
-latch2present 无有效证据，以及由场景 7/8 可见问题触发的场景 10 伞条款。
+FrameTimeline 一档 vsync 双峰，以及由场景 7/8 可见问题触发的场景 10 伞条款。
 
-本轮新开票 52–56；其中票 53 已按 X6 复验通过，54/55 仍为产品侧 P1 验收阻断，
-52/56 为测量基础设施 P2。
+票 53 已按 X6 复验通过，票 56 的 Perfetto 替代测量流程也已 resolved；54/55 与
+新开票 58 仍为产品侧 P1 验收阻断，52 为测量基础设施 P2。
 修复后须在同一 release/profile、同一真机及同一脚本上复验失败场景，不能以本报告的
 C2 低 janky 数字替代 C1/C8 闸。
 
@@ -292,9 +292,11 @@ gfxinfo 数值本身在 1% 内，但内容已经不可见；按 C1>C2，不能�
 
 ## 场景 9 — 各转场 latch2present / 连续丢帧
 
-覆盖主题列表↔主题详情、抽屉与设置转场。为规避 T2，只执行一轮 SurfaceFlinger
-timestats enable/clear/dump；dump 返回 0 字节、0 层，立即停止重试。随后以前台焦点
-有效的 30 秒转场录屏和 framestats 按 playbook 降级口径补证。
+原轮覆盖主题列表↔主题详情、抽屉与设置转场；timestats 返回 0 层后按 T2 停止重试。
+票 56 现以 `android.surfaceflinger.frametimeline` 固化替代流程：有效轮采 15 秒设置
+返回、抽屉开合与首页 tab 转场，首尾前台均为原生包，运动中 UID 10375 为 120Hz。
+app actual surface frame 按 `display_frame_token` 配到 actual display frame，以
+SurfaceFlinger actual frame start→present 的峰形作 C8 等价裁决。
 
 | 指标 | 结果 | 子项裁决 |
 |---|---:|---|
@@ -302,14 +304,21 @@ timestats enable/clear/dump；dump 返回 0 字节、0 层，立即停止重试�
 | 运动窗口最大 dt | 18.6ms(≈2.2 个帧间隔，即丢 1 个 vsync) | 无连续丢 >2 vsync，过 |
 | 现代 janky | 1/4,786(0.02%) | 过 |
 | missed-vsync | 1 | 过 |
-| latch2present | timestats 0 层 | **无证据** |
+| FrameTimeline 配对 | 568；剔除 2 个孤立 dropped 后 566 | 有效 |
+| C8 低峰 | 383(67.7%)，中位 10.162ms | — |
+| C8 高峰 | 183(32.3%)，中位 18.452ms | **一档 vsync 次峰** |
+| present2present | 中位 8.319ms | 两峰段均保持约 120Hz |
 
-连续丢帧子项通过，但场景明文要求 latch2present 单峰；本轮没有该证据，不能用 C2
-冒充 C8，故**场景 9 按未证明不通过**，开基础设施票 56。
+低/高峰相差 8.290ms，且高峰全部对应 `Late Present`、低峰全部对应
+`On-time Present`；present cadence 仍为 8.32ms，排除 T1 的 60Hz 干扰。连续丢帧
+子项仍通过，但 C8 明确为双峰，故**场景 9 已证明不通过**。票 56 基础设施问题
+resolved，产品侧开票 58。
 
 证据:`perf/s9-native-timestats.txt`、`perf/s9-native-framestats-valid.txt`、
-`perf/s9-native-rec-analysis.txt`；视频(不进 git):
-`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s9-native-transitions.mp4`。
+`perf/s9-native-rec-analysis.txt`、`perf/s9-native-frametimeline-analysis.txt`、
+`perf/s9-native-frametimeline-sample.txt`；视频/trace(不进 git):
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s9-native-transitions.mp4`、
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s9-frametimeline.pb`。
 
 ## 场景 10 — 动画交互伞条款
 
@@ -348,4 +357,5 @@ timestats enable/clear/dump；dump 返回 0 字节、0 层，立即停止重试�
 | 53 场景 6 抽屉关闭动画停格 | P1 | resolved，已复验 | X6 证明为动画起步前静止空洞；场景 6 通过 |
 | 54 场景 7 附件展开/收起瞬时跳变 | P1 | open | 场景 7 不通过 |
 | 55 场景 8 画廊缩放后可把图片整体移出视口 | P1 | open | 场景 8 不通过 |
-| 56 场景 9 SurfaceFlinger timestats 返回 0 层 | P2 | open | latch2present 子闸无证据 |
+| 56 场景 9 SurfaceFlinger timestats 返回 0 层 | P2 | resolved | Perfetto FrameTimeline 替代流程已固化 |
+| 58 场景 9 FrameTimeline 一档 vsync 双峰 | P1 | open | 场景 9 已证明不通过 |

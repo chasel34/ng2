@@ -1,17 +1,18 @@
 # scripts/perf — 性能采样分析脚本
 
 判据编号(C\*/X\*/T\*/P\*)一律以 `docs/perf-playbook.md` 为准。
-**模拟器与 debug 包的数据永远不能用于性能裁决**(T7/T8);两个脚本都要求 `--source`,
+**模拟器与 debug 包的数据永远不能用于性能裁决**(T7/T8);三个分析脚本都要求 `--source`,
 非 `device` 时在输出首段打「本次数据不可用于性能裁决」。
 
 ## 环境再生
 
 `analyze_framestats.py` 只用标准库,系统 `python3` 直接跑。
-`analyze_rec.py` 需要 pyav + numpy;homebrew 的 python 是 externally-managed,不能直接 `pip install`,用 venv:
+`analyze_rec.py` 需要 pyav + numpy；`analyze_frametimeline.py` 需要 perfetto。homebrew 的
+python 是 externally-managed,不能直接 `pip install`,用 venv:
 
 ```bash
 python3 -m venv scripts/perf/.venv
-scripts/perf/.venv/bin/pip install av numpy
+scripts/perf/.venv/bin/pip install av numpy perfetto
 ```
 
 `scripts/perf/.venv/` 已进 `.gitignore`(不入库,按上面两行重建)。
@@ -65,8 +66,26 @@ scripts/perf/.venv/bin/python scripts/perf/analyze_rec.py rec.mp4 --source devic
 
 `screenrecord` 是 VFR,基准帧间隔取 dt 中位数,不要当成固定 fps。
 
+## analyze_frametimeline.py — C8 / 票 56
+
+这台小米的 `SurfaceFlinger --timestats` 已卡死，禁止再跑 enable/clear。替代流程见
+playbook T2：以 `android.surfaceflinger.frametimeline` 采 15 秒 trace，拉回后执行：
+
+```bash
+adb shell perfetto -c - --txt -o /data/misc/perfetto-traces/s9.pb \
+  < scripts/perf/frametimeline.cfg
+# 在 15 秒内执行被测转场；不要调用 timestats enable/clear
+adb pull /data/misc/perfetto-traces/s9.pb .
+scripts/perf/.venv/bin/python scripts/perf/analyze_frametimeline.py s9.pb \
+  --package com.chasel.ng2.n --source device --vsync-ms 8.333
+```
+
+脚本将 app surface frame 与 actual display frame 按 `display_frame_token` 配对，以
+SurfaceFlinger actual frame start→present 的峰形替代 C8：9–11ms 低峰与相隔一个
+vsync 的 17–20ms 高峰同时达到 5% 即双峰。它不会把 app surface slice 的 `dur`
+（只到 buffer ready/acquire fence）误当 latch2present。裁决前仍须独立满足 T1/T4/T7。
+
 ## 还没落盘的
 
-`SurfaceFlinger --timestats` 的 latch2present 直方图(C8,单峰/双峰)目前还是手工读 dump;
-注意 T2:反复 enable/clear 会把 timestats 卡死。Perfetto 侧的 `present_type='Dropped Frame'` 计数(C7)同理。
-两项都在票 19 真机验收时按需补脚本。
+Perfetto 侧的 `present_type='Dropped Frame'` 计数(C7)仍未独立落脚本；C8 已由
+`analyze_frametimeline.py` 固化。
