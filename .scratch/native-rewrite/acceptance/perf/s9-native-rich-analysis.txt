@@ -73,3 +73,72 @@ is 0.481ms. The buffer is ready a median 3.790ms before SF actual frame start, w
 extra full vsync appears in SF actual frame start→present. SF/HWC CPU work itself remains
 under budget, so evidence points to app→SF pipeline phase / present-slot queue-depth
 selection, not an expensive CPU section.
+
+== Ticket 58 ruling pass (2026-08-24), same trace, trace_processor queries ==
+
+Mode is binary and sticky, not per-frame oscillation. Only 3 mode switches in 15s:
+  t= 1015.46ms -> HIGH  (first drawer open, cold; app jank=Prediction Error)
+  t= 6831.08ms -> LOW   (tab1: app Dropped Frame, doFrame 16.33ms / measureAndLayout 14.46ms)
+  t=10882.54ms -> HIGH  (drawer open #2 first frame, app frame 13.73ms / App Deadline Missed)
+Idle does NOT drain it: HIGH survived 1.24s idle (5.58->6.82s); LOW survived 0.46s idle
+(10.42->10.88s). The only self-heal in the whole trace was the dropped frame at 6831.08.
+
+Ruled out by trace:
+  layers composited: only MainActivity#97282, StatusBar#118, NavigationBar0#117 (no extra
+    drawer/dialog/settings window or surface)
+  client composition: hasClientComposition=0 and gpu_composition=0 on all 929 display frames;
+    SF RenderEngine ran 44x, all "drawLayersInternal for RegionSampling" (status bar luma)
+  refresh rate: 936/936 commits Vote ExplicitExact -> ExplicitExact 120.00 Hz (1.00)
+
+What the high peak is (medians, ms):                       low       high
+  SF frame start -> own present                            9.964    18.337
+  present vs SF's own prediction                           0.000    +8.319
+  SF frame start -> PREVIOUS frame's present              -1.643   -10.010
+  atomic_commit issue -> previous present                 +0.683    -6.710
+  atomic_commit blocking duration                          0.061     7.341
+  kernel complete_commit duration                          7.993     8.132
+  atomic_commit end -> present                             7.527     7.745
+SF counters: PrevFramePending / PrevFrameMissed / PrevHwcFrameMissed = 1 on 96.6-97.6% of
+high frames vs 0.2% of low frames. BufferTX(MainActivity) median 2 vs 1. TransactionQueue
+median 2 vs 1. => classic buffer stuffing, one extra transaction held by SF; DPU is not
+slower (complete_commit 8.0 vs 8.1ms), it is just scheduled one slot later.
+
+Entry event, SF main thread at t=10888.207ms:
+  transactionReadyTimelineCheck
+    frameIsEarly vsyncId: 153381956
+    expectedPresentTime-sf:   289397460608340
+    predictedPresentTime-app: 289397467993303   (7.385ms later)
+    earlyLatchVsyncThreshold: 4166666
+  onCommitNotComposited        <- SF committed without compositing, deferring the app
+                                  transaction by one vsync; never drained afterwards.
+
+Why neither auto-recovery fires:
+  HWUI isSwapChainStuffed() keys off slow dequeueBuffer; here dequeue p95 = 0.138ms,
+    max 0.221ms, never blocks -> HWUI never drops a frame to drain.
+  SF FrameTimeline classified only 1/910 frames as Buffer Stuffing; 495 are Unknown Jank
+    with on_time_finish=1 -> SF's stuffing mitigation never fires either.
+
+App-side lever = GPU raster cost on the drawer/settings path
+(app "waiting for GPU completion" = real per-frame GPU time; RT "Drawing" = DL recording):
+  window                        GPU med   GPU p95   GPU max   >8.333ms   RT Drawing med
+  drawer-1                         5.45      8.01      8.66          2             1.76
+  drawer-2+scroll+settings-in      6.38      8.20     10.98          4             1.79
+  settings                         6.21     10.29     11.92          3             1.61
+  tabs                             1.31      2.23      9.69          1             2.09
+  drawer-2                         5.30      7.22      9.33          2             2.12
+  drawer-3                         5.59      8.03      8.48          2             1.91
+RT CPU-side recording is identical across windows, so the 4x gap is pure GPU rasterization.
+Control that proves cause (not effect): the drawer-2 opening frame at t=10882.54 was still
+in LOW mode when it rendered, and its GPU took 9.33ms -- that is the frame that tipped it.
+  10887.06 waiting for GPU completion 1328  dur=9.33
+  10899.85 waiting for GPU completion 1329  dur=1.11
+  10903.98 waiting for GPU completion 1330  dur=1.60
+Drawer path per-frame GPU work = full-screen home redraw + full-screen scrim alpha blend
+(DrawerHost.kt drawBehind { drawRect(colors.scrim, alpha = progress) }) + 300dp full-height
+panel with .shadow(Elevation.level2). Screen is 1220px wide, panel 300dp ~= 900px, so when
+fully open ~74% of the scrim's full-screen blend is hidden behind the opaque panel.
+
+Correction to the earlier "99.8% of high frames are in the drawer/settings chain" reading:
+the tab-1 switch (t=6822.55) hit the SAME App Deadline Missed entry condition and only
+escaped because it happened to drop a frame right after. The tab chain is lucky, not
+structurally better; the same code can produce the opposite verdict on a re-run.
