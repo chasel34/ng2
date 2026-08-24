@@ -2,23 +2,24 @@
 
 **状态:** 已完成，性能总闸不通过
 **已复验缺陷:** 票 51 Baseline Profile 采集为空(修复基线 `34589c6`)；票 53 抽屉
-关闭动画停格误判(X6 复验通过)；票 56 timestats 无证据(Perfetto 替代流程已打通)
+关闭动画停格误判(X6 复验通过)；票 54 附件动画、票 55 画廊边界(真机复验通过)；
+票 56 timestats 无证据(Perfetto 替代流程已打通)；票 57 连续快甩(修复复验未通过)
 
 ## 环境
 
 | 项 | 值 |
 |---|---|
-| 验收日期 | 2026-08-23 |
-| Git 基线 | `34589c6`(`android-native`) |
+| 验收日期 | 2026-08-23；修复复验 2026-08-24 |
+| Git 基线 | 初轮 `34589c6`；修复复验 `adf3a3c`(`android-native`) |
 | 设备 | 小米 `25113PN0EC`,device `pudding` |
 | 系统 | Android 16 / SDK 36 |
 | 屏幕 | 1220×2656 @520dpi,目标 120Hz |
-| ADB 目标 | `192.168.0.101:40039` |
+| ADB 目标 | `192.168.0.101:41641` |
 | 原生包 | `com.chasel.ng2.n` |
-| Baseline Profile 源文件 | `baseline-prof.txt`,23,899 行, SHA-256 `75ce22259585423e06e38808105ba46f2addc3dc22fbb5b0ccd1740ce548abdd` |
-| Release APK | `app-release.apk`,5.0 MiB, SHA-256 `c803ccfb2d7d175f98a8656c670c787cbab2cd14db15125ec841219827656c43` |
+| Baseline Profile 源文件 | `baseline-prof.txt`,23,893 行, SHA-256 `788da424690900fe9cefc9aa3acf2dd42200d3cce236bc7bf24777d5b62743c5` |
+| Release APK | `app-release.apk`,5.0 MiB, SHA-256 `04fffa7d032e61d6df734377f06f0308974c7874d89411dc574b7fc00a3f0599` |
 | 包变体 | release,非可调试,`com.chasel.ng2.n` 0.1.0(1) |
-| Profile 打包 | APK 含 `assets/dexopt/baseline.prof`(10,400 B)与 `baseline.profm`(1,396 B) |
+| Profile 打包 | APK 含 `assets/dexopt/baseline.prof`(10,446 B)与 `baseline.profm`(1,395 B) |
 | 设备 dexopt | `arm64: [status=speed-profile] [reason=baseline]`,odex 7,868 KiB |
 
 ## Baseline Profile 闸前检查
@@ -32,10 +33,10 @@ Dexopt state:
     arm64: [status=speed-profile] [reason=baseline] [primary-abi]
 ```
 
-APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过。下一步进行
+APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过。初轮随后进行
 `compile --reset` 与 `speed-profile` 冷启 A/B;A/B 后恢复 `speed-profile` 再测十场景。
 
-### 冷启 A/B(进行中)
+### 冷启 A/B(已完成)
 
 口径为 `am force-stop` 后 `am start -W`,相邻冷启 ≥60 秒。先做一次不计样本的首装预热
 (244 ms),排除首次安装数据初始化。`compile --reset` 后 dexopt 为
@@ -58,8 +59,9 @@ APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过�
 ## 当前进度
 
 - 已完成:release/profile 三重核验与冷启 A/B。
-- 十场景:10/10 完成;场景 1–6 通过,场景 7、8、9、10 不通过。
-- 登录态:已由所有者完成;验收不卸载、不清数据。
+- 十场景:10/10 完成;场景 1–8、10 通过,仅场景 9 不通过。
+- 登录态:初轮由所有者完成；本次新包复验时抽屉显示“未登录”，验收未卸载、未清数据、
+  未代替所有者重登。
 
 ## 十场景
 
@@ -71,19 +73,20 @@ APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过�
 | 4 | 楼层流慢拖/快甩 | **通过** | 原生 0.00% / 0.43%,不差于 RN 基线 0.1% / 2.7% |
 | 5 | 横滑翻页 | **通过** | 原生 14/14 运动窗口松手等价丢帧≤1,不差于 RN |
 | 6 | 抽屉开合 | **通过** | X6 剔除动画起步前静止空洞；动画内 max 17.7ms，无可见停格；票 53 已复验 |
-| 7 | 附件展开/收起 | **不通过** | 宫格瞬时替换且现代 janky 20.16%;票 54 |
-| 8 | 大图/画廊开合与缩放 | **不通过** | 缩放平移可将图片整体移出视口并持续黑屏;票 55 |
+| 7 | 附件展开/收起 | **通过** | 修复后 30/30 个连续动画窗口，C11=0；票 54 已复验 |
+| 8 | 大图/画廊开合与缩放 | **通过** | 12 轮无黑帧、10/10 双击复位逐像素回到适配位；票 55 已复验 |
 | 9 | 各转场 latch2present / 连续丢帧 | **不通过** | 连续丢帧子项过；Perfetto C8 为 383/183 双峰；票 58 |
-| 10 | 动画交互伞条款 | **不通过** | 对话框/FAB/页码/菜单/抽屉通过，但附件、画廊仍有可见缺陷 |
+| 10 | 动画交互伞条款 | **通过** | 附件、画廊修复复验通过，其余交互首轮均通过 |
 
 ## 结论
 
-十场景全部完成，**6 通过 / 4 不通过，票 19 性能总闸不通过**。通过项为场景
-1–6；不过项为场景 7 附件瞬时跳变、场景 8 画廊可平移至黑屏、场景 9
-FrameTimeline 一档 vsync 双峰，以及由场景 7/8 可见问题触发的场景 10 伞条款。
+十场景全部完成，票 54/55 修复复验后为 **9 通过 / 1 不通过，票 19 性能总闸仍不通过**。
+场景 1–8、10 通过；十场景内唯一不过项为场景 9 FrameTimeline 一档 vsync 双峰；
+十场景外追加的票 57 专项复验也仍未通过。
 
-票 53 已按 X6 复验通过，票 56 的 Perfetto 替代测量流程也已 resolved；54/55 与
-新开票 58 仍为产品侧 P1 验收阻断，52 为测量基础设施 P2。
+票 53 已按 X6 复验通过，票 54/55 已真机 verified，票 56 的 Perfetto 替代测量流程
+也已 resolved；票 57 修复复验仍不过并 reopened，票 58 仍为产品侧 P1 验收阻断，
+52 为测量基础设施 P2。
 修复后须在同一 release/profile、同一真机及同一脚本上复验失败场景，不能以本报告的
 C2 低 janky 数字替代 C1/C8 闸。
 
@@ -96,6 +99,7 @@ gfxinfo,采样后确认前台焦点。T5 的单次注入起步 ≤80 ms 不单�
 | 包 | 120Hz 检查 | 总帧 | 现代 janky | p50 / p95 / p99 | 裁决用途 |
 |---|---|---:|---:|---:|---|
 | 原生 `com.chasel.ng2.n` | `frameRateOverride uid=10375 120.00001`,render 120 | 6,318 | **1(0.02%)** | 5 / 9 / 17 ms | 主裁决 |
+| 原生(票 57 修复复验) | 录屏基准 8.33ms(120.0Hz) | 6,306 | **1(0.02%)** | 5 / 17 / 18 ms | 无回退 |
 | RN `com.chasel.ng2` | `frameRateOverride uid=10368 120.00001` | 8,480 | 0(0.00%) | 17 / 18 / 18 ms | 对拍 |
 | anzong | 不可用 | — | — | — | 主题列表连续两次“加载失败,请重试”,未把失败页数据冒充对拍 |
 
@@ -104,8 +108,12 @@ gfxinfo,采样后确认前台焦点。T5 的单次注入起步 ≤80 ms 不单�
 全过滤,已开票 52;原始 framestats 全部保留。anzong 首次进入及冷却后重试均停在
 “加载失败,请重试”,其失败页 50 帧数据已作废,不作性能比较(T6)。
 
+2026-08-24 修复复验时，新包本地账号状态显示“未登录”，“网事杂谈”权限错误页继续按
+T6 作废；改在游客可访问、使用同一 `TopicListScreen` 的“艾泽拉斯议事厅”沿用完整
+25 次脚本。现代 janky 1/6,306(0.02%)，与首轮 0.02% 相同，**场景 3 无回退**。
+
 证据:`perf/s3-native-framestats.txt`、`perf/s3-rn-framestats.txt`、
-`perf/s3-anzong-framestats.txt`。
+`perf/s3-anzong-framestats.txt`、`perf/s3-native-regression-verify.txt`。
 
 ## 场景 1 — 冷启动闪烁(关键场景)
 
@@ -188,6 +196,27 @@ gfxinfo,采样后确认前台焦点。T5 的单次注入起步 ≤80 ms 不单�
 证据:`perf/s4-native-slow.txt`、`perf/s4-native-fast.txt`、
 `perf/s4-rn-slow.txt`、`perf/s4-rn-fast.txt`。
 
+## 票 57 专项复验 — 连续快甩速度塌陷
+
+使用票面相同固定节奏：主题列表 10 次、楼层流 8 次
+`input swipe 610 2100 610 550 100`，每次间隔 250ms；逐帧相位位移、C10/X6 与现代
+FrameTimeline 口径均不变。
+
+| 样本 | 120Hz / C2 | C1 速度/出帧 | 裁决 |
+|---|---|---|---|
+| 主题列表 | 8.33ms；1/1,534(0.07%) | 14.81k→0.45k px/s(**3.1%**)；另有两处约 0.46–0.54k | **不过 10% 闸** |
+| 楼层流 | 8.32ms；1/806(0.12%) | 速度最低有效桶 5.70k，无 10% 塌陷；page 3→4 有 **276.4ms** 无新内容帧 | **不过 100ms 闸** |
+
+两轮 missed-vsync 均为 0，场景 3 完整回归仍为 0.02%，楼层现代 janky 也不劣于场景 4
+首轮 0.43% / RN 历史 2.7%；但 C1 两个硬闸各有一屏未满足，故**票 57 修复复验不通过、
+状态 reopened**。有效主题列表用游客可访问的“艾泽拉斯议事厅”；“网事杂谈”因新包
+本地账号状态为未登录而只返回权限错误页，未拿失败页冒充样本。
+
+证据：`perf/t57-topic-verify-{framestats,logcat,phase-summary,phase,rec}.txt/csv`、
+`perf/t57-floor-verify-clean-{framestats,phase-summary,phase,rec}.txt/csv`；录屏(不进 git)：
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-topic-verify.mp4`、
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-floor-verify-clean.mp4`。
+
 ## 场景 6 — 抽屉开合(关键场景)
 
 **脚本:** 三包首页均执行 15 轮固定坐标“点左上角打开→800 ms→点遮罩关闭→800 ms”,
@@ -264,13 +293,17 @@ anzong 现场对拍限制保留在报告中。
 | 样本 | 录屏 | 运动表现 | 现代 janky | 裁决 |
 |---|---:|---|---:|---|
 | 原生 | 67 帧/28.87s(VFR) | 宫格与折叠条整块瞬时互换，无连续速度曲线 | **25/124(20.16%)** | **不通过** |
+| 原生(修复复验) | 950 帧/31.59s(VFR) | 30/30 个连续窗口；附件 ROI 完整变化约 215ms；C11=0 | 30/1,612(1.86%) | **通过** |
 
 录屏只有点击时的单帧画面替换，点击之间的约 0.8 秒静止间隔不能按 C10 冒充动画
 停格；但场景本身没有连续展开/收起动画，正文下方内容肉眼瞬移，已经违反场景 7 与
-伞条款。故**场景 7 不通过**，开票 54。RN 侧相关组件历史实现同样是直接条件渲染，
-不构成原生可放宽的基线；本闸要求是交互自身连续。
+伞条款，首轮故判不通过并开票 54。修复包沿用相同 15 轮脚本复验，120Hz 录屏识别出
+30 个展开/收起运动窗口；C10 按 X6 剔除运动窗口首个 dt 后，仅 1 处 16.7ms，其余代表
+窗口最大 10.0–13.3ms。附件区域首尾可见变化约 215ms，无整块突现、C11=0，故
+**场景 7 改判通过，票 54 verified**。
 
-证据:`perf/s7-native-framestats-v2.txt`、`perf/s7-native-rec-analysis-v2.txt`；
+证据:`perf/s7-native-framestats-v2.txt`、`perf/s7-native-rec-analysis-v2.txt`、
+`perf/s7-native-framestats-verify.txt`、`perf/s7-native-rec-analysis-verify.txt`；
 视频(不进 git):`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s7-native-attachments-v2.mp4`。
 
 ## 场景 8 — 大图/画廊开合与缩放
@@ -282,13 +315,20 @@ anzong 现场对拍限制保留在报告中。
 | 样本 | 录屏 | 现代 janky | C1 结果 | 裁决 |
 |---|---:|---:|---|---|
 | 原生 | 893 帧/27.57s，基准 8.31ms | 10/1,784(0.56%) | 放大后图片可整体移出视口，持续黑屏 | **不通过** |
+| 原生(修复复验) | 1,191 帧/34.93s，基准 8.38ms | 20/2,374(0.84%) | 12 轮无黑帧；10/10 复位与起始适配位逐像素相同 | **通过** |
 
 gfxinfo 数值本身在 1% 内，但内容已经不可见；按 C1>C2，不能用持续送显掩盖交互失效。
-手工再次双击有一次成功恢复，连续脚本中却无法可靠复位，故**场景 8 不通过**，开票 55。
+手工再次双击有一次成功恢复，连续脚本中却无法可靠复位，首轮故判不通过并开票 55。
+修复包以同一脚本复验，查看器正文中央逐帧 `blackdetect` 为 0 个 black interval；追加
+10 轮逐轮复位截图均与起始适配位逐像素相同(`MAD=0.0000`)。故**场景 8 改判通过，
+票 55 verified**。
 
 证据:`perf/s8-native-framestats.txt`、`perf/s8-native-rec-analysis.txt`、
-`perf/s8-native-post.png`；视频(不进 git):
-`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s8-native-gallery.mp4`。
+`perf/s8-native-post.png`、`perf/s8-native-framestats-verify.txt`、
+`perf/s8-native-rec-analysis-verify.txt`、`perf/s8-native-blackdetect-verify.txt`、
+`perf/s8-native-post-verify.png`；视频(不进 git):
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s8-native-gallery.mp4`、
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s8-native-gallery-verify.mp4`。
 
 ## 场景 9 — 各转场 latch2present / 连续丢帧
 
@@ -336,13 +376,14 @@ resolved，产品侧开票 58。
 | 首页 tab 高亮 | 通过 | 推荐/网事/魔兽 tab 逐项切换 |
 | 抽屉账号头 | 通过 | 显示“当前：lemon43(67296151)” |
 | 抽屉开合 | **通过** | 场景 6；票 53 按 X6 复验通过 |
-| 附件展开/收起 | **不通过** | 场景 7，票 54 |
-| 画廊缩放/平移 | **不通过** | 场景 8，票 55 |
+| 附件展开/收起 | **通过** | 场景 7 修复复验，票 54 verified |
+| 画廊缩放/平移 | **通过** | 场景 8 修复复验，票 55 verified |
 
 有效伞条款样本为 2,439 帧/29.92 秒、基准 8.34 ms；现代 janky
 1/5,054(0.02%)、missed-vsync 0。录屏分析把对话框刻意停留及整块弹层出现识别成
-158–473 ms“运动空洞”，不按 C10 冒充动画停格；但伞条款要求任一处肉眼可见断续即
-不过，场景 7/8 仍提供独立 C1 反证，故**场景 10 不通过**，不重复开票。
+158–473 ms“运动空洞”，不按 C10 冒充动画停格。场景 7/8 的原 C1 反证均已由同脚本
+修复复验消除，其余交互首轮全部通过，故
+**场景 10 改判通过**。
 
 证据:`perf/s10-native-framestats-v3.txt`、`perf/s10-native-rec-analysis-v3.txt`、
 `perf/s9-drawer.xml`；视频(不进 git):
@@ -355,7 +396,8 @@ resolved，产品侧开票 58。
 | 51 Baseline Profile 采集为空 | P1 | 已修复并复验 | 闸前产物 |
 | 52 API 36 framestats Flags=32 被全过滤 | P2 | open | C5/C6 自动分析,不阻断 C12 场景 3 裁决 |
 | 53 场景 6 抽屉关闭动画停格 | P1 | resolved，已复验 | X6 证明为动画起步前静止空洞；场景 6 通过 |
-| 54 场景 7 附件展开/收起瞬时跳变 | P1 | open | 场景 7 不通过 |
-| 55 场景 8 画廊缩放后可把图片整体移出视口 | P1 | open | 场景 8 不通过 |
+| 54 场景 7 附件展开/收起瞬时跳变 | P1 | verified | 场景 7 已改判通过 |
+| 55 场景 8 画廊缩放后可把图片整体移出视口 | P1 | verified | 场景 8 已改判通过 |
 | 56 场景 9 SurfaceFlinger timestats 返回 0 层 | P2 | resolved | Perfetto FrameTimeline 替代流程已固化 |
+| 57 连续快甩时滚动速度塌陷/停滞 | P1 | reopened | 主题列表仍跌至 3.1%；楼层仍有 276.4ms 空洞 |
 | 58 场景 9 FrameTimeline 一档 vsync 双峰 | P1 | open | 场景 9 已证明不通过 |

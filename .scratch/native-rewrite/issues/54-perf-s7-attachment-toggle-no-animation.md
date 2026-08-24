@@ -2,7 +2,7 @@
 
 **类型:** performance / acceptance blocker  
 **优先级:** P1  
-**Status:** resolved
+**Status:** verified
 
 ## 现象
 
@@ -62,3 +62,21 @@
 
 **待真机复验**:需要在 `tid=47328470` 上重跑场景 7(15 轮展开/收起 + 120Hz 录屏逐帧),
 确认速度曲线连续、无停格,并复测现代 janky 是否不劣于并装基线。
+
+## 真机复验(2026-08-24)
+
+在修复后的 release APK(SHA-256 `04fffa7d032e61d6…`、
+`speed-profile / reason=baseline`)上，沿用首轮同一主题、同一坐标和同一节奏执行 15 轮
+展开/收起。31.59 秒 120Hz VFR 录屏共 950 帧，识别出 **30/30 个连续运动窗口**；
+全屏阈值下代表窗口为 142–152ms，进一步在附件区域逐帧取首个/末个非静止帧，单次完整
+可见变化为约 **215ms**，与 200ms token 加上录屏采样边界一致。C11 内容突现为 0。
+
+C10 已按 X6 剔除运动窗口首个 dt：30 个窗口内仅 1 处 16.7ms(约 2 个 120Hz 帧间隔)，
+没有肉眼可见停格；其余抽样窗口最大 10.0–13.3ms。gfxinfo 现代口径为
+30/1,612(1.86%)，较缺陷样本 25/124(20.16%) 明显改善，且整帧没有超过 24ms。
+
+证据：`acceptance/perf/s7-native-framestats-verify.txt`、
+`acceptance/perf/s7-native-rec-analysis-verify.txt`；录屏（不进 git）：
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s7-native-attachments-verify.mp4`。
+
+**复验通过，票 54 verified；场景 7 改判通过。**

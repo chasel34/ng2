@@ -1,6 +1,6 @@
 # 57 — P1:连续快甩时滚动速度塌陷/停滞
 
-**Status:** resolved
+**Status:** reopened
 
 **Severity:** P1（用户可感知，主题列表稳定复现；楼层流可放大成数百毫秒停滞）
 
@@ -323,3 +323,64 @@ ScrollView 的 fling,与 Compose 毫无共享代码)拿同一套帧间灰度差�
 注入器/输入链量化,不再往 app 代码里追。
 
 **待真机复验。**
+
+## 修复后真机复验(2026-08-24)
+
+复验包为 release APK `04fffa7d032e61d6…`，设备 dexopt 为
+`speed-profile / reason=baseline`。设备本地账号状态在新包上显示“未登录”，所以
+“网事杂谈”只得到服务端权限错误页并按 T6 作废；主题列表有效样本改用游客可访问、仍走
+同一 `TopicListScreen` 的“艾泽拉斯议事厅”，手势、坐标、次数、间隔和逐帧相位口径均
+与票面固定脚本相同。
+
+### 主题列表：仍复现，不通过
+
+10 次 `100ms swipe + 250ms` 的 7.33 秒录屏为 768 帧，基准 8.33ms(120.0Hz)。
+第一次典型塌陷在 2.642s 的 14.81k px/s 后发生：
+
+| 时间 | 位移/速度 | 说明 |
+|---:|---:|---|
+| 2.642s | 120px / 14.81k px/s | 前段高速 |
+| 2.684s | 4px / 0.45k px/s | 降到前段的 **3.1%** |
+| 2.692–2.725s | 连续 0px | 有帧但内容不动 |
+| 2.734–2.842s | 约 0.46–0.53k px/s | 持续近静止 |
+| 2.851–2.959s | 连续 0px | 下一手前仍未恢复 |
+
+同轮 3.80–3.90s 与 4.70–4.90s 还有两处约 0.46–0.54k px/s 的同型塌陷，均低于
+前一高速段的 10%。录屏运动窗口最大 dt 18.2ms，没有 >100ms 出帧空洞；现代 janky
+1/1,534(0.07%)、missed-vsync 0，logcat 无 GC 暂停。即 C2/刷新节奏仍绿，但 C1 速度
+闸明确未过。
+
+### 楼层流：速度闸过，但无新内容帧闸仍不过
+
+同一 `tid=47328470` 从 page 1 顶部执行 8 次固定手势；另做一轮不并发 SurfaceFlinger
+采样的干净录屏，排除 `dumpsys` 对编码器的扰动。4.92 秒 / 407 帧、基准
+8.32ms(120.2Hz)，有效速度 p10/p50/p90 为 10.88k/14.12k/17.01k px/s，最低有效
+100ms 桶 5.70k px/s，没有掉到前段高速的 10% 以下。
+
+但 page 3→4 的切换仍在固定脚本运动期内产生 **276.4ms** 无新内容帧：3.005s 仍为
+1.93k px/s，3.012–3.037s 内容停止，下一帧直到 3.313s 才出现并立即恢复 26.15k px/s。
+同轮末段另有 201.9ms 空洞。现代 janky 1/806(0.12%)、missed-vsync 0，仍不能替代
+票面“不得出现 >100ms 无新内容帧”的 C1 闸。
+
+### 回归项与裁决
+
+- 场景 3 完整 25 次 `300ms swipe + 900ms` 复跑：1/6,306(0.02%)，与首轮
+  1/6,318(0.02%) 相同，≤1%，无回退。
+- 楼层固定节奏样本现代 janky 0.12%，不差于场景 4 原生快甩 0.43% / RN 历史 2.7%。
+- 两个屏的 120Hz 录屏基准分别为 8.33ms / 8.32ms，排除熄屏降 60Hz。
+
+证据新增于 `acceptance/perf/`：
+
+- `t57-topic-verify-{framestats,logcat,phase-summary,phase,rec}.txt/csv`
+- `t57-floor-verify-clean-{framestats,phase-summary,phase,rec}.txt/csv`
+- `s3-native-regression-verify.txt`
+
+录屏（不进 git）：
+
+```text
+/Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-topic-verify.mp4
+/Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-floor-verify-clean.mp4
+```
+
+**复验不通过，票 57 reopened。** 主题列表仍违反 10% 速度闸，楼层流仍违反 100ms
+无新内容帧闸；虽然场景 3/4 的现代 janky 均未回退，不能据此改判 verified。

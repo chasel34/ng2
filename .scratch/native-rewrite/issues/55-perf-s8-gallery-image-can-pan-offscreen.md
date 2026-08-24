@@ -2,7 +2,7 @@
 
 **类型:** performance / interaction / acceptance blocker  
 **优先级:** P1  
-**Status:** resolved
+**Status:** verified
 
 ## 现象
 
@@ -93,3 +93,26 @@
 **待真机复验**(本轮无真机):按票面复现步骤跑一遍 —— 双击放大后单指猛拖到四个方向,
 确认任何时刻视口里都有图;再连拖十次后双击,确认一次回到适配位。gfxinfo 那半不用重跑,
 本票判的是画面内容不是帧率。
+
+## 真机复验(2026-08-24)
+
+修复后的 release APK(SHA-256 `04fffa7d032e61d6…`、
+`speed-profile / reason=baseline`)沿用首轮 `tid=47328470` 第 2 个附件与固定脚本：双击
+放大 → `(610,1600)→(300,1200)` / 500ms 平移 → 双击复位，连续循环约 30 秒。
+
+- 主样本 34.93 秒 / 1,191 帧，12 轮中图片始终被边界钳住；对查看器正文中央
+  `800×1800` 区域逐帧跑 ffmpeg `blackdetect(pic_th=0.95)`，**0 个 black interval**，
+  没有任何一帧全黑。
+- 为排除长脚本里双击注入时序歧义，又保持同一手势做 10 轮逐轮取证；每次复位后正文
+  裁剪都与起始适配位逐像素相同(`MAD=0.0000`、same=100%)，**10/10 可靠复位**。
+- 主样本 gfxinfo 现代口径 20/2,374(0.84%)、missed-vsync 0；C10 按 X6 口径，运动内
+  仅 4 个 16.2–17.8ms 帧间隔，没有肉眼可见停格。
+
+证据：`acceptance/perf/s8-native-framestats-verify.txt`、
+`acceptance/perf/s8-native-rec-analysis-verify.txt`、
+`acceptance/perf/s8-native-blackdetect-verify.txt`、
+`acceptance/perf/s8-native-post-verify.png`；录屏（不进 git）：
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s8-native-gallery-verify.mp4`、
+`/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s8-native-reset-verify.mp4`。
+
+**复验通过，票 55 verified；场景 8 改判通过。**
