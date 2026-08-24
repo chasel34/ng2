@@ -384,3 +384,76 @@ ScrollView 的 fling,与 Compose 毫无共享代码)拿同一套帧间灰度差�
 
 **复验不通过，票 57 reopened。** 主题列表仍违反 10% 速度闸，楼层流仍违反 100ms
 无新内容帧闸；虽然场景 3/4 的现代 janky 均未回退，不能据此改判 verified。
+
+## 富 trace(2026-08-24)
+
+按 `s9-native-rich.cfg` 的同口径采两份 64MB ring-buffer trace：
+`linux.ftrace` 含 sched/freq/binder 与 atrace `gfx/view/input/sched/freq/binder_driver`，
+`atrace_apps=com.chasel.ng2.n`，同时启用 SurfaceFlinger FrameTimeline。设备内核没有
+`/sys/kernel/tracing/events/input`，所以 input 证据来自 atrace 的逐条
+`MotionEvent ACTION_*` slice；没有伪造不存在的 kernel input event。
+
+### 主题列表：fling 已停，EdgeEffect 仍在送静态帧
+
+游客可访问的“守望先锋”仍走同一个 `TopicListScreen`，执行票面 10 次固定节奏。
+598 帧/6.959s 的录屏出现四处同型塌陷；首处从 3.772s 的 12.97k px/s 降到
+3.789s 的 0.92k，随后为 0/约 0.47–0.53k px/s，下一手恢复到 19.88k px/s。
+以首个 ACTION_MOVE 对首个有效运动帧，trace 比录屏晚 138.566ms；该塌陷对应 trace
+3,928–4,121ms，上一 ACTION_UP 为 3,713.097ms，下一 ACTION_DOWN 为 4,121.904ms。
+
+| TraceProcessor 指标 | 正常 fling 3,720–3,919ms | 塌陷 3,928–4,121ms |
+|---|---:|---:|
+| `Choreographer#doFrame` | 23，max 2.336ms | 23，max 0.808ms |
+| `animation` / `Recomposer:animation` | 23 / 23 | **0 / 0** |
+| `Compose:recompose` / measure-layout | 32 / 32 | **0 / 0** |
+| UI traversal / draw | 23 / 22 | 23 / 23 |
+| RenderThread Drawing | 23 | 24 |
+| `AndroidEdgeEffectOverscrollEffect` | 0 | **24** |
+| app surface actual frame | 23，0 jank | 23，0 jank |
+| UI / RT Running | 43.354 / 38.957ms | 14.451 / 43.196ms |
+
+最后一条 `Recomposer:animation` 在 3,919.177ms；从下一帧直到下一次 DOWN，fling 对应
+的 Compose animation/recompose/measure 已全部消失，故 **Choreographer doFrame 里没有
+fling animator 在跑**。但 ViewRoot traversal/draw 与 RenderThread 仍约 120Hz 工作，
+塌陷窗 24 个 RT frame 全部在画 `AndroidEdgeEffectOverscrollEffect`，FrameTimeline 仍有
+23 个 on-time app frame。也就是说“有帧但内容不动”的帧由 UI traversal + RT 边缘效果
+产生，不是 LazyColumn 在推进 offset。
+
+Perfetto 没有 `scroll`/`offset` counter，不能凭 trace 伪报 `LazyListState` 数值；录屏
+相位的 0/约 4px 位移是 offset 未有效推进的直接观测，trace 的 animation/recompose
+归零是状态侧旁证。窗口内 UI/RT 均无长任务、dequeueBuffer 等待或调度饥饿。归因因此
+收敛为：**fling/scroll-state 提前终止，独立 EdgeEffect invalidation 继续送静态帧**；
+不是刷新率、GC、渲染超时或 CPU 阻塞。
+
+### 楼层流：翻页帧后两线程睡眠，不是 276ms 主线程大活
+
+`tid=47328470` 执行 8 次固定节奏，579 帧/7.303s；page 3→4 处录屏下一内容帧
+`dt=265.900ms`，与复验的 276.4ms 属同一类空洞。时钟偏移为 +130.572ms，关键时间线：
+
+| trace 相对时间 | 事件 |
+|---:|---|
+| 3,599.957ms | 第 4 手 ACTION_UP |
+| 3,632.023ms | 18.921ms doFrame：recompose 4.190ms、traversal 14.676ms、measure/layout 12.773ms |
+| 3,651.504ms | 空洞前最后一个 app frame（Late Present / Buffer Stuffing） |
+| 3,656.987–3,990.773ms | 无 app slice/doFrame/RT draw/app buffer；UI 睡眠 333.420/334ms，RT 睡眠 334/334ms |
+| 3,991.677ms | 下一手 ACTION_DOWN |
+| 4,005.483ms | 下一 app frame，之后恢复 on-time 帧 |
+
+app surface 的完整无帧间隔为 353.979ms，录屏与其重叠的无新内容段为 265.900ms。
+这不是单个 276ms UI task，也不是 RT/dequeueBuffer/GPU 背压：翻页只产生一个有界的
+18.921ms 组合/布局峰，之后 UI 与 RT 都睡到下一次输入。trace 内没有主线程网络/binder
+等待，也没有空洞内的重 Compose；当前数据源不能观察后台 HTTP syscall，因而不能否定
+后台请求，但可以明确否定“主线程同步等网络/做 276ms 组合大活”。现象链为：**翻页交接
+结束当前 fling/invalidations，新页成为静止画面，下一手才重新产帧**。
+
+### 证据文件
+
+```text
+/Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-rich-topic.pb
+  sha256 37591e38aa59cae4b591a44eb161e0f5def54aa58985bfd4c0f9479d9e8ff2f6
+/Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-rich-floor.pb
+  sha256 79011f63df72814197b65ee976387a08473b05bf4b1459e5b5df9adbb0e1b496
+```
+
+对应 `t57-rich-{topic,floor}.mp4` 同目录不进 git；完整窗口、SQL 与计数固化在
+`acceptance/perf/t57-rich-analysis.txt`。本轮进一步支持票 57 保持 **reopened**。
