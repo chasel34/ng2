@@ -25,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -169,8 +171,21 @@ fun DrawerHost(
       Box(
         Modifier
           .fillMaxSize()
-          // 在 draw 阶段读 progress:每帧只重画,不重组
-          .drawBehind { drawRect(colors.scrim, alpha = state.progress) }
+          // 在 draw 阶段读 progress:每帧只重画,不重组。
+          //
+          // 票 59:**只画面板右缘之外那一条**。面板不透明又画在遮罩之上,左边那一大块
+          // 遮罩每帧都被整个盖掉(开到底时约 74% 面积),纯 overdraw;票 58 裁定第五节
+          // 实测抽屉链每帧 GPU 光栅是 tab 链的 4 倍、p95 已贴住 8.333ms 预算,而单帧
+          // 撑爆预算会把 SF 推进「多压一档 buffer」的粘滞态。几何见 [drawerScrimLeft]。
+          .drawBehind {
+            val left = drawerScrimLeft(state.progress, widthPx, size.width)
+            drawRect(
+              color = colors.scrim,
+              topLeft = Offset(left, 0f),
+              size = Size(size.width - left, size.height),
+              alpha = state.progress,
+            )
+          }
           .clickable(
             interactionSource = remember { MutableInteractionSource() },
             indication = null,
@@ -186,6 +201,11 @@ fun DrawerHost(
           // 在 layer 阶段读 progress:同上,每帧只重放层,不重组
           .graphicsLayer { translationX = -(1f - state.progress) * widthPx }
           .shadow(Elevation.level2)
+          // 面板底色**只在这里画一次**。两件事挂在它上面:
+          // 1. 票 59 的遮罩裁剪成立的前提是「面板整块不透明」(三套配色的 surface
+          //    全是 0xFF…);哪天有人把它改成半透明,遮罩那一刀就要一起撤;
+          // 2. `drawerContent` 因此**不该再铺一层满屏底色** —— 那是同一块 900×2712px
+          //    的不透明填充画两遍(票 59 顺手削掉了 AppDrawerContent 里的那一层)。
           .background(colors.surface)
           .drawerDrag(
             state = state,

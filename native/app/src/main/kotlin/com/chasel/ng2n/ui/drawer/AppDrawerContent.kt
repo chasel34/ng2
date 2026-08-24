@@ -111,10 +111,12 @@ fun AppDrawerContent(
   onAboutLongPress: () -> Unit = {},
 ) {
   val colors = LocalNg2nColors.current
+  // 底色不在这儿画:面板那一层([DrawerHost])已经铺了同一个 `colors.surface`,
+  // 再铺一遍就是同一块 900×2712px 的不透明填充每帧画两遍(票 59;成因见票 58 裁定
+  // 第五节 —— 抽屉链每帧 GPU 光栅是 tab 链的 4 倍,p95 贴着 120Hz 的 8.333ms 预算)。
   Column(
     modifier
       .fillMaxSize()
-      .background(colors.surface)
       .verticalScroll(rememberScrollState()),
   ) {
     accountHeader()

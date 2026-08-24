@@ -107,6 +107,55 @@ class DrawerGestureTest {
     assertFalse(settleDrawerOpen(startProgress = 0f, progress = 0.05f, velocityPxPerMs = slow))
   }
 
+  // ---------------------------------------------------------------- 遮罩几何(票 59)
+
+  /** 富 trace 那台机器的屏宽:1220px。 */
+  private val screen = 1220f
+
+  @Test
+  fun 遮罩左边界跟着面板右缘走() {
+    // 面板右缘 = progress * widthPx;再往左让 1px 给抗锯齿那一列
+    assertEquals(width * 0.5f - 1f, drawerScrimLeft(0.5f, width, screen))
+    assertEquals(width - 1f, drawerScrimLeft(1f, width, screen))
+  }
+
+  @Test
+  fun 开到底时省掉的正是被面板盖住的那块() {
+    // 900px 面板 / 1220px 屏:剩下要画的只有 321px(含 1px 接缝保护)
+    val left = drawerScrimLeft(1f, width, screen)
+    assertEquals(899f, left)
+    assertEquals(321f, screen - left)
+    // 省下来的面积占比 —— 票 58 裁定第五节说的「约 74%」
+    assertTrue(left / screen > 0.73f)
+  }
+
+  @Test
+  fun 刚开始拉出时几乎整屏都要画() {
+    // progress 极小 ⇒ 面板还基本在屏外,遮罩必须从 0 画起(负数要夹住)
+    assertEquals(0f, drawerScrimLeft(0f, width, screen))
+    assertEquals(0f, drawerScrimLeft(0.001f, width, screen))
+  }
+
+  @Test
+  fun 面板比屏还宽时左边界不越过右边界() {
+    // 窄屏(折叠屏外屏 / 分屏)上 300dp 可能比容器还宽,size 不能算成负数
+    val narrow = 600f
+    assertEquals(narrow, drawerScrimLeft(1f, width, narrow))
+    assertTrue(narrow - drawerScrimLeft(1f, width, narrow) >= 0f)
+  }
+
+  @Test
+  fun 容器还没测量出来时不画到屏外() {
+    assertEquals(0f, drawerScrimLeft(1f, width, 0f))
+    assertEquals(0f, drawerScrimLeft(1f, width, -10f))
+  }
+
+  @Test
+  fun progress越界一律夹回0到1() {
+    assertEquals(0f, drawerScrimLeft(-0.5f, width, screen))
+    assertEquals(drawerScrimLeft(1f, width, screen), drawerScrimLeft(1.5f, width, screen))
+  }
+
   @Test
   fun 时长开220关200() {
     assertEquals(220, DrawerGeometry.OPEN_DURATION_MS)

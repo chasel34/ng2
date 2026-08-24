@@ -33,6 +33,16 @@ object DrawerGeometry {
 
   const val OPEN_DURATION_MS = 220
   const val CLOSE_DURATION_MS = 200
+
+  /**
+   * 遮罩左边界往面板底下多吃的那 1px(票 59)。
+   *
+   * 面板靠 `graphicsLayer{translationX}` 平移,右缘落在**小数像素**上,那一列是抗锯齿
+   * 出来的半透明;遮罩自己的 `drawRect` 边界同样抗锯齿。左边界正好切在面板右缘的话,
+   * 这一列的合成结果会从「首页 → 遮罩 → 面板边缘」变成「首页 → 面板边缘」,差一个
+   * 亚像素。往左多画 1px 把它重新压回遮罩底下,代价是少省 1/1220 的面积。
+   */
+  const val SCRIM_SEAM_GUARD_PX = 1f
 }
 
 /** 起手点落在左边缘那一条里吗 —— 落在里面才归抽屉,外面归首页的横滑 pager。 */
@@ -61,6 +71,28 @@ fun shouldClaimDrawerDrag(
 fun drawerProgress(startProgress: Float, dx: Float, widthPx: Float): Float {
   if (widthPx <= 0f) return startProgress
   return (startProgress + dx / widthPx).coerceIn(0f, 1f)
+}
+
+/**
+ * 遮罩**该从哪一列开始画**(px,容器左边界起算)—— 票 59 的 GPU 削减。
+ *
+ * 面板贴左摆、宽 [DrawerGeometry.WIDTH_DP],关着时靠 `translationX = -(1-progress)*width`
+ * 平移出屏,所以它的右缘恒在 `progress * widthPx`。面板底色是 `colors.surface`
+ * (三套配色全是 `0xFF…`,不透明),且**画在遮罩之上** —— 于是 `[0, 面板右缘)` 这一段
+ * 遮罩每一帧都被整个盖掉,是纯 overdraw。
+ *
+ * 票 58 裁定第五节:抽屉链每帧 GPU 光栅是 tab 链的 4 倍(中位 5.3–6.4ms、p95 8.0–8.2ms),
+ * 已经贴着 120Hz 的 8.333ms 预算,而单帧撑爆预算会把 SF 推进「多压一档 buffer」的粘滞态
+ * (整段 trace 里只靠丢帧自愈过一次)。1220px 宽的屏上开到底时面板占 ~900px,
+ * 这一刀省掉约 74% 的整屏 alpha 混合,**且被盖住的区域本来就看不见**。
+ *
+ * @param containerWidthPx 遮罩节点自己的宽(= 屏宽)
+ * @return 左边界,已夹在 `[0, containerWidthPx]`;右边界恒为 `containerWidthPx`
+ */
+fun drawerScrimLeft(progress: Float, widthPx: Float, containerWidthPx: Float): Float {
+  if (containerWidthPx <= 0f) return 0f
+  val panelEdge = progress.coerceIn(0f, 1f) * widthPx
+  return (panelEdge - DrawerGeometry.SCRIM_SEAM_GUARD_PX).coerceIn(0f, containerWidthPx)
 }
 
 /**
