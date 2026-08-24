@@ -26,7 +26,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,6 +75,8 @@ import com.chasel.ng2n.ui.common.StateVariant
 import com.chasel.ng2n.ui.common.TopBar
 import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rememberPagedFlingBehavior
+import com.chasel.ng2n.ui.common.rememberShouldLoadNextPage
 import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.filters.rememberFilterRules
@@ -616,17 +617,15 @@ private fun TopicResults(
   }
 
   val listState = rememberLazyListState()
-  val shouldLoadMore by remember(listState, rows.size) {
-    derivedStateOf {
-      val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-        ?: return@derivedStateOf false
-      last >= listState.layoutInfo.totalItemsCount - 6
-    }
-  }
+  // 票 57:按距离而不是按项数拉下一页
+  val shouldLoadMore by rememberShouldLoadNextPage(listState, rows.size)
   LaunchedEffect(listState, state.hasNextPage, state.loadingNextPage) {
     snapshotFlow { shouldLoadMore }.collect {
       if (it) deps.search.loadNextTopicPage(searchKey)
     }
+  }
+  val flingBehavior = rememberPagedFlingBehavior(listState) {
+    state.hasNextPage || state.loadingNextPage
   }
 
   Column(Modifier.fillMaxSize()) {
@@ -642,6 +641,7 @@ private fun TopicResults(
       state = listState,
       modifier = Modifier.fillMaxSize(),
       contentPadding = PaddingValues(bottom = LIST_TAIL_HEIGHT),
+      flingBehavior = flingBehavior,
     ) {
       items(
         count = rows.size,

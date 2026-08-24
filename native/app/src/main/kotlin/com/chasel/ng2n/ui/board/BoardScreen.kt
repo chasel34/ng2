@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,6 +70,8 @@ import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
+import com.chasel.ng2n.ui.common.rememberPagedFlingBehavior
+import com.chasel.ng2n.ui.common.rememberShouldLoadNextPage
 import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.filters.rememberFilterRules
@@ -422,15 +423,17 @@ private fun TopicListBody(
   }
 
   val listState = rememberLazyListState()
-  // 无限滚动:剩不到一屏就拉下一页(RN 侧 `onEndReachedThreshold={0.6}` 的对应物)
-  val shouldLoadMore by remember(listState, rows.size) {
-    derivedStateOf {
-      val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return@derivedStateOf false
-      last >= listState.layoutInfo.totalItemsCount - 6
-    }
-  }
+  // 无限滚动:剩不到 PREFETCH_SCREENS 屏就拉下一页(RN 侧 `onEndReachedThreshold={0.6}`
+  // 的对应物)。**按距离而不是按项数**是票 57 二轮改的:旧口径「还剩 6 项」在 13k px/s
+  // 下只有约 155ms 余量,而请求往返实测 124–224ms —— fling 会跑到已加载内容的末尾,
+  // 余速被灌进 EdgeEffect,列表当场停死约 430ms(见 [rememberShouldLoadNextPage])
+  val shouldLoadMore by rememberShouldLoadNextPage(listState, rows.size)
   LaunchedEffect(listState, state.hasNextPage, state.loadingNextPage) {
     snapshotFlow { shouldLoadMore }.collect { if (it) onLoadNext() }
+  }
+  // 万一还是跑干了:余速扣住等下一页,不许中段出 overscroll(票 57)
+  val flingBehavior = rememberPagedFlingBehavior(listState) {
+    state.hasNextPage || state.loadingNextPage
   }
 
   PullToRefreshBox(
@@ -444,6 +447,7 @@ private fun TopicListBody(
       state = listState,
       modifier = Modifier.fillMaxSize(),
       contentPadding = PaddingValues(bottom = 70.dp),
+      flingBehavior = flingBehavior,
     ) {
       if (headTid != null) {
         item(key = ListKeys.HEAD, contentType = "head") { HeadRow(onClick = { onOpenHead(headTid) }) }

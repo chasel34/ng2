@@ -40,3 +40,34 @@ class EndReachedTest {
     assertFalse(shouldTurnPageAtEnd(lastVisibleIndex = -1, totalItemsCount = 0, scrolling = false))
   }
 }
+
+/**
+ * 票 57 二轮:翻页要不要走动画([shouldAnimatePageTurn])。
+ *
+ * 一轮把到底翻页挪到静止态之后,富 trace(`t57-rich-floor.pb`)显示 page 3→4 只剩
+ * **一个 18.921ms 的组合帧**,之后 UI 与 RenderThread 双双睡到下一次 ACTION_DOWN ——
+ * app surface 整整 353.979ms 没有新帧,录屏记为 265.9ms「无新内容帧」。
+ * `scrollToPage` 自己不产帧,新的一页又是静止画面,于是「翻页」在时间轴上是一个点
+ * 而不是一段;改成 220ms 的 `animateScrollToPage` 之后这一段才有真实运动。
+ */
+class PageTurnAnimationTest {
+
+  @Test
+  fun `相邻页走动画`() {
+    // 到底自动翻页、页码条点「下一页」都是这一类
+    assertTrue(shouldAnimatePageTurn(fromPage = 2, toPage = 3))
+    assertTrue(shouldAnimatePageTurn(fromPage = 3, toPage = 2), "往回翻同理")
+  }
+
+  @Test
+  fun `跨页跳转不动画`() {
+    // 从第 3 页跳到第 30 页:动画会把中间 27 页一路扫过去,每一页都是一棵要组合的子树
+    assertFalse(shouldAnimatePageTurn(fromPage = 2, toPage = 29))
+    assertFalse(shouldAnimatePageTurn(fromPage = 29, toPage = 2))
+  }
+
+  @Test
+  fun `没换页就没有动画可谈`() {
+    assertFalse(shouldAnimatePageTurn(fromPage = 4, toPage = 4))
+  }
+}
