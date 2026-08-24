@@ -27,13 +27,27 @@ adb shell dumpsys gfxinfo <pkg> framestats > fs.txt
 python3 scripts/perf/analyze_framestats.py fs.txt --source device
 ```
 
-输出:样本规模(Flags!=0 的首帧/窗口变更帧自动剔除)、**app 每帧 CPU**(C5,`HandleInputStart→SwapBuffers`)、
+输出:样本规模、**app 每帧 CPU**(C5,`HandleInputStart→SwapBuffers`)、
 整帧耗时、**丢帧**(C6,`IntendedVsync` 间隔 > `--drop-ms`,默认 13ms=120Hz 口径)、逐阶段均值、最差帧。
 
 选项:`--source device|emulator|unknown`、`--drop-ms`(换刷新率时取 ≈1.5× 帧间隔)、
-`--skip-head-ms`(切掉注入手势起步段)、`--top`。文件参数省略或写 `-` 时读 stdin。
+`--idle-ms`(≥ 该值的空档算静止,不计丢帧,默认 100ms)、`--skip-head-ms`(切掉注入手势起步段)、
+`--top`、`--selftest`(内置回归,标准库,改脚本后跑一下)。文件参数省略或写 `-` 时读 stdin。
 
 列一律按表头名定位——新版 framestats 在 `Flags` 后插了 `FrameTimelineVsyncId`,按下标取列会整体错位(T3)。
+
+### Flags 怎么过滤(票 52)
+
+hwui `FrameInfoFlags` 只有低 4 位是稳定语义:`WindowLayoutChanged=1`、`RTAnimation=2`、
+`SurfaceCanvas=4`、`SkippedFrame=8`。**bit4 及以上是新版本追加的常态位,不代表帧无效**:
+Android 16 / API 36 真机上 bit5(=32)几乎覆盖每一个交互/滚动帧(s3-native 120 帧里 119 帧是 32),
+而同一份 dump 的现代 FrameTimeline 汇总是 6,318 帧 / 1 janky(0.02%)。
+所以脚本按 `Flags & 13`(WindowLayoutChanged|SurfaceCanvas|SkippedFrame)剔除,未知高位一律放行;
+再用「IntendedVsync ≤ HandleInputStart ≤ SwapBuffers ≤ FrameCompleted」兜底,挡掉跳过帧的残留时间戳
+(那种行算出来是负几百毫秒)。旧的 `Flags != 0` 口径在 API 36 上会把整份采样清空。
+
+丢帧只在运动段内算:`IntendedVsync` 间隔 ≥ `--idle-ms` 的空档是「app 没内容要画」,单独列出不计丢帧
+——真机数据里这两类分得很开,卡顿空档 13~60ms,静止空档 ≥100ms(常有几百 ms 到几十秒)。
 
 ## analyze_rec.py — C1 / C10 / C11
 
