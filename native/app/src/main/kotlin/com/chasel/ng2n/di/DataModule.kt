@@ -11,6 +11,8 @@ import androidx.room.Room
 import com.chasel.ng2n.core.net.CredentialSource
 import com.chasel.ng2n.data.account.AccountCrypto
 import com.chasel.ng2n.data.account.AccountStore
+import com.chasel.ng2n.data.account.AccountStoreLog
+import com.chasel.ng2n.data.account.AndroidAccountStoreLog
 import com.chasel.ng2n.data.account.AndroidWebCookieVault
 import com.chasel.ng2n.data.account.KeystoreCrypto
 import com.chasel.ng2n.data.account.WebCookieVault
@@ -27,6 +29,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import java.io.File
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -91,6 +94,10 @@ object DataModule {
   /**
    * 凭证单独一个文件:载荷是 Keystore 加密过的,读写频率与生命周期都跟设置不一样,
    * 混在一起意味着每改一次字号都要重写一遍加密的账号表。
+   *
+   * **票 60**:设置那份坏了当空的重来就行,凭证这份不行 —— 悄悄换成空文件,事后就再也说不清
+   * 「凭证是丢了还是解不开」。所以损坏时先把原文件另存一份 `.corrupt` 再让 DataStore 重建,
+   * 并且一定进 logcat。
    */
   @Provides
   @Singleton
@@ -98,11 +105,19 @@ object DataModule {
   fun provideAccountDataStore(
     @ApplicationContext context: Context,
     @IoScope scope: CoroutineScope,
-  ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
-    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
-    scope = scope,
-    produceFile = { context.preferencesDataStoreFile(AccountStore.FILE_NAME) },
-  )
+    log: AccountStoreLog,
+  ): DataStore<Preferences> {
+    val file = context.preferencesDataStoreFile(AccountStore.FILE_NAME)
+    return PreferenceDataStoreFactory.create(
+      corruptionHandler = ReplaceFileCorruptionHandler { cause ->
+        runCatching { file.copyTo(File("${file.path}.corrupt"), overwrite = true) }
+        log.warn("凭证文件损坏,已另存 ${file.name}.corrupt 后重建为空表", cause)
+        emptyPreferences()
+      },
+      scope = scope,
+      produceFile = { file },
+    )
+  }
 
   /**
    * 账号表的加解密(票 15 收成接口):真实装是 Android Keystore 的 AES-GCM。
@@ -111,6 +126,15 @@ object DataModule {
   @Provides
   @Singleton
   fun provideAccountCrypto(): AccountCrypto = KeystoreCrypto()
+
+  /**
+   * 凭证读写失败的告警口(票 60)。`AccountStore` 的构造参数上有个 [AccountStoreLog.NONE]
+   * 默认值给 JVM 单测用,但 Hilt 不认默认值 —— 真机这一份必须在这里显式绑上,
+   * 否则 release 上凭证读失败仍旧是一片寂静(票 60 就是这么查了半天查不动的)。
+   */
+  @Provides
+  @Singleton
+  fun provideAccountStoreLog(): AccountStoreLog = AndroidAccountStoreLog()
 }
 
 /**

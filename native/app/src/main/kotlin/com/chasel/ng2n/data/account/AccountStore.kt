@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,7 +37,10 @@ import javax.inject.Singleton
  * - 可同时登录多个,有且仅有一个当前账号;
  * - **每请求现读**:[current] 是 suspend 的,每次都读现值 ——
  *   切号之后**下一个请求**就用新 cookie,在途的那个请求仍归发起它的账号;
- * - 读不到/解不开一律退回空表(游客态),**绝不抛**。
+ * - 读不到/解不开一律退回空表(游客态),**绝不抛**;
+ * - **票 60 补**:「解不开」只影响这一次**读**。密文原样留在盘上,不会被下一次写覆盖掉
+ *   (挪到 `accounts.v1.unreadable` 留证),失败也一定进 logcat(`ng2n-accounts` tag)——
+ *   `install -r` 之后一次读失败就把凭证永久抹掉,是票 60 认定的「不可再犯」项。
  *
  * ## 冷启动(修 P2-04)
  *
@@ -52,7 +56,15 @@ class AccountStore @Inject constructor(
    * 收成构造参数是票 15 加的接缝 —— 见 [AccountCrypto] 的注释。
    */
   private val crypto: AccountCrypto,
+  /**
+   * 失败路径的告警口(票 60)。默认值是给单测的黑洞;app 里由 `di/DataModule.kt` 注入
+   * [AndroidAccountStoreLog] —— Hilt 不认默认值,两边都得有。
+   */
+  private val log: AccountStoreLog = AccountStoreLog.NONE,
 ) : CredentialSource {
+
+  /** 「存档读不出」只在 logcat 里喊一次,别让每一次 DataStore 变更都刷屏。 */
+  private val warnedUnreadable = AtomicBoolean(false)
 
   /** 账号表订阅口。游客态是 [EMPTY_ACCOUNTS]。 */
   val accounts: Flow<AccountsState> = dataStore.data
@@ -60,7 +72,20 @@ class AccountStore @Inject constructor(
       // 存档读不了不该把 app 挡在启动那一步 —— 当游客态起,登录后再写回
       if (cause is IOException) emit(emptyPreferences()) else throw cause
     }
-    .map { prefs -> decodeState(prefs[KEY]) }
+    .map { prefs ->
+      when (val stored = readStored(prefs[KEY])) {
+        is Stored.Readable -> stored.state
+        is Stored.Unreadable -> {
+          if (warnedUnreadable.compareAndSet(false, true)) {
+            log.warn(
+              "账号存档读不出(${stored.reason}),本次按游客态起;密文原样留在盘上,没有清除",
+              null,
+            )
+          }
+          EMPTY_ACCOUNTS
+        }
+      }
+    }
 
   /**
    * 当前账号 uid;游客态是 null。**票 15 加**:按 uid 隔离的缓存/查询键都读它
@@ -94,31 +119,71 @@ class AccountStore @Inject constructor(
     switchTo(next)
   }
 
+  /**
+   * 读—改—写。**票 60 的两条硬规矩**(「装新包丢一次登录态」之后加的):
+   *
+   * 1. **读不出的密文绝不当空表覆盖掉** —— 老写法把 `decodeState` 的「解不开 → 空表」
+   *    直接当成写入基线,于是任何一次解密失败之后的第一次写(切号、登录、甚至改个名字)
+   *    就把那串密文永久抹掉了:本来只是「这次解不开」,写完变成「真的没了」。
+   *    现在原文搬到 [KEY_UNREADABLE] 留证,新表从空表起。
+   * 2. **加密失败不删旧值** —— 老写法 `prefs.remove(KEY)`:Keystore 临时不可用的那一下,
+   *    盘上那份好好的凭证被顺手删了。现在保持原样,只有「本来就是要清空」
+   *    (退光所有账号)时才真删。
+   */
   private suspend fun mutate(transform: (AccountsState) -> AccountsState) {
     dataStore.edit { prefs ->
-      val next = transform(decodeState(prefs[KEY]))
+      val stored = readStored(prefs[KEY])
+      val base = when (stored) {
+        is Stored.Readable -> stored.state
+        is Stored.Unreadable -> {
+          prefs[KEY_UNREADABLE] = stored.blob
+          log.warn(
+            "账号存档读不出(${stored.reason}),这次写入从空表起;" +
+              "原密文已挪到 $KEY_UNREADABLE_NAME 留证,未丢弃",
+            null,
+          )
+          EMPTY_ACCOUNTS
+        }
+      }
+      val next = transform(base)
       val blob = crypto.encrypt(JSON.encodeToString(next).toByteArray(Charsets.UTF_8))
-      if (blob == null) {
-        // Keystore 用不了(极端:密钥被系统清掉且建不出新的)。写不进就只活在内存 ——
-        // 功能还能用,重启后回游客态(RN 版同款降级)
-        prefs.remove(KEY)
-      } else {
-        prefs[KEY] = blob
+      when {
+        blob != null -> prefs[KEY] = blob
+        // 加密失败 + 目标就是空表(退光了):该清就清,不留悬空凭证
+        next.accounts.isEmpty() -> prefs.remove(KEY)
+        // 加密失败 + 还有账号:盘上那份保持原样,这次改动只活在内存里。
+        // 重启后回到上一次成功落盘的状态,而不是回游客态。
+        else -> log.warn("账号表写不进(加密失败),盘上旧存档保持不变", null)
       }
     }
   }
 
   /**
-   * 解密 + 校验。这份 JSON 可能出自旧版本 app,一律当外部输入:
-   * 坏账号剔除、currentUid 不在表里就落到第一个、整串坏掉退回空表。
+   * 盘上那一格的三种结局。**票 60**:老代码把「没存过」和「存了但读不出」都折成同一个
+   * 空表,于是调用方无从知道自己正踩在哪一种上 —— 而这两种的写入语义正好相反
+   * (前者随便写,后者写下去就毁证)。
    */
-  private fun decodeState(blob: String?): AccountsState {
-    if (blob == null) return EMPTY_ACCOUNTS
-    val plain = crypto.decrypt(blob) ?: return EMPTY_ACCOUNTS
+  private sealed interface Stored {
+
+    /** 没存过(游客态),或读回来了。 */
+    data class Readable(val state: AccountsState) : Stored
+
+    /** 有密文但解不开 / 解出来不是合法 JSON。[blob] 是原样的密文,**不许丢**。 */
+    data class Unreadable(val blob: String, val reason: String) : Stored
+  }
+
+  /**
+   * 解密 + 校验。这份 JSON 可能出自旧版本 app,一律当外部输入:
+   * 坏账号剔除、currentUid 不在表里就落到第一个。
+   */
+  private fun readStored(blob: String?): Stored {
+    if (blob == null) return Stored.Readable(EMPTY_ACCOUNTS)
+    val plain = crypto.decrypt(blob)
+      ?: return Stored.Unreadable(blob, "密文解不开(密钥丢失或密文被改)")
     val parsed = runCatching {
       JSON.decodeFromString<AccountsState>(plain.toString(Charsets.UTF_8))
-    }.getOrNull() ?: return EMPTY_ACCOUNTS
-    return sanitizeAccounts(parsed)
+    }.getOrNull() ?: return Stored.Unreadable(blob, "解出来不是合法的账号表 JSON")
+    return Stored.Readable(sanitizeAccounts(parsed))
   }
 
   companion object {
@@ -131,10 +196,19 @@ class AccountStore @Inject constructor(
      * (票 15 的登录态冒烟),而 [KeystoreCrypto] 是 internal。
      */
     fun withKeystore(dataStore: DataStore<Preferences>): AccountStore =
-      AccountStore(dataStore, KeystoreCrypto())
+      AccountStore(dataStore, KeystoreCrypto(), AndroidAccountStoreLog())
 
     /** 换存储结构就换 key,老数据自然作废,不用写迁移。 */
     private val KEY = stringPreferencesKey("accounts.v1")
+
+    /**
+     * 读不出来的那串密文的存放处(票 60)。只写不读:留着是为了「丢了」和「解不开」
+     * 在事后能分开 —— 真机上 `adb shell run-as`(debug)或备份出的
+     * `datastore/ng2n-accounts.preferences_pb` 里,这一格存在即证明数据还在、只是钥匙没了。
+     * 每次覆盖成最近一份,不会长。
+     */
+    const val KEY_UNREADABLE_NAME = "accounts.v1.unreadable"
+    private val KEY_UNREADABLE = stringPreferencesKey(KEY_UNREADABLE_NAME)
 
     private val JSON = Json {
       ignoreUnknownKeys = true

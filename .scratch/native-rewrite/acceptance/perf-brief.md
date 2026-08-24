@@ -18,6 +18,8 @@
   - Baseline Profile:`benchmark` 模块 `useConnectedDevices = true`,先 `./gradlew :app:generateReleaseBaselineProfile`(连真机跑),确认 `app/src/release/generated/baselineProfiles/baseline-prof.txt` 生成后再 `assembleRelease`;装完用 `adb shell cmd package compile -r bg-dexopt com.chasel.ng2.n` 或 `pm dump` 里看 profile 状态,**冷启对比数据(无/有 profile)要记**。
 - 对拍包:RN release 版 `com.chasel.ng2`(真机上已装,若没装用 `eas build` 产物或 `android/` 本地打——问主控),以及 anzong `gov.anzong.androidnga`(只做录屏对拍,不碰其代码)。
 - MIUI 装包:`adb install` 拒装**可调试**APK(`INSTALL_FAILED_USER_RESTRICTED`),release 正常。所有者账号在真机上登录态要保住:**不要卸载**,只 `install -r`。
+- **票 60(必读)**:`generateBaselineProfile` / 任何 `connected*AndroidTest` 跑完,AGP **默认会把被测 app 连同测试 APK 一起卸载**(`android.injected.androidTest.leaveApksInstalledAfterRun` 默认 false)。卸载连 `AndroidKeyStore` 里的 `ng2n.accounts.v1` 密钥一起带走,所有者登录态当场蒸发 —— 2026-08-23 那次「install -r 之后丢登录态」就是这么来的。`native/gradle.properties` 已把这条开关钉成 `true`,**跑采集/连接测试前先确认它还在**;跑完用 `adb shell pm list packages | grep ng2.n` 确认包还在。
+- 登录态出问题时先看日志再下结论:`adb logcat -s ng2n-accounts`。「账号密文解不开(…)」= 数据还在钥匙没了;「Keystore 里没有 ng2n.accounts.v1」= 卸载过。凭证读失败不再静默清空,原密文会留在 `accounts.v1.unreadable`(票 60)。
 
 ## 测量纪律(踩过的坑,别再踩)
 

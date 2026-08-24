@@ -3,6 +3,7 @@ package com.chasel.ng2n.data.account
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import android.util.Log
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -22,6 +23,39 @@ interface AccountCrypto {
 
   /** 反过来;解不开返回 null(调用方退回游客态)。 */
   fun decrypt(blob: String): ByteArray?
+}
+
+/**
+ * 凭证读写路径上的告警口(**票 60 加**)。
+ *
+ * 为什么是接口而不是直接 `android.util.Log`:`AccountStore` 的状态迁移全在 JVM 单测里跑,
+ * 而单测的 `android.util.Log` 是会抛的桩(本工程没开 `unitTests.isReturnDefaultValues`)——
+ * 一旦失败路径上带了日志,那条路径就再也测不了。于是照 [AccountCrypto] 的老规矩收一道接缝:
+ * 真机上是 [AndroidAccountStoreLog],单测里是 [NONE]。
+ *
+ * **绝不打凭证本身**:只打「哪一步失败了、异常是什么类」,uid / cid / 密文一律不进 logcat。
+ */
+fun interface AccountStoreLog {
+
+  fun warn(message: String, cause: Throwable?)
+
+  companion object {
+
+    /** 单测用的黑洞。 */
+    val NONE: AccountStoreLog = AccountStoreLog { _, _ -> }
+  }
+}
+
+/** logcat 里的真实装。tag 固定 [TAG],真机排查时 `adb logcat -s ng2n-accounts` 就够。 */
+class AndroidAccountStoreLog : AccountStoreLog {
+
+  override fun warn(message: String, cause: Throwable?) {
+    if (cause == null) Log.w(TAG, message) else Log.w(TAG, message, cause)
+  }
+
+  companion object {
+    const val TAG = "ng2n-accounts"
+  }
 }
 
 /**
@@ -48,7 +82,11 @@ interface AccountCrypto {
  * 密钥被系统清掉(改锁屏、恢复出厂、备份还原)时 `decrypt` 返回 null,
  * 上层退回空账号表 = 游客态,登录一次就好。**绝不抛到调用方**。
  */
-internal class KeystoreCrypto(private val alias: String = KEY_ALIAS) : AccountCrypto {
+internal class KeystoreCrypto(
+  private val alias: String = KEY_ALIAS,
+  /** 票 60:失败路径必须在 logcat 里留痕,否则 release 上「丢了」和「解不开」分不开。 */
+  private val log: AccountStoreLog = AndroidAccountStoreLog(),
+) : AccountCrypto {
 
   override fun encrypt(plaintext: ByteArray): String? = runCatching {
     val cipher = Cipher.getInstance(TRANSFORMATION)
@@ -56,11 +94,13 @@ internal class KeystoreCrypto(private val alias: String = KEY_ALIAS) : AccountCr
     val iv = cipher.iv
     val body = cipher.doFinal(plaintext)
     Base64.encodeToString(iv + body, Base64.NO_WRAP)
-  }.getOrNull()
+  }.onFailure { log.warn("账号表加密失败(${it.javaClass.simpleName}),本次不落盘", it) }
+    .getOrNull()
 
   override fun decrypt(blob: String): ByteArray? = runCatching {
     val raw = Base64.decode(blob, Base64.NO_WRAP)
-    if (raw.size <= IV_BYTES) return null
+    // 抛而不是 return null:让下面的 onFailure 也能把这一档打进 logcat
+    require(raw.size > IV_BYTES) { "密文长度 ${raw.size} 不足以容纳 IV" }
     val cipher = Cipher.getInstance(TRANSFORMATION)
     cipher.init(
       Cipher.DECRYPT_MODE,
@@ -68,12 +108,19 @@ internal class KeystoreCrypto(private val alias: String = KEY_ALIAS) : AccountCr
       GCMParameterSpec(TAG_BITS, raw, 0, IV_BYTES),
     )
     cipher.doFinal(raw, IV_BYTES, raw.size - IV_BYTES)
+  }.onFailure {
+    // AEADBadTagException = 密钥换了/密文被动过;KeyStoreException / UnrecoverableKeyException
+    // = 别名不在了(卸载重装、恢复出厂)。两者的处置都是「退游客态」,但排查时要分得开。
+    log.warn("账号密文解不开(${it.javaClass.simpleName}),本次按游客态起", it)
   }.getOrNull()
 
   private fun secretKey(): SecretKey {
     val store = KeyStore.getInstance(PROVIDER).apply { load(null) }
     (store.getEntry(alias, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }
 
+    // 别名不在了。正常首登也会走这里,但如果盘上已经有密文,这一行就是「密钥没了、
+    // 数据还在」的实锤 —— 票 60 那次真机登录态丢失,logcat 里本该有的就是它。
+    log.warn("Keystore 里没有 $alias,新建一把;此前存过的账号密文从此解不开", null)
     val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, PROVIDER)
     generator.init(
       KeyGenParameterSpec.Builder(

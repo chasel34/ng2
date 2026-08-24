@@ -1,5 +1,7 @@
 package com.chasel.ng2n.data.account
 
+import androidx.datastore.preferences.core.mutablePreferencesOf
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.chasel.ng2n.core.net.Credential
 import com.chasel.ng2n.core.net.CredentialSource
 import kotlinx.coroutines.flow.first
@@ -9,6 +11,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -144,5 +147,113 @@ class AccountStoreTest {
   fun `游客态下 all 是空表 —— 反封锁链换账号那一档没得换`() = runTest {
     val store = inMemoryAccountStore()
     assertTrue(store.all().isEmpty())
+  }
+
+  // ── 票 60:读不出的存档绝不被写空 ─────────────────────────────────────────────
+
+  /**
+   * 老写法的毁证路径:一次解密失败 → 读成空表 → 下一次写把空表加密回去 →
+   * 那串密文永久没了。现在密文必须原样搬进留证键。
+   */
+  @Test
+  fun `解不开的存档不会被下一次写入覆盖掉 而是挪去留证键`() = runTest {
+    val dataStore = FakePreferencesDataStore(
+      mutablePreferencesOf(stringPreferencesKey("accounts.v1") to CIPHERTEXT),
+    )
+    val store = AccountStore(dataStore, undecryptableCrypto())
+
+    // 读:退游客态(不抛)
+    assertEquals(EMPTY_ACCOUNTS, store.accounts.first())
+    assertNull(store.current())
+
+    // 写:重新登录一次
+    store.upsert(testAccount("1001"))
+
+    val prefs = dataStore.data.first()
+    assertEquals(
+      CIPHERTEXT,
+      prefs[stringPreferencesKey(AccountStore.KEY_UNREADABLE_NAME)],
+      "读不出的原密文必须留证,不能被悄悄丢掉",
+    )
+    assertNotNull(prefs[stringPreferencesKey("accounts.v1")], "新表照样落盘")
+  }
+
+  /** 失败路径要能在 logcat 里看见 —— 单测这一侧只验「告警口确实被叫了」。 */
+  @Test
+  fun `存档读不出时会告警 而不是一声不响`() = runTest {
+    val warnings = mutableListOf<String>()
+    val dataStore = FakePreferencesDataStore(
+      mutablePreferencesOf(stringPreferencesKey("accounts.v1") to CIPHERTEXT),
+    )
+    val store = AccountStore(
+      dataStore,
+      undecryptableCrypto(),
+      { message, _ -> warnings += message },
+    )
+
+    store.accounts.first()
+    store.upsert(testAccount("1001"))
+
+    assertTrue(warnings.size >= 2, "读一条、写一条,都要有:$warnings")
+    assertTrue(warnings.all { "读不出" in it })
+  }
+
+  /**
+   * 加密失败(Keystore 临时不可用)时,盘上那份好好的凭证不许被删 ——
+   * 老写法在这一档 `prefs.remove(KEY)`,等于「写不进就把已有的也毁了」。
+   */
+  @Test
+  fun `加密失败时盘上旧存档保持不变 不再被删掉`() = runTest {
+    val dataStore = FakePreferencesDataStore()
+    val good = PassThroughCrypto()
+    AccountStore(dataStore, good).upsert(testAccount("1001"))
+    val onDisk = dataStore.data.first()[stringPreferencesKey("accounts.v1")]
+    assertNotNull(onDisk)
+
+    // Keystore 忽然写不了(读还正常)
+    val flaky = object : AccountCrypto {
+      override fun encrypt(plaintext: ByteArray): String? = null
+      override fun decrypt(blob: String): ByteArray? = good.decrypt(blob)
+    }
+    val store = AccountStore(dataStore, flaky)
+    store.upsert(testAccount("1002"))
+
+    assertEquals(
+      onDisk,
+      dataStore.data.first()[stringPreferencesKey("accounts.v1")],
+      "写不进就保持原样,重启后回到上一次成功落盘的账号,而不是游客态",
+    )
+    // 换个实例重读(= 冷启动):1001 还在
+    assertEquals(Credential("1001", "cid-1001"), AccountStore(dataStore, good).current())
+  }
+
+  /** 但「本来就是要退光」时该清就清,不留悬空凭证。 */
+  @Test
+  fun `加密失败但目标是空表时照样清干净`() = runTest {
+    val dataStore = FakePreferencesDataStore()
+    val good = PassThroughCrypto()
+    AccountStore(dataStore, good).upsert(testAccount("1001"))
+
+    val flaky = object : AccountCrypto {
+      override fun encrypt(plaintext: ByteArray): String? = null
+      override fun decrypt(blob: String): ByteArray? = good.decrypt(blob)
+    }
+    AccountStore(dataStore, flaky).remove("1001")
+
+    assertNull(dataStore.data.first()[stringPreferencesKey("accounts.v1")])
+    assertNull(AccountStore(dataStore, good).current())
+  }
+
+  private companion object {
+
+    const val CIPHERTEXT = "这串是解不开的密文"
+
+    /** 密钥没了的那一档:写得进(新钥匙),读不出(旧密文)。 */
+    fun undecryptableCrypto(): AccountCrypto = object : AccountCrypto {
+      private val passThrough = PassThroughCrypto()
+      override fun encrypt(plaintext: ByteArray): String? = passThrough.encrypt(plaintext)
+      override fun decrypt(blob: String): ByteArray? =
+        if (blob == CIPHERTEXT) null else passThrough.decrypt(blob)
+    }
   }
 }
