@@ -51,6 +51,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.filters.rememberFilterRules
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
@@ -228,6 +229,7 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
           // 翻下一页时不要亮:不然底部转圈会连带把顶部也拽出来
           isRefreshing = state.refreshing && !state.loadingNextPage,
           onRefresh = { scope.launch { deps.topicFavorites.refreshTopics(uid, folder.id) } },
+          state = rememberListPullToRefreshState(),
           modifier = Modifier.fillMaxSize(),
         ) {
           LazyColumn(

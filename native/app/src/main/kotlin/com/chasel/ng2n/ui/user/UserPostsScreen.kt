@@ -53,6 +53,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.Navigator
@@ -194,6 +195,7 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
       else -> PullToRefreshBox(
         isRefreshing = state.refreshing && !state.loadingNextPage,
         onRefresh = { scope.launch { deps.userPosts.refresh(postsKey) } },
+        state = rememberListPullToRefreshState(),
         modifier = Modifier.fillMaxSize(),
       ) {
         LazyColumn(

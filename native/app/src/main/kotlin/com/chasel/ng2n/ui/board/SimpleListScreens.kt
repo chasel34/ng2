@@ -48,6 +48,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.filters.rememberFilterRules
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.BoardKey
@@ -162,6 +163,7 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       else -> PullToRefreshBox(
         isRefreshing = state.refreshing,
         onRefresh = { scope.launch { deps.hotTopics.refresh(hotKey) } },
+        state = rememberListPullToRefreshState(),
         modifier = Modifier.fillMaxSize(),
       ) {
         LazyColumn(
@@ -278,6 +280,7 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       else -> PullToRefreshBox(
         isRefreshing = state.refreshing && !state.loadingNextPage,
         onRefresh = { scope.launch { deps.topicLists.refresh(listKey) } },
+        state = rememberListPullToRefreshState(),
         modifier = Modifier.fillMaxSize(),
       ) {
         LazyColumn(

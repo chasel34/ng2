@@ -59,6 +59,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
@@ -228,6 +229,7 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
       PullToRefreshBox(
         isRefreshing = pullable && cloud.refreshing,
         onRefresh = { if (pullable) scope.launch { deps.filters.refreshBlockWords() } },
+        state = rememberListPullToRefreshState(),
         modifier = Modifier.fillMaxSize(),
       ) {
         LazyColumn(

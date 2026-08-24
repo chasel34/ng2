@@ -41,7 +41,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -70,6 +69,7 @@ import com.chasel.ng2n.core.local.filterMatchText
 import com.chasel.ng2n.data.account.AccountsState
 import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.ui.bbcode.HotRepliesSection
+import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.favorites.FavoriteFolderDialog
 import com.chasel.ng2n.ui.rememberAppDeps
@@ -531,7 +531,7 @@ private fun TopicPageView(
         refreshing = true
         vm.refresh(page)
       },
-      state = rememberPullToRefreshState(),
+      state = rememberListPullToRefreshState(),
       modifier = Modifier.fillMaxSize(),
     ) { content() }
   } else {
@@ -647,13 +647,31 @@ private fun EndReachedReporter(vm: TopicViewModel, listState: LazyListState, cou
     derivedStateOf {
       val info = listState.layoutInfo
       val last = info.visibleItemsInfo.lastOrNull() ?: return@derivedStateOf false
-      val total = info.totalItemsCount
-      // 末尾那一项(footer)进视口就算到底
-      last.index >= total - 1
+      shouldTurnPageAtEnd(
+        lastVisibleIndex = last.index,
+        totalItemsCount = info.totalItemsCount,
+        scrolling = listState.isScrollInProgress,
+      )
     }
   }
   LaunchedEffect(reached) { if (reached) vm.onReachedEnd() }
 }
+
+/**
+ * 到底了、可以翻下一页了吗。
+ *
+ * 「末尾那一项(footer)进视口」是到底判据;**[scrolling] 这一条是票 57 加的**:
+ * `vm.onReachedEnd()` 走的是 [TopicViewModel.goToPage] → `pagerState.scrollToPage()`,
+ * 那是一次**瞬时**换页 —— 新的一页是另一棵子树、另一个 `LazyListState`,偏移从 0 开始。
+ * footer 只要露头就翻的话,快甩时这一发落在 fling 中段:纵向动量当场丢光,视口跳到
+ * 新页顶部,再叠上新页楼层的组合与图片解码,真机上就是「滚着滚着停 0.4~0.5s」
+ * (票 57 楼层流 fixed-2:2.60s 页码条还在 4,2.90s 已经是 5,中间约 0.43s 静止)。
+ *
+ * 等这一把滚停了再翻,fling 能完整跑到本页页尾,换页发生在静止态 —— 内容一样自动来,
+ * 但不会从中间掐断速度。手指还按着(`isScrollInProgress` 也为真)时同理:抬手落定再翻。
+ */
+fun shouldTurnPageAtEnd(lastVisibleIndex: Int, totalItemsCount: Int, scrolling: Boolean): Boolean =
+  !scrolling && totalItemsCount > 0 && lastVisibleIndex >= totalItemsCount - 1
 
 /**
  * FAB 及其展开菜单(设计稿 isArticle 256 / 261 行:动作列走 omup `.18s`,
