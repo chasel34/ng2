@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,6 +53,8 @@ import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
+import com.chasel.ng2n.ui.common.rememberPagedFlingBehavior
+import com.chasel.ng2n.ui.common.rememberShouldLoadNextPage
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.Navigator
@@ -130,15 +131,13 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
   }
 
   val listState = rememberLazyListState()
-  val shouldLoadMore by remember(listState, state.topics.size) {
-    derivedStateOf {
-      val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-        ?: return@derivedStateOf false
-      last >= listState.layoutInfo.totalItemsCount - 6
-    }
-  }
+  // 票 57:按距离而不是按项数拉下一页
+  val shouldLoadMore by rememberShouldLoadNextPage(listState, state.topics.size)
   LaunchedEffect(listState, state.hasNextPage, state.loadingNextPage) {
     snapshotFlow { shouldLoadMore }.collect { if (it) deps.userPosts.loadNextPage(postsKey) }
+  }
+  val flingBehavior = rememberPagedFlingBehavior(listState) {
+    state.hasNextPage || state.loadingNextPage
   }
 
   Column(modifier.fillMaxSize().background(colors.bg)) {
@@ -202,6 +201,7 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
           state = listState,
           modifier = Modifier.fillMaxSize(),
           contentPadding = PaddingValues(bottom = 26.dp),
+          flingBehavior = flingBehavior,
         ) {
           items(
             count = state.topics.size,

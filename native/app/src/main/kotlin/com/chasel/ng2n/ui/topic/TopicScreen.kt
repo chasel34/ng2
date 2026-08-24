@@ -1,6 +1,7 @@
 package com.chasel.ng2n.ui.topic
 
 import com.chasel.ng2n.ui.common.ListKeys
+import com.chasel.ng2n.ui.common.Motion
 import com.chasel.ng2n.ui.nav.TopicKey
 import com.chasel.ng2n.ui.nav.ChainKey
 import com.chasel.ng2n.ui.nav.UserKey
@@ -79,6 +80,7 @@ import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.LocalTextScale
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
+import kotlin.math.abs
 import kotlinx.coroutines.flow.first
 
 /** 楼层流与横滑翻页请求的刷新率(Hz)。120Hz 屏上把这两面钉在满帧档。 */
@@ -391,10 +393,20 @@ private fun TopicPager(vm: TopicViewModel, actions: FloorActions, nav: Navigator
     pageCount = { pagerPageCount(vm.totalPages, vm.page) },
   )
 
-  // 外部换页(页码条 / 跳页 / 自动翻页)→ 把 pager 挪过去
+  // 外部换页(页码条 / 跳页 / 自动翻页)→ 把 pager 挪过去。
+  // **相邻页走动画**(票 57 二轮,见 [shouldAnimatePageTurn]);跨页跳转仍是瞬时的。
   LaunchedEffect(vm.page) {
     val target = (vm.page - 1).coerceIn(0, pagerPageCount(vm.totalPages, vm.page) - 1)
-    if (pagerState.currentPage != target) pagerState.scrollToPage(target)
+    val from = pagerState.currentPage
+    if (from == target) return@LaunchedEffect
+    if (shouldAnimatePageTurn(from, target)) {
+      pagerState.animateScrollToPage(
+        page = target,
+        animationSpec = tween(Motion.DURATION_PANEL, easing = Motion.easeDecelerate),
+      )
+    } else {
+      pagerState.scrollToPage(target)
+    }
   }
   // 横滑松手 → 停稳后才换数据
   LaunchedEffect(pagerState) {
@@ -672,6 +684,25 @@ private fun EndReachedReporter(vm: TopicViewModel, listState: LazyListState, cou
  */
 fun shouldTurnPageAtEnd(lastVisibleIndex: Int, totalItemsCount: Int, scrolling: Boolean): Boolean =
   !scrolling && totalItemsCount > 0 && lastVisibleIndex >= totalItemsCount - 1
+
+/**
+ * 这一次换页要不要走动画。
+ *
+ * **票 57 二轮**:一轮把「到底翻页」挪到静止态之后,富 trace(`t57-rich-floor.pb`)
+ * 显示 page 3→4 只剩**一个 18.921ms 的组合帧**,之后 UI 与 RenderThread 双双睡到
+ * 下一次 ACTION_DOWN —— app surface 整整 353.979ms 没有新帧,录屏侧记为 265.9ms
+ * 「无新内容帧」,正是验收 C1 的第二条闸。`scrollToPage` 是瞬时换页:它自己不产帧,
+ * 新的一页又是静止画面,于是「翻页」在时间轴上是一个点而不是一段。
+ *
+ * 相邻页改走 `animateScrollToPage`(220ms,与设计稿横滑回弹同一档
+ * [Motion.DURATION_PANEL] / [Motion.easeDecelerate]),那 220ms 里 pager 每帧都在推进
+ * 横向偏移 —— 空洞被真实运动填掉,而且这是 `MutatePriority.Default` 的动画,
+ * 手指一按就被 `UserInput` 抢走,不会和横滑打架。
+ *
+ * **跨页跳转不能动画**:页码条/跳页从第 3 页跳到第 30 页,动画会把中间 27 页一路扫过去
+ * (每一页都是一棵要组合的子树),那才是真的卡。所以只有 ±1 走动画。
+ */
+fun shouldAnimatePageTurn(fromPage: Int, toPage: Int): Boolean = abs(toPage - fromPage) == 1
 
 /**
  * FAB 及其展开菜单(设计稿 isArticle 256 / 261 行:动作列走 omup `.18s`,

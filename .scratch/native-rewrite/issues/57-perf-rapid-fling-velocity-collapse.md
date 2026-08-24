@@ -1,6 +1,6 @@
 # 57 — P1:连续快甩时滚动速度塌陷/停滞
 
-**Status:** reopened
+**Status:** resolved
 
 **Severity:** P1（用户可感知，主题列表稳定复现；楼层流可放大成数百毫秒停滞）
 
@@ -457,3 +457,161 @@ app surface 的完整无帧间隔为 353.979ms，录屏与其重叠的无新内�
 
 对应 `t57-rich-{topic,floor}.mp4` 同目录不进 git；完整窗口、SQL 与计数固化在
 `acceptance/perf/t57-rich-analysis.txt`。本轮进一步支持票 57 保持 **reopened**。
+
+## 二轮修复(2026-08-24)
+
+一轮的两处改动都是真缺陷、都保留;但**都不是这张票的根因**。二轮拿
+`t57-rich-{topic,floor}.pb` 用 trace_processor 逐帧重查,把两屏的因果各自钉死了。
+
+### 先给 `ListPullToRefresh` 摘帽(有实锤)
+
+一轮把 material3 的 `PullToRefreshBox` 当主嫌。读 `PullToRefresh.kt`(1.4.0)与
+`Scrollable.kt`(foundation 1.12.0)源码可以直接排掉它**在 fling 路径上**的嫌疑:
+
+- `doFlingAnimation` 里滚动增量是以 `source = NestedScrollSource.SideEffect` 派发的,
+  而 `PullToRefreshModifierNode.onPreScroll` / `onPostScroll` 两个 `when` 的消费分支
+  都写死 `source == NestedScrollSource.UserInput` —— **fling 期间两个回调一律
+  `Offset.Zero` 原样放行**,不存在「吞掉 available」;
+- `onPreFling` → `onRelease` 在 `distancePulled == 0f` 时 `consumed = 0f`,也不吞速度;
+- 一轮把 `animateToHidden()` / `snapTo()` 改成「本来就归零时同步返回」之后,
+  连那条 `MutationInterruptedException` 取消整个 fling 协程的路也断掉了。
+
+全仓 grep `nestedScroll` / `overscroll` / `NestedScrollConnection`:除
+`ListPullToRefresh.kt` 的注释外**零命中** —— app 侧没有第二个 nested-scroll 或
+overscroll 注册点。所以「中段 overscroll」不可能来自 app 自己挂的连接器。
+
+### 根因(主题列表):fling 跑到**已加载内容**的末尾,余速被灌进 EdgeEffect
+
+Compose 的既定链路,一环扣一环:
+
+1. `LazyListState.onScroll` 第一行:`if (distance < 0 && !canScrollForward …) return 0f`;
+2. `DefaultFlingBehavior.performFling` 的 `animateDecay` 回调:
+   `if (abs(delta - consumed) > 0.5f) this.cancelAnimation()`,并把
+   **没跑完的速度**当返回值交出去 —— 这就是富 trace 里「`Recomposer:animation` /
+   `Compose:recompose` / measure 在塌陷窗内全部为 0」的原因:**fling animator 真的死了**;
+3. `ScrollingLogic.onScrollStopped` 把它算进 `leftForOverscroll`;
+4. `AndroidEdgeEffectOverscrollEffect.applyToFling` 末尾一发
+   `getOrCreateBottomEffect().onAbsorbCompat(...)`,把这份速度**吸进 EdgeEffect**;
+5. stretch 的回弹只改 `redrawSignal`(`mutableStateOf` + `neverEqualPolicy`,只在
+   `StretchOverscrollNode.draw()` 里被读)——**只触发重绘,不触发重组/重测**。
+   于是接下来约 430ms:UI traversal + RT 照常约 120Hz 出帧、FrameTimeline 23 帧全 on-time、
+   janky 0,但列表一动不动。
+
+这正好把富 trace 那张表的每一个数字解释干净:
+
+| 指标 | 塌陷窗 3,928–4,121ms | 为什么 |
+|---|---:|---|
+| `Recomposer:animation` / `Compose:recompose` | 0 / 0 | fling animator 已被 `cancelAnimation()` |
+| AndroidOwner measure/layout | 0 | 列表不再滚,不需要重测 |
+| `AndroidEdgeEffectOverscrollEffect` RT 帧 | 24 | stretch 的 `onAbsorb` 回弹动画在跑 |
+| UI traversal / draw | 23 / 23 | `redrawSignal` 每帧触发一次重绘 |
+| app surface actual frames | 23,0 jank | 只重绘不重测,当然不 jank |
+| UI Running 43.4 → 14.5ms | ↓ | measure/layout 全没了 |
+| RT Running 39.0 → 43.2ms | ↑ | 多了一层 `RenderNode("AndroidEdgeEffectOverscrollEffect")` + RenderEffect |
+| 录屏位移 0 / 约 0.5k px/s | — | 不是列表在滚,是 stretch 在回弹(亚像素蠕动) |
+
+**为什么 EdgeEffect 出现在列表「中段」**:那不是列表的末尾,是**已加载内容**的末尾。
+`t57-rich-topic.pb` 里四次塌陷各自有一对配套事件:
+
+| 请求发出(A 帧) | 数据落地(B 帧) | 往返 | stretch 起点 |
+|---:|---:|---:|---:|
+| 3,786.2ms | 3,919.1ms | 132.9ms | 3,923.7ms(52 帧 / 422.0ms) |
+| 4,801.5ms | 5,025.8ms | 224.4ms | 4,918.2ms(53 帧 / 433.4ms) |
+| 5,691.2ms | 5,815.7ms | 124.6ms | 5,808.7ms(53 帧 / 432.3ms) |
+| 6,589.5ms | 6,714.2ms | 124.7ms | 6,723.0ms(43 帧 / 349.8ms) |
+
+A 帧的特征是 `recompose×11–13 + applyChanges + Compose:sideeffects`(`shouldLoadMore`
+点亮 → `LaunchedEffect` 重启 → 发请求);B 帧多出 `onRemembered×3 / onForgotten×2 /
+TextLayout:initLayout×8`(新一页的行真的被组合出来)。同一帧里 `animation` 在
+`Recomposer:recompose` **之前**跑 —— fling 那一下 `scrollBy` 看到的还是旧的、已经见底的
+列表,所以「新页到了」和「fling 死了」同帧发生。
+
+三条独立旁证:
+
+- **prefetch 断流**。`compose:lazy:prefetch:compose` 在四次塌陷前分别空了
+  69.8 / 172.0 / 61.3 / 57.2ms —— 那几十毫秒里列表明明还在滚(每帧都有
+  `animation + measureAndLayout`),却**没有下一项可以预取**,因为后面真的没有项了;
+- **`execute:urgent`**。4,295.7ms 与 6,666.1ms 各有一次
+  `compose:lazy:prefetch:execute:urgent`,即滚得比预取还快;
+- **节律**。四次塌陷落在第 4、6、8、10 手 —— 每两手一页。按录屏
+  13k px/s、行高约 330px、一手约吃 13 行算,一页约 26–30 行,正好两手一页。
+
+**一轮那条「不是内容耗尽」的结论要撤回一半**。它是对的那一半:塌陷当帧确实**不是整个
+列表的末尾**(还有下一页,`LoadingFooter` 也未必在场 —— 请求刚发出的头一帧
+`loadingNextPage` 还没翻,而且截图取的是另一份样本 `fixed-3`)。它错的那一半是把
+「不是列表末尾」当成了「内容没耗尽」:耗尽的是**这一刻已加载的那些行**,而
+`LazyListState.canScrollForward` 只认已加载的行 —— 对 fling 来说,已加载内容的末尾和
+真正的末尾是同一堵墙。
+
+旧判据 `last >= totalItemsCount - 6`:6 行约 2,000px,在 13k px/s 下只有约 155ms 余量,
+而实测往返 124–224ms —— **是个抛硬币**,这一轮 5 次抛输了 4 次(第 5 次是 3,158ms 那
+5 帧的小 stretch)。一轮的 `shouldTurnPageAtEnd` 与 `ListPullToRefresh` 都动不到这条链,
+所以复验照旧复现。
+
+### 根因(楼层流):瞬时换页本身不产帧
+
+一轮把翻页挪到静止态之后,`t57-rich-floor.pb` 的 page 3→4 是:
+
+- 3,599.957ms ACTION_UP;fling 只跑到 3,623.6ms(列表已在本页页尾,`isScrollInProgress` 落下);
+- 3,632.023ms 一个 **18.921ms** 的 doFrame(`recompose×13`、`initLayout×78` = 整页组合);
+- 3,651.504ms 最后一个 app frame,之后 UI 睡 333.420ms、RT 睡 334ms;
+- 3,991.677ms 下一次 ACTION_DOWN,4,005.483ms 才有下一帧。
+
+app surface 空 353.979ms,录屏侧记 265.900ms「无新内容帧」。原因不是重活也不是背压:
+`scrollToPage` 是瞬时换页,**它自己不产帧**,而新的一页是静止画面 —— 翻页在时间轴上
+是一个点,不是一段。
+
+### 改动
+
+- 新增 `ui/common/PagedList.kt`:
+  - `shouldLoadNextPage()` / `rememberShouldLoadNextPage()`——拉页判据从「还剩 6 项」
+    换成**按距离**的「还剩不到 `PREFETCH_SCREENS = 2.5` 屏」。真机口径下是约 5,825px /
+    约 390ms 余量,对同一批 124–224ms 往返有 1.7–3 倍安全系数(旧口径只有约 155ms)。
+    量不出行高/视口时退回 `MIN_ITEMS_AHEAD = 6` 的老口径。
+  - `flingHandoff()` / `PagedFlingBehavior` / `rememberPagedFlingBehavior()`——
+    **余速的消费约定**:跑完了交还 0;前向还能滚(顶边到头等)原样交还;
+    真到底(没有下一页)原样交还 —— **真边缘的 overscroll 一点不改**;
+    只有「前向暂时滚不动 + 下一页还在路上」才扣住余速,`snapshotFlow` 等
+    `canScrollForward` 转真(封顶 `FLING_CONTENT_WAIT_MS = 250ms`、
+    `MAX_FLING_RESUMES = 3`),然后把**原速度**接着跑完。等待期间手指按下会以
+    `MutatePriority.UserInput` 取消整条协程,交接是标准路径。超时也返回 0 ——
+    宁可少一次视觉反馈,也不要那 430ms「有帧、120Hz、内容不动」。
+- 五处分页列表(版块主题列表、精华区、收藏主题、他的主题/回复、搜索结果)统一换成
+  `rememberShouldLoadNextPage` + `flingBehavior = rememberPagedFlingBehavior(...)`。
+- `ui/topic/TopicScreen.kt`:外部换页从无条件 `scrollToPage` 改成
+  **相邻页走 `animateScrollToPage`**(`tween(Motion.DURATION_PANEL = 220ms,
+  Motion.easeDecelerate)`,与设计稿横滑回弹同一档),跨页跳转仍瞬时 ——
+  新判据 `shouldAnimatePageTurn(from, to) = abs(to - from) == 1`。
+  从第 3 页跳到第 30 页时动画会把中间 27 棵子树一路扫过去,那才是真的卡。
+  动画跑在 `MutatePriority.Default` 上,手指一按就被 `UserInput` 抢走,不与横滑打架。
+  新页数据未就绪时 `TopicPageView` 本来就画 `PageSkeleton`(不会黑/白帧),
+  `beyondViewportPageCount = 1` 预渲染相邻页,`TopicViewModel.onPageLoaded` 也已经
+  `ensureLoaded(target + 1)` 预取下一页 —— 这三条二轮不用改。
+- 一轮的 `ListPullToRefresh` 与 `shouldTurnPageAtEnd` **都保留**:前者消掉了每次松手
+  白等一帧 + 每个滚动帧一次 `MutatorMutex.mutate`,后者保证翻页不打断 fling ——
+  两条都是真收益,只是都不是本票的根因。
+
+### 单测
+
+- `ui/common/PagedListTest.kt`(12 例):拉页判据的四档(两屏半内/外、退回项数口径、
+  空列表),「新口径必须比旧的六项口径早、且余量覆盖 224ms 往返的 1.5 倍」的量化断言,
+  以及 `flingHandoff` 的完整消费约定(跑完 / 真到底 YIELD / 顶边 YIELD / 临时见底 HOLD /
+  接力上限),外加两例把 `PagedFlingBehavior` 的接线跑通。
+- `ui/topic/EndReachedTest.kt` 追加 `PageTurnAnimationTest`(3 例):相邻页动画、
+  跨页不动画、同页不动。
+
+`./gradlew :app:assembleDebug :app:testDebugUnitTest` 绿。
+
+### 复验怎么判
+
+按票面验收期望重跑固定节奏。修复的可证伪点很具体:
+
+- 主题列表塌陷窗内**不该再有** `drawLayer [AndroidEdgeEffectOverscrollEffect]` 的 RT 帧
+  (除非真滚到了整个列表的末尾);
+- `compose:lazy:prefetch:compose` 不该再出现几十毫秒的断流;
+- 楼层流 page N→N+1 应有约 220ms 的连续横向运动帧,而不是一个 18.9ms 的点。
+
+若主题列表仍有同量级塌陷且 trace 里**没有** EdgeEffect 帧,那就是另一条路,
+按一轮留的口径把 RN 同轮对照一起交上来。
+
+**待真机复验。**
