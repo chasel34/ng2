@@ -4,7 +4,8 @@
 
 帧间 dt(按 pts)+ 下采样灰度差分:
   「停格」= 运动窗口内的 dt 大洞;「内容突现」= 灰度 diff 爆点;
-  静止画面的出帧空洞【不算缺陷】——只在运动窗口内判。
+  静止画面的出帧空洞【不算缺陷】——只在运动窗口内判,且**不含窗口的第一个 dt**
+  (那一格跨的是「最后一帧静止画面 → 动画首帧」,即点击到起步的延迟,见票 53)。
 
 采样:
     adb shell screenrecord --time-limit 8 /sdcard/rec.mp4 &
@@ -87,11 +88,26 @@ def main():
           % (len(windows), int(moving.sum()), len(diff), mid))
 
     stall_ms = a.stall * base * 1000
-    stalls, idle = [], 0
+    # 每个运动窗口的**第一个 dt** 不是停格:它跨的是「最后一帧静止画面 → 动画第一帧」,
+    # 也就是点击到动画起步的延迟,期间屏幕一动不动(票 53)。
+    #
+    # screenrecord 是 VFR,画面不变就不出帧;而真机点一下会把屏幕顶到 120Hz 保持
+    # 约 600ms(touch boost),boost 退了就彻底停帧。于是每个「点击 → 动画」都在
+    # 动画首帧前留一个 60–210ms 的空洞——原生 / RN / anzong 三个包全都有,量的是
+    # `adb shell input tap` 的到达延迟,不是动画卡了。
+    #
+    # 它算不算进窗口只差一帧:boost 退出后恢复的第一帧若恰好已是动画首帧,窗口就从
+    # 空洞那一格起算,空洞被误判成停格;若恢复的第一帧还是静止画面(动画晚一个 vsync
+    # 起步),空洞就落在窗口外。票 53 原生 21 处 / anzong 0 处的差距全部来自这一帧,
+    # 两边的动画本身 max dt 分别是 17.7ms 与 13.8ms,没有可见差。
+    starts = {s for s, _ in windows}
+    stalls, idle, leads = [], 0, []
     for i, d in enumerate(dt):
         if d * 1000 <= stall_ms:
             continue
-        if any(s <= i <= e for s, e in windows):
+        if i in starts:
+            leads.append((i, d * 1000))
+        elif any(s <= i <= e for s, e in windows):
             stalls.append((i, d * 1000))
         else:
             idle += 1
@@ -101,6 +117,11 @@ def main():
         print("    t=%.3fs  dt=%.1f ms(≈%.1f 帧)" % (ts[i], d, d / 1000 / base))
     if len(stalls) > 10:
         print("    ... 另有 %d 处" % (len(stalls) - 10))
+    print("  动画起步前的静止空洞 %d 处【同属静止画面,不算缺陷】" % len(leads))
+    if leads:
+        print("    %.1f–%.1f ms,中位数 %.1f ms"
+              % (min(d for _, d in leads), max(d for _, d in leads),
+                 float(np.median([d for _, d in leads]))))
 
     pops = [(i, v) for i, v in enumerate(diff) if mid > 0 and v > a.pop * mid]
     print("\n== 内容突现(判据 C11:灰度 diff > %.1f× 运动中位数 = %.1f)==" % (a.pop, a.pop * mid))
