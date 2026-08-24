@@ -1,0 +1,149 @@
+--------- beginning of system
+08-24 22:13:31.177  8490  8490 I MIUIInput: [KeyEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', KeyEvent { action=ACTION_UP, keyCode=KEYCODE_MOVE_HOME, scanCode=0, metaState=0, flags=0x0, repeatCount=0, eventTime=286532264000000, downTime=286532254000000, deviceId=-1, source=0x0, displayId=-1 }, phoneEventTime=1787580811176
+08-24 22:13:33.551  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286534637, downTime=286534637, phoneEventTime=1787580813549 } moveCount:0
+08-24 22:13:33.552  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:13:33.652  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286534739, downTime=286534637, phoneEventTime=1787580813651 } moveCount:11
+--------- beginning of main
+08-24 22:13:33.859  8490 28788 I SkJpegCodec: [mId: 130] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:33.859  8490 28788 I SkJpegCodec: [mId: 130] skia-debug SkJpegCodec::ReadHeader: width = 180, height = 159, color = 10
+08-24 22:13:33.859  8490 28788 I SkJpegCodec: [mId: 130] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 0, streamType: SkFILEStream
+08-24 22:13:33.859  8490 28788 D HWUI    : ImageDecoder_nDecodeBitmap: width = 155, height = 137, encodedFormat = 3
+08-24 22:13:33.859  8490 28788 I SkJpegCodec: [mId: 130] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 720, 
+08-24 22:13:33.859  8490 28788 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 180, Dimensions.height = 159};
+08-24 22:13:33.859  8490 28788 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for small resolution
+08-24 22:13:33.859  8490 28788 I SkJpegCodec: [mId: 130] skia-debug SkJpegCodec::onGetPixels ends with rowsDecodec = 159
+08-24 22:13:33.860  8490 28788 I SkJpegCodec: [mId: 130] skia-debug onGetGainmapInfo returns false
+08-24 22:13:33.862  8490 28788 W HWUI    : Image decoding logging dropped!
+08-24 22:13:33.986  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286535073, downTime=286535073, phoneEventTime=1787580813985 } moveCount:0
+08-24 22:13:33.987  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:13:34.092  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286535179, downTime=286535073, phoneEventTime=1787580814091 } moveCount:12
+08-24 22:13:34.323  8490 28788 I SkJpegCodec: [mId: 131] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:34.323  8490 28788 I SkJpegCodec: [mId: 131] skia-debug SkJpegCodec::ReadHeader: width = 180, height = 180, color = 10
+08-24 22:13:34.323  8490 28788 I SkJpegCodec: [mId: 131] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 0, streamType: SkFILEStream
+08-24 22:13:34.323  8490 28788 D HWUI    : ImageDecoder_nDecodeBitmap: width = 137, height = 137, encodedFormat = 3
+08-24 22:13:34.323  8490 28788 I SkJpegCodec: [mId: 131] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 720, 
+08-24 22:13:34.323  8490 28788 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 180, Dimensions.height = 180};
+08-24 22:13:34.323  8490 28788 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for small resolution
+08-24 22:13:34.324  8490 28788 I SkJpegCodec: [mId: 131] skia-debug SkJpegCodec::onGetPixels ends with rowsDecodec = 180
+08-24 22:13:34.325  8490 28788 I SkJpegCodec: [mId: 131] skia-debug onGetGainmapInfo returns false
+08-24 22:13:34.327  8490 28788 W HWUI    : Image decoding logging dropped!
+08-24 22:13:34.429  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286535514, downTime=286535514, phoneEventTime=1787580814426 } moveCount:0
+08-24 22:13:34.429  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:13:34.527  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286535614, downTime=286535514, phoneEventTime=1787580814527 } moveCount:11
+08-24 22:13:34.620  8490 12640 I SkJpegCodec: [mId: 132] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:34.620  8490 12640 I SkJpegCodec: [mId: 132] skia-debug SkJpegCodec::ReadHeader: width = 180, height = 180, color = 10
+08-24 22:13:34.620  8490 12640 I SkJpegCodec: [mId: 132] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 0, streamType: SkFILEStream
+08-24 22:13:34.620  8490 12640 D HWUI    : ImageDecoder_nDecodeBitmap: width = 137, height = 137, encodedFormat = 3
+08-24 22:13:34.620  8490 12640 I SkJpegCodec: [mId: 132] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 720, 
+08-24 22:13:34.620  8490 12640 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 180, Dimensions.height = 180};
+08-24 22:13:34.620  8490 12640 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for small resolution
+08-24 22:13:34.620  8490 12640 I SkJpegCodec: [mId: 132] skia-debug SkJpegCodec::onGetPixels ends with rowsDecodec = 180
+08-24 22:13:34.621  8490 12640 I SkJpegCodec: [mId: 132] skia-debug onGetGainmapInfo returns false
+08-24 22:13:34.624  8490 12640 W HWUI    : Image decoding logging dropped!
+08-24 22:13:34.835  8490 12640 I SkJpegCodec: [mId: 133] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:34.836  8490 12640 I SkJpegCodec: [mId: 133] skia-debug SkJpegCodec::ReadHeader: width = 180, height = 180, color = 10
+08-24 22:13:34.836  8490 12640 I SkJpegCodec: [mId: 133] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 0, streamType: SkFILEStream
+08-24 22:13:34.836  8490 12640 D HWUI    : ImageDecoder_nDecodeBitmap: width = 137, height = 137, encodedFormat = 3
+08-24 22:13:34.836  8490 12640 I SkJpegCodec: [mId: 133] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 720, 
+08-24 22:13:34.836  8490 12640 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 180, Dimensions.height = 180};
+08-24 22:13:34.836  8490 12640 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for small resolution
+08-24 22:13:34.836  8490 12640 I SkJpegCodec: [mId: 133] skia-debug SkJpegCodec::onGetPixels ends with rowsDecodec = 180
+08-24 22:13:34.837  8490 12640 I SkJpegCodec: [mId: 133] skia-debug onGetGainmapInfo returns false
+08-24 22:13:34.840  8490 12640 W HWUI    : Image decoding logging dropped!
+08-24 22:13:34.863  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286535950, downTime=286535950, phoneEventTime=1787580814862 } moveCount:0
+08-24 22:13:34.863  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:13:34.966  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286536053, downTime=286535950, phoneEventTime=1787580814965 } moveCount:12
+08-24 22:13:35.248  8490 28674 I om.chasel.ng2.n: This is non sticky GC, maxfree is 33554432 minfree is 8388608
+08-24 22:13:35.305  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286536391, downTime=286536391, phoneEventTime=1787580815303 } moveCount:0
+08-24 22:13:35.305  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:13:35.335  8490 12640 D HWUI    : ImageDecoder_nDecodeBitmap: width = 66, height = 60, encodedFormat = 4
+08-24 22:13:35.337  8490 12640 W HWUI    : Image decoding logging dropped!
+08-24 22:13:35.338  8490 12624 D HWUI    : ImageDecoder_nDecodeBitmap: width = 65, height = 60, encodedFormat = 4
+08-24 22:13:35.340  8490 12624 W HWUI    : Image decoding logging dropped!
+08-24 22:13:35.407  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286536494, downTime=286536391, phoneEventTime=1787580815406 } moveCount:11
+08-24 22:13:35.487  8490 12648 I SkJpegCodec: [mId: 134] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:35.487  8490 12648 I SkJpegCodec: [mId: 134] skia-debug SkJpegCodec::ReadHeader: width = 180, height = 180, color = 10
+08-24 22:13:35.487  8490 12648 I SkJpegCodec: [mId: 134] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 0, streamType: SkFILEStream
+08-24 22:13:35.487  8490 12648 D HWUI    : ImageDecoder_nDecodeBitmap: width = 137, height = 137, encodedFormat = 3
+08-24 22:13:35.487  8490 12648 I SkJpegCodec: [mId: 134] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 720, 
+08-24 22:13:35.487  8490 12648 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 180, Dimensions.height = 180};
+08-24 22:13:35.487  8490 12648 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for small resolution
+08-24 22:13:35.488  8490 12648 I SkJpegCodec: [mId: 134] skia-debug SkJpegCodec::onGetPixels ends with rowsDecodec = 180
+08-24 22:13:35.489  8490 12648 I SkJpegCodec: [mId: 134] skia-debug onGetGainmapInfo returns false
+08-24 22:13:35.491  8490 12648 W HWUI    : Image decoding logging dropped!
+08-24 22:13:35.492  8490 12640 I SkJpegCodec: [mId: 135] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:35.492  8490 12640 I SkJpegCodec: [mId: 135] skia-debug SkJpegCodec::ReadHeader: width = 180, height = 180, color = 10
+08-24 22:13:35.492  8490 12640 I SkJpegCodec: [mId: 135] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 0, streamType: SkFILEStream
+08-24 22:13:35.492  8490 12640 D HWUI    : ImageDecoder_nDecodeBitmap: width = 137, height = 137, encodedFormat = 3
+08-24 22:13:35.492  8490 12640 I SkJpegCodec: [mId: 135] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 720, 
+08-24 22:13:35.492  8490 12640 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 180, Dimensions.height = 180};
+08-24 22:13:35.492  8490 12640 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for small resolution
+08-24 22:13:35.493  8490 12640 I SkJpegCodec: [mId: 135] skia-debug SkJpegCodec::onGetPixels ends with rowsDecodec = 180
+08-24 22:13:35.494  8490 12640 I SkJpegCodec: [mId: 135] skia-debug onGetGainmapInfo returns false
+08-24 22:13:35.496  8490 12640 W HWUI    : Image decoding logging dropped!
+08-24 22:13:35.506  8490 28797 I HWUI    : get: no pipeline info entry found for key of size 160
+08-24 22:13:35.510  8490 28797 W SKIA    : CreateGraphicsPipeline shader cache missed.
+08-24 22:13:35.535  8490 28797 W SKIA    : CreateGraphicsPipeline pipeline cache missed. elpased time: 24.76 ms.
+08-24 22:13:35.581  8490 28797 W RenderInspector: DequeueBuffer time out on com.chasel.ng2.n/com.chasel.ng2n.MainActivity, count=1, avg=12 ms, max=12 ms.
+08-24 22:13:35.633  8490 28797 I HWUI    : get: no pipeline info entry found for key of size 160
+08-24 22:13:35.634  8490 28797 W SKIA    : CreateGraphicsPipeline shader cache missed.
+08-24 22:13:35.651  8490 28797 W SKIA    : CreateGraphicsPipeline pipeline cache missed. elpased time: 17.04 ms.
+08-24 22:13:35.713  8490 31432 D libEGL  : Post task 1
+08-24 22:13:35.713  8490 31439 D libEGL  : Worker thread start 526793655296
+08-24 22:13:35.713  8490 31439 D libEGL  : Run task 1
+08-24 22:13:35.757  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286536844, downTime=286536844, phoneEventTime=1787580815756 } moveCount:0
+08-24 22:13:35.758  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:13:35.807  8490 28797 I HWUI    : get: no pipeline info entry found for key of size 160
+08-24 22:13:35.808  8490 28797 I SKIA    : CreateGraphicsPipeline pipeline cache hit. elpased time: 0.40 ms.
+08-24 22:13:35.863  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286536950, downTime=286536844, phoneEventTime=1787580815862 } moveCount:12
+08-24 22:13:36.165  8490 12647 I SkJpegCodec: [mId: 136] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:36.165  8490 12647 I SkJpegCodec: [mId: 136] skia-debug SkJpegCodec::ReadHeader: width = 180, height = 180, color = 10
+08-24 22:13:36.165  8490 12647 I SkJpegCodec: [mId: 136] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 0, streamType: SkFILEStream
+08-24 22:13:36.165  8490 12647 D HWUI    : ImageDecoder_nDecodeBitmap: width = 137, height = 137, encodedFormat = 3
+08-24 22:13:36.166  8490 12647 I SkJpegCodec: [mId: 136] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 720, 
+08-24 22:13:36.166  8490 12647 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 180, Dimensions.height = 180};
+08-24 22:13:36.166  8490 12647 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for small resolution
+08-24 22:13:36.166  8490 12647 I SkJpegCodec: [mId: 136] skia-debug SkJpegCodec::onGetPixels ends with rowsDecodec = 180
+08-24 22:13:36.167  8490 12647 I SkJpegCodec: [mId: 136] skia-debug onGetGainmapInfo returns false
+08-24 22:13:36.173  8490 12647 W HWUI    : Image decoding logging dropped!
+08-24 22:13:36.196  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286537282, downTime=286537282, phoneEventTime=1787580816194 } moveCount:0
+08-24 22:13:36.196  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:13:36.296  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286537383, downTime=286537282, phoneEventTime=1787580816295 } moveCount:11
+08-24 22:13:36.402  8490 12647 I SkJpegCodec: [mId: 137] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:36.402  8490 12647 I SkJpegCodec: [mId: 137] skia-debug SkJpegCodec::ReadHeader: width = 178, height = 240, color = 10
+08-24 22:13:36.402  8490 12647 I SkJpegCodec: [mId: 137] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 1, streamType: SkFILEStream
+08-24 22:13:36.402  8490 12647 D HWUI    : ImageDecoder_nDecodeBitmap: width = 137, height = 185, encodedFormat = 3
+08-24 22:13:36.402  8490 12647 I SkJpegCodec: [mId: 137] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 712, 
+08-24 22:13:36.402  8490 12647 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 178, Dimensions.height = 240};
+08-24 22:13:36.402  8490 12647 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for progressive_mode
+08-24 22:13:36.404  8490 12647 I SkJpegCodec: [mId: 137] skia-debug onGetGainmapInfo returns false
+08-24 22:13:36.407  8490 12647 W HWUI    : Image decoding logging dropped!
+08-24 22:13:36.639  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286537724, downTime=286537724, phoneEventTime=1787580816637 } moveCount:0
+08-24 22:13:36.639  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:13:36.737  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286537824, downTime=286537724, phoneEventTime=1787580816736 } moveCount:11
+08-24 22:13:36.803  8490 12640 D HWUI    : ImageDecoder_nDecodeBitmap: width = 68, height = 60, encodedFormat = 4
+08-24 22:13:36.803  8490 28788 D HWUI    : ImageDecoder_nDecodeBitmap: width = 68, height = 60, encodedFormat = 4
+08-24 22:13:36.806  8490 12640 W HWUI    : Image decoding logging dropped!
+08-24 22:13:36.807  8490 28788 W HWUI    : Image decoding logging dropped!
+08-24 22:13:36.817  8490 28788 I SkJpegCodec: [mId: 138] skia-debug SkJpegCodec::+SkJpegCodec
+08-24 22:13:36.817  8490 28788 I SkJpegCodec: [mId: 138] skia-debug SkJpegCodec::ReadHeader: width = 180, height = 180, color = 10
+08-24 22:13:36.817  8490 28788 I SkJpegCodec: [mId: 138] skia-debug SkJpegCodec::ReadHeader: progressive_mode = 0, streamType: SkFILEStream
+08-24 22:13:36.817  8490 28788 D HWUI    : ImageDecoder_nDecodeBitmap: width = 137, height = 137, encodedFormat = 3
+08-24 22:13:36.817  8490 28788 I SkJpegCodec: [mId: 138] skia-debug SkJpegCodec::onGetPixels: dstRowBytes = 720, 
+08-24 22:13:36.817  8490 28788 I SkJpegCodec: dstInfo: SkImageInfo: {IsRGB = 1, ColorType = 4, AlphaType = 1, Dimensions.width = 180, Dimensions.height = 180};
+08-24 22:13:36.817  8490 28788 I JpegXmCodec:  skia-debug JpegXmCodec::isSupported returns false for small resolution
+08-24 22:13:36.817  8490 28788 I SkJpegCodec: [mId: 138] skia-debug SkJpegCodec::onGetPixels ends with rowsDecodec = 180
+08-24 22:13:36.818  8490 28788 I SkJpegCodec: [mId: 138] skia-debug onGetGainmapInfo returns false
+08-24 22:13:36.820  8490 28788 W HWUI    : Image decoding logging dropped!
+08-24 22:13:39.745  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.745  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.745  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.745  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.745  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.745  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.746  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.746  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.746  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.746  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.746  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:13:39.746  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
