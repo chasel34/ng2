@@ -274,7 +274,7 @@ Landroidx/collection/IntObjectMap;
 SLandroidx/collection/IntObjectMap;-><init>()V
 SLandroidx/collection/IntObjectMap;-><init>(Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 SLandroidx/collection/IntObjectMap;->containsKey(I)Z
-HSPLandroidx/collection/IntObjectMap;->get(I)Ljava/lang/Object;
+SLandroidx/collection/IntObjectMap;->get(I)Ljava/lang/Object;
 SLandroidx/collection/IntObjectMap;->getCapacity()I
 SLandroidx/collection/IntObjectMap;->getSize()I
 Landroidx/collection/IntObjectMapKt;
@@ -391,7 +391,6 @@ SLandroidx/collection/MutableIntSet;->remove(I)Z
 SLandroidx/collection/MutableIntSet;->removeElementAt(I)V
 Landroidx/collection/MutableLongList;
 SLandroidx/collection/MutableLongList;-><init>(I)V
-SLandroidx/collection/MutableLongList;-><init>(IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 SLandroidx/collection/MutableLongList;->add(J)Z
 SLandroidx/collection/MutableLongList;->clear()V
 SLandroidx/collection/MutableLongList;->ensureCapacity(I)V
@@ -451,7 +450,7 @@ SLandroidx/collection/MutableOrderedScatterSet;->initializeMetadata(I)V
 SLandroidx/collection/MutableOrderedScatterSet;->initializeStorage(I)V
 SLandroidx/collection/MutableOrderedScatterSet;->plusAssign(Ljava/lang/Object;)V
 Landroidx/collection/MutableScatterMap;
-SLandroidx/collection/MutableScatterMap;-><init>(I)V
+HSPLandroidx/collection/MutableScatterMap;-><init>(I)V
 SLandroidx/collection/MutableScatterMap;-><init>(IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 SLandroidx/collection/MutableScatterMap;->adjustStorage$collection()V
 SLandroidx/collection/MutableScatterMap;->clear()V
@@ -586,6 +585,7 @@ SLandroidx/collection/internal/LruHashMap;-><init>(IF)V
 SLandroidx/collection/internal/LruHashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
 SLandroidx/collection/internal/LruHashMap;->isEmpty()Z
 SLandroidx/collection/internal/LruHashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+Landroidx/collection/internal/RuntimeHelpersKt;
 Landroidx/compose/animation/AnimatedContentKt;
 SLandroidx/compose/animation/AnimatedContentKt;-><clinit>()V
 SLandroidx/compose/animation/AnimatedContentKt;->AnimatedContent(Landroidx/compose/animation/core/Transition;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function1;Landroidx/compose/ui/Alignment;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function4;Landroidx/compose/runtime/Composer;II)V
@@ -4288,7 +4288,7 @@ SLandroidx/compose/runtime/CompositionLocalMap$Companion;-><init>()V
 SLandroidx/compose/runtime/CompositionLocalMap$Companion;->getEmpty()Landroidx/compose/runtime/CompositionLocalMap;
 Landroidx/compose/runtime/CompositionLocalMapKt;
 SLandroidx/compose/runtime/CompositionLocalMapKt;->contains(Landroidx/compose/runtime/PersistentCompositionLocalMap;Landroidx/compose/runtime/CompositionLocal;)Z
-HSPLandroidx/compose/runtime/CompositionLocalMapKt;->read(Landroidx/compose/runtime/PersistentCompositionLocalMap;Landroidx/compose/runtime/CompositionLocal;)Ljava/lang/Object;
+SLandroidx/compose/runtime/CompositionLocalMapKt;->read(Landroidx/compose/runtime/PersistentCompositionLocalMap;Landroidx/compose/runtime/CompositionLocal;)Ljava/lang/Object;
 SLandroidx/compose/runtime/CompositionLocalMapKt;->updateCompositionMap$default([Landroidx/compose/runtime/ProvidedValue;Landroidx/compose/runtime/PersistentCompositionLocalMap;Landroidx/compose/runtime/PersistentCompositionLocalMap;ILjava/lang/Object;)Landroidx/compose/runtime/PersistentCompositionLocalMap;
 SLandroidx/compose/runtime/CompositionLocalMapKt;->updateCompositionMap([Landroidx/compose/runtime/ProvidedValue;Landroidx/compose/runtime/PersistentCompositionLocalMap;Landroidx/compose/runtime/PersistentCompositionLocalMap;)Landroidx/compose/runtime/PersistentCompositionLocalMap;
 Landroidx/compose/runtime/CompositionObserverHolder;
@@ -5670,7 +5670,7 @@ SLandroidx/compose/runtime/composer/gapbuffer/changelist/Operations$OpIterator;-
 SLandroidx/compose/runtime/composer/gapbuffer/changelist/Operations$OpIterator;->getInt(I)I
 SLandroidx/compose/runtime/composer/gapbuffer/changelist/Operations$OpIterator;->getObject-PtL-UHM(I)Ljava/lang/Object;
 SLandroidx/compose/runtime/composer/gapbuffer/changelist/Operations$OpIterator;->getOperation()Landroidx/compose/runtime/composer/gapbuffer/changelist/Operation;
-HSPLandroidx/compose/runtime/composer/gapbuffer/changelist/Operations$OpIterator;->next()Z
+SLandroidx/compose/runtime/composer/gapbuffer/changelist/Operations$OpIterator;->next()Z
 Landroidx/compose/runtime/composer/gapbuffer/changelist/Operations$WriteScope;
 SLandroidx/compose/runtime/composer/gapbuffer/changelist/Operations$WriteScope;->constructor-impl(Landroidx/compose/runtime/composer/gapbuffer/changelist/Operations;)Landroidx/compose/runtime/composer/gapbuffer/changelist/Operations;
 SLandroidx/compose/runtime/composer/gapbuffer/changelist/Operations$WriteScope;->setObject-sGr0YRc(Landroidx/compose/runtime/composer/gapbuffer/changelist/Operations;ILjava/lang/Object;)V
@@ -6253,11 +6253,6 @@ SLandroidx/compose/runtime/snapshots/SnapshotDoubleIndexHeap;->remove(I)V
 SLandroidx/compose/runtime/snapshots/SnapshotDoubleIndexHeap;->shiftDown(I)V
 SLandroidx/compose/runtime/snapshots/SnapshotDoubleIndexHeap;->shiftUp(I)V
 SLandroidx/compose/runtime/snapshots/SnapshotDoubleIndexHeap;->swap(II)V
-Landroidx/compose/runtime/snapshots/SnapshotIdArrayBuilder;
-SLandroidx/compose/runtime/snapshots/SnapshotIdArrayBuilder;-><clinit>()V
-SLandroidx/compose/runtime/snapshots/SnapshotIdArrayBuilder;-><init>([J)V
-SLandroidx/compose/runtime/snapshots/SnapshotIdArrayBuilder;->add(J)V
-SLandroidx/compose/runtime/snapshots/SnapshotIdArrayBuilder;->toArray()[J
 Landroidx/compose/runtime/snapshots/SnapshotIdSet;
 SLandroidx/compose/runtime/snapshots/SnapshotIdSet;-><clinit>()V
 SLandroidx/compose/runtime/snapshots/SnapshotIdSet;-><init>(JJJ[J)V
@@ -6273,10 +6268,8 @@ SLandroidx/compose/runtime/snapshots/SnapshotIdSet$Companion;-><init>()V
 SLandroidx/compose/runtime/snapshots/SnapshotIdSet$Companion;-><init>(Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 SLandroidx/compose/runtime/snapshots/SnapshotIdSet$Companion;->getEMPTY()Landroidx/compose/runtime/snapshots/SnapshotIdSet;
 Landroidx/compose/runtime/snapshots/SnapshotId_jvmKt;
-SLandroidx/compose/runtime/snapshots/SnapshotId_jvmKt;->binarySearch([JJ)I
 SLandroidx/compose/runtime/snapshots/SnapshotId_jvmKt;->snapshotIdArrayWithCapacity(I)[J
 SLandroidx/compose/runtime/snapshots/SnapshotId_jvmKt;->toSnapshotId(I)J
-SLandroidx/compose/runtime/snapshots/SnapshotId_jvmKt;->withIdRemovedAt([JI)[J
 Landroidx/compose/runtime/snapshots/SnapshotKt;
 SLandroidx/compose/runtime/snapshots/SnapshotKt;-><clinit>()V
 SLandroidx/compose/runtime/snapshots/SnapshotKt;->access$advanceGlobalSnapshot()V
@@ -6306,7 +6299,7 @@ HSPLandroidx/compose/runtime/snapshots/SnapshotKt;->advanceGlobalSnapshot(Lkotli
 SLandroidx/compose/runtime/snapshots/SnapshotKt;->checkAndOverwriteUnusedRecordsLocked()V
 SLandroidx/compose/runtime/snapshots/SnapshotKt;->createTransparentSnapshotWithNoParentReadObserver$default(Landroidx/compose/runtime/snapshots/Snapshot;Lkotlin/jvm/functions/Function1;ZILjava/lang/Object;)Landroidx/compose/runtime/snapshots/Snapshot;
 SLandroidx/compose/runtime/snapshots/SnapshotKt;->createTransparentSnapshotWithNoParentReadObserver(Landroidx/compose/runtime/snapshots/Snapshot;Lkotlin/jvm/functions/Function1;Z)Landroidx/compose/runtime/snapshots/Snapshot;
-HSPLandroidx/compose/runtime/snapshots/SnapshotKt;->current(Landroidx/compose/runtime/snapshots/StateRecord;)Landroidx/compose/runtime/snapshots/StateRecord;
+SLandroidx/compose/runtime/snapshots/SnapshotKt;->current(Landroidx/compose/runtime/snapshots/StateRecord;)Landroidx/compose/runtime/snapshots/StateRecord;
 SLandroidx/compose/runtime/snapshots/SnapshotKt;->current(Landroidx/compose/runtime/snapshots/StateRecord;Landroidx/compose/runtime/snapshots/Snapshot;)Landroidx/compose/runtime/snapshots/StateRecord;
 HSPLandroidx/compose/runtime/snapshots/SnapshotKt;->currentSnapshot()Landroidx/compose/runtime/snapshots/Snapshot;
 SLandroidx/compose/runtime/snapshots/SnapshotKt;->emptyLambda$lambda$0(Landroidx/compose/runtime/snapshots/SnapshotIdSet;)Lkotlin/Unit;
@@ -8754,7 +8747,6 @@ SLandroidx/compose/ui/node/DelegatableNodeKt;->getChildren(Landroidx/compose/ui/
 SLandroidx/compose/ui/node/DelegatableNodeKt;->has-64DMado(Landroidx/compose/ui/node/DelegatableNode;I)Z
 SLandroidx/compose/ui/node/DelegatableNodeKt;->isDelegationRoot(Landroidx/compose/ui/node/DelegatableNode;)Z
 SLandroidx/compose/ui/node/DelegatableNodeKt;->pop(Landroidx/compose/runtime/collection/MutableVector;)Landroidx/compose/ui/Modifier$Node;
-HSPLandroidx/compose/ui/node/DelegatableNodeKt;->requireCoordinator-64DMado(Landroidx/compose/ui/node/DelegatableNode;I)Landroidx/compose/ui/node/NodeCoordinator;
 SLandroidx/compose/ui/node/DelegatableNodeKt;->requireDensity(Landroidx/compose/ui/node/DelegatableNode;)Landroidx/compose/ui/unit/Density;
 SLandroidx/compose/ui/node/DelegatableNodeKt;->requireLayoutDirection(Landroidx/compose/ui/node/DelegatableNode;)Landroidx/compose/ui/unit/LayoutDirection;
 SLandroidx/compose/ui/node/DelegatableNodeKt;->requireLayoutNode(Landroidx/compose/ui/node/DelegatableNode;)Landroidx/compose/ui/node/LayoutNode;
@@ -8878,7 +8870,7 @@ SLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;-><init>(Landroidx/comp
 SLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;->access$getApproachMeasureScope$p(Landroidx/compose/ui/node/LayoutModifierNodeCoordinator;)Landroidx/compose/ui/layout/ApproachMeasureScopeImpl;
 SLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;->getLayoutModifierNode()Landroidx/compose/ui/node/LayoutModifierNode;
 HSPLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;->getTail()Landroidx/compose/ui/Modifier$Node;
-HSPLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;->getWrappedNonNull()Landroidx/compose/ui/node/NodeCoordinator;
+SLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;->getWrappedNonNull()Landroidx/compose/ui/node/NodeCoordinator;
 SLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;->measure-BRTryo0(J)Landroidx/compose/ui/layout/Placeable;
 SLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;->onAfterPlaceAt()V
 HSPLandroidx/compose/ui/node/LayoutModifierNodeCoordinator;->performDraw(Landroidx/compose/ui/graphics/Canvas;Landroidx/compose/ui/graphics/layer/GraphicsLayer;)V
@@ -8945,7 +8937,7 @@ HSPLandroidx/compose/ui/node/LayoutNode;->getOuterCoordinator$ui()Landroidx/comp
 SLandroidx/compose/ui/node/LayoutNode;->getOuterToInnerOffset-nOcc-ac$ui()J
 SLandroidx/compose/ui/node/LayoutNode;->getOuterToInnerOffsetDirty$ui()Z
 SLandroidx/compose/ui/node/LayoutNode;->getOwner$ui()Landroidx/compose/ui/node/Owner;
-SLandroidx/compose/ui/node/LayoutNode;->getParent$ui()Landroidx/compose/ui/node/LayoutNode;
+HSPLandroidx/compose/ui/node/LayoutNode;->getParent$ui()Landroidx/compose/ui/node/LayoutNode;
 SLandroidx/compose/ui/node/LayoutNode;->getPlaceOrder$ui()I
 SLandroidx/compose/ui/node/LayoutNode;->getRectInParentDirty$ui()Z
 SLandroidx/compose/ui/node/LayoutNode;->getRectListIndex$ui()I
@@ -8969,7 +8961,7 @@ SLandroidx/compose/ui/node/LayoutNode;->invalidateSemantics$ui()V
 SLandroidx/compose/ui/node/LayoutNode;->invalidateUnfoldedVirtualChildren()V
 SLandroidx/compose/ui/node/LayoutNode;->isAttached()Z
 SLandroidx/compose/ui/node/LayoutNode;->isDeactivated()Z
-HSPLandroidx/compose/ui/node/LayoutNode;->isPlaced()Z
+SLandroidx/compose/ui/node/LayoutNode;->isPlaced()Z
 SLandroidx/compose/ui/node/LayoutNode;->isPlacedByParent()Z
 SLandroidx/compose/ui/node/LayoutNode;->isPlacedInLookahead()Ljava/lang/Boolean;
 SLandroidx/compose/ui/node/LayoutNode;->isValidOwnerScope()Z
@@ -9213,7 +9205,7 @@ SLandroidx/compose/ui/node/MeasurePassDelegate;->getChildDelegates$ui()Ljava/uti
 SLandroidx/compose/ui/node/MeasurePassDelegate;->getInnerCoordinator()Landroidx/compose/ui/node/NodeCoordinator;
 SLandroidx/compose/ui/node/MeasurePassDelegate;->getLastConstraints-DWUhwKw()Landroidx/compose/ui/unit/Constraints;
 SLandroidx/compose/ui/node/MeasurePassDelegate;->getLayingOutChildren()Z
-SLandroidx/compose/ui/node/MeasurePassDelegate;->getLayoutNode()Landroidx/compose/ui/node/LayoutNode;
+HSPLandroidx/compose/ui/node/MeasurePassDelegate;->getLayoutNode()Landroidx/compose/ui/node/LayoutNode;
 SLandroidx/compose/ui/node/MeasurePassDelegate;->getLayoutPending$ui()Z
 SLandroidx/compose/ui/node/MeasurePassDelegate;->getLayoutState()Landroidx/compose/ui/node/LayoutNode$LayoutState;
 SLandroidx/compose/ui/node/MeasurePassDelegate;->getLookaheadPassDelegate()Landroidx/compose/ui/node/LookaheadPassDelegate;
@@ -9378,10 +9370,10 @@ SLandroidx/compose/ui/node/NodeCoordinator;->getLayer()Landroidx/compose/ui/node
 SLandroidx/compose/ui/node/NodeCoordinator;->getLayoutDirection()Landroidx/compose/ui/unit/LayoutDirection;
 SLandroidx/compose/ui/node/NodeCoordinator;->getLayoutNode()Landroidx/compose/ui/node/LayoutNode;
 SLandroidx/compose/ui/node/NodeCoordinator;->getMeasureResult$ui()Landroidx/compose/ui/layout/MeasureResult;
-SLandroidx/compose/ui/node/NodeCoordinator;->getMinimumTouchTargetSize-NH-jbRc()J
+HSPLandroidx/compose/ui/node/NodeCoordinator;->getMinimumTouchTargetSize-NH-jbRc()J
 SLandroidx/compose/ui/node/NodeCoordinator;->getParent()Landroidx/compose/ui/node/LookaheadCapablePlaceable;
 SLandroidx/compose/ui/node/NodeCoordinator;->getParentData()Ljava/lang/Object;
-SLandroidx/compose/ui/node/NodeCoordinator;->getPosition-nOcc-ac()J
+HSPLandroidx/compose/ui/node/NodeCoordinator;->getPosition-nOcc-ac()J
 SLandroidx/compose/ui/node/NodeCoordinator;->getRectCache()Landroidx/compose/ui/geometry/MutableRect;
 SLandroidx/compose/ui/node/NodeCoordinator;->getSize-YbymL2g()J
 SLandroidx/compose/ui/node/NodeCoordinator;->getSnapshotObserver()Landroidx/compose/ui/node/OwnerSnapshotObserver;
@@ -9768,7 +9760,7 @@ SLandroidx/compose/ui/platform/AndroidComposeView;->onTouchModeChanged(Z)V
 SLandroidx/compose/ui/platform/AndroidComposeView;->onWindowFocusChanged(Z)V
 SLandroidx/compose/ui/platform/AndroidComposeView;->outOfFrameRunnable$lambda$0(Landroidx/compose/ui/platform/AndroidComposeView;)V
 SLandroidx/compose/ui/platform/AndroidComposeView;->pack-ZIaKswc(II)J
-HSPLandroidx/compose/ui/platform/AndroidComposeView;->recalculateWindowPosition()V
+SLandroidx/compose/ui/platform/AndroidComposeView;->recalculateWindowPosition()V
 SLandroidx/compose/ui/platform/AndroidComposeView;->recalculateWindowPosition(Landroid/view/MotionEvent;)V
 SLandroidx/compose/ui/platform/AndroidComposeView;->recalculateWindowViewTransforms()V
 SLandroidx/compose/ui/platform/AndroidComposeView;->removeDelayedExecution(Ljava/lang/Object;)V
@@ -10250,7 +10242,7 @@ SLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->recordLambda$lambda$0(L
 SLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->resize-ozmzZPI(J)V
 SLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->setDirty(Z)V
 SLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->triggerRepaint()V
-SLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateDisplayList()V
+HSPLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateDisplayList()V
 SLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateLayerProperties(Landroidx/compose/ui/graphics/ReusableGraphicsLayerScope;)V
 SLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateMatrix()V
 SLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateOutline()V
@@ -10610,7 +10602,7 @@ SLandroidx/compose/ui/semantics/SemanticsActions$$ExternalSyntheticLambda0;-><in
 Landroidx/compose/ui/semantics/SemanticsConfiguration;
 SLandroidx/compose/ui/semantics/SemanticsConfiguration;-><clinit>()V
 SLandroidx/compose/ui/semantics/SemanticsConfiguration;-><init>()V
-SLandroidx/compose/ui/semantics/SemanticsConfiguration;->contains(Landroidx/compose/ui/semantics/SemanticsPropertyKey;)Z
+HSPLandroidx/compose/ui/semantics/SemanticsConfiguration;->contains(Landroidx/compose/ui/semantics/SemanticsPropertyKey;)Z
 HSPLandroidx/compose/ui/semantics/SemanticsConfiguration;->containsImportantForAccessibility$ui()Z
 SLandroidx/compose/ui/semantics/SemanticsConfiguration;->get(Landroidx/compose/ui/semantics/SemanticsPropertyKey;)Ljava/lang/Object;
 SLandroidx/compose/ui/semantics/SemanticsConfiguration;->getAccessibilityExtraKeys$ui()Landroidx/collection/ScatterSet;
@@ -10635,7 +10627,7 @@ SLandroidx/compose/ui/semantics/SemanticsModifierKt;->semantics$default(Landroid
 SLandroidx/compose/ui/semantics/SemanticsModifierKt;->semantics(Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function1;)Landroidx/compose/ui/Modifier;
 Landroidx/compose/ui/semantics/SemanticsNode;
 SLandroidx/compose/ui/semantics/SemanticsNode;-><clinit>()V
-HSPLandroidx/compose/ui/semantics/SemanticsNode;-><init>(Landroidx/compose/ui/Modifier$Node;ZLandroidx/compose/ui/node/LayoutNode;Landroidx/compose/ui/semantics/SemanticsConfiguration;)V
+SLandroidx/compose/ui/semantics/SemanticsNode;-><init>(Landroidx/compose/ui/Modifier$Node;ZLandroidx/compose/ui/node/LayoutNode;Landroidx/compose/ui/semantics/SemanticsConfiguration;)V
 HSPLandroidx/compose/ui/semantics/SemanticsNode;->emitFakeNodes(Ljava/util/List;)V
 HSPLandroidx/compose/ui/semantics/SemanticsNode;->fillOneLayerOfSemanticsWrappers(Landroidx/compose/ui/node/LayoutNode;Ljava/util/List;Z)V
 HSPLandroidx/compose/ui/semantics/SemanticsNode;->findCoordinatorToGetBounds$ui()Landroidx/compose/ui/node/NodeCoordinator;
@@ -10648,7 +10640,7 @@ SLandroidx/compose/ui/semantics/SemanticsNode;->getLayoutInfo()Landroidx/compose
 SLandroidx/compose/ui/semantics/SemanticsNode;->getLayoutNode$ui()Landroidx/compose/ui/node/LayoutNode;
 HSPLandroidx/compose/ui/semantics/SemanticsNode;->getParent()Landroidx/compose/ui/semantics/SemanticsNode;
 SLandroidx/compose/ui/semantics/SemanticsNode;->getReplacedChildren$ui()Ljava/util/List;
-SLandroidx/compose/ui/semantics/SemanticsNode;->getTouchBoundsInRoot()Landroidx/compose/ui/geometry/Rect;
+HSPLandroidx/compose/ui/semantics/SemanticsNode;->getTouchBoundsInRoot()Landroidx/compose/ui/geometry/Rect;
 SLandroidx/compose/ui/semantics/SemanticsNode;->getUnclippedBoundsInRoot$ui()Landroidx/compose/ui/geometry/Rect;
 SLandroidx/compose/ui/semantics/SemanticsNode;->getUnmergedConfig$ui()Landroidx/compose/ui/semantics/SemanticsConfiguration;
 SLandroidx/compose/ui/semantics/SemanticsNode;->isFake$ui()Z
@@ -10681,7 +10673,7 @@ SLandroidx/compose/ui/semantics/SemanticsOwnerKt;->getAllUncoveredSemanticsNodes
 SLandroidx/compose/ui/semantics/SemanticsOwnerKt;->getAllUncoveredSemanticsNodesToIntObjectMap(Landroidx/compose/ui/semantics/SemanticsOwner;ILkotlin/jvm/functions/Function1;)Landroidx/collection/IntObjectMap;
 SLandroidx/compose/ui/semantics/SemanticsOwnerKt;->getScrollableParent(Landroidx/compose/ui/semantics/SemanticsNode;)Landroidx/compose/ui/semantics/SemanticsNode;
 HSPLandroidx/compose/ui/semantics/SemanticsOwnerKt;->isHidden(Landroidx/compose/ui/semantics/SemanticsNode;)Z
-SLandroidx/compose/ui/semantics/SemanticsOwnerKt;->isImportantForAccessibility(Landroidx/compose/ui/semantics/SemanticsNode;)Z
+HSPLandroidx/compose/ui/semantics/SemanticsOwnerKt;->isImportantForAccessibility(Landroidx/compose/ui/semantics/SemanticsNode;)Z
 SLandroidx/compose/ui/semantics/SemanticsOwnerKt;->isPartiallyOffscreenInScrollParent(Landroidx/compose/ui/semantics/SemanticsNode;)Z
 SLandroidx/compose/ui/semantics/SemanticsOwnerKt;->isScrollNode(Landroidx/compose/ui/semantics/SemanticsNode;)Z
 Landroidx/compose/ui/semantics/SemanticsProperties;
@@ -13680,6 +13672,7 @@ SLandroidx/emoji2/text/MetadataRepo$Node;-><init>()V
 SLandroidx/emoji2/text/MetadataRepo$Node;-><init>(I)V
 SLandroidx/emoji2/text/MetadataRepo$Node;->get(I)Landroidx/emoji2/text/MetadataRepo$Node;
 SLandroidx/emoji2/text/MetadataRepo$Node;->getData()Landroidx/emoji2/text/TypefaceEmojiRasterizer;
+HSPLandroidx/emoji2/text/MetadataRepo$Node;->put(Landroidx/emoji2/text/TypefaceEmojiRasterizer;II)V
 Landroidx/emoji2/text/SpannableBuilder;
 Landroidx/emoji2/text/TypefaceEmojiRasterizer;
 SLandroidx/emoji2/text/TypefaceEmojiRasterizer;-><clinit>()V
@@ -13710,7 +13703,7 @@ Landroidx/emoji2/text/flatbuffer/Table;
 SLandroidx/emoji2/text/flatbuffer/Table;-><init>()V
 SLandroidx/emoji2/text/flatbuffer/Table;->__indirect(I)I
 SLandroidx/emoji2/text/flatbuffer/Table;->__offset(I)I
-SLandroidx/emoji2/text/flatbuffer/Table;->__reset(ILjava/nio/ByteBuffer;)V
+HSPLandroidx/emoji2/text/flatbuffer/Table;->__reset(ILjava/nio/ByteBuffer;)V
 HSPLandroidx/emoji2/text/flatbuffer/Table;->__vector(I)I
 SLandroidx/emoji2/text/flatbuffer/Table;->__vector_len(I)I
 Landroidx/emoji2/text/flatbuffer/Utf8;
@@ -17113,7 +17106,7 @@ SLcom/chasel/ng2n/core/net/JsSemanticsKt;->arrayIndexOrNull(Ljava/lang/String;)L
 SLcom/chasel/ng2n/core/net/JsSemanticsKt;->isJsWhitespace(C)Z
 HSPLcom/chasel/ng2n/core/net/JsSemanticsKt;->jsNumber(Ljava/lang/String;)D
 SLcom/chasel/ng2n/core/net/JsSemanticsKt;->jsOwnEntries(Lkotlinx/serialization/json/JsonObject;)Ljava/util/List;
-SLcom/chasel/ng2n/core/net/JsSemanticsKt;->jsTrim(Ljava/lang/String;)Ljava/lang/String;
+HSPLcom/chasel/ng2n/core/net/JsSemanticsKt;->jsTrim(Ljava/lang/String;)Ljava/lang/String;
 SLcom/chasel/ng2n/core/net/JsSemanticsKt;->jsTrunc(D)J
 Lcom/chasel/ng2n/core/net/JsSemanticsKt$jsOwnEntries$$inlined$sortBy$1;
 SLcom/chasel/ng2n/core/net/JsSemanticsKt$jsOwnEntries$$inlined$sortBy$1;-><init>()V
@@ -18250,6 +18243,7 @@ Lcom/chasel/ng2n/ui/common/StateVariant;
 SLcom/chasel/ng2n/ui/common/StateVariant;->$values()[Lcom/chasel/ng2n/ui/common/StateVariant;
 SLcom/chasel/ng2n/ui/common/StateVariant;-><clinit>()V
 SLcom/chasel/ng2n/ui/common/StateVariant;-><init>(Ljava/lang/String;I)V
+SLcom/chasel/ng2n/ui/common/StateVariant;->values()[Lcom/chasel/ng2n/ui/common/StateVariant;
 Lcom/chasel/ng2n/ui/common/StateViewKt;
 SLcom/chasel/ng2n/ui/common/StateViewKt;->$r8$lambda$HGnQH6JyNP7rjOsjE9Cnmi8HnBc(Lcom/chasel/ng2n/ui/icons/Ng2nIcon;Lcom/chasel/ng2n/ui/theme/Ng2nColors;Ljava/lang/String;Lcom/chasel/ng2n/ui/common/StateAction;Landroidx/compose/foundation/layout/ColumnScope;Landroidx/compose/runtime/Composer;I)Lkotlin/Unit;
 SLcom/chasel/ng2n/ui/common/StateViewKt;->$r8$lambda$JPZnDg3kS74jtYtgHFiZGmi1bzQ(Lcom/chasel/ng2n/ui/theme/Ng2nColors;Ljava/lang/String;Landroidx/compose/foundation/layout/ColumnScope;Landroidx/compose/runtime/Composer;I)Lkotlin/Unit;
@@ -18266,6 +18260,8 @@ SLcom/chasel/ng2n/ui/common/StateViewKt$$ExternalSyntheticLambda0;->invoke(Ljava
 Lcom/chasel/ng2n/ui/common/StateViewKt$$ExternalSyntheticLambda3;
 SLcom/chasel/ng2n/ui/common/StateViewKt$$ExternalSyntheticLambda3;-><init>(Lcom/chasel/ng2n/ui/icons/Ng2nIcon;Lcom/chasel/ng2n/ui/theme/Ng2nColors;Ljava/lang/String;Lcom/chasel/ng2n/ui/common/StateAction;)V
 SLcom/chasel/ng2n/ui/common/StateViewKt$$ExternalSyntheticLambda3;->invoke(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+Lcom/chasel/ng2n/ui/common/StateViewKt$WhenMappings;
+SLcom/chasel/ng2n/ui/common/StateViewKt$WhenMappings;-><clinit>()V
 Lcom/chasel/ng2n/ui/common/TopBarKt;
 SLcom/chasel/ng2n/ui/common/TopBarKt;->$r8$lambda$-dORStBrW5kMxpGXu5y0-J3B6eo(Ljava/lang/String;Landroidx/compose/ui/semantics/SemanticsPropertyReceiver;)Lkotlin/Unit;
 SLcom/chasel/ng2n/ui/common/TopBarKt;-><clinit>()V
@@ -20138,7 +20134,7 @@ SLkotlinx/coroutines/DispatchedTask;->getExceptionalResult$kotlinx_coroutines_co
 SLkotlinx/coroutines/DispatchedTask;->getSuccessfulResult$kotlinx_coroutines_core(Ljava/lang/Object;)Ljava/lang/Object;
 HSPLkotlinx/coroutines/DispatchedTask;->run()V
 Lkotlinx/coroutines/DispatchedTaskKt;
-HSPLkotlinx/coroutines/DispatchedTaskKt;->dispatch(Lkotlinx/coroutines/DispatchedTask;I)V
+SLkotlinx/coroutines/DispatchedTaskKt;->dispatch(Lkotlinx/coroutines/DispatchedTask;I)V
 SLkotlinx/coroutines/DispatchedTaskKt;->isCancellableMode(I)Z
 SLkotlinx/coroutines/DispatchedTaskKt;->isReusableMode(I)Z
 SLkotlinx/coroutines/DispatchedTaskKt;->resume(Lkotlinx/coroutines/DispatchedTask;Lkotlin/coroutines/Continuation;Z)V
@@ -21822,7 +21818,6 @@ SLkotlinx/serialization/json/internal/AbstractJsonLexer;->consumeNextToken(B)B
 HSPLkotlinx/serialization/json/internal/AbstractJsonLexer;->consumeString()Ljava/lang/String;
 SLkotlinx/serialization/json/internal/AbstractJsonLexer;->expectEof()V
 SLkotlinx/serialization/json/internal/AbstractJsonLexer;->isValidValueStart(C)Z
-HSPLkotlinx/serialization/json/internal/AbstractJsonLexer;->peekNextToken()B
 SLkotlinx/serialization/json/internal/AbstractJsonLexer;->substring(II)Ljava/lang/String;
 Lkotlinx/serialization/json/internal/AbstractJsonLexerKt;
 SLkotlinx/serialization/json/internal/AbstractJsonLexerKt;->charToTokenClass(C)B
@@ -23245,7 +23240,6 @@ Lokhttp3/internal/http2/Huffman;
 SLokhttp3/internal/http2/Huffman;-><clinit>()V
 SLokhttp3/internal/http2/Huffman;-><init>()V
 SLokhttp3/internal/http2/Huffman;->addCode(III)V
-HSPLokhttp3/internal/http2/Huffman;->decode(Lokio/BufferedSource;JLokio/BufferedSink;)V
 SLokhttp3/internal/http2/Huffman;->encode(Lokio/ByteString;Lokio/BufferedSink;)V
 SLokhttp3/internal/http2/Huffman;->encodedLength(Lokio/ByteString;)I
 Lokhttp3/internal/http2/Huffman$Node;
