@@ -1,0 +1,75 @@
+sample=s9-rich-final
+date=2026-08-24
+device=pudding / 25113PN0EC / Android 16
+adb_serial=192.168.0.101:41641
+package=com.chasel.ng2.n release 0.1.0(1)
+duration=15s
+trace=/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s9-rich.pb
+trace_size=43636505 bytes
+trace_sha256=f7da877d69295690039028769b4becbec05de79d42b7fa86e210dea1ce0ac3eb
+focus_before=com.chasel.ng2.n/com.chasel.ng2n.MainActivity
+focus_after=com.chasel.ng2.n/com.chasel.ng2n.MainActivity
+timestats_enable_clear=not invoked
+
+== FrameTimeline ==
+actual surface→display token: 915
+usable presented frames: 910 (5 isolated Dropped Surface Frames excluded)
+present2present median: 8.319ms
+low cluster: 409 (44.9%), median 9.964ms
+high cluster: 501 (55.1%), median 18.337ms
+verdict: double peak
+
+== High vs low, median / p95 (ms) ==
+metric                    low             high
+app frame wall          6.857 / 8.083    9.918 / 10.861
+UI thread CPU           0.143 / 1.764    1.358 / 2.727
+UI traversal wall       0.000 / 1.527    0.595 / 1.165
+RenderThread CPU        3.041 / 3.653    3.121 / 4.565
+RT Drawing wall         2.094 / 2.506    1.853 / 2.565
+dequeueBuffer wall      0.049 / 0.061    0.083 / 0.138
+queueBuffer wall        0.358 / 0.493    0.348 / 0.481
+buffer ready→SF start   7.172 / 9.549    3.790 / 4.897
+SF main CPU             2.794 / 3.172    4.242 / 4.768
+SF HWC wall             1.135 / 2.355    2.492 / 3.485
+SF start→present        9.964 / 10.173  18.337 / 18.652
+high-frame maxima: UI CPU 6.929ms; RenderThread CPU 5.874ms; dequeue 0.221ms;
+SF main CPU 5.395ms. Each has 0 frames over the 8.333ms budget.
+
+== Exact input process timeline (trace-relative seconds) ==
+0.944 drawer open
+1.548 drawer close
+3.083 drawer open
+3.675 drawer scroll
+4.416 settings tap
+5.336 settings back
+6.770 tab 网事杂谈
+7.677 tab 推荐版块
+8.616 tab 魔兽世界
+9.523 tab 推荐版块
+10.832 drawer open
+11.443 drawer close
+12.811 drawer open
+13.422 drawer close
+
+== Interaction correlation ==
+drawer-1: 102 high / 0 low (100% high)
+drawer→scroll→settings: 166 high / 0 low (100% high)
+settings/back tail: 26 high / 0 low (100% high)
+tab switches: 1 high / 409 low (0.2% high; the one high is the boundary frame)
+drawer-2: 103 high / 0 low (100% high)
+drawer-3: 103 high / 0 low (100% high)
+
+== Five representative Late Present frames (ms) ==
+interaction        t/token            app    UI cpu/trav   RT cpu/draw  dequeue  ready→SF  SF cpu/HWC  SF→present
+drawer open        1.102/153374075   9.888   1.660/0.646  2.017/0.915   0.040     3.690    4.677/2.275   18.192
+drawer close       1.701/153374882   9.663   1.859/0.723  2.832/1.572   0.112     3.777    4.566/2.469   18.148
+drawer scroll      3.798/153376128   9.333   1.777/0.502  2.296/1.287   0.060     4.006    4.464/2.145   18.387
+settings back      5.500/153377127   9.048   1.309/0.555  2.159/1.577   0.082     4.367    4.346/2.263   18.092
+drawer-2           11.048/153382298 10.189   2.043/0.663  4.487/2.529   0.096     2.958    4.510/3.396   18.641
+
+Attribution: not a UI-thread, RenderThread, or dequeueBuffer stall. High frames have no
+per-frame app CPU segment over one 8.333ms budget; dequeue p95 is 0.138ms and queue p95
+is 0.481ms. The buffer is ready a median 3.790ms before SF actual frame start, while the
+extra full vsync appears in SF actual frame start→present. SF/HWC CPU work itself remains
+under budget, so evidence points to app→SF pipeline phase / present-slot queue-depth
+selection, not an expensive CPU section.
