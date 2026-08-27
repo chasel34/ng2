@@ -156,6 +156,32 @@ class DrawerGestureTest {
     assertEquals(drawerScrimLeft(1f, width, screen), drawerScrimLeft(1.5f, width, screen))
   }
 
+  // ------------------------------------------------ 首页裁剪(票 59 二轮,与遮罩同一刀)
+
+  @Test
+  fun 裁剪边界恒不越过面板右缘() {
+    // 二轮把同一条边界用到了**首页**上:左边那段首页整个不画。所以它一步都不能
+    // 越过面板右缘 —— 越过一列,那一列就露出没画的底,是可见性缺陷而不是省钱。
+    for (step in 0..100) {
+      val progress = step / 100f
+      val panelEdge = progress * width
+      val left = drawerScrimLeft(progress, width, screen)
+      assertTrue(left <= panelEdge, "progress=$progress 时裁到了 $left,面板右缘才 $panelEdge")
+    }
+  }
+
+  @Test
+  fun 裁剪边界随进度单调不减() {
+    // 拖动是连续的,边界跟着连续右移;某一帧倒退回去会让上一帧已省掉的一条突然
+    // 要重画,表现为动画中段一次 GPU 尖峰
+    var previous = -1f
+    for (step in 0..100) {
+      val left = drawerScrimLeft(step / 100f, width, screen)
+      assertTrue(left >= previous, "progress=${step / 100f} 时边界从 $previous 退回 $left")
+      previous = left
+    }
+  }
+
   @Test
   fun 时长开220关200() {
     assertEquals(220, DrawerGeometry.OPEN_DURATION_MS)

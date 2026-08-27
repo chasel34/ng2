@@ -1,6 +1,6 @@
 # 59 — P2:抽屉遮罩整屏混合 + 面板底色画两遍(纯 overdraw)
 
-**Status:** reopened（视觉 verified；GPU p95 硬闸未过）
+**Status:** reopened（视觉 verified；GPU p95 硬闸未过 —— 二轮归因认为该闸口径本身要改判，见「二轮削 GPU」第一节第 4 条）
 
 **Severity:** P2（不是节奏缺陷，是每帧 GPU 预算余量；由票 58 裁定第 4 条拆出）
 

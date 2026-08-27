@@ -24,9 +24,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -36,6 +38,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.chasel.ng2n.ui.common.Motion
+import com.chasel.ng2n.ui.perf.PerfFlags
 import com.chasel.ng2n.ui.theme.Elevation
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import kotlinx.coroutines.CoroutineScope
@@ -153,6 +156,33 @@ fun DrawerHost(
     Box(
       Modifier
         .fillMaxSize()
+        // 票 59 二轮 ①:**首页也只画面板右缘之外那一条**。
+        //
+        // 一轮只裁了遮罩,但遮罩本来就只是一层 alpha 混合;真正压在面板底下的是**整屏
+        // 首页**——版块格子、文字、图标路径,每帧都在 `[0, 面板右缘)` 那 73.7% 的面积上
+        // 白画一遍。裁剪的可见性论证与遮罩那一刀**逐字同一条**(面板 `colors.surface`
+        // 三套配色全不透明、绘制序在上),所以复用同一个 [drawerScrimLeft]:左边界同样
+        // 往面板底下多吃 1px,面板右缘的抗锯齿列底下仍然有首页垫着。
+        //
+        // 挂在 [graphicsLayer] **左边**是要紧的:修饰符链从左往右是外到内,写在层外面
+        // 才能做到「每帧只重录这一层(一个 clip + 一次 drawRenderNode)」,首页整棵子树的
+        // display list 原样复用。写到层里面的话每帧照样重录整棵首页。
+        .drawWithContent {
+          val left = drawerScrimLeft(state.progress, widthPx, size.width)
+          if (left <= 0f) {
+            drawContent()
+          } else {
+            clipRect(left = left) { this@drawWithContent.drawContent() }
+          }
+        }
+        // 票 59 二轮 ②:给首页一颗**自己的 RenderNode**。
+        //
+        // 修前首页没有任何 graphicsLayer,它的绘制指令是直接录进祖先层(最终是
+        // `AndroidComposeView` 那颗)的 display list 的;而遮罩的 `drawBehind` 每帧读
+        // progress → 把那颗祖先层标脏 → **整棵首页每帧重录一次**。面板不受影响
+        // (它的 translationX 走 layer 阶段、内容在 shadow 那颗层里),两边待遇不对等。
+        // 加了这一层之后,动画期间首页与面板都只是「层属性在变」,内容各自复用。
+        .graphicsLayer()
         .drawerDrag(
           state = state,
           scope = scope,
@@ -200,10 +230,24 @@ fun DrawerHost(
           .fillMaxHeight()
           // 在 layer 阶段读 progress:同上,每帧只重放层,不重组
           .graphicsLayer { translationX = -(1f - state.progress) * widthPx }
-          .shadow(Elevation.level2)
+          // 阴影这一层是**测量口子**,默认与修前一模一样(见 [PerfFlags.DRAWER_PANEL_SHADOW])。
+          //
+          // 票 59 二轮的归因:elevation 阴影由父层在画子 RenderNode 时发出,HWUI
+          // (`RenderNodeDrawable::drawShadow`)按 caster 的 alpha 决定要不要带
+          // `kTransparentOccluder_ShadowFlag` —— Compose 这颗层 alpha 恒为 1,所以走的是
+          // **不透明遮挡物**那一支,Skia 只画外圈那一圈模糊环、不填面板内部。加上面板贴左
+          // 满高摆放,上/下/左三条环都在窗口外被 scissor 掉,真正上屏的只有右缘那一条
+          // ≈ 2712×70px。也就是说它**不该**是每帧 GPU 的大头。
+          //
+          // 但这条推断依赖 Skia 内部实现,静态代码看不到证据。所以留一个默认 true 的常量:
+          // 真机复验时把它改成 false 重打一包,同一份 15s 脚本再采一次 GPU fence 分布,
+          // 就能把「阴影占几毫秒」一次性钉死(改成 false 是**有视觉差**的,只用于对照,
+          // 不是可发布档位)。
+          .then(if (PerfFlags.DRAWER_PANEL_SHADOW) Modifier.shadow(Elevation.level2) else Modifier)
           // 面板底色**只在这里画一次**。两件事挂在它上面:
-          // 1. 票 59 的遮罩裁剪成立的前提是「面板整块不透明」(三套配色的 surface
-          //    全是 0xFF…);哪天有人把它改成半透明,遮罩那一刀就要一起撤;
+          // 1. 票 59 的遮罩裁剪、以及二轮的**首页裁剪**,前提都是「面板整块不透明」
+          //    (三套配色的 surface 全是 0xFF…);哪天有人把它改成半透明,上面那两刀
+          //    (`drawerScrimLeft` 的两个调用点)就要一起撤;
           // 2. `drawerContent` 因此**不该再铺一层满屏底色** —— 那是同一块 900×2712px
           //    的不透明填充画两遍(票 59 顺手削掉了 AppDrawerContent 里的那一层)。
           .background(colors.surface)
