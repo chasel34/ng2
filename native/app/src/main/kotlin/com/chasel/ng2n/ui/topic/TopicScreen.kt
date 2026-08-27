@@ -47,12 +47,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.preferredFrameRate
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
@@ -82,6 +84,7 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlin.math.abs
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 
 /** 楼层流与横滑翻页请求的刷新率(Hz)。120Hz 屏上把这两面钉在满帧档。 */
 private const val PAGER_FRAME_RATE = 120f
@@ -394,18 +397,31 @@ private fun TopicPager(vm: TopicViewModel, actions: FloorActions, nav: Navigator
   )
 
   // 外部换页(页码条 / 跳页 / 自动翻页)→ 把 pager 挪过去。
-  // **相邻页走动画**(票 57 二轮,见 [shouldAnimatePageTurn]);跨页跳转仍是瞬时的。
+  // **相邻页走动画**(票 57 二轮/三轮,见 [pageTurnFor]);跨页跳转仍是瞬时的。
+  //
+  // 三轮把「相不相邻」的依据从 `pagerState.currentPage` 换成**上一次呈现的 vm 页码**:
+  // 自动翻页/页码条永远只走 ±1,而 `currentPage` 是 pager 的内部量(横滑收尾、
+  // pageCount 变化都会动它),拿它当判据等于让「要不要动画」依赖一个我们不控制的值。
+  var shownPage by remember { mutableIntStateOf(vm.page) }
   LaunchedEffect(vm.page) {
     val target = (vm.page - 1).coerceIn(0, pagerPageCount(vm.totalPages, vm.page) - 1)
-    val from = pagerState.currentPage
-    if (from == target) return@LaunchedEffect
-    if (shouldAnimatePageTurn(from, target)) {
-      pagerState.animateScrollToPage(
-        page = target,
-        animationSpec = tween(Motion.DURATION_PANEL, easing = Motion.easeDecelerate),
-      )
-    } else {
-      pagerState.scrollToPage(target)
+    val move = pageTurnFor(
+      fromPage = shownPage,
+      toPage = target + 1,
+      pagerPage = pagerState.currentPage + 1,
+    )
+    shownPage = target + 1
+    when (move) {
+      PageTurn.NONE -> Unit
+      // withContext(FullMotion):见 [FullMotion] —— 这段动画是**内容连续性**,
+      // 不是装饰,不能被系统的「动画时长缩放」抹成一帧
+      PageTurn.ANIMATE -> withContext(FullMotion) {
+        pagerState.animateScrollToPage(
+          page = target,
+          animationSpec = tween(Motion.DURATION_PANEL, easing = Motion.easeDecelerate),
+        )
+      }
+      PageTurn.JUMP -> pagerState.scrollToPage(target)
     }
   }
   // 横滑松手 → 停稳后才换数据
@@ -703,6 +719,63 @@ fun shouldTurnPageAtEnd(lastVisibleIndex: Int, totalItemsCount: Int, scrolling: 
  * (每一页都是一棵要组合的子树),那才是真的卡。所以只有 ±1 走动画。
  */
 fun shouldAnimatePageTurn(fromPage: Int, toPage: Int): Boolean = abs(toPage - fromPage) == 1
+
+/** 这一次换页要怎么落到 pager 上。 */
+enum class PageTurn {
+  /** pager 已经停在目标页(横滑自己走完的那一类):别再滚一次。 */
+  NONE,
+
+  /** 相邻页:220ms 横向动画,把翻页从「一个点」摊成「一段」。 */
+  ANIMATE,
+
+  /** 跨页跳转:瞬时,不能让动画把中间几十棵子树一路扫过去。 */
+  JUMP,
+}
+
+/**
+ * 换页动作的判据,票 57 三轮从接线里抠出来的纯函数。
+ *
+ * 二轮把 `shouldAnimatePageTurn(pagerState.currentPage, target)` 直接写在
+ * `LaunchedEffect` 里,复验(`acceptance/perf/t57-floor-r2-phase.csv`)的结果是:
+ * 2.522s 纵向 fling 撞到本页页尾、2.555s 新页已经整页出现、**接着 184.0ms 一帧没有** ——
+ * 从撞墙到换完只用了 33ms(约 4 帧),说明那条 `!scrolling → onReachedEnd → goToPage →
+ * LaunchedEffect` 的链子跑得很快,唯独**那 220ms 的动画一帧都没画**。
+ *
+ * 换页只可能走两条路:`animateScrollToPage` 被当场跑完(时长被缩成 0),
+ * 或者判据取到的 `from` 不是 `target - 1` 因而落进了 `scrollToPage`。三轮把两条一起堵上:
+ *
+ * - `from` 改用**上一次呈现给用户的页码**(自动翻页/页码条恒定 ±1),不再依赖 pager 内部量;
+ * - 动画那一支套 [FullMotion],不吃系统动画时长缩放(见那里的注释)。
+ *
+ * @param fromPage 上一次呈现给用户的页(1 基)
+ * @param toPage 这次要去的页(1 基)
+ * @param pagerPage pager 这一刻停在的页(1 基)
+ */
+fun pageTurnFor(fromPage: Int, toPage: Int, pagerPage: Int): PageTurn = when {
+  pagerPage == toPage -> PageTurn.NONE
+  shouldAnimatePageTurn(fromPage, toPage) -> PageTurn.ANIMATE
+  else -> PageTurn.JUMP
+}
+
+/**
+ * 让一段动画**不吃**系统的「动画时长缩放」(开发者选项 / 省电模式 / 无障碍「移除动画」)。
+ *
+ * Compose 的每一个 `tween`/`spring` 都会读协程上下文里的 `MotionDurationScale`;
+ * 平台把 `animator_duration_scale` 调到 0 时 `scaleFactor` 就是 0,动画**当场跑完**——
+ * 观感上等价于 `scrollToPage`,而票 57 楼层流那 184ms 空洞正是这个形状
+ * (撞墙 → 33ms → 新页整页出现 → 一帧不画)。
+ *
+ * 这里只给**翻页滚动**开这个口子,理由与平台自己的口径一致:
+ * `RecyclerView.smoothScrollToPosition` / `ViewPager2.setCurrentItem(true)` 走的是
+ * `Scroller` 而不是 `ValueAnimator`,本来就不吃这个缩放 —— 它们是内容连续性,不是装饰。
+ * 弹窗、FAB、抽屉那些装饰动画一律照旧尊重系统设置。
+ *
+ * 可证伪:真机上 `adb shell settings get global animator_duration_scale` 若为 0,
+ * 二轮那版翻页动画必然一帧不画;此改动之后无论该值是多少都应有约 220ms 的横向运动帧。
+ */
+private object FullMotion : MotionDurationScale {
+  override val scaleFactor: Float get() = 1f
+}
 
 /**
  * FAB 及其展开菜单(设计稿 isArticle 256 / 261 行:动作列走 omup `.18s`,
