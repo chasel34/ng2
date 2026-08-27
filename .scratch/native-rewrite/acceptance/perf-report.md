@@ -3,21 +3,23 @@
 **状态:** 已完成，性能总闸不通过
 **已复验缺陷:** 票 51 Baseline Profile 采集为空(修复基线 `34589c6`)；票 53 抽屉
 关闭动画停格误判(X6 复验通过)；票 54 附件动画、票 55 画廊边界(真机复验通过)；
-票 56 timestats 无证据(Perfetto 替代流程已打通)；票 57 连续快甩(修复复验未通过)
+票 56 timestats 无证据(Perfetto 替代流程已打通)；票 57 连续快甩(二轮修复复验未通过)；
+票 59 视觉 verified / GPU 未过；票 60 覆盖安装保登录 verified
 
 ## 环境
 
 | 项 | 值 |
 |---|---|
-| 验收日期 | 2026-08-23；修复复验 2026-08-24 |
+| 验收日期 | 2026-08-23；修复复验 2026-08-24；合并复验 2026-08-27 |
 | Git 基线 | 初轮 `34589c6`；修复复验 `adf3a3c`(`android-native`) |
 | 设备 | 小米 `25113PN0EC`,device `pudding` |
 | 系统 | Android 16 / SDK 36 |
 | 屏幕 | 1220×2656 @520dpi,目标 120Hz |
-| ADB 目标 | `192.168.0.101:41641` |
+| ADB 目标 | `adb-5321a265-YQpTd2._adb-tls-connect._tcp` |
 | 原生包 | `com.chasel.ng2.n` |
 | Baseline Profile 源文件 | `baseline-prof.txt`,23,893 行, SHA-256 `788da424690900fe9cefc9aa3acf2dd42200d3cce236bc7bf24777d5b62743c5` |
 | Release APK | `app-release.apk`,5.0 MiB, SHA-256 `04fffa7d032e61d6df734377f06f0308974c7874d89411dc574b7fc00a3f0599` |
+| 合并复验 APK | `app-release.apk`,MD5 `2c985a568f20326ff44aae592edcd02d` |
 | 包变体 | release,非可调试,`com.chasel.ng2.n` 0.1.0(1) |
 | Profile 打包 | APK 含 `assets/dexopt/baseline.prof`(10,446 B)与 `baseline.profm`(1,395 B) |
 | 设备 dexopt | `arm64: [status=speed-profile] [reason=baseline]`,odex 7,868 KiB |
@@ -60,8 +62,8 @@ APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过�
 
 - 已完成:release/profile 三重核验与冷启 A/B。
 - 十场景:10/10 完成;场景 1–8、10 通过,仅场景 9 不通过。
-- 登录态:初轮由所有者完成；本次新包复验时抽屉显示“未登录”，验收未卸载、未清数据、
-  未代替所有者重登。
+- 登录态:2026-08-27 当天覆盖安装后仍为 `lemon43(67296151)`、已登录 1 个账号；
+  本轮未卸载、未清数据、未代替所有者登录，票 60 verified。
 
 ## 十场景
 
@@ -75,7 +77,7 @@ APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过�
 | 6 | 抽屉开合 | **通过** | X6 剔除动画起步前静止空洞；动画内 max 17.7ms，无可见停格；票 53 已复验 |
 | 7 | 附件展开/收起 | **通过** | 修复后 30/30 个连续动画窗口，C11=0；票 54 已复验 |
 | 8 | 大图/画廊开合与缩放 | **通过** | 12 轮无黑帧、10/10 双击复位逐像素回到适配位；票 55 已复验 |
-| 9 | 各转场 latch2present / 连续丢帧 | **不通过** | 连续丢帧子项过；Perfetto C8 为 383/183 双峰；票 58 |
+| 9 | 各转场 latch2present / 连续丢帧 | **不通过** | 合并复验高峰 560/755(74.2%)、GPU p95 7.695ms；票 58 |
 | 10 | 动画交互伞条款 | **通过** | 附件、画廊修复复验通过，其余交互首轮均通过 |
 
 ## 结论
@@ -85,8 +87,8 @@ APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过�
 十场景外追加的票 57 专项复验也仍未通过。
 
 票 53 已按 X6 复验通过，票 54/55 已真机 verified，票 56 的 Perfetto 替代测量流程
-也已 resolved；票 57 修复复验仍不过并 reopened，票 58 仍为产品侧 P1 验收阻断，
-52 为测量基础设施 P2。
+也已 resolved；票 57 二轮修复复验仍不过并 reopened，票 58 按要求不改判级；票 59
+视觉 verified 但 GPU 闸未过而 reopened；票 60 verified。52 为测量基础设施 P2。
 修复后须在同一 release/profile、同一真机及同一脚本上复验失败场景，不能以本报告的
 C2 低 janky 数字替代 C1/C8 闸。
 
@@ -399,5 +401,50 @@ resolved，产品侧开票 58。
 | 54 场景 7 附件展开/收起瞬时跳变 | P1 | verified | 场景 7 已改判通过 |
 | 55 场景 8 画廊缩放后可把图片整体移出视口 | P1 | verified | 场景 8 已改判通过 |
 | 56 场景 9 SurfaceFlinger timestats 返回 0 层 | P2 | resolved | Perfetto FrameTimeline 替代流程已固化 |
-| 57 连续快甩时滚动速度塌陷/停滞 | P1 | reopened | 主题列表仍跌至 3.1%；楼层仍有 276.4ms 空洞 |
-| 58 场景 9 FrameTimeline 一档 vsync 双峰 | P1 | open | 场景 9 已证明不通过 |
+| 57 连续快甩时滚动速度塌陷/停滞 | P1 | reopened | 二轮主题列表仍跌至 6.5%并静止 108–283ms；楼层仍有 184.0ms 空洞 |
+| 58 场景 9 FrameTimeline 一档 vsync 双峰 | P1 | resolved(诊断)，判级不变 | 合并复验高峰 74.2%，场景仍不通过 |
+| 59 抽屉 scrim/底色纯 overdraw | P2 | reopened | 三配色视觉 verified；GPU p95 7.695ms 未过 |
+| 60 覆盖安装后登录态丢失 | P1 | verified | 当天 install -r 后仍登录 1 个账号 |
+
+## 2026-08-27 合并复验
+
+### 票 57 二轮修复
+
+真机 release/`speed-profile`、120Hz、有效登录态下，完全复用固定节奏脚本各一轮。
+
+| 样本 | 逐帧结论 | 现代 janky | 结果 |
+|---|---|---:|---|
+| `fid=-7` 主题列表，10 手 | 分页边界 108–283ms 无内容运动；14.4k→0.94k px/s（6.5%） | 0/1,508(0.00%) | 不通过 |
+| `tid=47421607` 楼层流，8 手 | 无 10% 同型塌陷；page 切换录屏 dt 184.0ms | 1/1,170(0.09%) | 不通过 |
+
+主题/楼层 missed-vsync 均为 0，且分别不差于场景 3 的 0.02% 与场景 4 快甩 0.43%，
+所以场景 3/4 **不回归**；但 C1 两个硬闸仍失败，票 57 reopened。
+
+证据：`perf/t57-{topic,floor}-r2-{framestats,framestats-analysis,phase-summary,phase,rec}.txt/csv`。
+
+### 场景 9 / 票 58 / 票 59
+
+最终有效 15 秒富 trace 从设置页返回首页后做 6 轮抽屉开合，收尾焦点仍为本 app；
+原始 trace 36,175,875 bytes，SHA-256
+`239f34edf75e1386048334bc8fcf15838c400b4d16262713211493f59b9aff74`。
+
+- FrameTimeline：755 帧中低峰 195(25.8%)、高峰 **560(74.2%)**，高峰中位
+  18.306ms；present2present 中位 8.319ms。
+- GPU fence：757 帧，p50/p90/p95/max = 5.043/7.318/**7.695**/11.557ms，
+  14 帧超过 8.333ms。
+- 设置返回高峰 1.2%，但 GPU p95 8.326ms；六轮抽屉有五轮高峰 100%，其 GPU p95
+  7.097–8.084ms。唯一低峰抽屉轮 p95 2.814ms，下一轮又整体翻回高档，继续支持票 58
+  的粘滞队列深度归因。
+
+因此高峰 `<5%` 与 GPU p95 `<6ms` 均未满足，场景 9 仍不通过，按要求不改票 58 判级。
+票 59 的墨绿经典/纯白/夜间近黑三张全开态截图均无接缝、无双重底色，视觉 verified；
+但性能闸未过，票 59 reopened。
+
+证据：`perf/s9-final-{frametimeline,gpu,segment}-analysis.txt`、`s9-final-focus.txt`、
+`perf/t59-drawer-{ink,plain,night}.png`；trace（不进 git）：`/tmp/s9-final.pb`。
+
+### 票 60
+
+包更新时间为 2026-08-27 21:07:59，覆盖安装后抽屉仍显示「已登录 1 个账号」与
+`lemon43(67296151)`；本轮未代登录、未卸载、未清数据，判 **verified**。
+证据：`perf/t60-login-state.xml`。

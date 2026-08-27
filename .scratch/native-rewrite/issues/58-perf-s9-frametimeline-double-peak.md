@@ -279,3 +279,36 @@ p95 已经贴着 8.333ms 预算。而**触发第三次翻面的那一帧就在�
 关键 counter `BufferTX - …MainActivity#97282`、`TransactionQueue`、`PrevFramePending`，
 关键 slice `atomic_commit`(tid 3357)、`complete_commit`(tid 1505)、
 `waiting for GPU completion%`、`frameIsEarly%`、`onCommitNotComposited`。
+
+## 票 59 后合并重测(2026-08-27)
+
+在 MD5 `2c985a568f20326ff44aae592edcd02d` 的 release/`speed-profile` 包上，按同一份
+15 秒富配置重采「设置返回 + 6 轮抽屉开合」。有效 trace 36,175,875 bytes，SHA-256
+`239f34edf75e1386048334bc8fcf15838c400b4d16262713211493f59b9aff74`；收尾焦点仍为
+本 app，present2present 中位 8.319ms，满足前台/120Hz 前置条件。
+
+总体 755 个 presented 配对帧：低峰 195（25.8%，中位 10.025ms），高峰 560
+（**74.2%**，中位 18.306ms）；远高于 `<5%`。同一 app surface 时间窗内 757 个
+`waiting for GPU completion` slice 的 GPU p50/p90/p95/max 为
+5.043/7.318/**7.695**/11.557ms，14 帧超过 8.333ms，也未满足 `<6ms`。
+
+逐段结果：
+
+| 窗口 | 高峰率 | GPU p95 / max |
+|---|---:|---:|
+| 设置返回 | 1.2% | 8.326 / 9.080ms |
+| 抽屉 1 | 100% | 7.227 / 9.136ms |
+| 抽屉 2 | 100% | 8.084 / 9.012ms |
+| 抽屉 3 | 100% | 7.290 / 10.445ms |
+| 抽屉 4 | 0.9% | 2.814 / 11.557ms |
+| 抽屉 5 | 100% | 7.097 / 10.731ms |
+| 抽屉 6 | 100% | 7.454 / 8.816ms |
+
+归因仍与原裁定一致：票 59 去掉纯 overdraw 后没有把抽屉的 GPU 尾部压进预算，5/6 个
+抽屉窗口 p95 仍 >6ms，单帧 8.8–10.7ms 足以把管线推入高档；第 4 轮短暂回到低档，
+随后第 5 轮又整体翻回高档，正是「偶发排空后自愈、下一次超预算再粘住」的二值状态，
+不是 UI/RT 持续 CPU 长帧。按要求**不改判级**：场景 9 仍不通过，本票原 P1 记录与
+降级建议均保持现状。
+
+证据：`acceptance/perf/s9-final-{frametimeline,gpu,segment}-analysis.txt`、
+`s9-final-focus.txt`；原始 trace（不进 git）：`/tmp/s9-final.pb`。

@@ -1,6 +1,6 @@
 # 57 — P1:连续快甩时滚动速度塌陷/停滞
 
-**Status:** resolved
+**Status:** reopened（二轮修复合并复验仍未过硬闸）
 
 **Severity:** P1（用户可感知，主题列表稳定复现；楼层流可放大成数百毫秒停滞）
 
@@ -323,6 +323,31 @@ ScrollView 的 fling,与 Compose 毫无共享代码)拿同一套帧间灰度差�
 注入器/输入链量化,不再往 app 代码里追。
 
 **待真机复验。**
+
+## 二轮修复合并复验(2026-08-27)
+
+在真机 `pudding / 25113PN0EC`、Android 16、release/`speed-profile` 上复验。APK
+MD5 为 `2c985a568f20326ff44aae592edcd02d`，设备为
+`adb-5321a265-YQpTd2._adb-tls-connect._tcp`；屏幕全程亮屏，录屏基准 120Hz，前后焦点
+均为 `com.chasel.ng2.n/com.chasel.ng2n.MainActivity`。当前已登录，主题列表使用原来的
+`fid=-7`「网事杂谈」，不是失败页。
+
+两条固定节奏脚本原样各跑一轮：主题列表 10 次、楼层流 8 次
+`input swipe 610 2100 610 550 100`，每次间隔 250ms。
+
+| 样本 | 速度/内容连续性 | FrameTimeline | 裁决 |
+|---|---|---|---|
+| 主题列表 | 分页边界仍有 108–283ms 内容静止窗；一处前段约 14.4k px/s 后降到 0.94k px/s（**6.5%**） | 0/1,508 janky（0.00%），missed-vsync 0，p95 6ms | **不过 10% 与 100ms 两闸** |
+| 楼层流 | 脚本输入段无同型 10% 塌陷，但 page 切换处录屏 dt **184.0ms**，没有形成期望的 220ms 连续动画帧 | 1/1,170 janky（0.09%），missed-vsync 0，p95 7ms | **不过 100ms 闸** |
+
+场景 3/4 的 janky 没有回归：主题列表 0.00% 不差于原 0.02%，楼层流 0.09% 不差于
+原快甩 0.43% / RN 历史 2.7%。但 C1 优先于 C2，二轮修复仍未满足本票两个硬闸，故
+保持 reopened。现象已从一轮的 EdgeEffect 蠕动/瞬时换页，变成分页边界的明确静止窗；
+若继续定位，应先查距离预取为何仍约每两手耗尽，以及相邻页 `animateScrollToPage` 为何
+在录屏上仍留下 184ms 无新帧。
+
+证据：`acceptance/perf/t57-{topic,floor}-r2-{framestats,framestats-analysis,phase-summary,phase,rec}.txt/csv`；
+录屏（不进 git）：`/tmp/t57-{topic,floor}-r2.mp4`。
 
 ## 修复后真机复验(2026-08-24)
 

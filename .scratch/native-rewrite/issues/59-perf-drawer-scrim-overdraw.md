@@ -1,6 +1,6 @@
 # 59 — P2:抽屉遮罩整屏混合 + 面板底色画两遍(纯 overdraw)
 
-**Status:** resolved（已改代码，**待真机复验**；判据见文末）
+**Status:** reopened（视觉 verified；GPU p95 硬闸未过）
 
 **Severity:** P2（不是节奏缺陷，是每帧 GPU 预算余量；由票 58 裁定第 4 条拆出）
 
@@ -111,3 +111,15 @@ cd native && ./gradlew :app:assembleDebug :app:testDebugUnitTest -q
    以及面板底色在浅色/深色/纯白三套配色下是否仍然实心）。
 
 顺带量一下 `windowBackground` 置空的可行性（见上表最后一行）。
+
+## 合并复验(2026-08-27)
+
+三套配色的抽屉全开态均已真机截图对拍：墨绿经典、纯白、夜间近黑的面板右缘都没有
+亮/暗接缝，面板底色实心且没有双重底色；视觉项 **verified**。截图为
+`acceptance/perf/t59-drawer-{ink,plain,night}.png`，验后已恢复墨绿经典并重新打开
+「夜间模式跟随系统」。
+
+但同包场景 9 富 trace 的整体 GPU p95 为 **7.695ms**，六轮抽屉有五轮 p95
+7.097–8.084ms，max 8.816–10.731ms；仍不满足本票 `<6ms` / `<8.333ms` 两个硬闸。
+所以本票不能因视觉等价就判整票 verified，状态改为 reopened；逐段与双峰归因见票 58
+「票 59 后合并重测」。

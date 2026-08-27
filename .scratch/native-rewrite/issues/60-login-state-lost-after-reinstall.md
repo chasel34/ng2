@@ -1,6 +1,6 @@
 # 60 — P1:真机上覆盖装新包之后登录态丢失(账号头与需登录接口全成游客态)
 
-**Status:** resolved(待真机复验)
+**Status:** verified
 
 **Severity:** P1(所有者的登录态是不可再生资产 —— 真机只有一台、账号只有一份,
 重登要走 WebView 手动输密码;而验收流程本身每装一次包就可能再毁一次。
@@ -169,3 +169,9 @@ android.injected.androidTest.leaveApksInstalledAfterRun=true
   「首装预热」那句旁证。没有真机 logcat / `pm` 事件日志留存,所以严格说是**强推断而非直接实证**;
   第 2 条(读失败不毁证 + 有日志)是无论根因判定对错都该修的部分,且已用单测钉死 ——
   即便根因另有其人,下一次再丢也能从 logcat 直接读出是「钥匙没了」还是「文件没了」。
+- 2026-08-27:真机合并复验通过。`dumpsys package` 记录本包 `lastUpdateTime=2026-08-27
+  21:07:59`，当天覆盖安装后的抽屉仍显示「已登录 1 个账号」与
+  `当前：lemon43(67296151)`；release APK MD5 与交付值一致为
+  `2c985a568f20326ff44aae592edcd02d`。本轮未代登录、未卸载、未清数据，按票面口径判
+  **verified**。证据：`acceptance/perf/t60-login-state.xml`、
+  `acceptance/perf/t59-drawer-ink.png`。

@@ -1,0 +1,8 @@
+input commands: 12
+settings-return: frames=81 high=1 (1.2%) GPU p95=8.326ms max=9.080ms
+drawer-1: frames=104 high=104 (100.0%) GPU p95=7.227ms max=9.136ms
+drawer-2: frames=112 high=112 (100.0%) GPU p95=8.084ms max=9.012ms
+drawer-3: frames=120 high=120 (100.0%) GPU p95=7.290ms max=10.445ms
+drawer-4: frames=116 high=1 (0.9%) GPU p95=2.814ms max=11.557ms
+drawer-5: frames=111 high=111 (100.0%) GPU p95=7.097ms max=10.731ms
+drawer-6: frames=111 high=111 (100.0%) GPU p95=7.454ms max=8.816ms
