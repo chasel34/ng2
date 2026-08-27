@@ -72,6 +72,8 @@ import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.common.rememberPagedFlingBehavior
 import com.chasel.ng2n.ui.common.rememberShouldLoadNextPage
+import com.chasel.ng2n.ui.common.rememberTailPlaceholders
+import com.chasel.ng2n.ui.common.tailPlaceholders
 import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.filters.rememberFilterRules
@@ -435,6 +437,8 @@ private fun TopicListBody(
   val flingBehavior = rememberPagedFlingBehavior(listState) {
     state.hasNextPage || state.loadingNextPage
   }
+  // 下一页在路上时,尾部铺几屏能滚的骨架行:fling 有像素可推进,就不会撞墙(票 57 三轮)
+  val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
   PullToRefreshBox(
     // 翻下一页时不要亮:不然底部转圈会连带把顶部也拽出来
@@ -465,6 +469,7 @@ private fun TopicListBody(
       ) { index ->
         TopicRow(rows[index], onOpenTopic)
       }
+      tailPlaceholders(placeholders)
       item(key = ListKeys.FOOTER, contentType = "footer") {
         Column {
           if (state.loadingNextPage) LoadingFooter("正在载入第 ${state.pages.size + 1} 页…")

@@ -77,6 +77,8 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.rememberPagedFlingBehavior
 import com.chasel.ng2n.ui.common.rememberShouldLoadNextPage
+import com.chasel.ng2n.ui.common.rememberTailPlaceholders
+import com.chasel.ng2n.ui.common.tailPlaceholders
 import com.chasel.ng2n.ui.common.rowClickable
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.filters.rememberFilterRules
@@ -627,6 +629,8 @@ private fun TopicResults(
   val flingBehavior = rememberPagedFlingBehavior(listState) {
     state.hasNextPage || state.loadingNextPage
   }
+  // 下一页在路上时,尾部铺几屏能滚的骨架行(票 57 三轮)
+  val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
   Column(Modifier.fillMaxSize()) {
     // 结果统计条:设计稿缺失页面,按二级列表的副标题条(listSub)延伸
@@ -648,6 +652,7 @@ private fun TopicResults(
         key = { index -> rows[index].topic.tid },
         contentType = { "topic" },
       ) { index -> TopicRow(rows[index], openTopic) }
+      tailPlaceholders(placeholders)
       item(key = ListKeys.FOOTER, contentType = "footer") {
         Column {
           if (state.loadingNextPage) LoadingFooter("正在载入第 ${state.pages.size + 1} 页…")

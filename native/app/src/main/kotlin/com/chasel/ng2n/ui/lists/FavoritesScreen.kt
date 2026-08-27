@@ -53,6 +53,8 @@ import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
 import com.chasel.ng2n.ui.common.rememberPagedFlingBehavior
 import com.chasel.ng2n.ui.common.rememberShouldLoadNextPage
+import com.chasel.ng2n.ui.common.rememberTailPlaceholders
+import com.chasel.ng2n.ui.common.tailPlaceholders
 import com.chasel.ng2n.ui.filters.rememberFilterRules
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
@@ -223,6 +225,8 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
         val flingBehavior = rememberPagedFlingBehavior(listState) {
           state.hasNextPage || state.loadingNextPage
         }
+        // 下一页在路上时,尾部铺几屏能滚的骨架行(票 57 三轮)
+        val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
         PullToRefreshBox(
           // 翻下一页时不要亮:不然底部转圈会连带把顶部也拽出来
@@ -248,6 +252,7 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
                 onLongClick = { topic -> unfavoriting = topic },
               )
             }
+            tailPlaceholders(placeholders)
             item(key = ListKeys.FOOTER, contentType = "footer") {
               Column {
                 if (!state.hasNextPage && !state.loadingNextPage) {
