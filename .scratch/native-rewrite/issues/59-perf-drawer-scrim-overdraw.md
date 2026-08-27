@@ -1,6 +1,6 @@
 # 59 — P2:抽屉遮罩整屏混合 + 面板底色画两遍(纯 overdraw)
 
-**Status:** reopened（视觉 verified；GPU p95 硬闸未过 —— 二轮归因认为该闸口径本身要改判，见「二轮削 GPU」第一节第 4 条）
+**Status:** reopened（二轮视觉 verified；GPU 闸已改为 low-peak-only，但本轮无稳定 L 档抽屉窗口且现有 low 样本未过）
 
 **Severity:** P2（不是节奏缺陷，是每帧 GPU 预算余量；由票 58 裁定第 4 条拆出）
 
@@ -307,3 +307,27 @@ alpha 恒为 1,走的是**不透明遮挡物**那一支,Skia 因此只画外圈�
    **面板右缘那一列**在三套配色下有没有亮边/暗边/缺口(一轮已按同一口径截过
    `acceptance/perf/t59-drawer-{ink,plain,night}.png`,直接对拍这三张);
    另外看拖动到一半停住时,面板右侧的首页内容有没有被裁多。
+
+## 二轮终轮复验(2026-08-27)
+
+按票面先跑 `analyze_s9_segments.py --by-peak`：low/high GPU p50 为
+1.567/5.061ms，相差 **3.494ms**，达到 `≳3ms` 判据。由此确认 H 桶的 fence 有管线
+深度地板，本票性能硬闸正式改为 **仅在 low-peak 帧上判 `p95 <6ms`**；该口径已同步
+回写票 58。
+
+与修前 `s9-final-gpu-analysis.txt` 对拍：整体 p50/p95 从 5.043/7.695ms 变为
+4.947/7.793ms，整体值因 H 档占比从 74.2% 升到 87.9% 不用于判断二轮裁剪收益。
+稳定 L 档的设置返回窗口 low GPU p50/p95 为 **1.559/1.917ms**；但六轮抽屉没有形成
+一个稳定 L 档窗口：只有 drawer-1 的 1 帧、drawer-2 的 9 帧落在 low 桶，分别为边界/
+翻档样本，p95 10.571/11.725ms。全局 low 桶 p95 也为 8.583ms。因而当前证据不能证明
+「L 档抽屉稳定 `<6ms`」，性能项仍 **未过**，票保持 reopened；不拿 H 桶 7–8ms 反向
+归罪光栅，也不做本轮明确排除的 shadow A/B。
+
+视觉对拍通过：半开约 52% 与全开两张图中，面板右缘均为连续直边，无亮/暗接缝；
+面板右侧首页的搜索、tab、推荐卡仍保留，未被新增首页 clip 多裁。全开图同时显示
+`已登录 1 个账号 / 当前：lemon43(67296151)`，覆盖安装后登录态仍在。
+
+证据：`acceptance/perf/t59-r2-drawer-{half,open}.png`、
+`s9-r4-{frametimeline,gpu,segment}-analysis.txt`。原始 trace（不进 git）：
+`/tmp/s9-r4.pb`，SHA-256
+`c4e651c869cae72ce86b782a6bcf74c72b12109b98782cdf8ffc8ab95592dce8`。

@@ -312,3 +312,30 @@ p95 已经贴着 8.333ms 预算。而**触发第三次翻面的那一帧就在�
 
 证据：`acceptance/perf/s9-final-{frametimeline,gpu,segment}-analysis.txt`、
 `s9-final-focus.txt`；原始 trace（不进 git）：`/tmp/s9-final.pb`。
+
+## 票 59 二轮削 GPU 后终轮重测(2026-08-27)
+
+新 release/`speed-profile` 包（MD5 `98727e9b536714415f8939d806e6fd17`）按同一份 15 秒
+富配置重采「设置返回 + 6 轮抽屉开合」。原始 trace 33,294,273 bytes，SHA-256
+`c4e651c869cae72ce86b782a6bcf74c72b12109b98782cdf8ffc8ab95592dce8`；收尾焦点仍为本 app。
+
+`analyze_s9_segments.py --by-peak` 将 GPU fence 按所属 FrameTimeline 档位分桶：
+
+| 桶 | n | GPU p50 / p95 / max |
+|---|---:|---:|
+| low-peak | 91 | **1.567 / 8.583 / 12.946ms** |
+| high-peak | 651 | **5.061 / 7.716 / 13.010ms** |
+
+high p50 比 low p50 高 **3.494ms**，达到「约 3ms」证伪阈值，证实 H 档的 GPU fence
+含管线/队列深度地板，不能继续当作纯光栅成本。因此票 59 的 `GPU p95 <6ms` 从本轮起
+正式改判为：**只对 low-peak 帧（且须有稳定 L 档抽屉窗口）裁决**；H 桶只记录，不用于
+要求 app 把系统队列等待优化掉。
+
+本轮 743 个 presented 帧中低峰 83（11.2%，中位 9.995ms），高峰 653
+（**87.9%**，中位 18.293ms），比修前基线高峰 74.2% 反而多 13.7 个百分点，仍远超
+`<5%`。present2present 中位 8.319ms，surface 只有 1 个孤立 dropped frame，连续丢
+`>2 vsync` 子项未回退。故本票继续保持 **resolved（诊断）/原 P1 判级不变**，场景 9
+仍不通过；本节只改 GPU fence 的裁决口径，不把双峰改判通过。
+
+证据：`acceptance/perf/s9-r4-{frametimeline,gpu,segment}-analysis.txt`、
+`s9-r4-focus.txt`；原始 trace（不进 git）：`/tmp/s9-r4.pb`。

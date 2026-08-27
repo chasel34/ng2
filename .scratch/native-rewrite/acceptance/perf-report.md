@@ -3,8 +3,8 @@
 **状态:** 已完成，性能总闸不通过
 **已复验缺陷:** 票 51 Baseline Profile 采集为空(修复基线 `34589c6`)；票 53 抽屉
 关闭动画停格误判(X6 复验通过)；票 54 附件动画、票 55 画廊边界(真机复验通过)；
-票 56 timestats 无证据(Perfetto 替代流程已打通)；票 57 连续快甩(二轮修复复验未通过)；
-票 59 视觉 verified / GPU 未过；票 60 覆盖安装保登录 verified
+票 56 timestats 无证据(Perfetto 替代流程已打通)；票 57 连续快甩(三轮终轮 verified)；
+票 59 二轮视觉 verified / low-peak GPU 闸未过；票 60 覆盖安装保登录 verified
 
 ## 环境
 
@@ -20,6 +20,7 @@
 | Baseline Profile 源文件 | `baseline-prof.txt`,23,893 行, SHA-256 `788da424690900fe9cefc9aa3acf2dd42200d3cce236bc7bf24777d5b62743c5` |
 | Release APK | `app-release.apk`,5.0 MiB, SHA-256 `04fffa7d032e61d6df734377f06f0308974c7874d89411dc574b7fc00a3f0599` |
 | 合并复验 APK | `app-release.apk`,MD5 `2c985a568f20326ff44aae592edcd02d` |
+| 终轮复验 APK | `app-release.apk`,MD5 `98727e9b536714415f8939d806e6fd17` |
 | 包变体 | release,非可调试,`com.chasel.ng2.n` 0.1.0(1) |
 | Profile 打包 | APK 含 `assets/dexopt/baseline.prof`(10,446 B)与 `baseline.profm`(1,395 B) |
 | 设备 dexopt | `arm64: [status=speed-profile] [reason=baseline]`,odex 7,868 KiB |
@@ -62,7 +63,7 @@ APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过�
 
 - 已完成:release/profile 三重核验与冷启 A/B。
 - 十场景:10/10 完成;场景 1–8、10 通过,仅场景 9 不通过。
-- 登录态:2026-08-27 当天覆盖安装后仍为 `lemon43(67296151)`、已登录 1 个账号；
+- 登录态:2026-08-27 终轮覆盖安装后仍为 `lemon43(67296151)`、已登录 1 个账号；
   本轮未卸载、未清数据、未代替所有者登录，票 60 verified。
 
 ## 十场景
@@ -77,18 +78,19 @@ APK profile 资产、release 非可调试属性与真机 dexopt 三项均通过�
 | 6 | 抽屉开合 | **通过** | X6 剔除动画起步前静止空洞；动画内 max 17.7ms，无可见停格；票 53 已复验 |
 | 7 | 附件展开/收起 | **通过** | 修复后 30/30 个连续动画窗口，C11=0；票 54 已复验 |
 | 8 | 大图/画廊开合与缩放 | **通过** | 12 轮无黑帧、10/10 双击复位逐像素回到适配位；票 55 已复验 |
-| 9 | 各转场 latch2present / 连续丢帧 | **不通过** | 合并复验高峰 560/755(74.2%)、GPU p95 7.695ms；票 58 |
+| 9 | 各转场 latch2present / 连续丢帧 | **不通过** | 终轮高峰 653/743(87.9%)；GPU fence 闸改为 low-only，仍无稳定 L 档抽屉通过样本；票 58/59 |
 | 10 | 动画交互伞条款 | **通过** | 附件、画廊修复复验通过，其余交互首轮均通过 |
 
 ## 结论
 
 十场景全部完成，票 54/55 修复复验后为 **9 通过 / 1 不通过，票 19 性能总闸仍不通过**。
 场景 1–8、10 通过；十场景内唯一不过项为场景 9 FrameTimeline 一档 vsync 双峰；
-十场景外追加的票 57 专项复验也仍未通过。
+十场景外追加的票 57 三轮专项终轮已通过。
 
 票 53 已按 X6 复验通过，票 54/55 已真机 verified，票 56 的 Perfetto 替代测量流程
-也已 resolved；票 57 二轮修复复验仍不过并 reopened，票 58 按要求不改判级；票 59
-视觉 verified 但 GPU 闸未过而 reopened；票 60 verified。52 为测量基础设施 P2。
+也已 resolved；票 57 三轮修复终轮 verified；票 58 按要求不改判级；票 59 二轮视觉
+verified，但改判后的 low-peak GPU 闸仍缺稳定抽屉通过样本而 reopened；票 60 verified。
+52 为测量基础设施 P2。
 修复后须在同一 release/profile、同一真机及同一脚本上复验失败场景，不能以本报告的
 C2 低 janky 数字替代 C1/C8 闸。
 
@@ -401,9 +403,9 @@ resolved，产品侧开票 58。
 | 54 场景 7 附件展开/收起瞬时跳变 | P1 | verified | 场景 7 已改判通过 |
 | 55 场景 8 画廊缩放后可把图片整体移出视口 | P1 | verified | 场景 8 已改判通过 |
 | 56 场景 9 SurfaceFlinger timestats 返回 0 层 | P2 | resolved | Perfetto FrameTimeline 替代流程已固化 |
-| 57 连续快甩时滚动速度塌陷/停滞 | P1 | reopened | 二轮主题列表仍跌至 6.5%并静止 108–283ms；楼层仍有 184.0ms 空洞 |
-| 58 场景 9 FrameTimeline 一档 vsync 双峰 | P1 | resolved(诊断)，判级不变 | 合并复验高峰 74.2%，场景仍不通过 |
-| 59 抽屉 scrim/底色纯 overdraw | P2 | reopened | 三配色视觉 verified；GPU p95 7.695ms 未过 |
+| 57 连续快甩时滚动速度塌陷/停滞 | P1 | verified | 三轮终轮无 >100ms 停滞、速度最低约前段 57.9%；楼层约 192ms 连续翻页动画 |
+| 58 场景 9 FrameTimeline 一档 vsync 双峰 | P1 | resolved(诊断)，判级不变 | 终轮高峰 87.9%，场景仍不通过；GPU fence 闸改为 low-only |
+| 59 抽屉 scrim/底色纯 overdraw | P2 | reopened | 二轮视觉 verified；无稳定 L 档抽屉窗口证明 low-peak p95 <6ms |
 | 60 覆盖安装后登录态丢失 | P1 | verified | 当天 install -r 后仍登录 1 个账号 |
 
 ## 2026-08-27 合并复验
@@ -448,3 +450,48 @@ resolved，产品侧开票 58。
 包更新时间为 2026-08-27 21:07:59，覆盖安装后抽屉仍显示「已登录 1 个账号」与
 `lemon43(67296151)`；本轮未代登录、未卸载、未清数据，判 **verified**。
 证据：`perf/t60-login-state.xml`。
+
+## 2026-08-27 三轮/二轮终轮复验
+
+终轮包 MD5 `98727e9b536714415f8939d806e6fd17`，release、`speed-profile`；设备
+`animator_duration_scale=1.0`。采样前逐次以 `dumpsys trust` 确认
+`deviceLocked=0`，全程亮屏、120Hz，未卸载、未清数据、未代登录。
+
+### 票 57 三轮
+
+| 样本 | C1 / 动画结论 | 现代 janky | 结果 |
+|---|---|---:|---|
+| `fid=-7` 主题列表，10 手 | 固定输入段最低速度桶 8.862k px/s，约为相邻前段 57.9%；无 `>100ms` 零位移窗 | 0/1,558(0.00%) | 通过 |
+| `tid=47421607` 楼层流，8 手 | page 1→2 约 192ms 连续横向动画，动画帧 dt 7.3–9.7ms；旧 184ms 空洞消失 | 1/1,238(0.08%) | 通过 |
+
+主题富 trace 中 EdgeEffect slice 为 0，通用 `animation` 771 个、起点间隔最大
+17.032ms；lazy prefetch compose/measure/apply 各 247 个，没有与分页冻结对应的断流。
+主题/楼层 missed-vsync 均 0，场景 3/4 janky 不回归。尾部骨架在本轮网络下很快被真行
+替换，未长期留在截图中，但列表持续滚过分页边界而没有冻结。票 57 改为 **verified**。
+
+证据：`perf/t57-r3-animator-duration-scale.txt`、
+`perf/t57-topic-r3-{framestats,framestats-analysis,phase-summary,phase,rec,focus}.txt/csv`、
+`perf/t57-floor-r3-{framestats,framestats-analysis,phase-summary,phase,rec,turn-diff,focus}.txt/csv`、
+`perf/t57-topic-r3-rich-analysis.txt`；富 trace（不进 git）：`/tmp/t57-topic-r3-rich.pb`。
+
+### 场景 9 / 票 58 / 票 59 二轮
+
+15 秒富 trace 共有 743 个 presented 帧：低峰 83(11.2%)、高峰 **653(87.9%)**，
+present2present 中位 8.319ms；高峰占比相对修前 74.2% 增加 13.7 个百分点，仍不满足
+`<5%`。GPU fence 整体 p50/p95 为 4.947/7.793ms。
+
+`--by-peak` 分桶后 low/high GPU p50 为 1.567/5.061ms，差 **3.494ms**，达到票面
+`≳3ms` 判据，证实 H 桶有队列深度地板。因此 GPU `p95 <6ms` 闸改为只在 low-peak
+帧上判。稳定 L 档设置返回 low p95 为 1.917ms；但本轮没有稳定 L 档抽屉窗口，仅有
+10 个抽屉边界帧落入 low 桶且未过 `<6ms`，不能证明二轮 GPU 闸通过。票 58 保持
+resolved（诊断）与原 P1 判级，票 59 保持 reopened；场景 9 仍不通过。
+
+半开约 52% 与全开截图对拍通过：面板右缘无接缝，右侧首页内容没有被多裁。全开图还
+确认覆盖安装后仍为「已登录 1 个账号 / 当前：lemon43(67296151)」，登录态保持。
+
+证据：`perf/s9-r4-{frametimeline,gpu,segment}-analysis.txt`、`s9-r4-focus.txt`、
+`perf/t59-r2-drawer-{half,open}.png`；trace（不进 git）：`/tmp/s9-r4.pb`，SHA-256
+`c4e651c869cae72ce86b782a6bcf74c72b12109b98782cdf8ffc8ab95592dce8`。
+
+终轮不改变十场景总计：**9 通过 / 1 不通过**，唯一失败仍为场景 9；票 57 是十场景外
+专项，已由 reopened 改为 verified。

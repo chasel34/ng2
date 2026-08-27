@@ -1,0 +1,27 @@
+Ticket 57 round-3 topic-list rich trace (2026-08-27)
+
+trace: /tmp/t57-topic-r3-rich.pb (not committed)
+size: 35,558,229 bytes
+SHA-256: 4f344b0a7d7dfa8a3d4f117218b85261ecb871a30e92e49ba51bf84b3bb17d79
+package: com.chasel.ng2.n
+trace duration: 14,960.307 ms
+fixed-rhythm input processes: 10
+
+Relevant slices inside the app FrameTimeline bounds (6,358.228 ms):
+- AndroidEdgeEffectOverscrollEffect: 0
+- animation: n=771; start-gap p50/p90/p95/max = 8.309/8.683/8.881/17.032 ms
+- Recomposer:animation: n=637; start-gap p50/p90/p95/max = 8.320/8.665/8.876/116.596 ms
+- compose:lazy:prefetch:compose: n=247; duration 0.228-1.300 ms
+- compose:lazy:prefetch:measure: n=247; duration 0.344-4.153 ms
+- compose:lazy:prefetch:apply: n=247; duration 0.077-1.173 ms
+- compose:lazy:prefetch:execute:urgent: n=13; duration 1.401-2.391 ms
+
+Interpretation:
+- There are no mid-list EdgeEffect render slices.
+- The generic animation stream remains continuous (maximum start gap 17.032 ms), so the
+  round-2 HOLD signature is absent. The screen recording independently has no >100 ms
+  zero-motion/content-freeze window.
+- Prefetch has work available throughout the active scroll (247 compose/measure/apply groups).
+  Raw prefetch-compose start gaps are demand-driven per item (p50/p95 23.729/41.369 ms);
+  the largest 125.730-293.784 ms gaps occur after 5.624 s during the final natural velocity
+  decay, not at a pagination freeze. They are not treated as a prefetch starvation window.

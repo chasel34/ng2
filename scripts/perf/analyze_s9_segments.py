@@ -12,6 +12,8 @@ def percentile(values, percent):
     position = (len(values) - 1) * percent / 100
     lower = int(position)
     upper = min(lower + 1, len(values) - 1)
+    if lower == upper:
+        return values[lower]
     return values[lower] * (upper - position) + values[upper] * (position - lower)
 
 
@@ -102,11 +104,25 @@ def main():
         ]
     for label, window_start, window_end in windows:
         window_frames = [row.dur / 1e6 for row in frames if window_start <= row.ts < window_end]
-        window_gpu = [row.dur / 1e6 for row in gpu if window_start <= row.ts < window_end]
+        window_gpu_rows = [row for row in gpu if window_start <= row.ts < window_end]
+        window_gpu = [row.dur / 1e6 for row in window_gpu_rows]
         high = [value for value in window_frames if 13.333 <= value <= 22.499]
         print(f"{label}: frames={len(window_frames)} high={len(high)} "
               f"({len(high) / len(window_frames) * 100 if window_frames else 0:.1f}%) "
               f"GPU p95={percentile(window_gpu, 95):.3f}ms max={max(window_gpu, default=0):.3f}ms")
+        if args.by_peak:
+            window_low, window_high = [], []
+            paired_frames = sorted(frames, key=lambda row: row.ts)
+            for row in window_gpu_rows:
+                frame = nearest_frame(paired_frames, row.ts)
+                if frame is None:
+                    continue
+                bucket = window_high if 13.333 <= frame.dur / 1e6 <= 22.499 else window_low
+                bucket.append(row.dur / 1e6)
+            for name, values in (("lowGPU", window_low), ("highGPU", window_high)):
+                if values:
+                    print(f"  {name}: n={len(values)} p50={percentile(values, 50):.3f} "
+                          f"p95={percentile(values, 95):.3f} max={max(values):.3f}ms")
 
     if args.by_peak:
         print()

@@ -1,0 +1,2 @@
+  mCurrentFocus=Window{7ebb5d9 u0 com.chasel.ng2.n/com.chasel.ng2n.MainActivity}
+  mFocusedApp=ActivityRecord{111434414 u0 com.chasel.ng2.n/com.chasel.ng2n.MainActivity t4814}

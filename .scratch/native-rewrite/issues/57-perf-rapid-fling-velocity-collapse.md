@@ -1,6 +1,6 @@
 # 57 — P1:连续快甩时滚动速度塌陷/停滞
 
-**Status:** reopened（三轮修复已合入分支，待真机复验）
+**Status:** verified（三轮修复终轮真机复验通过）
 
 **Severity:** P1（用户可感知，主题列表稳定复现；楼层流可放大成数百毫秒停滞）
 
@@ -830,3 +830,31 @@ app surface 空 353.979ms,录屏侧记 265.900ms「无新内容帧」。原因�
 那就该动 `TopicListRepository` 的串行约束了。
 
 **待真机复验。**
+
+## 三轮修复终轮复验(2026-08-27)
+
+设备 `25113PN0EC`，release/`speed-profile` 包 MD5
+`98727e9b536714415f8939d806e6fd17`；测前记录
+`animator_duration_scale=1.0`。全程亮屏、120Hz、前台为
+`com.chasel.ng2.n/com.chasel.ng2n.MainActivity`，未卸载、未清数据。主题列表与楼层流
+各原样跑一轮固定节奏脚本。
+
+| 判据 | 终轮证据 | 裁决 |
+|---|---|---|
+| 1. 主题列表边界速度/停滞 | 780 帧/7.480s，基准 8.33ms；固定输入段最低 100ms 速度桶 8.862k px/s，约为相邻前段 15.299k 的 **57.9%**；无 `>100ms` 零位移/无新内容窗、无内容突现 | 通过 |
+| 2. EdgeEffect / HOLD | 35.6MB 富 trace 中 `AndroidEdgeEffectOverscrollEffect` **0**；`animation` 771 个，起点间隔 p95/max 8.881/17.032ms；录屏也没有二轮 HOLD 的静止形态 | 通过 |
+| 3. lazy prefetch | `compose:lazy:prefetch:{compose,measure,apply}` 各 247 个，urgent 13 个；最大原始间隔位于最后一手自然衰减尾段，分页处没有对应的位移冻结 | 通过；按“是否形成分页断流”判，不把按行按需调度间隔冒充断流 |
+| 4. 楼层相邻页动画 | page 1→2 从 2.656s 连续运动到约 2.848s（约 **192ms**），动画帧间隔 7.3–9.7ms；旧版 184ms 一帧换页空洞消失 | 通过 |
+| 5. 动画缩放环境量 | `animator_duration_scale=1.0` | 已记录 |
+| 6. 回归 | 固定脚本实际覆盖到底自动翻页；主题/楼层 missed-vsync 均 0。真边缘、下拉刷新、跨页跳转沿用本轮已有单测与前轮功能证据，本终轮不另扩脚本 | 无回归证据 |
+
+场景 3 回归为 0/1,558 janky（0.00%，p95 9ms），场景 4 回归为 1/1,238
+（0.08%，p95 11ms），均不差于 0.02% / 0.43% 基线。主题列表的尾部骨架在本轮网络
+条件下很快被真行替换，单帧截图未长期保留灰条；但列表持续滚动且没有边界冻结，核心
+可证伪形态已经消失。综上四个硬闸全部通过，票 57 改为 **verified**。
+
+证据：`acceptance/perf/t57-r3-animator-duration-scale.txt`、
+`t57-topic-r3-{framestats,framestats-analysis,phase-summary,phase,rec,focus}.txt/csv`、
+`t57-floor-r3-{framestats,framestats-analysis,phase-summary,phase,rec,turn-diff,focus}.txt/csv`、
+`t57-topic-r3-rich-analysis.txt`。富 trace（不进 git）：`/tmp/t57-topic-r3-rich.pb`，
+SHA-256 `4f344b0a7d7dfa8a3d4f117218b85261ecb871a30e92e49ba51bf84b3bb17d79`。

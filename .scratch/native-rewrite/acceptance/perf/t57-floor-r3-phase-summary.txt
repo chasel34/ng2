@@ -1,0 +1,54 @@
+frames=620 duration=6.400s valid_motion=572
+speed_px_s p10/p50/p90/max=1909/12359/16293/43937
+  0.90-  1.00s median=  13896 max=  13896 n= 1
+  1.00-  1.10s median=  15198 max=  20682 n=11
+  1.10-  1.20s median=  15524 max=  17746 n=12
+  1.20-  1.30s median=  14244 max=  16284 n=12
+  1.30-  1.40s median=  12300 max=  18305 n=12
+  1.40-  1.50s median=  10776 max=  21929 n=11
+  1.50-  1.60s median=  15526 max=  16157 n=11
+  1.60-  1.70s median=  15355 max=  17331 n=12
+  1.70-  1.80s median=  13683 max=  18419 n=12
+  1.80-  1.90s median=  12071 max=  15562 n=12
+  1.90-  2.00s median=  10844 max=  15695 n=12
+  2.00-  2.10s median=  15047 max=  21658 n=10
+  2.10-  2.20s median=  15626 max=  33351 n=12
+  2.20-  2.30s median=  13923 max=  15174 n=11
+  2.30-  2.40s median=  12050 max=  21134 n=13
+  2.40-  2.50s median=  10507 max=  12378 n=10
+  2.50-  2.60s median=  15442 max=  18423 n=11
+  2.60-  2.70s median=  11573 max=  15267 n= 2
+  3.00-  3.10s median=  15637 max=  19690 n= 6
+  3.10-  3.20s median=  15000 max=  16833 n=11
+  3.20-  3.30s median=  14561 max=  18462 n=12
+  3.30-  3.40s median=  13181 max=  14626 n=12
+  3.40-  3.50s median=  10943 max=  32977 n=12
+  3.50-  3.60s median=  15873 max=  20263 n=10
+  3.60-  3.70s median=  14840 max=  28198 n=11
+  3.70-  3.80s median=  14304 max=  18709 n=12
+  3.80-  3.90s median=  12899 max=  14247 n=12
+  3.90-  4.00s median=  10739 max=  12894 n=12
+  4.00-  4.10s median=  15039 max=  16818 n=11
+  4.10-  4.20s median=  15054 max=  43937 n=11
+  4.20-  4.30s median=  14841 max=  17318 n=12
+  4.30-  4.40s median=  12849 max=  15297 n=12
+  4.40-  4.50s median=  11138 max=  16392 n=12
+  4.50-  4.60s median=  11632 max=  19625 n=11
+  4.60-  4.70s median=  15338 max=  24158 n=10
+  4.70-  4.80s median=  15011 max=  34395 n=12
+  4.80-  4.90s median=  13654 max=  20440 n=12
+  4.90-  5.00s median=  11914 max=  15453 n=12
+  5.00-  5.10s median=   9858 max=  11148 n=12
+  5.10-  5.20s median=   7768 max=  11613 n=12
+  5.20-  5.30s median=   6802 max=   7784 n=12
+  5.30-  5.40s median=   5562 max=   6491 n=12
+  5.40-  5.50s median=   4618 max=  14118 n=12
+  5.50-  5.60s median=   3827 max=   4668 n=12
+  5.60-  5.70s median=   3137 max=   3678 n=12
+  5.70-  5.80s median=   2478 max=   3130 n=12
+  5.80-  5.90s median=   1957 max=   2300 n=12
+  5.90-  6.00s median=   1506 max=   1907 n=13
+  6.00-  6.10s median=    973 max=   1765 n=11
+  6.10-  6.20s median=    800 max=   1257 n=12
+  6.20-  6.30s median=    482 max=    849 n=13
+  6.30-  6.40s median=    501 max=    554 n= 3
