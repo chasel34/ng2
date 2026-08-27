@@ -1,6 +1,6 @@
 # 57 — P1:连续快甩时滚动速度塌陷/停滞
 
-**Status:** reopened（二轮修复合并复验仍未过硬闸）
+**Status:** reopened（三轮修复已合入分支，待真机复验）
 
 **Severity:** P1（用户可感知，主题列表稳定复现；楼层流可放大成数百毫秒停滞）
 
@@ -638,5 +638,195 @@ app surface 空 353.979ms,录屏侧记 265.900ms「无新内容帧」。原因�
 
 若主题列表仍有同量级塌陷且 trace 里**没有** EdgeEffect 帧,那就是另一条路,
 按一轮留的口径把 RN 同轮对照一起交上来。
+
+## 三轮修复(2026-08-27)
+
+二轮的两处改动**方向对、纵深不够**,而其中一处(`PagedFlingBehavior` 的余速扣留)
+本身就是复验里那些静止窗的直接来源。三轮先把复验交上来的两个可疑点逐一坐实,
+再按结论改。归因全部来自二轮复验自己留下的
+`acceptance/perf/t57-{topic,floor}-r2-phase.csv`(逐帧位移),没有新采样。
+
+### 可疑点 1(主题列表):静止窗就是 HOLD,预取没接错线,是纵深不够
+
+**1a. 108–283ms 静止窗 = `FLING_CONTENT_WAIT_MS` 的显式冻结 —— 坐实。**
+
+把 `t57-topic-r2-phase.csv` 的四个分页边界逐帧摊开:
+
+| 撞墙时刻 | 撞墙前 4 帧速度(px/s) | 静止时长 | 恢复速度 | 谁把它拉起来 |
+|---:|---|---:|---:|---|
+| 1.594s | 15,000 → 3,544 → 1,959 → 850 | **333ms** | 14,470 | 下一次 ACTION_DOWN |
+| 2.609s | 14,324 → 5,049 → 1,388 → 495 | **233ms** | 16,650 | 下一次 ACTION_DOWN |
+| 3.582s | 15,407 → 1,467 → 984 → 480 | **291ms** | 21,235 | 下一次 ACTION_DOWN |
+| 4.597s | 17,637 → 4,629 → 1,295 → 497 | **291ms** | 19,817 | 下一次 ACTION_DOWN |
+
+- 「4 帧从 15k 掉到 0」不是 fling 的指数衰减,是**一堵墙**;
+- 墙后面那 233–333ms 里 `dy` 恰好为 0(只剩 ±4px 的 stretch 回弹噪声),
+  与 `PagedFlingBehavior` 在 `withTimeoutOrNull(250ms)` 里挂起、整条 fling 协程
+  占着 `ScrollScope` 一动不动完全同形;
+- **`FLING_CONTENT_WAIT_MS = 250ms` 自己就大于验收的 100ms 闸** ——
+  只要 HOLD 触发一次,这张票在结构上就不可能过。二轮把 EdgeEffect 的亚像素蠕动
+  换成了「明写的静止」,观感一模一样。
+
+**1b. 等待结束后并没有以原速续跑 —— 坐实,而且接力压根没发生过。**
+
+4/4 个边界都是**静止到下一次 ACTION_DOWN 才动**(恢复速度 14k–21k 全是新手势的
+拖拽速度,不是 fling 续跑)。也就是说 `withTimeoutOrNull` 全部超时、
+`performFling` 走的是 `return 0f` 那一支。票面那处「速度只剩前段 6.5%」
+(942 / 14,400)对应的是**冲进冻结的那 4 帧斜坡**的 100ms 分桶中位数,
+不是「接力后速度低」。
+
+**1c. 距离预取为什么仍每两手耗尽 —— 接线没问题,是纵深不够。**
+
+逐条排掉票面列的三个嫌疑:
+
+- `LaunchedEffect(listState, hasNextPage, loadingNextPage)` 的重启条件:
+  重启只发生在 `loadingNextPage` 翻转时,重启后 `snapshotFlow` 会把当前值重新发一次,
+  是**多打一次**而不是吞掉;`TopicListRepository.loadNextPage` 当场按
+  `loadingNextPage` 去重,重复那一发不落地。**不是它。**
+- 加载中去重吞掉提前触发:`shouldLoadMore` 在整段加载期间恒为真,
+  `snapshotFlow` 的 distinct 只会少发不会晚发;真正决定时机的是它**第一次**翻真的时刻,
+  而那由几何量决定。**不是它。**
+- 串行瓶颈:**在**。`loadNextPage` 有 `loadingNextPage` 去重 + 每 key 一把 `Mutex`,
+  同一时刻最多一发 `thread.php` 在飞。但它单独还不足以解释,得配上下面这个量。
+
+真正的量在同一份 CSV 里:
+
+| 每一把 `input swipe … 100` 跑了多远 | px |
+|---|---:|
+| 第 1 手 | 8,868 |
+| 第 2 手 | 9,212 |
+| 第 3 手 | 9,760 |
+| 第 4 手 | 9,616 |
+| 末尾那把没被打断的自然衰减 | **17,692** |
+| 全程 | 55,132 |
+
+全程 55,132px 吃掉约 5 页 → **一页约 11,000px(35 行 × 约 315px)**,
+即**一把快甩正好吃掉一整页**。而 `PREFETCH_SCREENS = 2.5` 屏 ≈ 6,000px ≈
+15k px/s 下的 400ms —— 这 400ms 要独自盖住请求往返 + 解析 + 合页 + 组合 35 行,
+叠上「同时只能有一发在飞」,稳态就是「一手一页、每手都在页尾撞墙」,输了 4/4。
+
+**结论:阈值不是调小一点的问题,是量级不对 —— 而且只要 fling 的终点还取决于
+网络什么时候回来,再深的跑道也只是把抛硬币的赔率改一改。**
+
+### 可疑点 2(楼层流):换页链子跑得很快,缺的是那 220ms 动画本身
+
+`t57-floor-r2-phase.csv` 在唯一那处 184.0ms 空洞前后是:
+
+```
+2.515s dy=128 (14,418 px/s)   ← 还在满速
+2.522s dy= 16 ( 2,045 px/s)   ← 撞到本页页尾,一帧掉光
+2.548s dy=  0                 ← 静止
+2.555s dy=184                 ← 新的一页整页出现
+2.739s ← 这一帧与上一帧相隔 184.0ms,中间录屏一帧都没有
+```
+
+- **从撞墙到换完只用了 33ms(约 4 帧)**。那正好是
+  `fling 结束 → isScrollInProgress 落下 → EndReachedReporter 的 derivedStateOf 重算
+  → LaunchedEffect(reached) → onReachedEnd → goToPage → 重组 → LaunchedEffect(vm.page)`
+  这条链的长度。**链子没被抢占、没被取消、跑得很快。**
+- 换页发生在**一帧之内**(2.548 静止 → 2.555 新页整页在场),之后**一帧都不画**。
+  这排除了「数据未就绪先显示骨架」那一条:骨架也好真内容也好,
+  只要 pager 在动就该每帧都有横向位移;这里是**一个点,不是一段** ——
+  与一轮 `scrollToPage` 的形状一模一样。
+- 所以:**外部换页确实走到了 `LaunchedEffect(vm.page)`,但那 220ms 的
+  `animateScrollToPage` 一帧都没画出来。** 只可能是两条路之一:
+  1. 判据取到的 `from`(`pagerState.currentPage`)不是 `target - 1`,于是落进了
+     `scrollToPage` 分支 —— `currentPage` 是 pager 的内部量,横滑收尾、
+     `pageCount` 变化都会动它,拿它当「相不相邻」的依据本来就不该;
+  2. `animateScrollToPage` 被**当场跑完**:Compose 的每一个 `tween`/`spring`
+     都读协程上下文里的 `MotionDurationScale`,平台的
+     `animator_duration_scale`(开发者选项 / 省电 / 无障碍「移除动画」)一旦是 0,
+     `scaleFactor` 就是 0,动画一帧结束 —— 观感完全等价于 `scrollToPage`。
+  在 JVM 侧分不开这两条(要么读设备设置,要么抓 trace),所以三轮**把两条一起堵上**。
+  给复验一条一命令的判据:`adb shell settings get global animator_duration_scale`
+  若为 0,那就是第 2 条;若为 1,那就是第 1 条。
+
+`MutatePriority` 被抢占那条排掉了:动画跑在 pager 自己的 mutex 上,
+同期只有 `listState.scrollToItem`(另一把 mutex)与 EdgeEffect 回弹(不占 mutex),
+而且真被抢占的话链子不会在 33ms 内就把新页整页换上。
+
+### 改动
+
+**主题列表(`ui/common/PagedList.kt` + 五处分页列表):把 fling 和网络解耦**
+
+- 新增 `tailPlaceholders()` / `rememberTailPlaceholders()` / `tailPlaceholderCount()`:
+  **下一页在路上时,在列表尾部铺 `PLACEHOLDER_SCREENS = 2` 屏能滚的骨架行**。
+  `canScrollForward` 于是一直为真,`DefaultFlingBehavior` 那条
+  「不能消费 → `cancelAnimation()` → 余速交出去」的链根本不会启动 ——
+  墙没了,EdgeEffect 不出,HOLD 也不触发。张数按「量出来的行高/视口」现算并
+  在这一次加载期间**恒定**(`Snapshot.withoutReadObservation` 读 `layoutInfo`,
+  不让组合订阅它;张数抖动等于每帧增删列表项)。骨架行高 = 实测平均行高,
+  新页落地时骨架整批消失、真行在**同一批索引**上长出来,
+  `LazyListState` 按「首个可见项 index + offset」锚定,视口里那一格不动。
+- `PREFETCH_SCREENS` 2.5 → **4**:一把快甩要跑 3.7–7.4 屏,2.5 屏的跑道比一把
+  fling 还短。4 屏 ≈ 9,600px ≈ 640ms,叠上骨架的 2 屏 ≈ 320ms,总预算约 960ms,
+  对实测 124–224ms 的往返有 4 倍以上余量。**请求总数不变**(还是一页一发),只是每发都提前。
+- `shouldLoadNextPage` 新增 `firstVisibleIndex` 闸:跑道加深之后
+  「一页 35 行 ≈ 4.2 屏」只比阈值多一点点,进屏那一帧很容易顺手多打一发
+  `thread.php`。**列表一动没动过就不预取**(ADR-0002),顶端那一行一滚出视口就恢复。
+- `FLING_CONTENT_WAIT_MS` 250 → **80**:HOLD 退成纯兜底。它是本票病灶之一,
+  所以它自己必须短于 100ms 闸 —— 哪怕真触发了也构不成一次超标的静止窗。
+- 二轮已验证的真收益一个不动:`ListPullToRefresh`、`shouldTurnPageAtEnd`、
+  `flingHandoff` 的「真到底原样交还余速(真边缘 overscroll 不变)」。
+
+**楼层流(`ui/topic/TopicScreen.kt`)**
+
+- 新增纯函数 `pageTurnFor(fromPage, toPage, pagerPage) -> PageTurn{NONE,ANIMATE,JUMP}`,
+  把「这一次换页怎么落到 pager 上」从接线里抠出来:
+  - `from` 改用**上一次呈现给用户的 vm 页码**(自动翻页 / 页码条恒定 ±1),
+    不再依赖 `pagerState.currentPage` 这个我们不控制的内部量 —— 堵可疑点 2 的第 1 条;
+  - `pagerPage == toPage`(横滑自己走完那一类)才返回 `NONE`,语义与二轮的
+    `from == target` 早退一致。
+- 相邻页的 `animateScrollToPage` 套一层 `withContext(FullMotion)`
+  (`MotionDurationScale { scaleFactor = 1f }`),**不吃系统动画时长缩放** ——
+  堵可疑点 2 的第 2 条。口径与平台一致:`RecyclerView.smoothScrollToPosition` /
+  `ViewPager2.setCurrentItem(true)` 走 `Scroller` 而不是 `ValueAnimator`,
+  本来就不吃这个缩放;它们是**内容连续性**,不是装饰。弹窗 / FAB / 抽屉那些
+  装饰动画一律照旧尊重系统设置。
+- `shouldAnimatePageTurn` 与「跨页跳转不动画」的语义原样保留。
+
+### 单测
+
+`./gradlew :app:assembleDebug :app:testDebugUnitTest` 绿。
+
+- `ui/common/PagedListTest.kt`(20 例,新增 8 例):
+  - `二轮的两屏半跑道比一把 fling 还短` —— 把 CSV 量出来的
+    8,868 / 9,212 / 9,760 / 9,616 / 17,692px 写死进断言,5/5 都大于 2.5 屏;
+  - `预取跑道加骨架跑道要盖住最慢的一次往返` —— 总跑道对 224ms @ 15k px/s
+    必须有 3 倍余量;
+  - `HOLD 兜底自己不许越过 100ms 闸` —— `FLING_CONTENT_WAIT_MS < 100`;
+  - `骨架行按屏数铺` / `量不出行高时给兜底张数` / `骨架行张数有上下限` /
+    `不在加载中就不铺骨架`;
+  - `列表一动没动过就不预取`(含「真到眼皮底下时这条闸不拦」)。
+- `ui/topic/EndReachedTest.kt`(新增 `pageTurnFor` 4 例):自动翻页/页码条走动画、
+  横滑自己走完返回 `NONE`、跨页跳转 `JUMP`、
+  以及 `相不相邻只看 vm 页码,不看 pager 内部量`(`pagerPage` 取 1 或 9 都仍 `ANIMATE`)。
+
+### 复验怎么判
+
+按票面固定节奏原样重跑两屏。可证伪点:
+
+1. **主题列表分页边界不该再有「4 帧从满速掉到 0 + 一段 dy 恒为 0」的形状。**
+   逐帧曲线上应看到 fling 平滑地滚过一段骨架行(灰条,行高与主题行一致),
+   然后被真内容替换 —— 位移曲线连续,没有 >100ms 的 0 位移窗。
+2. **富 trace 里既不该有 `drawLayer [AndroidEdgeEffectOverscrollEffect]`
+   的中段 RT 帧(真滚到整个列表末尾除外),也不该有一段
+   `Recomposer:animation` / measure 全为 0 而 UI traversal 照常出帧的窗口** ——
+   后者是二轮 HOLD 的签名。
+3. **`compose:lazy:prefetch:compose` 不该再出现几十毫秒的断流**:
+   骨架行也是列表项,预取有得可取。
+4. **楼层流 page N→N+1 应该有约 220ms 的连续横向运动帧**,
+   录屏侧 `dt` 最大值在换页处应落回 8–25ms 量级,不再有 184ms 的空洞。
+5. 顺手记一条环境量,能把可疑点 2 的两条路分开:
+   `adb shell settings get global animator_duration_scale`
+   (0 = 二轮那版动画必然一帧不画;1 = 二轮走错了 `scrollToPage` 分支)。
+6. **回归口径**:真边缘(没有下一页了)的 overscroll 手感必须原样在;
+   下拉刷新、到底自动翻页、跨页跳页三条都不许变;
+   进版块后**不滚动**时不许多打一发 `thread.php`(`firstVisibleIndex` 那条闸)。
+
+若主题列表仍有同量级静止窗、而 trace 里既没有 EdgeEffect 帧也没有 HOLD 签名,
+那说明骨架跑道也被跑穿了(即请求往返在快甩下远超 960ms),
+届时请把「请求发出 → 数据落地」的逐次往返时间一并交上来 ——
+那就该动 `TopicListRepository` 的串行约束了。
 
 **待真机复验。**
