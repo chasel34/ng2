@@ -18,8 +18,8 @@
 
 **Blocked by:** 02, 18
 
-**Status:** open
+**Status:** resolved(2026-08-27:十场景 10/10 过闸;场景 9 按票 58 终裁口径——present cadence + 连续丢帧——通过,双峰降为观测项;抽屉 GPU 余量优化以票 59(P2)延续)
 
-- [ ] Baseline Profile 生成并实测生效(冷启对比数据记录)
-- [ ] 十场景全部过闸,报告落盘
-- [ ] 伞条款遍历清单与结果逐项记录
+- [x] Baseline Profile 生成并实测生效(冷启对比数据记录,见 perf-report「release/profile 三重核验」)
+- [x] 十场景全部过闸,报告落盘(`acceptance/perf-report.md`;场景 9 口径见票 58 终裁)
+- [x] 伞条款遍历清单与结果逐项记录(场景 10)

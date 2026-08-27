@@ -1,8 +1,8 @@
 # 58 — P1:场景 9 FrameTimeline 呈一档 vsync 双峰
 
-**Status:** resolved（裁定：系统侧队列深度粘滞，建议降 P2 并改判场景 9 验收口径；GPU 成本另拆子票）
+**Status:** resolved（裁定已采纳：降 P2、场景 9 验收口径改判为 present cadence + 连续丢帧,双峰降为观测项;见 2026-08-27 终裁）
 
-**Severity:** P1（票 19 场景 9 硬闸失败；队列深度在两档间振荡）
+**Severity:** P2（原 P1;终裁降级——延迟档位现象,非节奏缺陷,app 无排空 API）
 
 ## 现象
 
@@ -339,3 +339,19 @@ high p50 比 low p50 高 **3.494ms**，达到「约 3ms」证伪阈值，证实 
 
 证据：`acceptance/perf/s9-r4-{frametimeline,gpu,segment}-analysis.txt`、
 `s9-r4-focus.txt`；原始 trace（不进 git）：`/tmp/s9-r4.pb`。
+
+## 终裁(2026-08-27,orchestrator)
+
+采纳本票「六、裁定与建议」第 2/3 条,依据齐备:
+
+- 四份同口径富 trace 的高峰占比为 32.3% / 55.1% / 74.2% / 87.9%,其中后两份之间
+  仅有的代码差异(票 59 一轮/二轮)只**减少**了绘制工作——峰形占比与 app 行为不相关,
+  是会话级随机粘滞;
+- 每一份 trace 的 present2present 中位都是 8.319ms,「无连续丢 >2 vsync」子项从未回退;
+- `--by-peak` 分桶实测 high/low GPU p50 差 3.494ms(≥3ms 判据),证实高档下 GPU fence
+  读数含队列深度地板,原 `<6ms` 闸在 H 档量的不是光栅;
+- HWUI/SF 两侧自愈均不触发,app 无排空 API,「同一份代码复采两次可得相反结论」成立。
+
+**场景 9 验收口径自本裁定起改为:present cadence 中位 8.32±0.5ms + 无连续丢 >2 vsync;
+`SF start→present` 峰形与占比记为观测项。** 终轮数据按新口径通过(8.319ms、丢帧子项通过)。
+GPU 光栅余量的收尾(low-peak 口径 p95<6ms 的抽屉实证)由票 59 以 P2 延续,不再挂在场景 9 闸上。
