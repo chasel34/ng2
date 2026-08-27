@@ -34,8 +34,8 @@ class PagedListTest {
   // ---------------------------------------------------------------------------
 
   @Test
-  fun `还剩不到两屏半就该拉下一页`() {
-    // 还剩 17 行 = 5,610px < 2.5 × 2330 = 5,825px
+  fun `还剩不到预取屏数就该拉下一页`() {
+    // 还剩 17 行 = 5,610px < 4 × 2330 = 9,320px
     assertTrue(
       shouldLoadNextPage(
         lastVisibleIndex = 100 - 1 - 17,
@@ -48,7 +48,7 @@ class PagedListTest {
 
   @Test
   fun `还剩得多就先不拉`() {
-    // 还剩 40 行 = 13,200px,离两屏半还远
+    // 还剩 40 行 = 13,200px,离 4 屏(9,320px)还远
     assertFalse(
       shouldLoadNextPage(
         lastVisibleIndex = 100 - 1 - 40,
@@ -100,9 +100,123 @@ class PagedListTest {
   }
 
   @Test
+  fun `列表一动没动过就不预取`() {
+    // 跑道加深到 4 屏之后「一页 ≈ 4.2 屏」只比阈值多一点点,进屏那一帧很容易
+    // 顺手多打一发 thread.php(ADR-0002:能少打就少打)
+    assertFalse(
+      shouldLoadNextPage(
+        lastVisibleIndex = 7,
+        totalItemsCount = 20,
+        averageItemSize = rowHeight,
+        viewportSize = viewport,
+        firstVisibleIndex = 0,
+      ),
+    )
+    // 顶端那一行一滚出视口就恢复,后面全靠距离说话
+    assertTrue(
+      shouldLoadNextPage(
+        lastVisibleIndex = 7,
+        totalItemsCount = 20,
+        averageItemSize = rowHeight,
+        viewportSize = viewport,
+        firstVisibleIndex = 1,
+      ),
+    )
+    // 真到眼皮底下(只剩 MIN_ITEMS_AHEAD 项)时这条闸不拦 —— 那已经不是「一动没动」了
+    assertTrue(
+      shouldLoadNextPage(
+        lastVisibleIndex = 100 - 1 - MIN_ITEMS_AHEAD,
+        totalItemsCount = 100,
+        averageItemSize = rowHeight,
+        viewportSize = viewport,
+        firstVisibleIndex = 0,
+      ),
+    )
+  }
+
+  @Test
   fun `空列表和未量出来的列表不拉页`() {
     assertFalse(shouldLoadNextPage(-1, 0, rowHeight, viewport))
     assertFalse(shouldLoadNextPage(-1, 100, rowHeight, viewport))
+  }
+
+  // ---------------------------------------------------------------------------
+  // 三轮:跑道纵深(为什么 2.5 屏不够)
+  // ---------------------------------------------------------------------------
+
+  /** 二轮复验录屏量出来的一把 fling 走多远(`t57-topic-r2-phase.csv`,单位 px)。 */
+  private val flingDistances = listOf(8868, 9212, 9760, 9616, 17692)
+
+  /** 同一份样本里的快甩速度(px/s):15k 是中位,峰值更高。 */
+  private val flingSpeed = 15_000f
+
+  /** trace 里 `thread.php` 最慢的一次往返(ms)。 */
+  private val slowestRoundTripMs = 224
+
+  @Test
+  fun `二轮的两屏半跑道比一把 fling 还短`() {
+    // 这就是二轮为什么每一手都撞墙:跑道比一次手势能跑的距离还短,
+    // 请求再准时也来不及 —— 阈值不是调小一点的问题,是量级不对
+    val oldRunway = 2.5f * viewport
+    assertTrue(
+      flingDistances.all { it > oldRunway },
+      "5/5 把 fling 都比 2.5 屏(${oldRunway.toInt()}px)跑得远:$flingDistances",
+    )
+  }
+
+  @Test
+  fun `预取跑道加骨架跑道要盖住最慢的一次往返`() {
+    val prefetchPx = PREFETCH_SCREENS * viewport
+    val placeholderPx = tailPlaceholderCount(rowHeight, viewport) * rowHeight
+    val needPx = flingSpeed * slowestRoundTripMs / 1000f
+    val budgetMs = (prefetchPx + placeholderPx) / flingSpeed * 1000f
+    assertTrue(
+      prefetchPx + placeholderPx >= needPx * 3,
+      "总跑道 ${(prefetchPx + placeholderPx).toInt()}px(${budgetMs.toInt()}ms)" +
+        "对 ${slowestRoundTripMs}ms 往返(${needPx.toInt()}px)没有 3 倍余量",
+    )
+  }
+
+  @Test
+  fun `HOLD 兜底自己不许越过 100ms 闸`() {
+    // 二轮 250ms 的 HOLD 期间列表**完全静止**,它自己就是一次超标的静止窗。
+    // 现在骨架行顶在前面,HOLD 退成兜底 —— 兜底不许变成缺陷
+    assertTrue(
+      FLING_CONTENT_WAIT_MS < 100,
+      "FLING_CONTENT_WAIT_MS=${FLING_CONTENT_WAIT_MS}ms 已经越过验收的 100ms 无新内容闸",
+    )
+  }
+
+  // ---------------------------------------------------------------------------
+  // 三轮:尾部骨架行
+  // ---------------------------------------------------------------------------
+
+  @Test
+  fun `骨架行按屏数铺`() {
+    // 2 屏 = 4,660px / 330px = 14.1 → 15 行
+    assertEquals(15, tailPlaceholderCount(rowHeight, viewport))
+    // 铺出来的跑道要够 15k px/s 下的一次往返
+    val runwayMs = 15 * rowHeight / flingSpeed * 1000f
+    assertTrue(runwayMs >= slowestRoundTripMs, "骨架跑道只有 ${runwayMs.toInt()}ms")
+  }
+
+  @Test
+  fun `量不出行高时给兜底张数`() {
+    assertEquals(DEFAULT_PLACEHOLDER_ROWS, tailPlaceholderCount(0, viewport))
+    assertEquals(DEFAULT_PLACEHOLDER_ROWS, tailPlaceholderCount(rowHeight, 0))
+  }
+
+  @Test
+  fun `骨架行张数有上下限`() {
+    // 极矮的行(比如纯文字一行的搜索结果)不许把上千张骨架塞进列表
+    assertEquals(MAX_PLACEHOLDER_ROWS, tailPlaceholderCount(averageItemSize = 8, viewportSize = viewport))
+    // 极高的行(带大图的行)也得有几张顶着
+    assertEquals(MIN_PLACEHOLDER_ROWS, tailPlaceholderCount(averageItemSize = viewport * 2, viewportSize = viewport))
+  }
+
+  @Test
+  fun `不在加载中就不铺骨架`() {
+    assertEquals(0, TailPlaceholders.None.count)
   }
 
   // ---------------------------------------------------------------------------
