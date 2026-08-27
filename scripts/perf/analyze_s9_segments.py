@@ -15,9 +15,33 @@ def percentile(values, percent):
     return values[lower] * (upper - position) + values[upper] * (position - lower)
 
 
+def nearest_frame(frames, ts):
+    """The presented frame a GPU fence slice belongs to.
+
+    Ticket 59 round 2 needs GPU fence durations bucketed by the pipeline-depth
+    state of the frame they belong to, so pair each fence slice with the frame
+    whose span contains it, else with the closest one that starts before it.
+    """
+    best = None
+    for frame in frames:
+        if frame.ts <= ts < frame.ts + frame.dur:
+            return frame
+        if frame.ts <= ts:
+            best = frame
+        else:
+            break
+    return best
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("trace")
+    parser.add_argument(
+        "--by-peak",
+        action="store_true",
+        help="also split GPU fence durations by low/high FrameTimeline peak "
+             "(ticket 59 round 2: tells raster work apart from queue-depth wait)",
+    )
     parser.add_argument("--package", required=True)
     args = parser.parse_args()
     tp = TraceProcessor(trace=args.trace)
@@ -83,6 +107,25 @@ def main():
         print(f"{label}: frames={len(window_frames)} high={len(high)} "
               f"({len(high) / len(window_frames) * 100 if window_frames else 0:.1f}%) "
               f"GPU p95={percentile(window_gpu, 95):.3f}ms max={max(window_gpu, default=0):.3f}ms")
+
+    if args.by_peak:
+        print()
+        print("GPU fence split by pipeline depth (ticket 59 round 2):")
+        low_bucket, high_bucket = [], []
+        paired_frames = sorted(frames, key=lambda row: row.ts)
+        for row in gpu:
+            frame = nearest_frame(paired_frames, row.ts)
+            if frame is None:
+                continue
+            bucket = high_bucket if 13.333 <= frame.dur / 1e6 <= 22.499 else low_bucket
+            bucket.append(row.dur / 1e6)
+        for name, values in (("low-peak frames", low_bucket), ("high-peak frames", high_bucket)):
+            if not values:
+                print(f"  {name}: none")
+                continue
+            print(f"  {name}: n={len(values)} "
+                  f"p50={percentile(values, 50):.3f} p95={percentile(values, 95):.3f} "
+                  f"max={max(values):.3f}ms")
 
 
 if __name__ == "__main__":

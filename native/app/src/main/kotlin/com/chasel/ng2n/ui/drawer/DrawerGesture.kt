@@ -35,12 +35,12 @@ object DrawerGeometry {
   const val CLOSE_DURATION_MS = 200
 
   /**
-   * 遮罩左边界往面板底下多吃的那 1px(票 59)。
+   * 裁剪左边界往面板底下多吃的那 1px(票 59;遮罩与首页两刀共用)。
    *
    * 面板靠 `graphicsLayer{translationX}` 平移,右缘落在**小数像素**上,那一列是抗锯齿
-   * 出来的半透明;遮罩自己的 `drawRect` 边界同样抗锯齿。左边界正好切在面板右缘的话,
-   * 这一列的合成结果会从「首页 → 遮罩 → 面板边缘」变成「首页 → 面板边缘」,差一个
-   * 亚像素。往左多画 1px 把它重新压回遮罩底下,代价是少省 1/1220 的面积。
+   * 出来的半透明;裁剪自己的边界同样抗锯齿。左边界正好切在面板右缘的话,这一列的
+   * 合成结果会从「首页 → 遮罩 → 面板边缘」变成「面板边缘」,差一个亚像素。往左多留
+   * 1px 把整列重新压回满覆盖区里,代价是少省 1/1220 的面积。
    */
   const val SCRIM_SEAM_GUARD_PX = 1f
 }
@@ -74,7 +74,11 @@ fun drawerProgress(startProgress: Float, dx: Float, widthPx: Float): Float {
 }
 
 /**
- * 遮罩**该从哪一列开始画**(px,容器左边界起算)—— 票 59 的 GPU 削减。
+ * **被面板整块盖住的那段的右边界**(px,容器左边界起算)—— 票 59 的 GPU 削减。
+ *
+ * 两个调用点共用它,论证是同一条:遮罩从这里开始画([DrawerHost] 的 `drawBehind`),
+ * 首页也从这里开始画(二轮加的 `drawWithContent` + `clipRect`)。左边那一段两者都
+ * 100% 被不透明面板盖掉,画了等于没画。
  *
  * 面板贴左摆、宽 [DrawerGeometry.WIDTH_DP],关着时靠 `translationX = -(1-progress)*width`
  * 平移出屏,所以它的右缘恒在 `progress * widthPx`。面板底色是 `colors.surface`

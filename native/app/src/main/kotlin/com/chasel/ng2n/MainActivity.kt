@@ -7,8 +7,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import com.chasel.ng2n.ui.Ng2nApp
 import com.chasel.ng2n.ui.nav.DeepLinkInbox
+import com.chasel.ng2n.ui.perf.PerfFlags
 import com.chasel.ng2n.ui.settings.Ng2nAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -35,6 +38,20 @@ class MainActivity : ComponentActivity() {
     window.decorView.post { preferHighestRefreshRate() }
 
     setContent {
+      // 票 59 二轮的**测量口子**,默认关(见 `PerfFlags`)。
+      // `windowBackground` 是 DecorView 每帧一次的满屏不透明填充,Compose 侧首页
+      // 自己就铺满了底色,首帧之后它理论上纯属浪费 —— 但「有没有哪一帧 Compose
+      // 没铺满」只有真机验得了,赌错就是黑闪,所以做成编译期开关等真机。
+      if (PerfFlags.BLANK_WINDOW_BACKGROUND_AFTER_FIRST_FRAME) {
+        LaunchedEffect(Unit) {
+          // 连等两次:`withFrameNanos` 的回调发生在**这一帧开画之前**,等到第二次
+          // 回调时第一帧的 Compose 内容已经进过 DecorView 的 display list 了。
+          withFrameNanos {}
+          withFrameNanos {}
+          window.setBackgroundDrawable(null)
+        }
+      }
+
       // 夜间模式 / 主题风格 / 三根字号滑杆都从 DataStore 现读(票 17c):
       // 设置页一改,整棵树跟着重组,不重启 Activity。
       Ng2nAppTheme {
