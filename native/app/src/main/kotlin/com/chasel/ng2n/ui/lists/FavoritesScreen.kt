@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,7 +49,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
-import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
+import com.chasel.ng2n.ui.common.ListPullToRefreshBox
 import com.chasel.ng2n.ui.common.rememberPagedFlingBehavior
 import com.chasel.ng2n.ui.common.rememberShouldLoadNextPage
 import com.chasel.ng2n.ui.common.rememberTailPlaceholders
@@ -228,11 +227,10 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
         // 下一页在路上时,尾部铺几屏能滚的骨架行(票 57 三轮)
         val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
-        PullToRefreshBox(
+        ListPullToRefreshBox(
           // 翻下一页时不要亮:不然底部转圈会连带把顶部也拽出来
           isRefreshing = state.refreshing && !state.loadingNextPage,
           onRefresh = { scope.launch { deps.topicFavorites.refreshTopics(uid, folder.id) } },
-          state = rememberListPullToRefreshState(),
           modifier = Modifier.fillMaxSize(),
         ) {
           LazyColumn(

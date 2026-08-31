@@ -41,7 +41,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -72,7 +71,7 @@ import com.chasel.ng2n.core.local.filterMatchText
 import com.chasel.ng2n.data.account.AccountsState
 import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.ui.bbcode.HotRepliesSection
-import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
+import com.chasel.ng2n.ui.common.ListPullToRefreshBox
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.favorites.FavoriteFolderDialog
 import com.chasel.ng2n.ui.rememberAppDeps
@@ -553,13 +552,12 @@ private fun TopicPageView(
     // 翻页时不该亮下拉转圈 —— 只有真正在刷新当前这一页时才亮
     var refreshing by remember { mutableStateOf(false) }
     LaunchedEffect(state) { refreshing = false }
-    PullToRefreshBox(
+    ListPullToRefreshBox(
       isRefreshing = refreshing,
       onRefresh = {
         refreshing = true
         vm.refresh(page)
       },
-      state = rememberListPullToRefreshState(),
       modifier = Modifier.fillMaxSize(),
     ) { content() }
   } else {

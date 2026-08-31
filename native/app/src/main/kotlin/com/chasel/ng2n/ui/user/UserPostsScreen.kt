@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,7 +51,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
-import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
+import com.chasel.ng2n.ui.common.ListPullToRefreshBox
 import com.chasel.ng2n.ui.common.rememberPagedFlingBehavior
 import com.chasel.ng2n.ui.common.rememberShouldLoadNextPage
 import com.chasel.ng2n.ui.common.rememberTailPlaceholders
@@ -195,10 +194,9 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
         text = emptyTextOf(kind),
         action = StateAction("刷新") { scope.launch { deps.userPosts.refresh(postsKey) } },
       )
-      else -> PullToRefreshBox(
+      else -> ListPullToRefreshBox(
         isRefreshing = state.refreshing && !state.loadingNextPage,
         onRefresh = { scope.launch { deps.userPosts.refresh(postsKey) } },
-        state = rememberListPullToRefreshState(),
         modifier = Modifier.fillMaxSize(),
       ) {
         LazyColumn(

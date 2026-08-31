@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,7 +58,7 @@ import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
-import com.chasel.ng2n.ui.common.rememberListPullToRefreshState
+import com.chasel.ng2n.ui.common.ListPullToRefreshBox
 import com.chasel.ng2n.ui.common.showLoginPrompt
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
@@ -226,10 +225,9 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
       // 官方那两个 tab 是云端数据,而且用户可能刚在网页版改过——留一个下拉重读的口子。
       // 本地规则没有「刷新」这回事,改了立刻就在屏上
       val pullable = tab != FilterTab.LOCAL && signedIn
-      PullToRefreshBox(
+      ListPullToRefreshBox(
         isRefreshing = pullable && cloud.refreshing,
         onRefresh = { if (pullable) scope.launch { deps.filters.refreshBlockWords() } },
-        state = rememberListPullToRefreshState(),
         modifier = Modifier.fillMaxSize(),
       ) {
         LazyColumn(

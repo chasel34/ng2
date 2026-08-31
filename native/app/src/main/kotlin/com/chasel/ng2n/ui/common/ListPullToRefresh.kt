@@ -1,11 +1,26 @@
 package com.chasel.ng2n.ui.common
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalViewConfiguration
 
 /**
  * 列表用的下拉刷新状态 —— 行为与 material3 的默认实现一致,**只把「什么都没下拉时
@@ -85,3 +100,85 @@ fun pullToRefreshNeedsHide(distanceFraction: Float, animating: Boolean): Boolean
  */
 fun pullToRefreshNeedsSnap(current: Float, target: Float, animating: Boolean): Boolean =
   current != target || animating
+
+// ---------------------------------------------------------------- 手势方向门(票 62)
+
+/** 一把手势对下拉刷新的裁决。 */
+enum class PullGate {
+  /** 还没越过 slop,继续看。 */
+  UNDECIDED,
+
+  /** 开场就向下:这把允许下拉(顶部的真下拉、或从中段一路拖到顶的长下拉)。 */
+  ALLOW,
+
+  /** 开场向上 = 用户在**向前滚列表**:这把从头到尾不许下拉。 */
+  BLOCK,
+}
+
+/**
+ * 按「首个越过 slop 的纵向方向」给整把手势定性。
+ *
+ * 为什么需要它(票 62,真机日志实锤):连续慢滑的笔画常以一小段**向下回勾**收尾。
+ * material3 的 `pullToRefresh` 只看「顶部之外的向下余量」,不看这把手势是怎么开场的 ——
+ * 回勾先把列表推回顶部,余下的位移灌进 `distancePulled`,松手超阈值就**静默触发刷新**;
+ * 而我们的分页刷新按设计会把已加载页截回第 1 页并把锚点拽回顶部。两者叠加,
+ * 用户「划着划着就滑不动了」:每一把带回勾的滑动都在把自己弹回顶部。
+ */
+fun pullGateDecision(dy: Float, slop: Float): PullGate = when {
+  dy < -slop -> PullGate.BLOCK
+  dy > slop -> PullGate.ALLOW
+  else -> PullGate.UNDECIDED
+}
+
+/**
+ * 列表页统一的下拉刷新容器:[PullToRefreshBox] 的形状 + 两条修正 ——
+ *
+ * 1. [rememberListPullToRefreshState](票 57:松手不白等一帧、滚动帧不碰 MutatorMutex);
+ * 2. **方向门**(票 62):以向上滚动开场的手势,整把禁用下拉。观察在 `Initial` pass,
+ *    不消费任何事件;每把手势按下时重新放行,所以状态永远不会卡死在禁用档。
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ListPullToRefreshBox(
+  isRefreshing: Boolean,
+  onRefresh: () -> Unit,
+  modifier: Modifier = Modifier,
+  enabled: Boolean = true,
+  content: @Composable BoxScope.() -> Unit,
+) {
+  val state = rememberListPullToRefreshState()
+  var armed by remember { mutableStateOf(true) }
+  val slop = LocalViewConfiguration.current.touchSlop
+  Box(
+    modifier
+      .pointerInput(slop) {
+        awaitEachGesture {
+          val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+          armed = true
+          var gate = PullGate.UNDECIDED
+          while (true) {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            if (event.changes.none { it.pressed }) break
+            if (gate == PullGate.UNDECIDED) {
+              val change = event.changes.firstOrNull { it.id == down.id } ?: continue
+              gate = pullGateDecision(change.position.y - down.position.y, slop)
+              if (gate == PullGate.BLOCK) armed = false
+            }
+          }
+        }
+      }
+      .pullToRefresh(
+        isRefreshing = isRefreshing,
+        state = state,
+        enabled = enabled && armed,
+        onRefresh = onRefresh,
+      ),
+  ) {
+    content()
+    PullToRefreshDefaults.Indicator(
+      modifier = Modifier.align(Alignment.TopCenter),
+      isRefreshing = isRefreshing,
+      state = state,
+    )
+  }
+}
