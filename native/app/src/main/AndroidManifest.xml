@@ -46,15 +46,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!--
-              并行期只注册自有 scheme;**不接管 NGA 域名**(spec §三),
-              否则会跟并装的 RN 版抢 http(s)://bbs.nga.cn 的打开权。切换期结束再接管。
-            -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="ng2n" />
+            </intent-filter>
+
+            <!--
+              NGA 域名接管(2026-09-01,RN 版退役后并行期结束)。域名与路径面照抄
+              RN 侧 app.json 的 intentFilters:帖子(read.php)与版块(thread.php)。
+              不开 autoVerify:NGA 不会给第三方客户端挂 assetlinks.json,
+              这里只求出现在「用应用打开」的候选里。链接 → 导航键的映射在
+              `ui/nav/DeepLinkKeys.kt`(与抽屉「由 URL 读取」同一张表)。
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="bbs.nga.cn" />
+                <data android:host="ngabbs.com" />
+                <data android:host="bbs.ngacn.cc" />
+                <data android:host="nga.178.com" />
+                <data android:host="nga.donews.com" />
+                <data android:pathPrefix="/read.php" />
+                <data android:pathPrefix="/thread.php" />
             </intent-filter>
         </activity>
 
