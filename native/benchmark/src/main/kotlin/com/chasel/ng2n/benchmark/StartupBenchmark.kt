@@ -7,7 +7,7 @@ import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import org.junit.Rule
 import org.junit.Test
 
-internal const val TARGET_PACKAGE = "com.chasel.ng2.n"
+internal const val TARGET_PACKAGE = "com.chasel.ng2"
 
 /**
  * 冷启 macrobenchmark 骨架。骨架期只要求「能编译、能连真机跑」;

@@ -13,11 +13,13 @@ android {
   compileSdk = libs.versions.compileSdk.get().toInt()
 
   defaultConfig {
-    applicationId = "com.chasel.ng2.n"
+    // 原生版顶替 RN 版的正式包名(2026-09-01);RN 侧 app.json 的 versionCode 到 2,
+    // 这里从 3 继续,覆盖安装不算降级
+    applicationId = "com.chasel.ng2"
     minSdk = libs.versions.minSdk.get().toInt()
     targetSdk = libs.versions.targetSdk.get().toInt()
-    versionCode = 1
-    versionName = "0.1.0"
+    versionCode = 3
+    versionName = "0.2.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -36,6 +38,9 @@ android {
   buildTypes {
     getByName("debug") {
       signingConfig = signingConfigs.getByName("debug")
+      // 沿用 RN 时代 dev client 的包名档位,开发包与正式包在手机上并装互不覆盖
+      applicationIdSuffix = ".dev"
+      versionNameSuffix = "-dev"
     }
     getByName("release") {
       signingConfig = signingConfigs.getByName("debug")

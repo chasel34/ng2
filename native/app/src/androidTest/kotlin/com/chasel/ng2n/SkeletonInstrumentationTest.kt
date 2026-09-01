@@ -11,8 +11,9 @@ import org.junit.runner.RunWith
 class SkeletonInstrumentationTest {
 
   @Test
-  fun 被测应用的包名是_ng2n() {
+  fun 被测应用的包名跟着构建档走() {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
-    assertEquals("com.chasel.ng2.n", context.packageName)
+    // androidTest 默认打在 debug 档上(com.chasel.ng2.dev);跟 BuildConfig 对拍,不写死
+    assertEquals(BuildConfig.APPLICATION_ID, context.packageName)
   }
 }
