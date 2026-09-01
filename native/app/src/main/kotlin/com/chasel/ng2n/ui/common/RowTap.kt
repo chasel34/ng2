@@ -63,6 +63,22 @@ fun Modifier.rowClickable(
 /**
  * 横划就把这一发手势吃掉,让内层的点击手势取消。
  * 单独导出是给「行里还套着别的点击目标」的场合用(整行走 [rowClickable] 就够了)。
+ *
+ * ## 认领与否必须等到 Final pass 再定(票 63)
+ *
+ * 这个 pointerInput 挂在**行**上,`change.position` 是行内局部坐标。列表跟手滚动时
+ * 行随手指一起移动,于是局部 dy 恒 ≈ 0(手指在行自己的坐标系里没动),而列表不横滚,
+ * 局部 dx 就是真实的横向漂移。拇指长拖天然带弧线,漂移一过 slop,
+ * `abs(dx) > abs(dy)` 立刻成立 —— 原实现在这一刻误认领并消费之后每一发,
+ * 纵向滚动的拖拽当场取消,**抬手前上滑下滑全部失效**(真机录屏逐帧实锤,
+ * 见票 63:跟手 ≈15 发后 dx 累积过 slop,列表冻结,回拖同样无效)。
+ *
+ * 原来那句「认领前 `change.isConsumed` 就 break」防不住这个:它跑在 Initial pass,
+ * 而纵向滚动在 **Main pass** 消费事件 —— 每一发新事件到 Initial 时消费位都是干净的,
+ * 上一发被滚动吃掉这件事在 Initial 永远看不见。所以认领决策挪到同一发事件的
+ * **Final pass**:滚动一旦消费过任何一发,这一把手势从此让位(横划取消点击的活,
+ * 滚动的消费本身已经替我们干了)。认领后的消费仍在 Initial —— 要抢在内层
+ * `clickable`(Main)看到事件之前。
  */
 fun Modifier.cancelTapOnHorizontalDrag(enabled: Boolean = true): Modifier =
   if (!enabled) this else pointerInput(Unit) {
@@ -73,19 +89,50 @@ fun Modifier.cancelTapOnHorizontalDrag(enabled: Boolean = true): Modifier =
       while (true) {
         val event = awaitPointerEvent(PointerEventPass.Initial)
         val change = event.changes.firstOrNull { it.id == down.id } ?: break
-        // 认领之前别人先动手了(抽屉的边缘手势、列表的纵向滚动):这一把不归我们
-        if (!claimed && change.isConsumed) break
-        if (!change.pressed) break
-        if (!claimed) {
-          val dx = change.position.x - down.position.x
-          val dy = change.position.y - down.position.y
-          if (!shouldCancelRowTap(dx, dy, slopPx)) continue
-          claimed = true
+        if (claimed) {
+          // 连抬手那一发也消费:认领发生在上一发时,内层 clickable 还没见过
+          // 任何被消费的事件,放过 up 它就会当成一次完整点击
+          change.consume()
+          if (!change.pressed) break
+          continue
         }
-        change.consume()
+        // 认领之前别人在 Initial 先动手了(抽屉的边缘手势):这一把不归我们
+        if (change.isConsumed) break
+        if (!change.pressed) break
+        // 等这一发走完 Main:纵向滚动消费与否只有到 Final 才可见
+        val settled = awaitPointerEvent(PointerEventPass.Final)
+        val fin = settled.changes.firstOrNull { it.id == down.id } ?: break
+        if (!fin.pressed) break
+        when (rowTapStep(fin.isConsumed, fin.position.x - down.position.x, fin.position.y - down.position.y, slopPx)) {
+          RowTapStep.YIELD -> break
+          RowTapStep.CLAIM -> { claimed = true; fin.consume() }
+          RowTapStep.WATCH -> Unit
+        }
       }
     }
   }
+
+/** 一发事件走完 Main pass 之后,这个手势该怎么走。 */
+enum class RowTapStep {
+  /** 还没定性,继续看下一发。 */
+  WATCH,
+
+  /** 滚动(或别的手势)已经消费过:这一把永远让位 —— 票 63 的修复位。 */
+  YIELD,
+
+  /** 横划坐实:从这一发起全部消费,取消内层点击(票 23)。 */
+  CLAIM,
+}
+
+/**
+ * [RowTapStep] 的裁决。消费检查在前:滚动接管后行会随手指移动,局部 dy 被清零,
+ * 这时的 dx/dy 已经不描述手指的真实轨迹,不许再拿去做横划判定。
+ */
+fun rowTapStep(consumedByOthers: Boolean, dx: Float, dy: Float, slopPx: Float): RowTapStep = when {
+  consumedByOthers -> RowTapStep.YIELD
+  shouldCancelRowTap(dx, dy, slopPx) -> RowTapStep.CLAIM
+  else -> RowTapStep.WATCH
+}
 
 /**
  * 这一次位移算不算「横划,不是点」。
