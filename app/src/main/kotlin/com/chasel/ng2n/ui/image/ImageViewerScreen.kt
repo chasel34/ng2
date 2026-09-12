@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -308,12 +309,21 @@ private fun ViewerPage(
 ) {
   val context = LocalContext.current
   var loading by remember(url) { mutableStateOf(true) }
+  var imageAspect by remember(url) { mutableStateOf(0f) }
+  var viewport by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
+  LaunchedEffect(zoom, imageAspect, viewport) {
+    zoom?.let {
+      it.containerSize = viewport
+      it.aspect = imageAspect
+      it.reset(animated = false)
+    }
+  }
 
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .padding(16.dp)
-      .onSizeChanged { zoom?.containerSize = it }
+      .clipToBounds()
+      .onSizeChanged { viewport = it }
       .then(
         if (zoom == null) Modifier else Modifier
           .pointerInput(zoom) {
@@ -322,6 +332,7 @@ private fun ViewerPage(
           .pointerInput(zoom) {
             detectViewerTransform(
               isZoomed = { zoom.zoomed },
+              canPanVertically = { zoom.boundsFor(1f).y > 0f },
               onStart = {},
               onGesture = { centroid, pan, zoomChange ->
                 scope.launch { zoom.onGestureUpdate(centroid, pan, zoomChange) }
@@ -333,11 +344,12 @@ private fun ViewerPage(
     contentAlignment = Alignment.Center,
   ) {
     val layer = Modifier.graphicsLayer {
-      if (zoom == null) return@graphicsLayer
-      scaleX = zoom.scale.value
-      scaleY = zoom.scale.value
-      translationX = zoom.offsetX.value
-      translationY = zoom.offsetY.value
+      val base = widthFitScale(viewport.width.toFloat(), viewport.height.toFloat(), imageAspect)
+      scaleX = base * (zoom?.scale?.value ?: 1f)
+      scaleY = scaleX
+      translationX = zoom?.offsetX?.value ?: 0f
+      translationY = zoom?.offsetY?.value
+        ?: panBounds(viewport.width.toFloat(), viewport.height.toFloat(), imageAspect, 1f).y
     }
 
     // 原图在路上时先糊着看缩略图(通常已有磁盘/内存缓存)
@@ -346,6 +358,11 @@ private fun ViewerPage(
         model = placeholderUrl,
         contentDescription = null,
         contentScale = ContentScale.Fit,
+        onSuccess = { state ->
+          if (loading && imageAspect == 0f && state.result.image.height > 0) {
+            imageAspect = state.result.image.width.toFloat() / state.result.image.height
+          }
+        },
         modifier = Modifier
           .fillMaxSize()
           .then(layer),
@@ -355,11 +372,16 @@ private fun ViewerPage(
     AsyncImage(
       model = ImageRequest.Builder(context)
         .data(url)
+        // 解码也按视口宽度取样，避免把长图先缩成细条再放大导致文字模糊。
+        .apply {
+          if (viewport.width > 0) {
+            size(coil3.size.Dimension(viewport.width), coil3.size.Dimension.Undefined)
+          }
+        }
         /*
          * 这里**故意关掉内存缓存**,和正文图/头像那几处不一样。
          *
-         * 查看器画的是整屏原图:Fit 到全屏后一张解码位图就是屏幕像素级
-         * (1080×2400×4B ≈ 10MB)。Coil 的内存缓存是整个 ImageLoader 共用的一个池,
+         * 查看器按屏宽解码，长图可能高于一屏。Coil 的内存缓存是整个 ImageLoader 共用的一个池,
          * 放进去几张就能把它挤空 —— 被挤掉的正是头像和缩略图,也就是我们刚决定
          * 要留在内存里的东西(RN 侧同一处决定,`image-gallery.tsx:294-313`,
          * 那边写的是 Glide 的 LruResourceCache,机理一样)。
@@ -380,7 +402,7 @@ private fun ViewerPage(
       onSuccess = { state ->
         loading = false
         val height = state.result.image.height
-        if (height > 0) zoom?.aspect = state.result.image.width.toFloat() / height.toFloat()
+        if (height > 0) imageAspect = state.result.image.width.toFloat() / height.toFloat()
       },
       onError = { loading = false },
       modifier = Modifier

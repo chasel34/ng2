@@ -86,7 +86,12 @@ class TopicListRepository @Inject constructor(
     entries.value = next
   }
 
-  /** 进屏时调。**幂等**:已经有第一页就什么都不做(返回时不该重打接口)。 */
+  /** 新的列表页面需要最新数据；返回已有页面则保留分页与阅读位置。 */
+  suspend fun loadOnEntry(key: Key, restored: Boolean) {
+    if (restored) ensureFirstPage(key) else refresh(key)
+  }
+
+  /** 恢复已有列表或读取版块元信息时调：有第一页就复用。 */
   suspend fun ensureFirstPage(key: Key) {
     if (entries.value[key]?.pages?.isNotEmpty() == true) {
       // 只是把它挪到 LRU 的近端

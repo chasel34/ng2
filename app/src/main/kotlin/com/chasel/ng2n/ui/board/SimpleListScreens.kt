@@ -210,7 +210,7 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   )
   val all by deps.topicLists.states.collectAsStateWithLifecycle()
   val state = all[listKey] ?: TopicListRepository.State()
-  LaunchedEffect(listKey) { deps.topicLists.ensureFirstPage(listKey) }
+  LoadTopicListOnEntry(deps.topicLists, listKey)
 
   // 精华区也是主题列表,不该漏网(票 29)
   val filterRules = rememberFilterRules()

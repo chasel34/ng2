@@ -58,8 +58,7 @@ data object Accounts : NavKey
  * 其余 20 个键在 `ui/nav/Keys.kt`(票 16 一次定齐);这三个留在本文件,
  * 是因为票 01 / 票 15 就在这儿声明的 —— 挪走只会让并行期合并多三处冲突。
  *
- * 预测性返回不需要在这里写代码:manifest 开了 `enableOnBackInvokedCallback`,
- * NavDisplay 自带 predictive back 动画(ADR-0004 的有意偏离,RN 版是关的)。
+ * manifest 关闭预测性返回预览，侧滑提交后与顶栏返回共用淡出转场。
  */
 @Composable
 fun Ng2nApp() {
@@ -92,6 +91,15 @@ fun Ng2nApp() {
     NavDisplay(
       backStack = backStack,
       onBack = { backStack.removeLastOrNull() },
+      transitionSpec = {
+        fadeIn(tween(PAGE_FADE_MS)) togetherWith fadeOut(tween(PAGE_FADE_MS))
+      },
+      popTransitionSpec = {
+        fadeIn(tween(PAGE_FADE_MS)) togetherWith fadeOut(tween(PAGE_FADE_MS))
+      },
+      predictivePopTransitionSpec = {
+        fadeIn(tween(PAGE_FADE_MS)) togetherWith fadeOut(tween(PAGE_FADE_MS))
+      },
       // 票 13:NavDisplay 默认只装 SaveableStateHolder 那一个装饰器,ViewModel 的作用域
       // 要自己加 —— 不加的话条目里的 ViewModel 挂在 Activity 上,pop 之后不 clear,
       // 主题详情的页级渲染成品(几百 KB / 页)会一直留着。
@@ -190,6 +198,7 @@ fun Ng2nApp() {
 }
 
 private const val VIEWER_FADE_MS = 220
+private const val PAGE_FADE_MS = 160
 
 /**
  * 图片管线手验用的三张公网图(票 12)。挑的是尺寸确定、覆盖三种形态的:
@@ -219,4 +228,3 @@ const val IMAGE_DEMO_BUTTON_TAG: String = "ng2n-image-demo"
 const val LOGIN_ENTRY_TAG: String = "ng2n-login-entry"
 const val ACCOUNTS_ENTRY_TAG: String = "ng2n-accounts-entry"
 const val TOPIC_DEMO_BUTTON_TAG: String = "ng2n-topic-demo"
-

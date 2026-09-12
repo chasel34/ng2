@@ -50,23 +50,17 @@ private const val FINITE_OVERSHOOT_CEILING = 1e30f
 /** [atFitOffset] 的容差:浮点残渣不算「没回到适配位」。 */
 const val FIT_OFFSET_EPSILON: Float = 0.5f
 
-/**
- * `ContentScale.Fit` 之后图**实际画出来**的尺寸(未缩放)。
- *
- * 拿容器尺寸当图的尺寸是错的:竖图左右会多出两条根本没有像素的空白,
- * 按它算边界就等于允许把真正的图拖出视口、只留空白在里面。
- *
- * @param aspect 图的宽高比(宽/高)。`<= 0` 或非有限值表示还没拿到图的尺寸,
- *   此时退回容器尺寸 —— 这一档的边界偏大,但只在首帧到 `onSuccess` 之间存在。
- */
+/** 按屏宽适配的实际图幅；长图高度可以超过视口。 */
 fun fitDrawnSize(containerWidth: Float, containerHeight: Float, aspect: Float): Size {
   if (containerWidth <= 0f || containerHeight <= 0f) return Size.Zero
   if (aspect <= 0f || !aspect.isFinite()) return Size(containerWidth, containerHeight)
-  // 两轴各自取 min,而不是「算出宽再除 aspect」:极端宽高比下后者会把误差放大到肉眼可见
-  return Size(
-    min(containerWidth, containerHeight * aspect),
-    min(containerHeight, containerWidth / aspect),
-  )
+  return Size(containerWidth, containerWidth / aspect)
+}
+
+/** 把 Fit 绘制的完整图片放大到屏宽，不在绘制阶段裁掉长图。 */
+fun widthFitScale(containerWidth: Float, containerHeight: Float, aspect: Float): Float {
+  if (containerWidth <= 0f || containerHeight <= 0f || aspect <= 0f || !aspect.isFinite()) return 1f
+  return max(1f, containerWidth / (containerHeight * aspect))
 }
 
 /**

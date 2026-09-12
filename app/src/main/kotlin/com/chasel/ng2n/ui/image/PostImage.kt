@@ -2,14 +2,11 @@ package com.chasel.ng2n.ui.image
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -24,8 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -38,13 +33,11 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.chasel.ng2n.core.local.CONTENT_IMAGE_MIN_ASPECT
 import com.chasel.ng2n.core.local.INITIAL_IMAGE_ASPECT
 import com.chasel.ng2n.core.local.ImagePlan
 import com.chasel.ng2n.core.local.ImagePolicy
 import com.chasel.ng2n.core.local.ImageSize
 import com.chasel.ng2n.core.local.SMALL_IMAGE_WIDTH
-import com.chasel.ng2n.core.local.isLongImage
 import com.chasel.ng2n.di.ImageModule
 import kotlin.math.max
 import kotlinx.coroutines.flow.combine
@@ -61,9 +54,7 @@ import kotlinx.coroutines.flow.combine
  * 的主体。这里同样**不给尺寸变化挂任何动画**。
  *
  * 「仅 Wi-Fi 下加载图片」在计费网络下把图收成一条占位,点一下照样展开;展开后拉哪一档
- * 清晰度由「图片加载策略」决定。瘦长图按 [CONTENT_IMAGE_MIN_ASPECT] 封顶裁一截
- * (不裁的话一楼能撑出好几屏,列表行高估算也跟着抖),但不能不吭声:底部一段渐隐
- * + 一枚「点击查看完整」角标。
+ * 清晰度由「图片加载策略」决定。长图按真实比例完整显示，不裁切或折叠。
  */
 @Composable
 fun PostImage(
@@ -122,8 +113,7 @@ fun PostImage(
     loaded?.takeIf { it.first == source }?.second ?: pipeline.sizeCache.sizeOf(source)
   }
 
-  // 小图按原尺寸(px 当 dp)靠左摆;大图铺满卡宽、按真实比例给高,竖长图压封顶。
-  // 小图不套封顶——16×64 的竖条原样放着就好
+  // 小图按原尺寸(px 当 dp)靠左摆;大图铺满卡宽、按真实比例给高，长图完整显示。
   val small = natural != null && natural.width <= SMALL_IMAGE_WIDTH
   val frameModifier = if (natural != null && small) {
     Modifier
@@ -134,15 +124,10 @@ fun PostImage(
       .fillMaxWidth()
       .aspectRatio(
         if (natural == null) INITIAL_IMAGE_ASPECT
-        else max(
-          CONTENT_IMAGE_MIN_ASPECT,
-          natural.width.toFloat() / max(1, natural.height).toFloat(),
-        ),
+        else natural.width.toFloat() / max(1, natural.height).toFloat(),
       )
   }
 
-  // 只有走封顶那条路的大图才会被裁;小图按原尺寸摆,一个像素都没少
-  val long = !small && natural != null && isLongImage(natural)
   val background = MaterialTheme.colorScheme.surfaceVariant
 
   Box(
@@ -162,10 +147,7 @@ fun PostImage(
         .crossfade(ImageModule.CROSSFADE_MS)
         .build(),
       contentDescription = null,
-      contentScale = ContentScale.Crop,
-      // Crop 默认居中裁,长图会上下各切一半:蒙层说「下面还有」,顶上却也少了一截,
-      // 对不上。长图改成贴顶,裁掉的部分全在下面,和提示是一回事
-      alignment = if (long) Alignment.TopCenter else Alignment.Center,
+      contentScale = ContentScale.Fit,
       modifier = Modifier.fillMaxSize(),
       onSuccess = { state ->
         val width = state.result.image.width
@@ -178,56 +160,8 @@ fun PostImage(
       },
       onError = { failedUrl = source },
     )
-    if (long) {
-      LongImageHint(
-        background = background,
-        openable = onClick != null,
-        modifier = Modifier.align(Alignment.BottomCenter),
-      )
-    }
   }
 }
-
-/**
- * 长图底部的「下面还有」提示:一段自下而上的渐隐 + 一枚胶囊角标。
- * 只是提示,不吃点击——点哪儿都还是打开大图查看器,在那儿能完整上下滚。
- */
-@Composable
-private fun LongImageHint(
-  background: Color,
-  openable: Boolean,
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier
-      .fillMaxWidth()
-      .height(FADE_HEIGHT.dp)
-      .background(
-        // 原生有真渐变,不必像 RN 那样拿 12 层 View 手搓
-        Brush.verticalGradient(listOf(Color.Transparent, background)),
-      ),
-    contentAlignment = Alignment.BottomCenter,
-  ) {
-    Row(
-      modifier = Modifier
-        .padding(bottom = 10.dp)
-        .clip(RoundedCornerShape(50))
-        .background(MaterialTheme.colorScheme.primaryContainer)
-        .padding(horizontal = 10.dp, vertical = 3.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Center,
-    ) {
-      Text(
-        text = if (openable) "长图 · 点击查看完整" else "长图 · 已截断",
-        fontSize = 11.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onPrimaryContainer,
-      )
-    }
-  }
-}
-
-private const val FADE_HEIGHT = 96
 
 /** 折叠态与「加载失败」同一个形状,只是文案不同(RN 侧同)。 */
 @Composable

@@ -20,7 +20,6 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.abs
-import kotlin.math.min
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -78,7 +77,7 @@ class ZoomState {
   val zoomed: Boolean get() = scale.value > ZOOM_EPSILON
 
   /**
-   * 是否已经在「适配视口」这一档:缩放回到 1 **且**位移回到中心。
+   * 是否已经在「适配视口」这一档:缩放回到 1 **且**长图回到顶部、其他图居中。
    *
    * 双击靠它决定「放大」还是「复位」。只看缩放是不够的(票 55):缩放回到 1 而
    * 位移没回零的状态是存在的 —— 回弹动画被下一条手势抢断就是 ——
@@ -86,10 +85,10 @@ class ZoomState {
    * 用户会觉得「双击复位不管用」。
    */
   val atFit: Boolean
-    get() = scale.value <= ZOOM_EPSILON && atFitOffset(offsetX.value, offsetY.value)
+    get() = scale.value <= ZOOM_EPSILON && atFitOffset(offsetX.value, offsetY.value - boundsFor(1f).y)
 
   /**
-   * 当前缩放下图片能被拖多远(中心系)。`Fit` 画出来的尺寸由宽高比定,
+   * 当前缩放下图片能被拖多远(中心系)。按屏宽适配画出来的尺寸由宽高比定,
    * 不是容器尺寸 —— 拿容器算的话竖图左右会多出两条拖得动的空白。
    *
    * 数学在 [panBounds],这里只把容器尺寸喂进去。
@@ -121,13 +120,9 @@ class ZoomState {
     offsetY.snapTo(rubberBand(rawY, bounds.y, limit.y))
   }
 
-  /** 松手:掐回原始大小就归零,否则钳进边界并回弹。 */
+  /** 松手钳进当前倍率边界；长图在 1 倍下也保留纵向阅读位置。 */
   suspend fun settle() {
-    if (scale.value <= ZOOM_EPSILON) {
-      reset(animated = true)
-      return
-    }
-    val target = min(scale.value, MAX_SCALE)
+    val target = scale.value.coerceIn(1f, MAX_SCALE)
     val bounds = boundsFor(target)
     // limit = 0:松手就没有越界额度了,一路钳到边界对齐
     rawX = clampRawPan(rawX, bounds.x, 0f)
@@ -180,26 +175,26 @@ class ZoomState {
   /**
    * 回适配位。`animated = false` 走 snap(换页兜底);`true` 走 220ms 回弹。
    *
-   * 累计位移先归零再动画:动画哪怕被下一条手势抢断,raw 也已经是 0,
+   * 累计位移先回默认位置再动画:动画哪怕被下一条手势抢断,raw 也已经是默认位置,
    * 下一次手势不会从一个越界值继续累计(票 55 黑屏的成因之一)。
    */
   suspend fun reset(animated: Boolean) {
     rawX = 0f
-    rawY = 0f
+    rawY = boundsFor(1f).y
     if (!animated) {
       scale.snapTo(1f)
       offsetX.snapTo(0f)
-      offsetY.snapTo(0f)
+      offsetY.snapTo(rawY)
       return
     }
-    animateTogether(1f, 0f, 0f)
+    animateTogether(1f, 0f, rawY)
   }
 }
 
 /**
  * 查看器的核心手势:**同一条 Pan 按当前缩放拆两路**。
  *
- * - 原始大小 + 单指 → **一个事件都不消费**,交给外层 `HorizontalPager` 去翻页;
+ * - 原始大小 + 单指横拖 → 交给外层 `HorizontalPager` 翻页；长图纵拖阅读图片;
  * - 放大后单指 → 拖的是图,钳在图的边界内、越界给阻尼;
  * - 任意时刻双指 → 捏合缩放(顺带跟手平移,系统相册就是这个手感)。
  *
@@ -208,6 +203,7 @@ class ZoomState {
  */
 suspend fun PointerInputScope.detectViewerTransform(
   isZoomed: () -> Boolean,
+  canPanVertically: () -> Boolean = { false },
   onStart: () -> Unit,
   onGesture: (centroid: Offset, pan: Offset, zoom: Float) -> Unit,
   onEnd: () -> Unit,
@@ -227,7 +223,16 @@ suspend fun PointerInputScope.detectViewerTransform(
 
       val pressed = event.changes.count { it.pressed }
       // 单指 + 没放大 = 这是翻页手势,不碰
-      if (pressed <= 1 && !isZoomed()) continue
+      if (pressed <= 1 && !isZoomed()) {
+        if (!canPanVertically()) continue
+        // 长图在默认倍率下也能纵向读图；横向仍让 Pager 翻页。
+        if (!pastSlop) {
+          panAccum += event.calculatePan()
+          if (panAccum.getDistance() < slop) continue
+          if (abs(panAccum.x) >= abs(panAccum.y)) break
+          pastSlop = true
+        }
+      }
 
       val zoomChange = event.calculateZoom()
       val panChange = event.calculatePan()

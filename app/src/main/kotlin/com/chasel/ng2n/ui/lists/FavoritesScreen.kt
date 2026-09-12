@@ -19,13 +19,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chasel.ng2n.core.api.Topic
-import com.chasel.ng2n.data.account.EMPTY_ACCOUNTS
 import com.chasel.ng2n.data.account.currentAccountOf
 import com.chasel.ng2n.data.favorites.pickFavoriteFolder
 import com.chasel.ng2n.data.favorites.unfavoriteConfirmMessage
@@ -88,9 +88,9 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
   val scope = rememberCoroutineScope()
 
   val accountsState by deps.accounts.accounts.collectAsStateWithLifecycle(
-    initialValue = EMPTY_ACCOUNTS,
+    initialValue = null,
   )
-  val uid = currentAccountOf(accountsState)?.uid
+  val uid = accountsState?.let(::currentAccountOf)?.uid
 
   val folderBuckets by deps.topicFavorites.folderStates.collectAsStateWithLifecycle()
   val topicBuckets by deps.topicFavorites.topicStates.collectAsStateWithLifecycle()
@@ -99,11 +99,21 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
   val foldersState = remember(folderBuckets, uid) { deps.topicFavorites.foldersOf(uid) }
   val folders = foldersState.folders
 
-  var pickedFolderId by remember(uid) { mutableStateOf<Long?>(null) }
+  var pickedFolderId by rememberSaveable { mutableStateOf<Long?>(null) }
+  var pickedFolderUid by rememberSaveable { mutableStateOf<String?>(null) }
+  // 账号加载中的 null 不应抹掉恢复的收藏夹；真实切号才重置选择。
+  LaunchedEffect(accountsState) {
+    if (accountsState != null && pickedFolderUid != uid) {
+      pickedFolderId = null
+      pickedFolderUid = uid
+    }
+  }
   var switcherOpen by remember { mutableStateOf(false) }
 
   // 没手动选过就落在默认夹;服务端没标默认(老账号)时退到第一个夹
-  val folder = remember(folders, pickedFolderId) { pickFavoriteFolder(folders, pickedFolderId) }
+  val folder = remember(folders, pickedFolderId, pickedFolderUid, uid) {
+    pickFavoriteFolder(folders, pickedFolderId.takeIf { pickedFolderUid == uid })
+  }
   val state = remember(topicBuckets, uid, folder?.id) {
     deps.topicFavorites.topicsOf(uid, folder?.id)
   }

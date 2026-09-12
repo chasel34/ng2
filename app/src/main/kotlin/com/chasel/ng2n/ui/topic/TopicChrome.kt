@@ -19,12 +19,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,7 +52,7 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
 /**
- * 主题三屏的「壳」:顶栏、页码条、两条提示条、上次读到浮条、骨架页、失败页。
+ * 主题三屏的「壳」:顶栏、页码条、两条提示条、上次读到浮条、失败页。
  *
  * **归属说明**:顶栏 / 菜单 / 对话框这几样在 RN 侧是 `src/ui/` 下的公共组件
  * (`top-bar.tsx` / `menu.tsx` / `input-dialog.tsx` …),原生这边完整的公共 UI 体系
@@ -481,72 +479,6 @@ private const val RISE_OFFSET_PX = 14f * 3f
  * 5s 足够看清一句话并决定要不要点,再久就只剩碍事了。
  */
 private const val RESUME_AUTO_HIDE_MS = 5000L
-
-/**
- * 还没拿到的那一页(相邻页没预取到、或者跳页跳到了没缓存的一页)。
- *
- * 画骨架而不是一个转圈:这块面板是跟着手指走的,转圈会让人以为「卡住了」,
- * 骨架说的是「这一页长这样,内容在路上」。
- */
-@Composable
-fun PageSkeleton(page: Int, modifier: Modifier = Modifier) {
-  val colors = LocalNg2nColors.current
-  Box(modifier.fillMaxSize()) {
-    Column(Modifier.fillMaxSize()) {
-      SKELETON_BODY_WIDTHS.forEach { fraction ->
-        Column(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = Spacing.row, start = Spacing.lg, end = Spacing.lg, bottom = Spacing.xl),
-        ) {
-          Row(horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-            Box(Modifier.size(42.dp).clip(CircleShape).background(colors.quote))
-            Column(
-              modifier = Modifier.weight(1f),
-              verticalArrangement = Arrangement.spacedBy(9.dp),
-            ) {
-              Box(Modifier.width(108.dp).height(12.dp).clip(RoundedCornerShape(6.dp)).background(colors.quote))
-              Box(Modifier.width(72.dp).height(10.dp).clip(RoundedCornerShape(5.dp)).background(colors.quote))
-            }
-          }
-          Box(
-            Modifier.padding(top = 11.dp).fillMaxWidth().height(12.dp)
-              .clip(RoundedCornerShape(6.dp)).background(colors.quote),
-          )
-          Box(
-            Modifier.padding(top = 11.dp).fillMaxWidth(fraction).height(12.dp)
-              .clip(RoundedCornerShape(6.dp)).background(colors.quote),
-          )
-        }
-        Divider()
-      }
-    }
-    // 中间那枚小标签给出页码,免得滑到一半不知道自己要去哪一页
-    Text(
-      text = "第 $page 页载入中",
-      fontSize = Typo.listMeta.size,
-      fontWeight = FontWeight.SemiBold,
-      color = colors.primary,
-      modifier = Modifier
-        .align(Alignment.Center)
-        .clip(RoundedCornerShape(Radius.md))
-        .background(colors.primaryContainer)
-        .padding(horizontal = Spacing.row, vertical = Spacing.sm),
-    )
-  }
-}
-
-/** 骨架页那几行正文的长度,错开一点才像真的正文。 */
-private val SKELETON_BODY_WIDTHS = listOf(0.62f, 0.78f, 0.54f, 0.70f)
-
-/** 整屏加载态。 */
-@Composable
-fun LoadingScreen(modifier: Modifier = Modifier) {
-  val colors = LocalNg2nColors.current
-  Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    CircularProgressIndicator(color = colors.primary)
-  }
-}
 
 /**
  * 「加载失败」页(设计稿 isError 屏)。

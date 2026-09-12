@@ -81,11 +81,13 @@ class ImageZoomMathTest {
   }
 
   @Test
-  fun `按短边适配_另一轴的留白不算图`() {
-    // 比视口还瘦的长截图:高撑满,宽只有 2200×0.2
+  fun `按宽度适配_长图超过视口并可纵向拖动`() {
+    // 长截图宽度撑满，完整图高超过视口。
     val tall = fitDrawnSize(viewW, viewH, 0.2f)
-    assertEquals(viewH * 0.2f, tall.width, 0.01f)
-    assertEquals(viewH, tall.height, 0.01f)
+    assertEquals(viewW, tall.width, 0.01f)
+    assertEquals(viewW / 0.2f, tall.height, 0.01f)
+    assertEquals((tall.height - viewH) / 2f, panBounds(viewW, viewH, 0.2f, 1f).y, 0.01f)
+    assertEquals(viewW / (viewH * 0.2f), widthFitScale(viewW, viewH, 0.2f), 0.01f)
     // 3:4 的普通竖图放进这块很高的视口:反过来是宽被卡住
     val portrait = fitDrawnSize(viewW, viewH, 0.75f)
     assertEquals(viewW, portrait.width, 0.01f)
@@ -114,11 +116,11 @@ class ImageZoomMathTest {
   // ---- panBounds:能拖多远 ---------------------------------------------------
 
   @Test
-  fun `适配档位两轴都拖不动`() {
+  fun `适配档位横向锁定_仅长图可纵向拖动`() {
     for (aspect in listOf(0.05f, 0.75f, 1f, 16f / 9f, 40f)) {
       val bounds = panBounds(viewW, viewH, aspect, 1f)
       assertEquals(0f, bounds.x, 0.01f, "aspect=$aspect")
-      assertEquals(0f, bounds.y, 0.01f, "aspect=$aspect")
+      assertEquals(max(0f, (viewW / aspect - viewH) / 2f), bounds.y, 0.01f, "aspect=$aspect")
     }
   }
 

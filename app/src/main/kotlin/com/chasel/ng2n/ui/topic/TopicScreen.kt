@@ -473,8 +473,7 @@ private fun TopicPageView(
 ) {
   val state = vm.pages[page]
   if (state == null || state is PageState.Loading) {
-    // 画骨架而不是一个转圈:这块面板是跟着手指走的,转圈会让人以为「卡住了」
-    PageSkeleton(page = page)
+    TopicLoadingScreen(page = page)
     return
   }
   if (state is PageState.Failed) {

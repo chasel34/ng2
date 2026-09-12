@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -111,7 +112,7 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
   val deps = rememberAppDeps()
   val scope = rememberCoroutineScope()
 
-  var sort by remember { mutableStateOf(TopicSort.LAST_POST) }
+  var sort by rememberSaveable { mutableStateOf(TopicSort.LAST_POST) }
   var menuOpen by remember { mutableStateOf(false) }
 
   // 24 小时热帖与精华区是同一个键的另外两档,由 `homeEntries` 分派到别的屏,
@@ -120,7 +121,7 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
   val allStates by deps.topicLists.states.collectAsStateWithLifecycle()
   val state = allStates[listKey] ?: TopicListRepository.State()
 
-  LaunchedEffect(listKey) { deps.topicLists.ensureFirstPage(listKey) }
+  LoadTopicListOnEntry(deps.topicLists, listKey)
 
   val accountsState by deps.accounts.accounts.collectAsStateWithLifecycle(
     initialValue = com.chasel.ng2n.data.account.EMPTY_ACCOUNTS,

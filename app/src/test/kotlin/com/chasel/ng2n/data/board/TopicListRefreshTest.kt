@@ -54,6 +54,40 @@ class TopicListRefreshTest {
   """.trimIndent()
 
   @Test
+  fun 重新进入版块拉最新第一页而详情返回保留分页() = runTest {
+    var calls = 0
+    val repository = TopicListRepository(testClient(RecordingTransport {
+      calls += 1
+      ok(pageWithForum(calls.toLong()))
+    }))
+
+    repository.loadOnEntry(key, restored = false)
+    repository.loadNextPage(key)
+    assertEquals(listOf(1L, 2L), repository.stateOf(key).topics.map { it.tid })
+
+    repository.loadOnEntry(key, restored = true)
+    assertEquals(2, calls, "详情返回不重新请求或丢弃后续页")
+    assertEquals(2, repository.stateOf(key).pages.size)
+
+    repository.loadOnEntry(key, restored = false)
+    assertEquals(3, calls, "退出版块后重新进入必须获取最新第一页")
+    assertEquals(listOf(3L), repository.stateOf(key).topics.map { it.tid })
+    assertEquals(1, repository.stateOf(key).pages.size)
+  }
+
+  @Test
+  fun 恢复列表时缓存丢失仍会补拉() = runTest {
+    var calls = 0
+    val repository = TopicListRepository(testClient(RecordingTransport {
+      calls += 1
+      ok(pageWithForum(1))
+    }))
+    repository.loadOnEntry(key, restored = true)
+    assertEquals(1, calls)
+    assertEquals(listOf(1L), repository.stateOf(key).topics.map { it.tid })
+  }
+
+  @Test
   fun 下拉刷新后版头与子版块都还在() = runTest {
     var call = 0
     val transport = RecordingTransport {

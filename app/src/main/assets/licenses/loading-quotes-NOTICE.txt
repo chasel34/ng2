@@ -1,0 +1,17 @@
+NG2 loading quote collection
+
+78 short entries selected by annual ranking from 2018-2025:
+https://github.com/dataxiv/data-ruozhiba
+The annual repository does not include a LICENSE. Its entries are not
+represented as Apache-licensed by this application.
+Original annual thread URLs are retained in LoadingQuotes.kt.
+
+22 posting attributions cross-referenced by unique title/body matches with:
+https://huggingface.co/datasets/kirp/ruozhiba-raw
+Data file: wisdomBar_raw.csv; dataset contributor: kirp.
+That dataset declares Apache License 2.0 (included in Apache-2.0.txt).
+This declaration does not assign that license to the other annual entries.
+Changes: selection, removal of ranking/score prefixes, attribution matching.
+Posting names are not independently verified as original authorship.
+Full ranking, scores, missing entries and attribution URLs:
+docs/loading-quotes-sources.md

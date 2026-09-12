@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -144,9 +145,9 @@ fun HomeScreen(
 
   val treeState by deps.boardTree.uiState.collectAsStateWithLifecycle()
   val accountsState by deps.accounts.accounts.collectAsStateWithLifecycle(
-    initialValue = com.chasel.ng2n.data.account.EMPTY_ACCOUNTS,
+    initialValue = null,
   )
-  val current = currentAccountOf(accountsState)
+  val current = accountsState?.let(::currentAccountOf)
   val uid = current?.uid
   val signedIn = uid != null
 
@@ -247,9 +248,11 @@ fun HomeScreen(
   val defaultIndex = if (signedIn) 0 else if (categories.size > 1) 1 else 0
   val pagerState = rememberPagerState(initialPage = defaultIndex) { categories.size }
   // 分类树是异步来的:等它到位再把游客的起始页挪到第 1 个服务端分类
-  var initialised by remember { mutableStateOf(false) }
-  LaunchedEffect(categories.size, signedIn) {
-    if (!initialised && categories.isNotEmpty()) {
+  // 与 Pager 一起保存；回退恢复时不能用默认页覆盖用户离开前的标签。
+  // null 表示账号尚未读完，不能在这一帧按游客初始化。
+  var initialised by rememberSaveable { mutableStateOf(false) }
+  LaunchedEffect(categories.size, accountsState) {
+    if (!initialised && accountsState != null && categories.isNotEmpty()) {
       initialised = true
       if (pagerState.currentPage != defaultIndex) pagerState.scrollToPage(defaultIndex)
     }
