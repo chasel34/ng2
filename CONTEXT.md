@@ -1,6 +1,6 @@
 # ng2 — NGA 第三方 Android 客户端
 
-用 Kotlin / Jetpack Compose 构建 NGA 论坛的只读向第三方客户端(个人使用),UI 1:1 还原 `design/` 设计稿。本文件只是术语表;范围与技术决策见 `.scratch/native-rewrite/spec.md` 与 `docs/adr/`。
+用 Kotlin / Jetpack Compose 构建 NGA 论坛的只读向第三方客户端(个人使用),视觉参考 `design/` 原型，交互允许 Android 原生惯例。本文件维护术语；开发入口见 [README](README.md)，技术决策见 [docs/adr](docs/adr/)。
 
 ## Language
 
@@ -96,7 +96,7 @@ _Avoid_: 热门话题(与 NGA 官方叫法混淆)
 ### 网络与容错
 
 **反封锁链**:
-读请求失败时的有序兜底策略:格式参数交替 → 换账号重试 → Web 反解 → 帖子缓存 → 网页兜底。
+读请求失败时的有序兜底策略:默认格式与域名轮换 → 换账号重试 → Web 反解 → 帖子缓存；仍失败时由用户选择网页兜底。Web 反解可调整优先级。写请求不走此链，详见 [ADR-0002](docs/adr/0002-anti-block-chain-first-class.md)。
 
 **Web 反解**:
 请求同一 URL 的网页 HTML,从内联 JS(`commonui.postArg.proc` 等)反向解出结构化数据的兜底手段。

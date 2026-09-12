@@ -1,13 +1,15 @@
 # 性能判据手册(perf-playbook)
 
-本文是 ng2 / ng2n 性能裁决的**唯一判据出处**。票 19(真机性能验收)按本文编号引用。
+本文维护当前 Android 工程的性能测量规则。历史票按编号引用，旧版本基线仅用于对照，不能当作当前版本已通过验收的证明。
+
+正式包名为 `com.chasel.ng2`；开发包名为 `com.chasel.ng2.dev`。以下设备特性和阈值来自记录中的小米 120Hz 真机，换设备或刷新率需重新确认。
 判据 = `C*`,作废判据 = `X*`,实锤陷阱 = `T*`,模式备忘 = `P*`。每条注明原始出处。
 
 出处缩写:
 
 | 缩写 | 文件 |
 |---|---|
-| 诊断 | `docs/performance-diagnosis-2026-08-15.md`(2026-08-15 五轮真机诊断,417 行) |
+| 诊断 | `docs/performance-diagnosis-2026-08-15.md`（RN 历史记录，非当前缺陷清单） |
 | 史 | `.scratch/native-rewrite/research/perf-history.md` |
 | 转场 | `.scratch/perf-2026-08/transition-jank-2026-08-21.md` |
 | 模拟器报告 | `.scratch/perf-2026-08/report.md`(2026-08-13,AVD) |
@@ -25,14 +27,14 @@
 |---|---|---|---|
 | **C1** | 感知层 ground truth | 录屏逐帧:`screenrecord` → pyav 按 pts 算帧间 dt + 下采样灰度差分。工具 `scripts/perf/analyze_rec.py` | 史 §六;转场 §测量方法 1 |
 | **C2** | 系统帧统计 | `dumpsys gfxinfo <pkg> framestats`:数 vsync 丢没丢。**分不出「动画窗口内」和「静止画面」,单看会误判**,必须配 C1。工具 `scripts/perf/analyze_framestats.py` | 史 §六;转场 §测量方法 2 |
-| **C3** | 线程级取证 | Perfetto(sched + atrace view/gfx)。release 包靠 `<profileable android:shell="true"/>`;release 的 JS 线程无 systrace 段,用 `thread_state` 的 Running 区间推断 | 转场 §测量方法 3;诊断 §第二轮「机制」 |
-| **C4** | 临时探针 | 代码里插 `performance.now()` / 计时日志,拆 press→render→commit→mount 的账,**验完即删** | 转场 §测量方法 4 |
+| **C3** | 线程级取证 | Perfetto(sched + atrace view/gfx)。release 包靠 `<profileable android:shell="true"/>`;当前检查主线程、RenderThread 和相关工作线程；历史 RN 的 JS 线程结论仅用于追溯 | 转场 §测量方法 3;诊断 §第二轮「机制」 |
+| **C4** | 临时探针 | 代码中使用单调时钟计时或 trace 标记，区分输入、加载、组合、布局和绘制成本,**验完即删** | 转场 §测量方法 4 |
 
 ## 二、量化判据
 
 | 编号 | 判据 | 出处 |
 |---|---|---|
-| **C5** | **app 每帧 CPU** = framestats `HandleInputStart → SwapBuffers` 之和(输入+动画+测量布局+录制+同步+下发)。之后的交换缓冲不归 app。这是对 app 侧改动**唯一敏感**的量,也是真机上唯一挤占 8.33ms 预算的部分。真机基线:版块列表 2.52ms、帖子详情 2.16ms | 模拟器报告 §2.4;真机报告 §2 |
+| **C5** | **app 每帧 CPU** = framestats `HandleInputStart → SwapBuffers` 之和(输入+动画+测量布局+录制+同步+下发)。之后的交换缓冲不归 app。用于分析 app 侧 CPU 阶段，需配合 GPU、FrameTimeline 和录屏判断；不能独自代表完整送显延迟。历史 RN 真机基线:版块列表 2.52ms、帖子详情 2.16ms | 模拟器报告 §2.4;真机报告 §2 |
 | **C6** | **丢帧(framestats 口径)** = 相邻帧 `IntendedVsync` 间隔 > 13ms(120Hz)。换刷新率时阈值取 ≈1.5× 帧间隔。**只在运动段内算**:≥100ms 的空档是 app 没内容要画(静止/换阶段),单独列出不计丢帧,否则一段静止就能刷出几千「丢帧」(票 52) | 史 §六;转场 §测量方法 2 |
 | **C7** | **丢帧(Perfetto 口径)** = `actual_frame_timeline_slice` 里 `present_type='Dropped Frame'` 的行数——**不是 name 列**。判 drop 成不成簇:成簇(如 8 个落在 170ms 内)=肉眼可见停格+双倍跳;孤立单帧 drop 属平台余量 | 诊断 §第五轮;史 §六 |
 | **C8** | **latch2present 单峰/双峰**。timestats 正常时沿用原口径；若已触发 T2，改采 `android.surfaceflinger.frametimeline`，把 app actual surface frame 按 `display_frame_token` 配到 actual display frame，以 display slice `dur`（SF actual frame start→present）作等价峰形。Android 16 FrameTimeline 不暴露 `lastLatchTime`，故不得把 app surface `dur`（只到 buffer ready/acquire fence）冒充 latch2present。@120Hz **低延迟单峰**=9–11ms；**双峰**=9–11ms 与相隔一档 vsync 的 17–20ms 两簇，表示队列深度在 1↔2 间振荡。工具 `analyze_frametimeline.py`：次峰≥5% 即双峰；高延迟单峰也不能按低峰通过。实测:票 56 原生 383/183(67.7%/32.3%)双峰，两个模式的 present2present 都为 8.32ms | 诊断 §第二轮 + §第二轮复测；票 56 |
@@ -68,13 +70,13 @@
 | **T9** | **帧级 A/B 的运行间噪声 ~±5ms**(列表内容、字形缓存、调度都在变)。小于一档 vsync 的差异不是结论 | 诊断 §第三轮「边界与陷阱」 |
 | **T10** | **Perfetto 受 SELinux 限制**:配置走 stdin(`cat cfg \| perfetto -c -`),输出必须落 `/data/misc/perfetto-traces/`。另:gradle daemon 2G 堆在 `:app:packageRelease` 会 OOM | 诊断 §第五轮「坑位记录」 |
 | **T11** | **release 可测量性靠 `<profileable android:shell="true"/>`**(RN 版做成常驻的 `plugins/with-profileable.js`)。没有它,C3 在 release 包上抓不到 app 线程。安全审计曾建议把它限制到 dev/preview——与性能纪律冲突,**原生版保留 profileable** | 诊断 §第二轮「测量陷阱」;史 §六「基建缺口」 |
-| **T12** | **同一次采样必须确认测的是哪个变体**:release 与 dev 变体并装时容易测错对象(RN 版 `com.chasel.ng2` / `com.chasel.ng2.dev`,原生版 `com.chasel.ng2.n` 又是第三个) | 史 §六;spec §三 |
-| **T13** | **首屏耗时不是本次验收对象**:冷启首屏 2.4–2.8s 是 NGA RTT + 反封锁链轮换,同期 app 每帧 CPU 只有 2.2–2.5ms,与渲染无关 | 史 §七;真机报告 §4;spec §一.4 |
+| **T12** | **同一次采样必须确认测的是哪个变体**:release 与 dev 变体并装时容易测错对象(当前 release 为 `com.chasel.ng2`、debug 为 `com.chasel.ng2.dev`；`com.chasel.ng2.n` 仅是早期重写阶段包名) | 史 §六;spec §三 |
+| **T13** | **历史重写验收未将网络首屏耗时列入渲染闸**：当时冷启首屏 2.4–2.8s 主要来自 NGA RTT 与轮换。当前排查仍应拆开网络、存储与渲染耗时，不能用此条排除新的启动回归 | 史 §七;真机报告 §4;spec §一.4 |
 | **T14** | **framestats 的 `Flags` 不能按「非 0 即无效」过滤**:hwui 只有低 4 位语义稳定(`WindowLayoutChanged=1`/`RTAnimation=2`/`SurfaceCanvas=4`/`SkippedFrame=8`),bit4 以上是新版追加的常态位。Android 16(API 36)真机上 bit5(=32)几乎覆盖每一个交互/滚动帧,老口径会把整份采样清空。只按 `Flags & 13` 剔除,再用时间戳单调性兜底跳过帧 | 票 52;`scripts/perf/README.md` |
 
 ## 五、模式备忘
 
-**P1 — Android 触摸分发被父边界裁剪**(出处:pager「过程中踩的新坑」;触摸「排查线索」)
+**P1 — 历史 RN 触摸分发被父边界裁剪**(出处:pager「过程中踩的新坑」;触摸「排查线索」)
 
 症状指纹:**点击/手势识别一切正常,唯独容器里的原生纵向滚动一个 move 都收不到、无过滚辉光**。
 机制:RN(Fabric)Android 有两套命中测试——JS 侧的 `TouchTargetHelper`(Pressable、RNGH 走它,支持 overflow/transform),
@@ -84,8 +86,7 @@
 2026-08-19 在 SwipePager 重构里踩实:轨道 `absoluteFill`(一屏宽),面板 `left=(页号-1)*屏宽` 落在边界外、transform 平移回屏 → taps 全通、滚动全灭。
 修法:轨道显式 `width = count * 屏宽`,让所有面板落在布局边界内。
 
-原生(Compose)一侧不共用这套双命中测试,但**同型问题存在**:自定义 `layout`/`graphicsLayer` 平移把子节点放到父节点边界外时,
-命中测试同样按未平移的布局边界裁剪。写 pager/轮播/抽屉类组件时,**子面板必须落在容器布局边界内**。
+这段机制来自 RN，不直接作为 Compose 缺陷的判定依据。当前 pager、轮播或抽屉若出现类似症状，应结合实际布局、命中区域和手势消费逐项复现验证。
 
 另有一条**未定位**的相关缺陷(不进原生验收,只作对照):RN 版偶发「整窗口触摸完全失灵,画面正常,force-stop 才恢复」——
 与 P1 的区别是**点击也一起死**,不完全吻合;无确定复现,`logcat` 无异常无 ANR(出处:触摸)。
@@ -99,4 +100,6 @@
 - `analyze_frametimeline.py` — C8 单峰/双峰,依赖 perfetto(venv)；采样配置
   `frametimeline.cfg`，不调用 timestats enable/clear。
 
-三个分析脚本都要求 `--source`,非 `device` 时在输出首段打「本次数据不可用于性能裁决」。
+上述三个通用分析脚本都要求 `--source`,非 `device` 时在输出首段打「本次数据不可用于性能裁决」。
+
+其他专项工具（滚动速度、GPU 等待、S9 分段）见 [脚本说明](../scripts/perf/README.md)；它们没有 `--source` 校验，使用者须记录设备、包名、构建和场景。

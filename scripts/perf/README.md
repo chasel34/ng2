@@ -1,7 +1,8 @@
 # scripts/perf — 性能采样分析脚本
 
-判据编号(C\*/X\*/T\*/P\*)一律以 `docs/perf-playbook.md` 为准。
-**模拟器与 debug 包的数据永远不能用于性能裁决**(T7/T8);三个分析脚本都要求 `--source`,
+判据编号(C\*/X\*/T\*/P\*)一律以 [性能手册](../../docs/perf-playbook.md) 为准。
+当前正式包名为 `com.chasel.ng2`，开发包名为 `com.chasel.ng2.dev`。
+**模拟器与 debug 包的数据永远不能用于性能裁决**(T7/T8);下述三个通用分析脚本都要求 `--source`,
 非 `device` 时在输出首段打「本次数据不可用于性能裁决」。
 
 ## 环境再生
@@ -77,7 +78,7 @@ adb shell perfetto -c - --txt -o /data/misc/perfetto-traces/s9.pb \
 # 在 15 秒内执行被测转场；不要调用 timestats enable/clear
 adb pull /data/misc/perfetto-traces/s9.pb .
 scripts/perf/.venv/bin/python scripts/perf/analyze_frametimeline.py s9.pb \
-  --package com.chasel.ng2.n --source device --vsync-ms 8.333
+  --package com.chasel.ng2 --source device --vsync-ms 8.333
 ```
 
 脚本将 app surface frame 与 actual display frame 按 `display_frame_token` 配对，以
@@ -89,3 +90,15 @@ vsync 的 17–20ms 高峰同时达到 5% 即双峰。它不会把 app surface s
 
 Perfetto 侧的 `present_type='Dropped Frame'` 计数(C7)仍未独立落脚本；C8 已由
 `analyze_frametimeline.py` 固化。
+
+## 专项工具
+
+以下工具没有 `--source` 参数，运行前自行核对真机、release、前台焦点、刷新率与采样窗口。前两个依赖 perfetto，滚动速度分析依赖 av + numpy，可复用上述 venv。
+
+| 脚本 | 用途 | 必需参数 |
+|---|---|---|
+| `analyze_gpu_wait.py` | 分析 app HWUI / GPU 等待 | `trace --package <pkg>` |
+| `analyze_s9_segments.py` | 按固定 S9 场景与输入事件分段分析 FrameTimeline | `trace --package <pkg>`（可加 `--by-peak`） |
+| `analyze_scroll_velocity.py` | 从录屏估计纵向内容位移和速度 | `video --csv <输出文件>` |
+
+完整选项用相应脚本的 `--help` 查看，S9 脚本的窗口逻辑只适用于对应采样场景；专项结果需结合性能手册判断。

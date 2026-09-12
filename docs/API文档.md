@@ -1,9 +1,14 @@
 # NGA 论坛 API 调用文档
 
-> 综合 MNGA（iOS，走 XML/`lite=xml`）与 NGA-CLIENT-VER-OPEN-SOURCE（Android，走 JSON/`__output=8`/`lite=js`）两个开源客户端的源码整理。
-> Android 侧以 **Justwen fork v4.2.2**（https://github.com/Justwen/NGA-CLIENT-VER-OPEN-SOURCE ，活跃维护至 2026-08）为准；文中标注「v4」的条目为其相对停更的 ymback v3.7.6 的变化。
-> 两个客户端调用的是**同一套 NGA 网页版 PHP 端点**（没有官方开放 API）：`thread.php` / `read.php` / `post.php` / `forum.php` / `nuke.php` / `app_api.php`。
-> 源码出处见 `docs/research/` 下各报告（含具体文件与行号；v4 差异见 `nga-android-v4-delta-report.md`）。
+> 本文保留 NGA 网页 PHP 协议的逆向参考，并注明当前 NG2 Kotlin 实现。历史资料源于 MNGA 与 NGA-CLIENT，第三方实现的行为不代表本项目已经支持，也不保证服务端当前仍可用。本次按仓库源码核对，未重新进行线上端点验证。
+>
+> 当前实现入口：[core/api](../app/src/main/kotlin/com/chasel/ng2n/core/api/) 与 [core/net](../app/src/main/kotlin/com/chasel/ng2n/core/net/)。历史研究报告原位于已删除的 `docs/research/`，需要时从 Git 历史追溯。
+
+## 当前实现范围
+
+支持版块、主题和用户读取、搜索、收藏管理、点赞/点踩、通知、签名、签到和官方屏蔽词。热帖是客户端聚合；通知已读是本地状态。发帖/回复/编辑、附件上传、举报、投票操作、短消息和旧版单收藏夹没有原生端点实现，相关旧流程已移除；保留章节编号供既有源码注释定位。
+
+`NgaRequest` 默认 POST，业务参数放 query、认证放 Cookie 和 form（默认 `AuthMode.BOTH`）。读请求只轮换 JSON 家族；**写请求固定账号、只发 direct，不自动重放**。具体规则以 [ADR-0002](adr/0002-anti-block-chain-first-class.md) 为准。
 
 ---
 
@@ -24,7 +29,7 @@
 - 附件/正文图片：**域名优先从 `read.php` 响应的 `data.__GLOBAL._ATTACH_BASE_VIEW` 字段动态获取**（取 `/` 分隔的第一段；Android v4 2026-08 新增，硬编码域名仅兜底——旧硬编码 `img.nga.178.com` 已失效正是老版碎图的原因）。静态规则：`https://img.nga.cn/attachments/<path>`（旧域名 `imgN.nga.178.com` / `.ngacn.cc` / `.ngabbs.com` 统一规范化为 `img.nga.cn`；路径以 `/ngabbs/` 开头的用 `img4.nga.cn`）
 - 发帖附件上传：由 `post.php` 动态返回（MNGA 方式，推荐）；Android 硬编码 `https://img8.nga.cn/attach.php?`
 
-### 0.2 认证（两种等价方式）
+### 0.2 认证
 
 登录凭证是两个值：**uid** 和 **token**，来自 WebView 登录后的 Cookie：
 
@@ -40,7 +45,7 @@ https://<host>/nuke.php?__lib=login&__act=account&login
 
 MNGA 每 0.5s 轮询 WebView cookie store 直到抓到两个 Cookie；Android v4 在页面加载回调里从 `CookieManager` 解析（`LoginViewModel`）。均不支持 QQ/微博第三方登录。若遇登录限制，先在 PC 网页端登录一次再试。
 
-凭证附加到请求的两种方式（**任选其一即可**）：
+协议参考中的两种认证方式如下；NG2 默认同时发送，避免跨域 Cookie 丢失：
 
 | 方式 | 用法 | 使用者 |
 |---|---|---|
@@ -49,9 +54,7 @@ MNGA 每 0.5s 轮询 WebView cookie store 直到抓到两个 Cookie；Android v4
 
 游客访问：不带凭证直接请求，出错时服务端返回 `{"error":{"0":"未登录"}}`。
 
-**账号密码登录**（❌ 已死亡：Android v4 登录重构时删除了全部调用代码，仅剩 WebView 登录；下述流程只作历史记录，不要复刻）：
-1. `GET https://bbs.ngacn.cc/login_check_code.php?id=_<random>/`（需 Referer `.../nuke.php?__lib=login&__act=login_ui`）拿验证码 PNG，`id` 值即后续 `rid`
-2. `POST https://bbs.ngacn.cc/nuke.php`（multipart）：`name`/`type=name`/`password`/`rid`/`captcha`(大写)/`__lib=login`/`__act=login`/`__output=1`/`__inchst=UTF-8`/`raw=3`/`qrkey=`
+本项目使用 WebView 登录，不实现账号密码直连流程。
 
 ### 0.3 User-Agent（服务端校验，必须伪装）
 
@@ -67,9 +70,9 @@ MNGA 同时设置三个 header：`User-Agent`、`X-User-Agent`、`Referer`（Ref
 
 ### 0.4 请求方式与公共参数
 
-**MNGA 的做法（推荐照抄）：所有请求一律 POST，业务参数放 URL query string，body 只放认证字段。** Android 混用 GET/POST，效果相同。
+**NG2 默认 POST，业务参数通常放 URL query，body 放认证及端点需要的表单字段。** 签名等接口另有 form 参数，详见对应实现。
 
-每个请求自动附加：
+公共参数（NG2 的 query 含 GBK 参数时会撤掉 `__inchst=UTF8`）：
 
 | 参数 | 值 | 含义 |
 |---|---|---|
@@ -78,7 +81,7 @@ MNGA 同时设置三个 header：`User-Agent`、`X-User-Agent`、`Referer`（Ref
 
 **空值参数必须从 query 中删除**（MNGA 全局行为，大量逻辑依赖它：bool false 编码成空串即"不传"、`fid`/`stid` 二选一等）。
 
-**返回格式参数**（同一接口可选不同格式）：
+**返回格式参数**（协议参考；NG2 默认只轮换 `__output=8`、`__output=11`、`lite=js`，尚无 XML 解析器）：
 
 | 参数 | 返回 | 说明 |
 |---|---|---|
@@ -95,8 +98,8 @@ MNGA 同时设置三个 header：`User-Agent`、`X-User-Agent`、`Referer`（Ref
 
 ### 0.5 编码（第一大坑）
 
-- **响应**：优先看 `Content-Type` 声明的 charset；未声明时按 **GB18030/GBK** 解码。MNGA 带 `__inchst=UTF8` 请求 UTF-8 输出并回落 GB18030；Android 一律 GBK。
-- **POST 表单体**（Android 路线）：GBK urlencode，`Content-Type: application/x-www-form-urlencoded;charset=GBK`。
+- **NG2 响应解码**：已知 charset 优先；GBK 家族按 GB18030 解码。无声明或不认识时先试 UTF-8，无替换字符则直接采用；否则与 GB18030 比较替换字符数量，较少者胜，平手保留 UTF-8。实现见 `core/net/encoding/DecodeBody.kt`。
+- **NG2 出站编码**：默认 UTF-8，指定参数用 `gbk()` 包装。query 出现 GBK 参数则撤掉 `__inchst=UTF8`；form 出现 GBK 参数则使用 `application/x-www-form-urlencoded;charset=GBK`。两处独立判断，见 `core/net/OutboundCharset.kt`。
 - **参数编码不统一，必须逐接口对照**：`thread.php` 的 `key` 是 **UTF-8** urlencode，但同一接口的 `author` 是 **GBK**；`forum.php` 的 `key` 是 GBK；登录接口 `__inchst=UTF-8`。
 - **提交正文的转义**（MNGA `escape_for_submit`，不做会被拒或乱码）：以下字符必须转成 **UTF-16 码元的十进制 HTML 实体** `&#NNNNN;`：
   - 码点 > `0xFFFF`（emoji 等，转成代理对两个实体）
@@ -118,7 +121,7 @@ NGA 返回的"JSON"不合法，解析前必须清洗（Android `ArticleConvertFa
 7. 字符串内裸控制字符转义
 ```
 
-清洗后：顶层结构 `{"data": {...}, "error": {...}, "time": N}`，`data` 与 `error` 互斥。**`data` 内部大量用字符串数字键（`"0"`,`"1"`…）当数组**，自动 JSON 映射库全部失效，只能手工遍历。
+清洗后：顶层结构 `{"data": {...}, "error": {...}, "time": N}`，`data` 与 `error` 互斥。**列表既可能是数字字符串键对象，也可能是 JSON 数组**，统一用 `core/api/Fields.kt` 的 `orderedEntries` 遍历。NG2 还会校验端点响应形状；版块分类树使用 `BARE` 信封。
 
 ### 0.7 错误处理
 
@@ -126,17 +129,13 @@ NGA 返回的"JSON"不合法，解析前必须清洗（Android `ArticleConvertFa
 - XML 错误位置：`/root/__MESSAGE`（子节点 0=code、1=info）、`/root/error`、`/root/error_code`。
 - JSON 错误位置：顶层 `error` 对象（`{"error":{"0":"信息"}}` 或 `{"error":{"code":403,"0":"信息"}}`）。
 - **"假错误"白名单**（出现视为成功）：`完毕`、`没找到`、`没有符合条件的结果`、`今天已经签到`、`找不到用户`。
-- 很多写操作的成功判定靠响应文本包含 `操作成功` / `发贴完毕` / `成功`。
+- NG2 的成功与错误处理集中于 `core/net/Errors.kt` 和信封解析，不使用任意包含“成功”的文本作为所有接口的通用判据。
 
-### 0.8 反封锁（MNGA 的核心机制，建议复刻）
+### 0.8 反封锁
 
-NGA 会封第三方客户端（表现为 XML/JSON 解析失败）。MNGA 的对策：
+默认读链为格式与域名轮换 → 换账号 → Web 反解 → 主题页缓存。JSON 格式顺序为 `__output=8`、`__output=11`、`lite=js`，格式轮换最多 8 次尝试；成功组合缓存 10 分钟，命中失败即失效。
 
-1. **重试组合** = 格式参数（`lite=xml` ↔ `__output=10`）× 域名（官方 ↔ 自建反代）的笛卡尔积；只有解析错误/HTTP 状态错误才触发重试；成功组合按 key 缓存，下次优先。
-2. 每次重试前重建 HTTP client（并可发 `HEAD thread.php` 预热）。
-3. **Web HTML 兜底**（`read.php` 专用四档策略 Disabled/Secondary/Primary/Only）：请求同一 URL 但不带格式参数拿网页 HTML，从内联 JS 反解数据：`commonui.postArg.proc(...)`（楼层元数据）、`commonui.userInfo.setAll(...)`（用户）、`var __PAGE`（分页）、`<!--msgcodestart-->`（错误），再合成 XML 复用下游解析。
-4. `read.php` 用 Windows Phone UA。
-5. 最后兜底：读本地缓存 / 提示用浏览器打开。Android 的对策更简单：换下一个账号的 Cookie 重试一次，再失败就内置 WebView 打开原页。
+Web 反解仅支持 `read.php`，从网页内联 JS 提取楼层、用户和分页并合成信封，支持 Disabled / Secondary / Primary / Only。它不通过 XML 中转。链失败后用户可打开内置网页；写操作不参与上述自动重试。实现与事故教训见 [ADR-0002](adr/0002-anti-block-chain-first-class.md)。
 
 ---
 
@@ -148,7 +147,9 @@ NGA 会封第三方客户端（表现为 XML/JSON 解析失败）。MNGA 的对�
 POST app_api.php?__lib=home&__act=category        （JSON）
 ```
 
-响应 `data`：分类对象数组，每个含 `_id`/`name`/`groups.*.forums.*`；版块对象含 `id`/`fid`/`stid`/`name`/`info`/`topped_topic`。**stid 优先于 fid**。
+NG2 使用 `BARE` 信封解析整个顶层：`data` 为分类树，`other` 提供图标表、公告与推荐信息。
+
+协议中的响应 `data`：分类对象数组，每个含 `_id`/`name`/`groups.*.forums.*`；版块对象含 `id`/`fid`/`stid`/`name`/`info`/`topped_topic`。**stid 优先于 fid**。
 （Android 走 GET，响应是标准 `{code,msg,result[].groups[].forums[]}` JSON——全站唯一格式正常的接口。Android v4 用法：内置 `assets/board_list.json` 起底，进版面时经此接口在线增量更新，24 小时最多一次；`board_list.json` 里每个版面还可带 `head` 字段 = 版头帖 tid。）
 
 ### 1.2 版块搜索
@@ -236,69 +237,9 @@ POST read.php?tid=<tid>&page=<N>[&fav=<fav码>][&pid=<pid>][&authorid=<uid>][&op
 
 ---
 
-## 4. 发帖 / 回复 / 编辑（`post.php`，XML；响应可能是 HTML）
+## 4. 发帖 / 回复 / 编辑
 
-### 4.1 第一步：拉取编辑上下文（必做，为了拿附件凭证）
-
-```
-POST post.php?action=<reply|quote|modify|new>[&tid=<tid>&pid=<pid>][&fid=<fid>|&stid=<stid>]
-```
-
-响应（XML）：
-
-| 字段 | 含义 |
-|---|---|
-| `/root/content` | 预填内容（引用/编辑时；需两轮实体解码） |
-| `/root/subject` | 预填标题 |
-| `/root/modify_append` | 非空 = 超时只能追加编辑 |
-| `/root/auth` | **附件上传鉴权码** |
-| `/root/attach_url` | **附件上传目标 URL（绝对地址）** |
-
-`auth`/`attach_url`/`modify_append` 要**原样**带到后续请求。
-
-### 4.2 上传附件（multipart POST 到 `attach_url`）
-
-| 字段 | 值 |
-|---|---|
-| `func` | `upload` |
-| `v2` | `1` |
-| `auth` | 4.1 的 auth |
-| `fid` | 版块 fid |
-| `origin_domain` | 当前域名（如 `ngabbs.com`） |
-| `attachment_file1` | 二进制，`Content-Type: image/jpeg` |
-| `attachment_file1_img` | `1` |
-| `attachment_file1_dscp` / `attachment_file1_url_utf8_name` | 文件名（后者 UTF-8） |
-| `attachment_file1_watermark` | `""`（或 `tl`/`tr`/`bl`/`br`） |
-| `attachment_file1_auto_size` | `""`（或 `1` 自动缩图） |
-| `lite` | `js`（Android 带） |
-
-响应：`attachments`（附件名）、`attachments_check`（校验码）、`url`（相对路径，正文里插 `[img]./<url>[/img]`）。`error_code==9` = 文件过大，压缩后重传。
-
-### 4.3 第二步：提交
-
-```
-POST post.php?action=<reply|quote|modify|new>&step=2
-  &post_content=<转义后正文>
-  [&post_subject=<转义后标题>]
-  [&tid=<tid>&pid=<pid>]          # reply/quote/modify
-  [&fid=<fid>|&stid=<stid>]       # new
-  [&attachments=<A\tB>&attachments_check=<a\tb>]   # 多附件用 \t（%09）连接
-  [&comment=1]                    # 贴条（楼中楼），action 用 reply；Android 额外带 nojump=1&lite=htmljs
-  [&modify_append=1]              # 追加编辑
-  [&anony=1]                      # 匿名（扣 100 铜币）
-```
-
-⚠️ **响应可能是 HTML 而非结构化数据**（Android 路线），成功判定靠文本含 `发贴完毕`（或 `@提醒每24小时不能超过50个`）。MNGA 的 XML 路线正常解析。
-
-### 4.4 主题分类标签（发新帖时的分类下拉）
-
-```
-GET nuke.php?__lib=topic_key&__act=get&fid=<fid>&__output=8
-```
-
-响应：`data["0"]["N"]["0"]` 依次是分类名。
-
----
+未实现原生提交与附件上传。需要时使用网页；旧的编辑上下文、上传和提交步骤不再作为开发指引。
 
 ## 5. 收藏
 
@@ -313,16 +254,9 @@ POST nuke.php?__lib=topic_favor_v2&__act=modify_folder&raw=3  form: name, opt, f
 POST nuke.php?__lib=topic_favor_v2&__act=del_folder&raw=3     form: folder                   # 删除
 ```
 
-### 5.2 旧版单收藏夹（Android，`topic_favor`）
+### 5.2 旧版单收藏夹
 
-```
-POST nuke.php?__lib=topic_favor&__act=topic_favor&action=add&tid=<tid>[&pid=<pid>]&lite=js&noprefix   # 收藏主题/楼层
-POST nuke.php   body: __lib=topic_favor&__act=topic_favor&__output=8&action=del&page=N&tidarray=<tid>[_<pid>]  # 取消
-```
-
-收藏列表 = `thread.php?favor=1`（见第 2 节）。
-
----
+本项目使用 `topic_favor_v2`，不实现旧版 `topic_favor`。
 
 ## 6. 点赞 / 点踩
 
@@ -336,25 +270,11 @@ POST nuke.php?__lib=topic_recommend&__act=add&value=<1|-1>&tid=<tid>&pid=<pid>  
 
 ## 7. 举报
 
-```
-POST nuke.php?__lib=log_post&__act=report&raw=3&info=<转义后理由>&tid=<tid>&pid=<pid>
-```
+未实现原生举报接口。
 
-（Android 变体：`__output=8&charset=gbk`，且 query 和 form 各带一遍全部参数。）
-响应：`{"data":{"0":"操作成功"}}` 或 `{"error":{"0":"你在217秒后方可举报"}}`。
+## 8. 投票 / 投注
 
----
-
-## 8. 投票 / 投注（仅 Android 实现）
-
-```
-POST nuke.php?__lib=vote&raw=3&lite=js&__act=vote&tid=<tid>&voteid=<id1,id2,...>      # 投票
-POST nuke.php?__lib=vote&raw=3&lite=js&__act=settle&tid=<tid>&voteid=<id1,id2,...>    # 结算/开奖
-```
-
-（query 与 body 内容相同。）投票题目数据来自帖子楼层的 `vote` 字段（`~` 分隔 kv 串）。响应 `data["0"]` 以"操作成功"开头即成功。
-
----
+正文只展示投票信息，不提交投票或投注。
 
 ## 9. 通知 / 提醒（`nuke.php?__lib=noti`，JSON）
 
@@ -384,22 +304,9 @@ POST nuke.php?__lib=noti&raw=3&__act=del
 
 ---
 
-## 10. 短消息（`nuke.php?__lib=message&__act=message`，JSON）
+## 10. 短消息
 
-```
-act=list&page=N                          # 会话列表：data["0"] 含 nextPage/currentPage 和 "0","1"… 会话（mid/subject/from_username/last_modify/posts/all_user）
-act=read&mid=<mid>&page=N                # 会话详情：data["0"].userInfo / .allmsgs（id/from/subject/content/time）/ .nextPage
-act=new&to=<收件人>&subject=<S>&content=<C>       # 新会话（MNGA 多收件人空格分隔；Android 逗号分隔）
-act=reply&mid=<mid>&content=<C>[&subject=<S>]     # 回复
-```
-
-`all_user`/`allUsers` 是 `\t` 分隔的 (uid, username) 交替序列，按 2 个一组切分。`nextPage` 非空表示还有下一页。短信内相对图片路径 `[img]./mon_...` 拼附件域名。
-
-**Android v4 实测可行的调用形态**（v3.7.6 老实现已被服务端拒绝，新实现是唯一验证过的 Android 路线）：
-- 列表/详情走 GET + `lite=js`；发送走 POST，query 带 `lite=js&charset=gbk`，body 为 `act`/`mid`/`to`/`subject`/`content` 表单（`to` 用 GBK URLEncode，中文逗号需转英文逗号）。
-- 发送成功判定字符串：响应含 `发送完毕` / `操作成功` / `@提醒每24小时不能超过50个`。
-
----
+未实现。入口保留并提示未开放，不提供列表、详情或发送端点。
 
 ## 11. 用户
 
@@ -422,8 +329,11 @@ POST nuke.php?__lib=ucp&__act=get_avatar&uid=<uid>       # 只认 uid；URL 在 
 ### 11.3 修改签名
 
 ```
-POST nuke.php?__lib=set_sign&__act=set&uid=<自己uid>&sign=<转义后签名>[&raw=3&lite=js]
+POST nuke.php?__lib=set_sign&__act=set&raw=3
+form: uid=<自己uid>, sign=<escapeForSubmit 转义后的签名>
 ```
+
+NG2 清空签名时发送一个空格，避免空值参数被省略；见 `core/api/SetSign.kt`。
 
 ### 11.4 签到
 
@@ -453,50 +363,44 @@ Referer: <host>/nuke.php?func=ucp&uid=<uid>                            ← 必�
 | 端点 | `__lib` / 参数 | 功能 | 格式 |
 |---|---|---|---|
 | `app_api.php` | `home` / `category` | 版块分类树 | JSON |
-| `forum.php` | `key=` | 版块搜索 | XML/JSON |
-| `thread.php` | `fid/stid/page/key/favor/authorid/searchpost/recommend/order_by` | 主题列表·搜索·收藏夹·用户主题/回复 | XML / lite=js |
-| `read.php` | `tid/page/pid/authorid/fav/opt` | 帖子详情 | XML / JSON / HTML |
-| `post.php` | `action`（无 step）| 编辑上下文 + 附件凭证 | XML |
-| `post.php` | `action` + `step=2` | 发帖/回复/引用/编辑/贴条 | XML / HTML |
-| `<attach_url>` | multipart | 附件上传 | XML / JSON |
+| `forum.php` | `key=` | 版块搜索 | JSON |
+| `thread.php` | `fid/stid/page/key/favor/authorid/searchpost/recommend/order_by` | 主题列表·搜索·收藏夹·用户主题/回复 | JSON 家族 |
+| `read.php` | `tid/page/pid/authorid/fav/opt` | 帖子详情 | JSON / HTML 反解 |
 | `nuke.php` | `noti` | 通知拉取/清空 | JSON |
-| `nuke.php` | `message` | 短信列表/详情/发送 | JSON |
 | `nuke.php` | `ucp` | 用户资料/头像 | JSON |
 | `nuke.php` | `ucp` / `get_block_word`·`set_block_word` | 官方屏蔽词云同步 | JSON |
 | `nuke.php` | `set_sign` | 修改签名 | JSON |
 | `nuke.php` | `check_in` | 签到 | JSON / lite=js |
-| `nuke.php` | `topic_favor_v2`（新）/ `topic_favor`（旧） | 主题收藏 & 收藏夹 | JSON |
+| `nuke.php` | `topic_favor_v2` | 主题收藏 & 收藏夹 | JSON |
 | `nuke.php` | `forum_favor2` | 版块收藏 | JSON |
 | `nuke.php` | `topic_recommend` | 点赞/点踩 | JSON |
-| `nuke.php` | `log_post` | 举报 | JSON |
 | `nuke.php` | `user_option` | 子版块订阅/屏蔽 | JSON |
-| `nuke.php` | `topic_key` | 主题分类标签 | JSON |
-| `nuke.php` | `vote` | 投票/投注 | lite=js |
 | `nuke.php` | `login`（WebView 打开） | 登录页 | HTML |
-| ~~`login_check_code.php`~~ | — | 图形验证码（账密登录已废弃，勿用） | PNG |
 
 ---
 
-## 13. 复刻要点（按踩坑概率排序）
+## 13. 实现注意事项
 
 1. **编码不统一是第一大坑**：响应 GBK/GB18030 回落；POST body GBK；`thread.php` 的 `key` 却是 UTF-8 而 `author` 是 GBK；登录用 `__inchst=UTF-8`。逐接口对照，别全局一刀切。
-2. **响应不是合法 JSON/带前缀**，必须先做 0.6 节的清洗；`noprefix` 不总生效；`data` 里字符串数字键当数组，只能手工遍历。
+2. **响应不是合法 JSON/带前缀**，必须先做 0.6 节的清洗；`noprefix` 不总生效；列表同时兼容数字字符串键对象和数组，用 `orderedEntries` 遍历。
 3. **客户端身份必须声明**：老做法是 `User-Agent: Nga_Official/xxx`；Android v4 验证了更稳的新做法——UA 用系统 WebView UA，身份放辅助头 `X-User-Agent: Nga_Official`（`read.php` 另可用 `NGA_WP_JW/(;WINDOWS)`）。
 4. **提交内容必须做 UTF-16 十进制实体转义**（emoji/ZWJ/变体选择符），读取时两轮解码 + 代理对还原。
 5. **空值参数必须丢弃**（MNGA 路线大量逻辑依赖）。
 6. **真实 tid 看 `quote_from`**；**`fav` 码从 `tpcurl` 提取**，访问隐藏帖必带。
-7. **附件上传是两步**：先 `post.php` 拿 `auth`+`attach_url`，再 multipart 上传；发帖带 `attachments`+`attachments_check`（`\t` 连接）。
+7. **写请求不重放**：固定发起身份，失败交给用户处理。
 8. **收藏增删参数名不同**：加用 `tid`，删用 `tidarray`。**子版块订阅 `del`=订阅、`add`=屏蔽**（且可能按 type 再反转）。
-9. **`post.php` 提交的响应可能是 HTML**，成功判定靠文本包含"发贴完毕"。
+9. **提交能力边界**：本项目不实现 `post.php` 发帖、回复与附件上传。
 10. **HTTP 非 2xx 仍要解析 body**；五个"假错误"（`完毕/没找到/没有符合条件的结果/今天已经签到/找不到用户`）当成功处理。
 11. **通知已读、热门话题、匿名昵称还原、骰子结果**都是客户端本地实现，服务端不提供。
-12. **反封锁从第一天就设计**：格式参数交替（`lite=xml` ↔ `__output=10`）+ 成功组合缓存 + Web HTML 反解兜底 + 本地缓存兜底。
+12. **反封锁从第一天就设计**：JSON 格式与域名轮换+ 成功组合缓存 + Web HTML 反解兜底 + 本地缓存兜底。
 13. 子版块 `attributes` 魔法数（`{7,558,542,2606,2590,4654}`=已订阅、`>40`=可过滤）无文档依据，可能随 NGA 更新失效。
 14. Android 项目里硬编码的 `bbs.ngacn.cc`/`nga.178.com`/`app.myauth.us`（登录、验证码、版面搜索、改头像图床）多为历史遗留、部分已失效，复刻时统一走可配置域名；其 `arrays.xml` 里 `nga.178.com"` 末尾多引号是 bug（v4.2.2 仍未修），别抄。
 15. **图片域名不要硬编码**：附件域名从 `read.php` 响应的 `__GLOBAL._ATTACH_BASE_VIEW` 动态取（0.1 节），静态规则只作兜底——`img.nga.178.com` 已死就是前车之鉴。
 16. **服务端字段类型会悄悄变**（例：`__T[].parent` 2024 年从对象变字符串化 JSON），手工解析层对每个字段都要做类型容错；遇到新解析失败先查 Justwen fork 最新提交。
 
 ## 14. 联调对拍资源
+
+本地优先使用 [goldens](../app/src/test/resources/goldens/README.md) 和 `app/src/test/kotlin`；以下为历史第三方参考，不是当前线上可用性的证明。
 
 - MNGA Rust 侧每个 service 模块带真实网络集成测试（`#[ignore]`），内含真实样例 id：tid `45150945`（通用验证）、fid `650`（原神版）、uid `41417929`（MNGA 作者）。
 - 第三方接口文档（MNGA `AGENTS.md` 推荐，交叉验证用）：

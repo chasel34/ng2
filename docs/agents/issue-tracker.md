@@ -1,30 +1,13 @@
-# Issue tracker: Local Markdown
+# 本地 Issue 约定
 
-Issues and specs for this repo live as markdown files in `.scratch/`.
+需求与问题记录保存在仓库的 `.scratch/`，不使用外部 Issue 服务。
 
-## Conventions
+- 每个功能或调查一个目录：`.scratch/<feature>/`。
+- 范围说明：`spec.md`；每张实现票独立放在 `issues/<NN>-<slug>.md`，从 `01` 编号。
+- 文件顶部用 `Status:` 记录状态，讨论和验证结果追加到 `## Comments`。
+- 新票说明问题、期望行为、范围及验证方式；状态值沿用同目录已有约定。
+- 用户引用票号时，结合功能目录定位；不同目录的同号票不是同一问题。
 
-- One feature per directory: `.scratch/<feature-slug>/`
-- The spec is `.scratch/<feature-slug>/spec.md`
-- Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` — never a single combined tickets file
-- Triage state is recorded as a `Status:` line near the top of each issue file
-- Comments and conversation history append to the bottom of the file under a `## Comments` heading
+已有调查使用 `map.md` 时，继续维护其中的结论与子票链接，并遵守已有的 `Type:`、`Blocked by:` 和状态约定。无需为普通修改另建调查流程。
 
-## When a skill says "publish to the issue tracker"
-
-Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).
-
-## When a skill says "fetch the relevant ticket"
-
-Read the file at the referenced path. The user will normally pass the path or the issue number directly.
-
-## Wayfinding operations
-
-Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
-
-- **Map**: `.scratch/<effort>/map.md` — the Notes / Decisions-so-far / Fog body.
-- **Child ticket**: `.scratch/<effort>/issues/NN-<slug>.md`, numbered from `01`, with the question in the body. A `Type:` line records the ticket type (`research`/`prototype`/`grilling`/`task`); a `Status:` line records `claimed`/`resolved`.
-- **Blocking**: a `Blocked by: NN, NN` line near the top. A ticket is unblocked when every file it lists is `resolved`.
-- **Frontier**: scan `.scratch/<effort>/issues/` for files that are open, unblocked, and unclaimed; first by number wins.
-- **Claim**: set `Status: claimed` and save before any work.
-- **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then append a context pointer (gist + link) to the map's Decisions-so-far in `map.md`.
+旧票可能引用已移除的 RN 文件或重写前包名。查历史用 Git；判断现状以当前源码为准。领域命名见 [CONTEXT.md](../../CONTEXT.md)，长期决策归入 [ADR](../adr/)。

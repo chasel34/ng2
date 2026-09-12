@@ -301,7 +301,7 @@ Kotlin 侧「非有限值 → 0」由票 10 手写单测锁。
 - 存储层（`core/local/{topic-cache,history,settings,notifications,…}`）。
 - Web 反解的**扫描器**（`core/net/web/html-scan.ts`：引号感知括号匹配、标签深度追踪、
   JS 对象字面量）——它的边界用例全出自用户内容，`input`/`expected` 都是短字符串，
-  写成金样本不如直接手工移植（`native/…/core/net/web/HtmlScanTest.kt`）。
+  写成金样本不如直接手工移植（`app/src/test/kotlin/com/chasel/ng2n/core/net/web/HtmlScanTest.kt`）。
   反解本体 `parseReadPageHtml` **已经在 `web` domain 里**（票 08 重验后加入）。
 
 ## 约定

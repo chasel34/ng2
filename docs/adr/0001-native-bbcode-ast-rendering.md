@@ -1,7 +1,9 @@
-# 正文渲染走「BBCode → AST → 原生组件」,不用 WebView
+# ADR-0001：正文使用 BBCode → AST → 原生组件
 
-两个参考项目分别代表两条路线:MNGA(原生 Span 树)与 NGA-CLIENT(BBCode→HTML→WebView)。我们选全原生:core 层的 TS 解析器把 BBCode 解析成 AST,UI 层把 AST 映射为 React Native 组件。理由:①设计稿的楼层是原生卡片流,列表内嵌 WebView 做不到 1:1 还原且内存/滚动体验差;②本项目不做编辑器,不需要"发前预览"复用渲染管线的好处;③深浅色直接吃 design token,无需维护两套 CSS。
+状态：沿用；2026-09-12 按 Kotlin 实现更新。原 RN 阶段的渲染决策由 ADR-0003 延续到 Compose。
 
-代价与缓解:每个标签都要写原生渲染。已明确降级:`[table]` 简化实现(忽略 rowspan、整表横向滚动);投票只读渲染、不做投票操作;`[flash=video/audio]` 渲染为媒体卡片点击外跳,不内联播放。极端排版帖用「网页版打开」逃生。
+解析与清洗放在 [core/bbcode](../../app/src/main/kotlin/com/chasel/ng2n/core/bbcode/)，AST 由 [ui/bbcode](../../app/src/main/kotlin/com/chasel/ng2n/ui/bbcode/) 映射为 Compose 组件。楼层流不嵌入 WebView，避免额外的内存、滚动和主题适配成本。
 
-Considered: 混合方案(table/vote 用楼层内 WebView 岛)被用户否决,统一纯原生。
+代价是每个标签都需原生实现。当前降级约定：表格忽略 rowspan、整表横向滚动；投票只读；视频和音频显示媒体卡片、点击外跳。极端排版可使用「网页版打开」。登录与整页网页兜底仍可使用 WebView。
+
+曾考虑表格或投票使用局部 WebView，最终选择统一原生正文渲染。

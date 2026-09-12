@@ -1,22 +1,7 @@
-# CODING AGENTS: READ THIS FIRST
+# 设计参考
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+主原型：[NGA客户端.dc.html](project/NGA客户端.dc.html)，辅助脚本：[support.js](project/support.js)。这些 HTML/CSS/JS 文件用于说明视觉与信息结构，不参与 Android 构建。
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+当前实现使用 Jetpack Compose。修改界面时参考原型的布局、颜色和内容层级，并结合当前源码与已确认的产品调整；交互允许采用 Android 原生惯例。原生重写的范围见 [ADR-0003](../docs/adr/0003-full-native-android-rewrite.md)。
 
-## What you should do — IMPORTANT
-
-**Read `untitled/project/NGA客户端.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
-
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
-
-## About the design files
-
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
-
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
-
-## Bundle contents
-
-- `untitled/README.md` — this file
-- `untitled/project/` — the `论坛应用完整原型交付` project files (HTML prototypes, assets, components)
+图标与背景的候选素材及生成记录见 [assets/images/concepts](../assets/images/concepts/README.md)。

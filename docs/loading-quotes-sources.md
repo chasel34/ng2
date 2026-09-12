@@ -7,7 +7,9 @@
 - 年份是年度精选年份，不一定是首次发帖年份。保留原文换行与特殊符号，包括 2023 第 9 名反方辩题的留白。
 - 随机展示概率：2025 年 50%、2024 年 25%、2023 年 15%，2018～2022 各 2%。
 - 署名通过 kirp/ruozhiba-raw 的标题/正文唯一匹配核对，仅代表对应发帖账号；无法核对则不显示作者。年度整理者不自动视为作者。
-- 指定年度仓库未提供 LICENSE；不将其内容标记为 Apache 授权。kirp 数据集的 Apache 声明仅适用于该数据集来源，见 assets/licenses/loading-quotes-NOTICE.txt。
+- 指定年度仓库未提供 LICENSE；不将其内容标记为 Apache 授权。kirp 数据集的 Apache 声明仅适用于该数据集来源，见 [随包来源声明](../app/src/main/assets/licenses/loading-quotes-NOTICE.txt)。
+
+实现与权重见 [LoadingQuotes.kt](../app/src/main/kotlin/com/chasel/ng2n/ui/topic/LoadingQuotes.kt)，随包声明位于 [Android assets](../app/src/main/assets/licenses/loading-quotes-NOTICE.txt)。修改文案或署名时同步维护本清单和随包声明。
 
 ## 2025
 

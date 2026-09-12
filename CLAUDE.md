@@ -2,20 +2,29 @@
 
 Kotlin / Jetpack Compose 原生 Android 项目，工程位于仓库根目录。
 
-## 项目文档
+## 项目入口
 
-- 构建与架构：`README.md`。
-- 术语与技术决策：`CONTEXT.md`、`docs/adr/`。
-- 本地 Issue：`.scratch/<feature>/`，流程见 `docs/agents/issue-tracker.md`。
-- `core/**` 保持纯 Kotlin，不引入 `android.*`。
+- 构建、包名与分层：[README.md](README.md)。
+- 文档导航：[docs/README.md](docs/README.md)。领域命名遵循 [CONTEXT.md](CONTEXT.md)，修改架构前阅读相关 [ADR](docs/adr/)。
+- 本地需求与 Issue 放在 `.scratch/<feature>/`，约定见 [issue-tracker.md](docs/agents/issue-tracker.md)。旧票和诊断记录用于追溯；当前实现以 Kotlin 源码与构建配置为准。
 
-## 构建
+## 开发约定
 
-使用 JDK 17，设置 `ANDROID_HOME`，在仓库根目录运行：
+- `app/src/main/kotlin/com/chasel/ng2n/core/**` 保持纯 Kotlin，不引入 `android.*`；设备 API、网络传输和持久化实现放在 `data`，通过 `di` 装配。
+- 正文使用 BBCode → AST → Compose，不在楼层流中嵌入 WebView。
+- NGA 请求显式声明 `Operation.READ` 或 `Operation.WRITE`。写请求固定发起账号，只走 direct，不自动轮换、换号或重放；读请求按 [ADR-0002](docs/adr/0002-anti-block-chain-first-class.md) 处理。
+- 依赖和 SDK 版本统一维护在 `gradle/libs.versions.toml`；新增依赖说明用途，保留现有版本例外的理由。
+- 修改公开行为、构建方式或架构时同步更新相应文档；不要把已经结束的票号或临时机器配置写成长期前提。
+
+## 验证
+
+使用 JDK 17，配置 Android SDK，在仓库根目录运行与改动相关的检查：
 
 ```bash
 ./gradlew :app:assembleDebug
 ./gradlew :app:testDebugUnitTest
 ```
 
-依赖版本统一维护在 `gradle/libs.versions.toml`。需要代理时通过 `GRADLE_OPTS` 显式传入 JVM 代理参数。
+需要设备的验证使用 `:app:connectedDebugAndroidTest`。纯文档变更检查链接、路径和与源码的一致性即可。需要代理时通过 `GRADLE_OPTS` 显式传入 JVM 代理参数，示例见 README。
+
+性能结论必须来自真机 release 包，遵循 [perf-playbook.md](docs/perf-playbook.md)。正式包名 `com.chasel.ng2`，开发包名 `com.chasel.ng2.dev`，采样前确认前台变体。
