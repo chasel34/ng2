@@ -1,0 +1,21 @@
+{
+  "expected": {
+    "createdAt": 101,
+    "id": "local:user:张三",
+    "kind": "user",
+    "origin": "local",
+    "regex": false,
+    "uid": 42,
+    "value": "张三"
+  },
+  "fn": "createFilterRule",
+  "input": {
+    "input": {
+      "kind": "user",
+      "uid": 42,
+      "value": "张三"
+    },
+    "nowSeconds": 101
+  },
+  "name": "create-filter-rule-user-with-uid"
+}

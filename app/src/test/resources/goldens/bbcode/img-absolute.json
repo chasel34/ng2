@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": false,
+      "src": "https://img.nga.cn/attachments/a.jpg",
+      "type": "image",
+      "variant": "img"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[img]https://img.nga.cn/attachments/a.jpg[/img]",
+  "name": "img-absolute"
+}

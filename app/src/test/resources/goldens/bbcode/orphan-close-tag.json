@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "文字[/b]尾"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "文字[/b]尾",
+  "name": "orphan-close-tag"
+}

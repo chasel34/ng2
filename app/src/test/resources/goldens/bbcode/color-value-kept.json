@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "红"
+        }
+      ],
+      "type": "color",
+      "value": "crimson"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[color=crimson]红[/color]",
+  "name": "color-value-kept"
+}

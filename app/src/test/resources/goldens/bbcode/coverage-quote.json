@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "引用"
+        }
+      ],
+      "type": "quote"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[quote]引用[/quote]",
+  "name": "coverage-quote",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

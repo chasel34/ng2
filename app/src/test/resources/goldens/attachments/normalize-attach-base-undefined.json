@@ -1,0 +1,8 @@
+{
+  "expected": "https://img.nga.cn/attachments",
+  "fn": "normalizeAttachBase",
+  "input": {
+    "raw": null
+  },
+  "name": "normalize-attach-base-undefined"
+}

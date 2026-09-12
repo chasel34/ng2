@@ -1,0 +1,23 @@
+{
+  "expected": [
+    {
+      "expression": "5",
+      "sum": 5,
+      "terms": [
+        {
+          "kind": "constant",
+          "value": 5
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]5[/dice]",
+    "tid": 45150945
+  },
+  "name": "expression-pure-constant",
+  "note": "纯数字不投骰"
+}

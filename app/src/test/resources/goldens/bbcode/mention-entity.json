@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "mention",
+      "username": "a&b"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[@a&amp;b]",
+  "name": "mention-entity"
+}

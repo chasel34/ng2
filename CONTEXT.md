@@ -1,6 +1,6 @@
 # ng2 — NGA 第三方 Android 客户端
 
-用 Expo 复刻 NGA 论坛的只读向第三方客户端(个人使用),UI 1:1 还原 `design/` 设计稿。本文件只是术语表;范围与技术决策见 `.scratch/app-v1/spec.md` 与 `docs/adr/`。
+用 Kotlin / Jetpack Compose 构建 NGA 论坛的只读向第三方客户端(个人使用),UI 1:1 还原 `design/` 设计稿。本文件只是术语表;范围与技术决策见 `.scratch/native-rewrite/spec.md` 与 `docs/adr/`。
 
 ## Language
 

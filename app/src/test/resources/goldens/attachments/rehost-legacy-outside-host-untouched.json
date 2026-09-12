@@ -1,0 +1,9 @@
+{
+  "expected": "https://i.imgur.example/attachments/x.jpg",
+  "fn": "rehostLegacyAttachment",
+  "input": {
+    "base": "https://img.nga.cn/attachments",
+    "src": "https://i.imgur.example/attachments/x.jpg"
+  },
+  "name": "rehost-legacy-outside-host-untouched"
+}

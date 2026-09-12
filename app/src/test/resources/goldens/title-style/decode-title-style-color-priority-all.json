@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "bold": false,
+    "color": "red",
+    "italic": false,
+    "underline": false
+  },
+  "fn": "decodeTitleStyle",
+  "input": {
+    "titlefont": 31
+  },
+  "name": "decode-title-style-color-priority-all",
+  "note": "红>蓝>绿>橙>银 只取第一个"
+}

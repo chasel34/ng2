@@ -1,0 +1,10 @@
+{
+  "expected": "1\r\n\r\n",
+  "fn": "serializeBlockWords",
+  "input": {
+    "users": [],
+    "words": []
+  },
+  "name": "serialize-empty-list",
+  "note": "清空屏蔽词靠的就是写一张空表（三行结构要保留）"
+}

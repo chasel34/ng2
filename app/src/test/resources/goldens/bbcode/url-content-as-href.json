@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "children": [],
+      "href": "https://bbs.nga.cn/read.php?tid=1",
+      "type": "link"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[url]https://bbs.nga.cn/read.php?tid=1[/url]",
+  "name": "url-content-as-href"
+}

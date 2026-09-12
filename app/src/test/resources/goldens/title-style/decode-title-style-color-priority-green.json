@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "bold": false,
+    "color": "green",
+    "italic": false,
+    "underline": false
+  },
+  "fn": "decodeTitleStyle",
+  "input": {
+    "titlefont": 28
+  },
+  "name": "decode-title-style-color-priority-green"
+}

@@ -1,0 +1,1246 @@
+sample=00
+    layerHistory={size=205, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=01
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=02
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=03
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=04
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=05
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=06
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=07
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=08
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=09
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=10
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=11
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=12
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=13
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=14
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=15
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=16
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=17
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=18
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=19
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=20
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=21
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=22
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=23
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=24
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=25
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=26
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=
+    setFrameRate=
+        (uid, frameRate)={10375, 120.00 Hz}
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=27
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=28
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=29
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=30
+    layerHistory={size=206, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=31
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=32
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=33
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=34
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=35
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=36
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=37
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=38
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=39
+    layerHistory={size=206, active=2}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=40
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=41
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=42
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=43
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=44
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=45
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=46
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=47
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=48
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=49
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=50
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=51
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=52
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=53
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=54
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=55
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=56
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=57
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=58
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+sample=59
+    layerHistory={size=205, active=1}
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+--
+
+FrameRateOverrides=none
+
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=
+--
+ │  │  │        │  │  │  ├─ 8851df1 com.chasel.ng2.n/com.chasel.ng2n.MainActivity#95841 requestedFrameRate: {120.00 Hz FrameRateCompatibility::Exact FrameRateCategory::Default} flags:4096 a:1 pid=4550 uid=1000
+ │  │  │        │  │  │  │  ├─ com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97081 flags:8450 a:1 pid=8490 uid=10375
+ │  │  │        │  │  │  │  └─ (Relative) ImeContainer#13 parent=92321 flags:0 a:1 pid=4550 uid=1000
+--
+    displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]}, appRequestRanges={physical=[0.00 Hz, inf Hz], render=[0.00 Hz, 120.00 Hz]} idleScreenConfig=nullptr}
+    frameRateOverrideConfig=Enabled
+    idleTimer=

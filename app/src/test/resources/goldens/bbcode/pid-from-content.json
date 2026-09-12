@@ -1,0 +1,15 @@
+{
+  "expected": [
+    {
+      "args": [
+        "123"
+      ],
+      "children": [],
+      "pid": "123",
+      "type": "floorRef"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[pid]123[/pid]",
+  "name": "pid-from-content"
+}

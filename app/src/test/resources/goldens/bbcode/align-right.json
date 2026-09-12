@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "align": "right",
+      "children": [
+        {
+          "type": "text",
+          "value": "右"
+        }
+      ],
+      "type": "align"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[align=right]右[/align]",
+  "name": "align-right"
+}

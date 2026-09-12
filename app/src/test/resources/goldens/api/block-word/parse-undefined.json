@@ -1,0 +1,11 @@
+{
+  "expected": {
+    "users": [],
+    "words": []
+  },
+  "fn": "parseBlockWords",
+  "input": {
+    "value": null
+  },
+  "name": "parse-undefined"
+}

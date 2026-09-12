@@ -1,0 +1,38 @@
+--------- beginning of system
+08-24 22:16:22.679  8490  8490 I MIUIInput: [KeyEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', KeyEvent { action=ACTION_UP, keyCode=KEYCODE_MOVE_HOME, scanCode=0, metaState=0, flags=0x0, repeatCount=0, eventTime=286703766000000, downTime=286703763000000, deviceId=-1, source=0x0, displayId=-1 }, phoneEventTime=1787580982678
+08-24 22:16:25.071  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286706158, downTime=286706158, phoneEventTime=1787580985070 } moveCount:0
+08-24 22:16:25.073  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:16:25.178  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286706265, downTime=286706158, phoneEventTime=1787580985177 } moveCount:12
+08-24 22:16:25.523  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286706610, downTime=286706610, phoneEventTime=1787580985522 } moveCount:0
+08-24 22:16:25.523  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:16:25.627  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286706713, downTime=286706610, phoneEventTime=1787580985625 } moveCount:12
+08-24 22:16:25.975  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286707061, downTime=286707061, phoneEventTime=1787580985973 } moveCount:0
+08-24 22:16:25.975  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:16:26.075  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286707163, downTime=286707061, phoneEventTime=1787580986075 } moveCount:12
+08-24 22:16:26.450  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286707537, downTime=286707537, phoneEventTime=1787580986449 } moveCount:0
+08-24 22:16:26.450  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:16:26.551  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286707639, downTime=286707537, phoneEventTime=1787580986551 } moveCount:11
+08-24 22:16:26.890  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286707976, downTime=286707976, phoneEventTime=1787580986888 } moveCount:0
+08-24 22:16:26.890  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:16:26.991  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286708078, downTime=286707976, phoneEventTime=1787580986990 } moveCount:11
+08-24 22:16:27.316  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286708402, downTime=286708402, phoneEventTime=1787580987314 } moveCount:0
+08-24 22:16:27.316  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:16:27.415  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286708502, downTime=286708402, phoneEventTime=1787580987414 } moveCount:11
+08-24 22:16:27.741  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286708827, downTime=286708827, phoneEventTime=1787580987739 } moveCount:0
+08-24 22:16:27.741  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:16:27.848  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286708934, downTime=286708827, phoneEventTime=1787580987846 } moveCount:12
+08-24 22:16:28.204  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=286709291, downTime=286709291, phoneEventTime=1787580988203 } moveCount:0
+08-24 22:16:28.204  8490  8490 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+08-24 22:16:28.304  8490  8490 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.chasel.ng2.n/com.chasel.ng2n.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=286709392, downTime=286709291, phoneEventTime=1787580988304 } moveCount:11
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false
+08-24 22:16:31.313  8490  8490 W InsetsSource: Has no intersection or mTmpFrame.height(), return Insets.NONE mTmpFrame.height() =0 hasIntersection =false

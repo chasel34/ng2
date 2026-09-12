@@ -1,0 +1,6 @@
+{
+  "expected": false,
+  "fn": "isAnonymousAuthor",
+  "input": "春曰影",
+  "name": "is-anonymous-not-anonymous-plain"
+}

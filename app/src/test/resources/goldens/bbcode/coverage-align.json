@@ -1,0 +1,18 @@
+{
+  "expected": [
+    {
+      "align": "center",
+      "children": [
+        {
+          "type": "text",
+          "value": "居中"
+        }
+      ],
+      "type": "align"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[align=center]居中[/align]",
+  "name": "coverage-align",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

@@ -1,0 +1,9 @@
+{
+  "expected": null,
+  "fn": "parseVote",
+  "input": {
+    "raw": "max_select~1~end~0",
+    "tid": 47331456
+  },
+  "name": "parse-config-only"
+}

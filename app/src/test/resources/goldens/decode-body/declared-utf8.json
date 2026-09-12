@@ -1,0 +1,10 @@
+{
+  "expected": "原神",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "5Y6f56We",
+    "contentType": "application/json; charset=utf-8"
+  },
+  "inputEncoding": "base64",
+  "name": "declared-utf8"
+}

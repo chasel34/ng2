@@ -1,0 +1,25 @@
+{
+  "expected": [
+    {
+      "items": [
+        [
+          {
+            "type": "text",
+            "value": "甲"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "乙"
+          }
+        ]
+      ],
+      "ordered": false,
+      "type": "list"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[list][*]甲[*]乙[/list]",
+  "name": "walk-list"
+}

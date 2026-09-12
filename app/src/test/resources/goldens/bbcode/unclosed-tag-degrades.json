@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "[b]没关"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[b]没关",
+  "name": "unclosed-tag-degrades"
+}

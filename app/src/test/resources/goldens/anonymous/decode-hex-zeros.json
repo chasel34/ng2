@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "colors": [
+      "000000",
+      "000000"
+    ],
+    "name": "甲王王甲王王"
+  },
+  "fn": "decodeAnonymousName",
+  "input": "#anony_00000000000000000000000000000000",
+  "name": "decode-hex-zeros",
+  "note": "两张表的第一个字"
+}

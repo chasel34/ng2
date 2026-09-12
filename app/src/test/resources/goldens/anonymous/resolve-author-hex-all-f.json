@@ -1,0 +1,6 @@
+{
+  "expected": "巳巳",
+  "fn": "resolveAuthorName",
+  "input": "#anony_ffffffffffffffffffffffffffffffff",
+  "name": "resolve-author-hex-all-f"
+}

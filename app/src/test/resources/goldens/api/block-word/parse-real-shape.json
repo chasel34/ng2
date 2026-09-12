@@ -1,0 +1,26 @@
+{
+  "expected": {
+    "users": [
+      {
+        "name": "gerraerd",
+        "uid": 42
+      },
+      {
+        "name": "Apprivorisor",
+        "uid": 907
+      }
+    ],
+    "words": [
+      "加密货币",
+      "私聊出"
+    ]
+  },
+  "fn": "parseBlockWords",
+  "input": {
+    "value": {
+      "0": "1\r\n加密货币 私聊出\r\n42/gerraerd 907/Apprivorisor"
+    }
+  },
+  "name": "parse-real-shape",
+  "note": "API 文档 §11.5：第 2 行关键词、第 3 行 uid/用户名 对"
+}

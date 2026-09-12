@@ -1,0 +1,7 @@
+{
+  "expected": "{\"0\":\"a\",\"1\":{\"2\":\"b\"}}",
+  "fn": "sanitizeNgaJson",
+  "input": "{0:\"a\",1:{2:\"b\"}}",
+  "name": "quote-integer-keys",
+  "note": "§0.6 第 6 步"
+}

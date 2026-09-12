@@ -1,0 +1,6 @@
+{
+  "expected": "上\n\n下",
+  "fn": "stripServerHtml",
+  "input": "<div>上</div><br/><br/><br/>下<br/>  ",
+  "name": "strip-server-html-collapse-blank-lines"
+}

@@ -1,0 +1,32 @@
+{
+  "expected": [
+    {
+      "expression": "2d6+3",
+      "sum": 13,
+      "terms": [
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 4
+        },
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 6
+        },
+        {
+          "kind": "constant",
+          "value": 3
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]2d6+3[/dice]",
+    "tid": 45150945
+  },
+  "name": "expression-2d6-plus-3"
+}

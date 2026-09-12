@@ -1,0 +1,25 @@
+{
+  "expected": {
+    "id": "local:user:xtl150ok",
+    "kind": "user",
+    "origin": "local",
+    "regex": false,
+    "value": "xtl150ok"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:user:xtl150ok",
+        "kind": "user",
+        "origin": "local",
+        "regex": false,
+        "value": "xtl150ok"
+      }
+    ],
+    "subject": {
+      "author": "XTL150OK"
+    }
+  },
+  "name": "match-filter-rules-user-exact-case-insensitive"
+}

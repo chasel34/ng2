@@ -1,0 +1,15 @@
+{
+  "expected": {
+    "throws": {
+      "kind": "parse",
+      "message": "响应不是合法 JSON：<html>你被封了</html>",
+      "retryable": true
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "<html>你被封了</html>"
+  },
+  "name": "not-json",
+  "note": "解析失败 ≈ 被封 → 可重试"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": "纯中文签名",
+  "fn": "escapeForSubmit",
+  "input": "纯中文签名",
+  "name": "escape-for-submit-roundtrip-chinese"
+}

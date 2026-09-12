@@ -1,0 +1,6 @@
+{
+  "expected": "摸鱼中 &#55357;&#56351;",
+  "fn": "escapeForSubmit",
+  "input": "摸鱼中 🐟",
+  "name": "escape-for-submit-roundtrip-fish"
+}

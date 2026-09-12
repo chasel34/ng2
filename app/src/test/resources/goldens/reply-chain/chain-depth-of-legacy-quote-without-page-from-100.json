@@ -1,0 +1,16 @@
+{
+  "expected": 2,
+  "fn": "chainDepthOf",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=66]Reply[/pid]老写法引用[/quote]",
+        "lou": 5,
+        "pid": 100
+      }
+    ],
+    "startPid": 100,
+    "tid": 45150945
+  },
+  "name": "chain-depth-of-legacy-quote-without-page-from-100"
+}

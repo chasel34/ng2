@@ -1,6 +1,11 @@
 {
   "sourceConcept": "assets/images/concepts/jade-foot-dialogue.png",
   "generator": "scripts/make-app-icons.mjs",
+  "markTransform": {
+    "scale": 0.7,
+    "rotationDegrees": 30,
+    "toeDirection": "upper-right"
+  },
   "palette": {
     "cream": "#FCF4E1",
     "creamDark": "#1C1C1B",

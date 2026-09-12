@@ -1,0 +1,20 @@
+{
+  "expected": null,
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:^\\[水\\]",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "^\\[水\\]"
+      }
+    ],
+    "subject": {
+      "title": "[水]今天吃什么"
+    }
+  },
+  "name": "match-filter-rules-plain-keyword-treats-metachars-literally",
+  "note": "同一个串当普通关键词时是在找字面量"
+}

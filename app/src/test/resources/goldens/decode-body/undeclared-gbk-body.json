@@ -1,0 +1,11 @@
+{
+  "expected": "原神",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "1K3J8Q==",
+    "contentType": "text/html"
+  },
+  "inputEncoding": "base64",
+  "name": "undeclared-gbk-body",
+  "note": "无声明 → 先试 UTF-8，替换字符更少的那边胜出 → GB18030"
+}

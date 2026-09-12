@@ -1,0 +1,21 @@
+{
+  "expected": {
+    "users": [
+      {
+        "name": "某人"
+      },
+      {
+        "name": "a/b",
+        "uid": 42
+      }
+    ],
+    "words": []
+  },
+  "fn": "parseBlockWords",
+  "input": {
+    "value": {
+      "0": "1\r\n\r\n某人 42/a/b"
+    }
+  },
+  "name": "parse-user-without-uid-and-slash-in-name"
+}

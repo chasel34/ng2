@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "[s:]"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[s:]",
+  "name": "smiley-broken-passthrough"
+}

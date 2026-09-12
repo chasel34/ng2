@@ -1,0 +1,8 @@
+{
+  "expected": 1,
+  "fn": "toReputation",
+  "input": {
+    "raw": 10
+  },
+  "name": "to-reputation-ten"
+}

@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "page": 1,
+    "pid": 5,
+    "tid": 45150945
+  },
+  "fn": "quoteRefOf",
+  "input": {
+    "text": "[quote][pid=5,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>原话[/quote]"
+  },
+  "name": "quote-ref-of-quote-block",
+  "note": "input 是整段正文，取第一个节点（必是 quote）"
+}

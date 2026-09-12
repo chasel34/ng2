@@ -1,0 +1,6 @@
+{
+  "expected": "#anony_0123456789ABCDEF0123456789ABCDEF",
+  "fn": "resolveAuthorName",
+  "input": "#anony_0123456789ABCDEF0123456789ABCDEF",
+  "name": "resolve-author-not-anonymous-uppercase-hex"
+}

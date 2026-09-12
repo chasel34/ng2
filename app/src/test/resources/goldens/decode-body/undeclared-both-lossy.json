@@ -1,0 +1,11 @@
+{
+  "expected": "�",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "//79",
+    "contentType": "text/html"
+  },
+  "inputEncoding": "base64",
+  "name": "undeclared-both-lossy",
+  "note": "两边都出 U+FFFD：谁少用谁，平手时留 UTF-8"
+}

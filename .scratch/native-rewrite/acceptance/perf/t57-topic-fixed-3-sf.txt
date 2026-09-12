@@ -1,0 +1,50 @@
+sample=00         (uid, frameRate)={10375, 120.00 Hz}
+sample=01         (uid, frameRate)={10375, 120.00 Hz}
+sample=02         (uid, frameRate)={10375, 120.00 Hz}
+sample=03         (uid, frameRate)={10375, 120.00 Hz}
+sample=04         (uid, frameRate)={10375, 120.00 Hz}
+sample=05         (uid, frameRate)={10375, 120.00 Hz}
+sample=06         (uid, frameRate)={10375, 120.00 Hz}
+sample=07         (uid, frameRate)={10375, 120.00 Hz}
+sample=08         (uid, frameRate)={10375, 120.00 Hz}
+sample=09         (uid, frameRate)={10375, 120.00 Hz}
+sample=10         (uid, frameRate)={10375, 120.00 Hz}
+sample=11         (uid, frameRate)={10375, 120.00 Hz}
+sample=12         (uid, frameRate)={10375, 120.00 Hz}
+sample=13         (uid, frameRate)={10375, 120.00 Hz}
+sample=14         (uid, frameRate)={10375, 120.00 Hz}
+sample=15         (uid, frameRate)={10375, 120.00 Hz}
+sample=16         (uid, frameRate)={10375, 120.00 Hz}
+sample=17         (uid, frameRate)={10375, 120.00 Hz}
+sample=18         (uid, frameRate)={10375, 120.00 Hz}
+sample=19         (uid, frameRate)={10375, 120.00 Hz}
+sample=20         (uid, frameRate)={10375, 120.00 Hz}
+sample=21         (uid, frameRate)={10375, 120.00 Hz}
+sample=22         (uid, frameRate)={10375, 120.00 Hz}
+sample=23         (uid, frameRate)={10375, 120.00 Hz}
+sample=24 none
+sample=25 none
+sample=26 none
+sample=27 none
+sample=28 none
+sample=29 none
+sample=30 none
+sample=31 none
+sample=32 none
+sample=33 none
+sample=34 none
+sample=35 none
+sample=36 none
+sample=37 none
+sample=38 none
+sample=39 none
+sample=40 none
+sample=41 none
+sample=42 none
+sample=43 none
+sample=44 none
+sample=45 none
+sample=46 none
+sample=47 none
+sample=48 none
+sample=49 none

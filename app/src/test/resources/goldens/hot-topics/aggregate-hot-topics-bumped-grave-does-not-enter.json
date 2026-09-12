@@ -1,0 +1,21 @@
+{
+  "expected": [],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000
+    },
+    "pages": [
+      [
+        {
+          "lastPostAt": 1799999995,
+          "postedAt": 1774080000,
+          "replies": 9999,
+          "tid": 1
+        }
+      ]
+    ]
+  },
+  "name": "aggregate-hot-topics-bumped-grave-does-not-enter",
+  "note": "窗口过滤看发帖时间而不是最后回复"
+}

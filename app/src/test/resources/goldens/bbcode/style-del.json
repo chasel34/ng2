@@ -1,0 +1,16 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "文字"
+        }
+      ],
+      "type": "strike"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[del]文字[/del]",
+  "name": "style-del"
+}

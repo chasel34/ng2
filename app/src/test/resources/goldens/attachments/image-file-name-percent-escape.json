@@ -1,0 +1,6 @@
+{
+  "expected": "a_b.png",
+  "fn": "imageFileName",
+  "input": "https://example.com/a%20b.png",
+  "name": "image-file-name-percent-escape"
+}

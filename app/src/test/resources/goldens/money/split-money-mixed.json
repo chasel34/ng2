@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "copper": 56,
+    "gold": 12,
+    "negative": false,
+    "silver": 34
+  },
+  "fn": "splitMoney",
+  "input": {
+    "copperTotal": 123456
+  },
+  "name": "split-money-mixed",
+  "note": "12 金 34 银 56 铜"
+}

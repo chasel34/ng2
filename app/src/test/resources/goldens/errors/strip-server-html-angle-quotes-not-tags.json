@@ -1,0 +1,7 @@
+{
+  "expected": "找不到主题《<第六感>》",
+  "fn": "stripServerHtml",
+  "input": "找不到主题《<第六感>》",
+  "name": "strip-server-html-angle-quotes-not-tags",
+  "note": "尖括号当引号的标题不能被吃掉"
+}

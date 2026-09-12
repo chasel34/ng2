@@ -1,0 +1,9 @@
+{
+  "expected": null,
+  "fn": "parseVote",
+  "input": {
+    "raw": "",
+    "tid": 47331456
+  },
+  "name": "parse-empty"
+}

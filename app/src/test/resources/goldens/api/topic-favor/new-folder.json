@@ -1,0 +1,11 @@
+{
+  "expected": [],
+  "fn": "parseFavoriteFolders",
+  "input": {
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"data\":{\"0\":\"操作成功\",\"1\":4699991},\"time\":1786157983}"
+  },
+  "name": "new-folder",
+  "note": "nuke.php __lib=topic_favor_v2 __act=new_folder raw=3 __output=8，登录态"
+}

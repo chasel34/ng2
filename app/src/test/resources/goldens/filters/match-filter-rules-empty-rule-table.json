@@ -1,0 +1,11 @@
+{
+  "expected": null,
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [],
+    "subject": {
+      "title": "随便什么"
+    }
+  },
+  "name": "match-filter-rules-empty-rule-table"
+}

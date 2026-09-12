@@ -1,0 +1,24 @@
+{
+  "expected": [
+    {
+      "expression": "d100",
+      "sum": 64,
+      "terms": [
+        {
+          "faces": 100,
+          "kind": "roll",
+          "value": 64
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[collapse=提要][dice]d100[/dice][/collapse]",
+    "tid": 45150945
+  },
+  "name": "collapse-only",
+  "note": "折叠块换一条数列（外层一颗都没投时才轮到 seedOffset）"
+}

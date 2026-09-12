@@ -1,0 +1,8 @@
+{
+  "expected": "utf-8",
+  "fn": "parseCharset",
+  "input": {
+    "contentType": "text/html;charset=\"utf-8\""
+  },
+  "name": "parse-charset-declared-utf8-quoted"
+}

@@ -1,0 +1,16 @@
+{
+  "expected": 2,
+  "fn": "chainDepthOf",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=66,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>第一页的原话[/quote]回它",
+        "lou": 21,
+        "pid": 100
+      }
+    ],
+    "startPid": 100,
+    "tid": 45150945
+  },
+  "name": "chain-depth-of-cross-page-quote-not-loaded-from-100"
+}

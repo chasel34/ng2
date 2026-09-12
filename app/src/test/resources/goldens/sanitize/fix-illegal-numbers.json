@@ -1,0 +1,7 @@
+{
+  "expected": "{\"content\":\"+123\",\"subject\":\"+45\",\"author\":\"0678\"}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"content\":+123,\"subject\":+45,\"author\":0678}",
+  "name": "fix-illegal-numbers",
+  "note": "§0.6 第 4 步：前导 + 与前导 0 转字符串"
+}

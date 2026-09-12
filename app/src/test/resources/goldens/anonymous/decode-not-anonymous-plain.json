@@ -1,0 +1,6 @@
+{
+  "expected": null,
+  "fn": "decodeAnonymousName",
+  "input": "春曰影",
+  "name": "decode-not-anonymous-plain"
+}

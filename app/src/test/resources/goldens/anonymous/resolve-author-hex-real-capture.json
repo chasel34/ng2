@@ -1,0 +1,6 @@
+{
+  "expected": "卯邱潘巳邵卢",
+  "fn": "resolveAuthorName",
+  "input": "#anony_d43225f5a338ca2efea68a14773537e6",
+  "name": "resolve-author-hex-real-capture"
+}

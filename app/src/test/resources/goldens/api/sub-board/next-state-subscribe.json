@@ -1,0 +1,16 @@
+{
+  "expected": {
+    "filterable": true,
+    "subscribed": true
+  },
+  "fn": "nextSubBoardState",
+  "input": {
+    "action": "subscribe",
+    "state": {
+      "filterable": true,
+      "subscribed": true
+    }
+  },
+  "name": "next-state-subscribe",
+  "note": "服务端不回新的 attributes，本地按动作落状态，可改性不变"
+}

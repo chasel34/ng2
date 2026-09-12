@@ -1,0 +1,9 @@
+{
+  "expected": null,
+  "fn": "validateFilterRule",
+  "input": {
+    "kind": "keyword",
+    "value": "(["
+  },
+  "name": "validate-filter-rule-same-string-as-plain-keyword-passes"
+}

@@ -1,0 +1,16 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "[img]./a.jpg"
+        }
+      ],
+      "type": "bold"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[b][img]./a.jpg[/b]",
+  "name": "unclosed-img-does-not-swallow"
+}

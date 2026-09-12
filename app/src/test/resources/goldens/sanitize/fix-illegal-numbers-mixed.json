@@ -1,0 +1,6 @@
+{
+  "expected": "{\"a\":1,\"content\":\"0123\"}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"a\":1,\"content\":0123}",
+  "name": "fix-illegal-numbers-mixed"
+}

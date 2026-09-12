@@ -1,0 +1,45 @@
+{
+  "expected": [
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799996400,
+      "replies": 1,
+      "tid": 3
+    }
+  ],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000
+    },
+    "pages": [
+      [
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 100,
+          "shortcut": {
+            "id": 650,
+            "kind": "board"
+          },
+          "tid": 1
+        },
+        {
+          "jumpUrl": "https://nga.178.com/misc/lottery.html",
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 50,
+          "tid": 2
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 1,
+          "tid": 3
+        }
+      ]
+    ]
+  },
+  "name": "aggregate-hot-topics-shortcut-and-jump-url-excluded",
+  "note": "合集/镜像行与外链活动主题不是讨论串，不进榜"
+}

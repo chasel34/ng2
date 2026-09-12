@@ -1,0 +1,9 @@
+{
+  "expected": -1110.9,
+  "fn": "toReputation",
+  "input": {
+    "raw": -11109
+  },
+  "name": "to-reputation-negative-real-sample",
+  "note": "真实样本 uid=2 的 rvrc"
+}

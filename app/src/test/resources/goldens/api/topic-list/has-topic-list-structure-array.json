@@ -1,0 +1,8 @@
+{
+  "expected": false,
+  "fn": "hasTopicListStructure",
+  "input": {
+    "value": []
+  },
+  "name": "has-topic-list-structure-array"
+}

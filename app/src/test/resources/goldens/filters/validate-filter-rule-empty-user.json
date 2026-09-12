@@ -1,0 +1,9 @@
+{
+  "expected": "请输入要屏蔽的用户",
+  "fn": "validateFilterRule",
+  "input": {
+    "kind": "user",
+    "value": ""
+  },
+  "name": "validate-filter-rule-empty-user"
+}

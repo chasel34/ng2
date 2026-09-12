@@ -1,0 +1,8 @@
+{
+  "expected": "响应里没有 data",
+  "fn": "rejectNonTopicList",
+  "input": {
+    "data": null
+  },
+  "name": "reject-non-topic-list-no-data"
+}

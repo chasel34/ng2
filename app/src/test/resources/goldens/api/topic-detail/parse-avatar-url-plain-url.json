@@ -1,0 +1,8 @@
+{
+  "expected": "https://img.nga.178.com/avatars/a.jpg",
+  "fn": "parseAvatarUrl",
+  "input": {
+    "raw": "https://img.nga.178.com/avatars/a.jpg"
+  },
+  "name": "parse-avatar-url-plain-url"
+}

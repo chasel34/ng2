@@ -1,0 +1,13 @@
+{
+  "expected": "page=0",
+  "fn": "buildQueryString",
+  "input": {
+    "params": [
+      [
+        "page",
+        0
+      ]
+    ]
+  },
+  "name": "build-query-string-zero-is-kept"
+}

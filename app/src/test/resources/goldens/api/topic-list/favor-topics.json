@@ -1,0 +1,41 @@
+{
+  "expected": {
+    "listStructure": true,
+    "rowsPerPage": 35,
+    "subBoards": [],
+    "topics": [
+      {
+        "anonymous": false,
+        "author": "BugenZhao",
+        "authorId": 41417929,
+        "denied": false,
+        "fid": 275,
+        "hasAttachment": false,
+        "isBoardMirror": false,
+        "isCollection": false,
+        "lastPostAt": 1774011037,
+        "lastPoster": "BugenZhao",
+        "locked": false,
+        "postedAt": 1758210953,
+        "replies": 31,
+        "subject": "[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签",
+        "tid": 45150945,
+        "titleStyle": {
+          "bold": false,
+          "italic": false,
+          "underline": false
+        }
+      }
+    ],
+    "totalPages": 1,
+    "totalRows": 1
+  },
+  "fn": "parseTopicList",
+  "input": {
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"data\":{\"__CU\":{\"uid\":10000001,\"group_bit\":98528,\"admincheck\":\"\",\"rvrc\":10},\"__GLOBAL\":{\"_ATTACH_BASE_VIEW\":\"img.nga.cn/attachments\"},\"__ROWS\":1,\"__T\":{\"0\":{\"tid\":45150945,\"fid\":275,\"quote_from\":0,\"topic_misc\":\"\",\"author\":\"BugenZhao\",\"authorid\":41417929,\"subject\":\"[ABF][...][...][...][...][...][...][...][...][...][我是标签ABCDEF] [我是标签] [我是标签] 测试好多标签\",\"type\":0,\"postdate\":1758210953,\"lastpost\":1774011037,\"lastposter\":\"BugenZhao\",\"replies\":31,\"lastmodify\":1774011037,\"recommend\":1,\"jdata\":\"\",\"admin_ui\":1,\"tpcurl\":\"/read.php?tid=45150945&fav=:F73786823\"}},\"__T__ROWS\":1,\"__T__ROWS_PAGE\":35,\"__R__ROWS_PAGE\":20,\"__F\":{}},\"encode\":\"gbk\",\"time\":1786157997}"
+  },
+  "name": "favor-topics",
+  "note": "thread.php favor=<夹id> page=1 __output=8，登录态"
+}

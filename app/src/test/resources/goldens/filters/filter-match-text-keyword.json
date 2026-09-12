@@ -1,0 +1,14 @@
+{
+  "expected": "已屏蔽含「广告」的楼层",
+  "fn": "filterMatchText",
+  "input": {
+    "rule": {
+      "id": "local:keyword:广告",
+      "kind": "keyword",
+      "origin": "local",
+      "regex": false,
+      "value": "广告"
+    }
+  },
+  "name": "filter-match-text-keyword"
+}

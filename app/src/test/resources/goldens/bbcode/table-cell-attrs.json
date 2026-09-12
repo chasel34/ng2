@@ -1,0 +1,27 @@
+{
+  "expected": [
+    {
+      "rows": [
+        {
+          "cells": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "a"
+                }
+              ],
+              "colspan": 2,
+              "rowspan": 3,
+              "width": "100"
+            }
+          ]
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[table][tr][td colspan=2 rowspan=3 width=100]a[/td][/tr][/table]",
+  "name": "table-cell-attrs"
+}

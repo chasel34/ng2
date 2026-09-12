@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "copper": 45,
+    "gold": 1,
+    "negative": true,
+    "silver": 23
+  },
+  "fn": "splitMoney",
+  "input": {
+    "copperTotal": -12345
+  },
+  "name": "split-money-negative",
+  "note": "负余额按绝对值拆，符号单独标出来"
+}

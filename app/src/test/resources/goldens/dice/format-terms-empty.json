@@ -1,0 +1,9 @@
+{
+  "expected": "",
+  "fn": "formatDiceTerms",
+  "input": {
+    "terms": []
+  },
+  "name": "format-terms-empty",
+  "note": "展开式显示串，与网页版同格式"
+}

@@ -1,0 +1,54 @@
+{
+  "expected": {
+    "data": {
+      "0": {
+        "_admin": 0,
+        "_greater": 0,
+        "_lesser": 0,
+        "_super": 0,
+        "adfree": 0,
+        "avatar": "https://img.nga.cn/avatars/2002/cc9/77f/002/41417929_0.jpg?57",
+        "bit": 135537153,
+        "clientChat": 0,
+        "faction": 0,
+        "fame": 15,
+        "follow_by_num": 18,
+        "gid": 39,
+        "group": "学徒",
+        "groupid": 39,
+        "honor": "",
+        "ipLoc": "浙江省",
+        "lastpost": 0,
+        "lastvisit": 0,
+        "medal": 0,
+        "memberid": 39,
+        "money": 0,
+        "more_info": {
+          "0": {
+            "data": 2868,
+            "type": 8
+          }
+        },
+        "muteTime": 0,
+        "posts": 2277,
+        "regdate": 1495931441,
+        "rvrc": 15,
+        "sign": "[url]http://apple.co/3RwvgIe[/url]<br/>Make NGA Great Again…",
+        "thisvisit": 0,
+        "title": "",
+        "uid": 41417929,
+        "umengChat": 0,
+        "userForum": "",
+        "username": "BugenZhao"
+      }
+    },
+    "time": 1786111726
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "{\"data\":{\"0\":{\"uid\":41417929,\"username\":\"BugenZhao\",\"gid\":39,\"groupid\":39,\"memberid\":39,\"group\":\"学徒\",\"title\":\"\",\"honor\":\"\",\"bit\":135537153,\"regdate\":1495931441,\"muteTime\":0,\"medal\":0,\"avatar\":\"https://img.nga.cn/avatars/2002/cc9/77f/002/41417929_0.jpg?57\",\"sign\":\"[url]http://apple.co/3RwvgIe[/url]<br/>Make NGA Great Again…\",\"clientChat\":0,\"umengChat\":0,\"lastpost\":0,\"lastvisit\":0,\"thisvisit\":0,\"more_info\":{\"0\":{\"type\":8,\"data\":2868}},\"ipLoc\":\"浙江省\",\"userForum\":\"\",\"adfree\":0,\"follow_by_num\":18,\"faction\":0,\"money\":0,\"fame\":15,\"rvrc\":15,\"posts\":2277,\"_admin\":0,\"_super\":0,\"_greater\":0,\"_lesser\":0}},\"time\":1786111726}",
+    "via": "direct"
+  },
+  "name": "capture-ucp-user",
+  "note": "nuke.php __lib=ucp __act=get uid=41417929"
+}

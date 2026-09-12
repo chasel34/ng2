@@ -1,0 +1,21 @@
+{
+  "expected": null,
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:user:旧名字",
+        "kind": "user",
+        "origin": "local",
+        "regex": false,
+        "uid": 42,
+        "value": "旧名字"
+      }
+    ],
+    "subject": {
+      "author": "别人",
+      "authorId": 43
+    }
+  },
+  "name": "match-filter-rules-uid-rule-misses-other-user"
+}

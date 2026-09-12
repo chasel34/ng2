@@ -1,0 +1,16 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "小标题"
+        }
+      ],
+      "type": "heading"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[h]小标题[/h]",
+  "name": "heading-tag"
+}

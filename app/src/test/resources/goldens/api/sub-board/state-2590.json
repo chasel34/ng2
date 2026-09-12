@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "filterable": true,
+    "subscribed": true
+  },
+  "fn": "subBoardState",
+  "input": {
+    "attributes": 2590
+  },
+  "name": "state-2590",
+  "note": "attributes 魔法数（API 文档 §13 第 13 条）：命中表 = 已订阅；>40 才可改"
+}

@@ -1,0 +1,198 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "47a2a260adba4e232601d321386d7d54",
+    "entities": [
+      {
+        "tableName": "browse_history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`tid` INTEGER NOT NULL, `subject` TEXT NOT NULL, `author` TEXT, `board_name` TEXT, `fav_code` TEXT, `last_floor` INTEGER NOT NULL, `max_floor` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`tid`))",
+        "fields": [
+          {
+            "fieldPath": "tid",
+            "columnName": "tid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subject",
+            "columnName": "subject",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "author",
+            "columnName": "author",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "boardName",
+            "columnName": "board_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "favCode",
+            "columnName": "fav_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastFloor",
+            "columnName": "last_floor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxFloor",
+            "columnName": "max_floor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "tid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_browse_history_updated_at",
+            "unique": false,
+            "columnNames": [
+              "updated_at"
+            ],
+            "orders": [
+              "DESC"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_browse_history_updated_at` ON `${TABLE_NAME}` (`updated_at` DESC)"
+          }
+        ]
+      },
+      {
+        "tableName": "topic_cache",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`tid` INTEGER NOT NULL, `page` INTEGER NOT NULL, `subject` TEXT NOT NULL, `board_name` TEXT, `fav_code` TEXT, `floors` INTEGER NOT NULL, `total_pages` INTEGER NOT NULL, `bytes` INTEGER NOT NULL, `payload` TEXT NOT NULL, `used_at` INTEGER NOT NULL, PRIMARY KEY(`tid`, `page`))",
+        "fields": [
+          {
+            "fieldPath": "tid",
+            "columnName": "tid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "page",
+            "columnName": "page",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subject",
+            "columnName": "subject",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "boardName",
+            "columnName": "board_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "favCode",
+            "columnName": "fav_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "floors",
+            "columnName": "floors",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalPages",
+            "columnName": "total_pages",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bytes",
+            "columnName": "bytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payload",
+            "columnName": "payload",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usedAt",
+            "columnName": "used_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "tid",
+            "page"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_topic_cache_used_at",
+            "unique": false,
+            "columnNames": [
+              "used_at"
+            ],
+            "orders": [
+              "DESC"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_topic_cache_used_at` ON `${TABLE_NAME}` (`used_at` DESC)"
+          }
+        ]
+      },
+      {
+        "tableName": "notification_read",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `id` TEXT NOT NULL, `read_at` INTEGER NOT NULL, PRIMARY KEY(`uid`, `id`))",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "readAt",
+            "columnName": "read_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uid",
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '47a2a260adba4e232601d321386d7d54')"
+    ]
+  }
+}

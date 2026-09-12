@@ -1,0 +1,10 @@
+{
+  "expected": "https://img.nga.cn/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png",
+  "fn": "rehostLegacyAttachment",
+  "input": {
+    "base": "https://img.nga.cn/attachments",
+    "src": "https://img.nga.178.com/attachments/mon_202006/03/-914q0Q5-7r39K17T1kSdr-4w.png"
+  },
+  "name": "rehost-legacy-legacy-178-domain",
+  "note": "178 域名已停（TLS 握手失败），同一路径挂当前基址仍是 200"
+}

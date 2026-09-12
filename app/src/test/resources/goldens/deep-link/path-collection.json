@@ -1,0 +1,10 @@
+{
+  "expected": "/board/32871539?kind=collection",
+  "fn": "ngaLinkPath",
+  "input": {
+    "boardKind": "collection",
+    "id": 32871539,
+    "kind": "board"
+  },
+  "name": "path-collection"
+}

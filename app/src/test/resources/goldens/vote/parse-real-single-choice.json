@@ -1,0 +1,40 @@
+{
+  "expected": {
+    "endAt": 1793891155,
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "208133",
+            "points": 0,
+            "title": "华为",
+            "votes": 123
+          },
+          {
+            "chosen": false,
+            "id": "208134",
+            "points": 0,
+            "title": "美国高通",
+            "votes": 15
+          }
+        ],
+        "votes": 138
+      }
+    ],
+    "kind": "vote",
+    "maxSelect": 1,
+    "multiple": false,
+    "resultAfterEnd": false,
+    "resultAfterVote": false,
+    "totalVotes": 138,
+    "voters": 138
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "208133~华为~208134~美国高通~max_select~1~end~1793891155~_208133~123,0,138~_208134~15,0,0",
+    "tid": 47331456
+  },
+  "name": "parse-real-single-choice",
+  "note": "站上真帖：华为 vs 美国高通"
+}

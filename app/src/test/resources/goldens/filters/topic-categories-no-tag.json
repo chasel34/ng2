@@ -1,0 +1,6 @@
+{
+  "expected": [],
+  "fn": "topicCategories",
+  "input": "没有标签的标题",
+  "name": "topic-categories-no-tag"
+}

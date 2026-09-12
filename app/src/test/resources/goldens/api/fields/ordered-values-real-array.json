@@ -1,0 +1,16 @@
+{
+  "expected": [
+    "a",
+    "c",
+    "j"
+  ],
+  "fn": "orderedValues",
+  "input": {
+    "value": [
+      "a",
+      "c",
+      "j"
+    ]
+  },
+  "name": "ordered-values-real-array"
+}

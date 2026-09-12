@@ -1,0 +1,19 @@
+{
+  "expected": null,
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:^\\[水\\]",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": true,
+        "value": "^\\[水\\]"
+      }
+    ],
+    "subject": {
+      "title": "闲聊 [水]今天吃什么"
+    }
+  },
+  "name": "match-filter-rules-regex-keyword-anchor-misses"
+}

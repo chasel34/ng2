@@ -1,0 +1,6 @@
+{
+  "expected": "image/jpeg",
+  "fn": "imageMimeType",
+  "input": "a.bin",
+  "name": "image-mime-type-unknown-extension"
+}

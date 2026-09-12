@@ -1,0 +1,35 @@
+{
+  "expected": [
+    {
+      "expression": "d100",
+      "sum": 60,
+      "terms": [
+        {
+          "faces": 100,
+          "kind": "roll",
+          "value": 60
+        }
+      ]
+    },
+    {
+      "expression": "d100",
+      "sum": 90,
+      "terms": [
+        {
+          "faces": 100,
+          "kind": "roll",
+          "value": 90
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]d100[/dice][collapse][dice]d100[/dice][/collapse]",
+    "tid": 45150945
+  },
+  "name": "collapse-after-outer-roll",
+  "note": "外层投过：折叠块接着外层推进后的种子走"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": [],
+  "fn": "parseBBCode",
+  "input": "",
+  "name": "empty-input"
+}

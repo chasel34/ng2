@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "你好世界"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "你好世界",
+  "name": "plain-text"
+}

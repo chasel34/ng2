@@ -1,0 +1,43 @@
+{
+  "expected": [
+    {
+      "expression": "1+1d7",
+      "sum": 3,
+      "terms": [
+        {
+          "kind": "constant",
+          "value": 1
+        },
+        {
+          "faces": 7,
+          "kind": "roll",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "expression": "1+1d7",
+      "sum": 3,
+      "terms": [
+        {
+          "kind": "constant",
+          "value": 1
+        },
+        {
+          "faces": 7,
+          "kind": "roll",
+          "value": 2
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 65352962,
+    "pid": 869684145,
+    "text": "有几个大陆？<br/>[dice]1+1d7[/dice]<br/>几个大洋？<br/>[dice]1+1d7[/dice]",
+    "tid": 46868034
+  },
+  "name": "real-post-constant-plus-dice",
+  "note": "楼主在下一楼写「3块大陆感觉有点少」"
+}

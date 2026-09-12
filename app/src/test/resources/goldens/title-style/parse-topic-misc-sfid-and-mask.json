@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "mask": 32,
+    "sfid": 835
+  },
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": "AwAAA0MBAAAAIA"
+  },
+  "name": "parse-topic-misc-sfid-and-mask",
+  "note": "真实抓包：fid=650 的版块镜像行，sfid=835 + 掩码 32"
+}

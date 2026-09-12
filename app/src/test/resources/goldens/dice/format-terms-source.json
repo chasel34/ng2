@@ -1,0 +1,32 @@
+{
+  "expected": [
+    {
+      "expression": "20+2d6",
+      "sum": 30,
+      "terms": [
+        {
+          "kind": "constant",
+          "value": 20
+        },
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 4
+        },
+        {
+          "faces": 6,
+          "kind": "roll",
+          "value": 6
+        }
+      ]
+    }
+  ],
+  "fn": "resolveDice",
+  "input": {
+    "authorId": 41417929,
+    "pid": 800000000,
+    "text": "[dice]20+2d6[/dice]",
+    "tid": 45150945
+  },
+  "name": "format-terms-source"
+}

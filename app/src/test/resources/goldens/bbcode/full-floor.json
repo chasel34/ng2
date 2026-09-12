@@ -1,0 +1,111 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "args": [
+            "123456",
+            "45150945",
+            "1"
+          ],
+          "children": [
+            {
+              "type": "text",
+              "value": "Reply"
+            }
+          ],
+          "pid": "123456",
+          "type": "floorRef"
+        },
+        {
+          "type": "text",
+          "value": " "
+        },
+        {
+          "children": [
+            {
+              "type": "text",
+              "value": "Post by "
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "张三"
+                }
+              ],
+              "type": "userRef",
+              "uid": "41417929"
+            },
+            {
+              "type": "text",
+              "value": " (2026-08-07 12:00):"
+            }
+          ],
+          "type": "bold"
+        },
+        {
+          "type": "linebreak"
+        },
+        {
+          "type": "text",
+          "value": "原话<不要断章取义>"
+        }
+      ],
+      "type": "quote"
+    },
+    {
+      "type": "text",
+      "value": "同意"
+    },
+    {
+      "code": "ac:goodjob",
+      "type": "smiley"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "needsAttachBase": true,
+      "src": "mon_202608/07/-abcdefg.jpg",
+      "type": "image",
+      "variant": "img"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "详见 "
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "这帖"
+        }
+      ],
+      "href": "https://bbs.nga.cn/read.php?tid=45150945",
+      "type": "link"
+    },
+    {
+      "type": "text",
+      "value": " 和 "
+    },
+    {
+      "type": "mention",
+      "username": "李四"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "😄"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[quote][pid=123456,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>原话&lt;不要断章取义&gt;[/quote]同意[s:ac:goodjob]<br/>[img]./mon_202608/07/-abcdefg.jpg[/img]<br/>详见 [url=https://bbs.nga.cn/read.php?tid=45150945]这帖[/url] 和 [@李四]<br/>&amp;#55357;&amp;#56836;",
+  "name": "full-floor",
+  "note": "read.php 的 content 字段形态，整段对拍"
+}

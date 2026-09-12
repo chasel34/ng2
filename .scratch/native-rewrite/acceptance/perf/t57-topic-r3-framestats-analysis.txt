@@ -1,0 +1,36 @@
+== 来源 ==
+  真机采样。仍须 release 包(R8):debug 包数据一律作废(T7)。
+
+== 样本 ==
+  PROFILEDATA block 1 个,原始 120 帧,剔除 1 帧,计入 119 帧,跨度 994 ms
+  剔除口径 Flags & 13(WindowLayoutChanged|SurfaceCanvas|SkippedFrame)+ 时间戳自洽;明细:Flags=40(SkippedFrame+bit5) ×1
+  计入帧 Flags 分布:32(bit5) ×119(bit4 及以上是新版常态位,放行)
+  帧间隔基准 8.32 ms(≈120 Hz),丢帧阈值 IntendedVsync 间隔 > 13.0 ms
+
+== app 每帧 CPU(HandleInputStart→SwapBuffers,判据 C5)==
+  p50 1.4 / p90 2.0 / p95 2.4 / p99 3.6 / max 3.8 ms
+
+== 整帧(IntendedVsync→FrameCompleted)==
+  p50 3.6 / p90 5.1 / p95 5.6 / p99 7.0 / max 7.2 ms
+
+== 丢帧(判据 C6)==
+  运动段 994 ms(总跨度 994 ms 减去 0 处 ≥100ms 的静止空档),间隔 13.0~100 ms 的空档 1 处,估算漏掉 1 个 vsync,占运动段应出帧的 0.83%
+    #118  间隔 16.6 ms(≈2 个 vsync)@ +990 ms
+  注:framestats 分不出「动画窗口内」和「静止画面」,>100ms 的空档一律按静止处理;
+     感知层 ground truth 仍是录屏逐帧(C1),系统侧对照是 gfxinfo 的 FrameTimeline janky 汇总。
+
+== 逐阶段均值 ==
+  输入处理                                 0.00 ms
+  动画                                   0.36 ms
+  测量+布局                                0.04 ms
+  录制绘制指令                               0.24 ms
+  同步等待                                 0.08 ms
+  下发绘制指令                               0.83 ms
+  交换缓冲(等 GPU/合成,不归 app)                1.90 ms
+
+== 最差 5 帧(按 app CPU)==
+  app   3.84 ms / 整帧   5.77 ms @ +183 ms
+  app   3.59 ms / 整帧   5.62 ms @ +333 ms
+  app   3.22 ms / 整帧   5.21 ms @ +141 ms
+  app   2.89 ms / 整帧   5.63 ms @ +33 ms
+  app   2.88 ms / 整帧   5.17 ms @ +125 ms

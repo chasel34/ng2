@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "[这是中文] [1] []"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[这是中文] [1] []",
+  "name": "brackets-are-literal"
+}

@@ -1,0 +1,11 @@
+{
+  "expected": "�A",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "1H9B",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "gbk-lead-then-7f",
+  "note": "`0x7F` 也算 ASCII 尾字节，同样退回流里"
+}

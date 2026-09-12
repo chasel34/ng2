@@ -1,0 +1,11 @@
+{
+  "expected": {
+    "code": "?",
+    "message": "未知错误（code=?）"
+  },
+  "fn": "extractServerError",
+  "input": {
+    "error": "<br/>"
+  },
+  "name": "extract-server-error-string-all-tags-still-error"
+}

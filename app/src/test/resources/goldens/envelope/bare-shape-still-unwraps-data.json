@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "data": {
+      "0": "ok"
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "shape": "bare",
+    "text": "{\"data\":{\"0\":\"ok\"}}"
+  },
+  "name": "bare-shape-still-unwraps-data"
+}

@@ -1,0 +1,6 @@
+{
+  "expected": "",
+  "fn": "unescapeNgaText",
+  "input": "",
+  "name": "unescape-empty"
+}

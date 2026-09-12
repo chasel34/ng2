@@ -1,0 +1,13 @@
+{
+  "expected": [
+    {
+      "media": "video",
+      "needsAttachBase": false,
+      "src": "https://v.cn/a.mp4",
+      "type": "flash"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[flash=video]https://v.cn/a.mp4[/flash]",
+  "name": "flash-video"
+}

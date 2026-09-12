@@ -1,0 +1,18 @@
+{
+  "expected": {
+    "throws": {
+      "kind": "parse",
+      "message": "分类树里一个版块都没解析出来",
+      "retryable": true
+    }
+  },
+  "fn": "parseBoardTree",
+  "input": {
+    "value": {
+      "data": {},
+      "other": {}
+    }
+  },
+  "name": "no-board-throws",
+  "note": "一个版块都没解析出来 → kind=parse（等价于被封，该继续用本地缓存）"
+}

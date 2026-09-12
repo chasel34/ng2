@@ -1,0 +1,26 @@
+{
+  "expected": [
+    [
+      "0",
+      "a"
+    ],
+    [
+      "2",
+      "c"
+    ],
+    [
+      "10",
+      "j"
+    ]
+  ],
+  "fn": "orderedEntries",
+  "input": {
+    "value": {
+      "0": "a",
+      "10": "j",
+      "2": "c"
+    }
+  },
+  "name": "ordered-entries-string-number-keys",
+  "note": "__output=8 的习惯（§0.6）"
+}

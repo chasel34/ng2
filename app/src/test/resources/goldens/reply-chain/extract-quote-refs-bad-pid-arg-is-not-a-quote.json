@@ -1,0 +1,8 @@
+{
+  "expected": [],
+  "fn": "extractQuoteRefs",
+  "input": {
+    "text": "[quote][pid=abc]Reply[/pid]原话[/quote]"
+  },
+  "name": "extract-quote-refs-bad-pid-arg-is-not-a-quote"
+}

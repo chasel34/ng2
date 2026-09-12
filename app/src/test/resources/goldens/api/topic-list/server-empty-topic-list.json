@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "listStructure": true,
+    "rowsPerPage": 35,
+    "subBoards": [],
+    "topics": [],
+    "totalPages": 1,
+    "totalRows": 0
+  },
+  "fn": "serverEmptyTopicList",
+  "input": null,
+  "name": "server-empty-topic-list",
+  "note": "服务端明确回「没有符合条件的结果」时的空列表：listStructure 是 true（话说清楚了，只是没内容）"
+}

@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "code": "pst:凯露_哭",
+      "type": "smiley"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[s:pst:凯露_哭]",
+  "name": "smiley-underscore"
+}

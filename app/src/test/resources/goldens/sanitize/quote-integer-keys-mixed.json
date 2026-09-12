@@ -1,0 +1,6 @@
+{
+  "expected": "{\"x\":1, \"12\":\"y\"}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"x\":1, 12:\"y\"}",
+  "name": "quote-integer-keys-mixed"
+}

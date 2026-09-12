@@ -1,0 +1,7 @@
+{
+  "expected": "{\"content\":\"看这段代码 {12:34} 还有 ,56: 这种\"}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"content\":\"看这段代码 {12:34} 还有 ,56: 这种\"}",
+  "name": "integer-keys-inside-string-untouched",
+  "note": "裸正则会改坏正文 → 解析失败 → 被误判成被封"
+}

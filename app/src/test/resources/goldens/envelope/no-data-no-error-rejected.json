@@ -1,0 +1,17 @@
+{
+  "expected": {
+    "throws": {
+      "kind": "parse",
+      "message": "响应顶层既没有 data 也没有 error：{\"code\":0,\"msg\":\"\",\"result\":[]}",
+      "retryable": true,
+      "via": "direct"
+    }
+  },
+  "fn": "parseNgaJson",
+  "input": {
+    "text": "{\"code\":0,\"msg\":\"\",\"result\":[]}",
+    "via": "direct"
+  },
+  "name": "no-data-no-error-rejected",
+  "note": "默认 wrapped：陌生 JSON 不能当成「空数据」（2026-08-13 版块全空排查）"
+}

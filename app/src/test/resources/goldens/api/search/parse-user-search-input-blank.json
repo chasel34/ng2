@@ -1,0 +1,7 @@
+{
+  "expected": null,
+  "fn": "parseUserSearchInput",
+  "input": "   ",
+  "name": "parse-user-search-input-blank",
+  "note": "只有整段都是数字才算 uid——NGA 用户名可以带数字"
+}

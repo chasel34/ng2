@@ -1,0 +1,6 @@
+{
+  "expected": -7,
+  "fn": "parseBoardIdInput",
+  "input": "-7",
+  "name": "parse-board-id-input-negative"
+}

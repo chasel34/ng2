@@ -1,0 +1,138 @@
+ticket 57 rich-trace analysis — 2026-08-24
+
+Capture
+=======
+
+Config source: .scratch/native-rewrite/acceptance/perf/s9-native-rich.cfg
+  buffers.size_kb = 65536 (RING_BUFFER)
+  linux.ftrace = sched_switch/sched_waking/sched_wakeup_new/cpu_frequency/
+                   cpu_idle/binder events + atrace gfx/view/input/sched/freq/
+                   binder_driver, atrace_apps=com.chasel.ng2.n
+  android.surfaceflinger.frametimeline enabled
+
+The device exposes no /sys/kernel/tracing/events/input group, so the requested
+input evidence comes from atrace category "input" (MotionEvent ACTION_* slices),
+not a nonexistent input/* kernel event.
+
+Trace/video paths (videos are intentionally outside git):
+  /Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-rich-topic.pb
+    39,070,226 bytes
+    sha256 37591e38aa59cae4b591a44eb161e0f5def54aa58985bfd4c0f9479d9e8ff2f6
+  /Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-rich-topic.mp4
+  /Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-rich-floor.pb
+    39,163,446 bytes
+    sha256 79011f63df72814197b65ee976387a08473b05bf4b1459e5b5df9adbb0e1b496
+  /Users/cola/.claude/jobs/e7f2363b/tmp/perf/t57-rich-floor.mp4
+
+TraceProcessor identifiers
+==========================
+
+App pid/TID: 760 / 760 (thread name om.chasel.ng2.n)
+RenderThread TID: 8652
+FrameTimeline layer:
+  TX - com.chasel.ng2.n/com.chasel.ng2n.MainActivity#97781
+
+No track or counter whose name contains scroll or offset exists in either
+trace. Consequently LazyListState's numerical scroll offset cannot be read
+directly from this trace. Offset movement below is the screenrecord C13 phase
+measurement; trace-side evidence is the presence/absence of Compose animation,
+measure/recompose, traversal, RenderThread and app-surface FrameTimeline work.
+
+Topic list: representative collapse
+===================================
+
+Capture used the ticket's 10 x (100ms swipe + 250ms gap) cadence on the public
+Overwatch topic list (same TopicListScreen; guest accessible). Screenrecord:
+598 frames / 6.959s; motion-speed p10/p50/p90=5,522/13,937/16,784 px/s.
+It contains four low-speed phases near 3.8, 4.8, 5.7 and 6.6 seconds. In the
+first one, speed falls from 12.97k px/s at video 3.772s to 0.92k at 3.789s,
+then 0/roughly 0.47-0.53k px/s until the next gesture restores 19.88k px/s.
+
+Clock alignment uses the first ACTION_MOVE and first >5k px/s phase movement:
+trace time = video time + 138.566ms. Thus video 3.789-3.988s maps to trace
+3,927.6-4,126.6ms. The previous ACTION_UP is at 3,713.097ms and the next
+ACTION_DOWN at 4,121.904ms.
+
+TraceProcessor window comparison (counts within each window):
+
+metric                         normal fling 3720-3919ms   collapse 3928-4121ms
+-----------------------------  -------------------------  ----------------------
+Choreographer#doFrame          23 (max 2.336ms)            23 (max 0.808ms)
+Compose animation              23                          0
+Recomposer:animation           23                          0
+Compose:recompose              32                          0
+AndroidOwner measure/layout    32                          0
+UI traversal/draw              23 / 22                     23 / 23
+RenderThread Drawing           23                          24
+RenderThread EdgeEffect layer  0                           24
+app-surface actual frames      23, 0 jank                  23, 0 jank
+UI-thread Running              43.354ms                    14.451ms
+RenderThread Running           38.957ms                    43.196ms
+
+The last Recomposer:animation slice is at 3,919.177ms. From the next frame
+through the next ACTION_DOWN there is no Compose animation/recomposition or
+measure/layout, while UI traversal/draw, RenderThread Drawing/queueBuffer and
+23 app FrameTimeline frames continue at about 120Hz. Every RenderThread frame
+in the collapse draws AndroidEdgeEffectOverscrollEffect. This identifies who
+produces the visually static frames: ViewRoot traversal plus the RenderThread
+edge-effect animation, not a moving LazyColumn. The video offset is 0 or about
+4px/frame and the absence of Recomposer:animation means the fling animator is
+not running. Neither UI nor RenderThread has a long CPU/dequeue stall; all 23
+surface frames are on time. Attribution: fling/scroll-state termination while
+an independent edge-effect invalidation keeps buffers flowing, not rendering,
+GC, refresh-rate, or scheduler starvation.
+
+Floor flow tid=47328470: page 3 -> 4 hole
+=========================================
+
+Capture used 8 identical fixed-cadence swipes. Screenrecord has 579 frames /
+7.303s. It records the last moving frame at 3.442-3.467s, then the next encoded
+content frame at 3.875456s (dt=265.900ms), reproducing the requested page-switch
+hole class.
+
+Clock alignment uses ACTION_MOVE and the first >5k px/s phase movement:
+trace time = video time + 130.572ms. The relevant trace sequence is:
+
+  3,599.957ms  ACTION_UP
+  3,632.023ms  doFrame 18.921ms (App Deadline Missed)
+                Recomposer:recompose 4.190ms
+                traversal 14.676ms
+                measure/layout 12.773ms
+  3,651.504ms  last app-surface frame before hole (Late Present / Buffer Stuffing)
+  3,656.987ms  UI thread enters S state
+  3,656.987-3,990.773ms
+                no app slice, no doFrame, no RenderThread draw, no app buffer
+                UI thread sleeping 333.420/334ms total
+                RenderThread sleeping 334/334ms
+  3,991.677ms  next injected ACTION_DOWN
+  4,005.483ms  next app-surface frame; subsequent frames are on time
+
+The app-surface gap is 353.979ms (3,651.504 -> 4,005.483ms); screenrecord sees
+the overlapping 265.900ms no-new-content interval. This is not one 276ms main-
+thread task and not dequeueBuffer/GPU backpressure. The only significant page
+handoff work is a bounded 18.921ms UI doFrame (12.773ms measure/layout), after
+which UI and RenderThread sleep until the next input. No main-thread network or
+binder wait is visible and there is no heavy Compose work during the hole.
+Trace cannot distinguish a background HTTP wait without network syscall probes,
+but it positively rules out synchronous main-thread network/compose blocking:
+the page handoff terminates the active fling/invalidation stream and leaves the
+new page stationary; the next gesture is what resumes frame production.
+
+Representative TraceProcessor SQL
+=================================
+
+  select count(*), max(dur)
+  from actual_frame_timeline_slice
+  where layer_name like '%com.chasel.ng2.n%' and ts >= :lo and ts < :hi;
+
+  select s.name, count(*), sum(s.dur), max(s.dur)
+  from slice s
+  join thread_track tt on tt.id=s.track_id
+  join thread t using(utid)
+  where t.tid in (760,8652) and s.ts < :hi and s.ts+s.dur > :lo
+  group by s.name;
+
+  select state, sum(min(ts+dur,:hi)-max(ts,:lo))
+  from thread_state
+  where utid=:ui_or_render_utid and ts < :hi and ts+dur > :lo
+  group by state;

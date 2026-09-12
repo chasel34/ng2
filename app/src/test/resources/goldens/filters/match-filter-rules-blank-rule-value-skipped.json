@@ -1,0 +1,19 @@
+{
+  "expected": null,
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:  ",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "  "
+      }
+    ],
+    "subject": {
+      "title": "x"
+    }
+  },
+  "name": "match-filter-rules-blank-rule-value-skipped"
+}

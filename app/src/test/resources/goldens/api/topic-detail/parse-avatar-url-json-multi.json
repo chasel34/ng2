@@ -1,0 +1,8 @@
+{
+  "expected": "https://img.nga.cn/avatars/a.jpg",
+  "fn": "parseAvatarUrl",
+  "input": {
+    "raw": "{\"0\":\"https:\\/\\/img.nga.cn\\/avatars\\/a.jpg\",\"1\":\"https://x/b.jpg\"}"
+  },
+  "name": "parse-avatar-url-json-multi"
+}

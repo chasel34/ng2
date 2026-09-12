@@ -1,0 +1,17 @@
+{
+  "expected": "author=%D4%AD%C9%F1",
+  "fn": "buildQueryString",
+  "input": {
+    "params": [
+      [
+        "author",
+        {
+          "charset": "gbk",
+          "value": "原神"
+        }
+      ]
+    ]
+  },
+  "name": "build-query-string-gbk-marked-value",
+  "note": "同一接口的 author 却是 GBK（§0.5）"
+}

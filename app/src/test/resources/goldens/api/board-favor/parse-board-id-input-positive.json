@@ -1,0 +1,6 @@
+{
+  "expected": 650,
+  "fn": "parseBoardIdInput",
+  "input": "650",
+  "name": "parse-board-id-input-positive"
+}

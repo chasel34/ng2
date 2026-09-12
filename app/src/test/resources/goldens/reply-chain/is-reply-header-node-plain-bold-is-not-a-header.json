@@ -1,0 +1,8 @@
+{
+  "expected": false,
+  "fn": "isReplyHeaderNode",
+  "input": {
+    "text": "[b]重点[/b]"
+  },
+  "name": "is-reply-header-node-plain-bold-is-not-a-header"
+}

@@ -1,0 +1,25 @@
+# 19 — 真机性能验收(M4,十场景闸)
+
+**What to build:** 小米 17(120Hz)真机、release 包(R8 + **Baseline Profile**,先用 benchmark 模块生成并打入)、每场景 30s 脚本化操作、与**并装 RN release 版**及 **anzong** 对拍;判据与陷阱全按 `docs/perf-playbook.md`(票 02);debug 包与模拟器数据一律无效;NGA 限流冷却 ≥60s;屏幕变暗锁 60Hz 陷阱先排除(滚动中确认 `frameRateOverride {uid 120}`)。
+
+**十场景闸(spec §五,全过才算过)**:
+1. 冷启动:录屏逐帧无闪烁帧(无白/黑闪、无内容两跳突现);
+2. 冷启后首次进主题:起手冻结 ≤1 丢帧(RN 现状 ~31ms≈4 帧——本次重写最该赢的一仗);
+3. 主题列表快甩:janky ≤1%;
+4. 楼层流慢拖/快甩:不差于 RN 基线 0.1%/2.7%(**不回退条款**);
+5. 横滑翻页:速度曲线连续、松手丢帧 ≤1(对拍 RN 版与 anzong);
+6. 抽屉开合:与 anzong 逐帧对拍无可见差;
+7. 附件展开/收起动画;
+8. 打开大图/画廊开合与缩放;
+9. 各转场(版块↔主题、抽屉、设置)latch2present 单峰、无 >2 vsync 连续丢帧;
+10. **伞条款**:遍历一切带动画交互(对话框、FAB、下拉刷新、页码条、tab 高亮……),任一处肉眼可见断续即不过。
+
+不过闸的场景回填优化票迭代(必要时启用 ADR-0004 逃生舱条款:该场景局部降级 View/RecyclerView),直至全绿。验收报告(数据+录屏帧表+结论)落 `.scratch/native-rewrite/acceptance/`。
+
+**Blocked by:** 02, 18
+
+**Status:** resolved(2026-08-27:十场景 10/10 过闸;场景 9 按票 58 终裁口径——present cadence + 连续丢帧——通过,双峰降为观测项;抽屉 GPU 余量优化以票 59(P2)延续)
+
+- [x] Baseline Profile 生成并实测生效(冷启对比数据记录,见 perf-report「release/profile 三重核验」)
+- [x] 十场景全部过闸,报告落盘(`acceptance/perf-report.md`;场景 9 口径见票 58 终裁)
+- [x] 伞条款遍历清单与结果逐项记录(场景 10)

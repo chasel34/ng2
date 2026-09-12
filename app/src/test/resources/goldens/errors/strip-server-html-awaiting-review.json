@@ -1,0 +1,7 @@
+{
+  "expected": "51:帖子正等待审核;\n[查看所需的权限/条件]",
+  "fn": "stripServerHtml",
+  "input": "51:帖子正等待审核;<br/><a href='/nuke.php?func=account&amp;adminmode=1' style='color:dimgray' target='_blank'>[查看所需的权限/条件]</a>",
+  "name": "strip-server-html-awaiting-review",
+  "note": "M3 验收缺陷 2 的原始样本"
+}

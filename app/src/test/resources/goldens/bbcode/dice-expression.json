@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "expression": "1d100",
+      "type": "dice"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[dice]1d100[/dice]",
+  "name": "dice-expression"
+}

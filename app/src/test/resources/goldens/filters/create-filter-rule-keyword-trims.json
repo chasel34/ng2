@@ -1,0 +1,19 @@
+{
+  "expected": {
+    "createdAt": 102,
+    "id": "local:keyword:广告",
+    "kind": "keyword",
+    "origin": "local",
+    "regex": false,
+    "value": "广告"
+  },
+  "fn": "createFilterRule",
+  "input": {
+    "input": {
+      "kind": "keyword",
+      "value": " 广告 "
+    },
+    "nowSeconds": 102
+  },
+  "name": "create-filter-rule-keyword-trims"
+}

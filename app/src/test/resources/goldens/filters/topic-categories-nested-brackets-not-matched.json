@@ -1,0 +1,8 @@
+{
+  "expected": [
+    "内"
+  ],
+  "fn": "topicCategories",
+  "input": "[外[内]层]标题",
+  "name": "topic-categories-nested-brackets-not-matched"
+}

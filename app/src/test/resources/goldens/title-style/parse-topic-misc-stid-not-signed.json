@@ -1,0 +1,11 @@
+{
+  "expected": {
+    "stid": 4286241377
+  },
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": "Av962mE"
+  },
+  "name": "parse-topic-misc-stid-not-signed",
+  "note": "stid 是主题 id，不适用符号修正"
+}

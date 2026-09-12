@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "align": "center",
+      "children": [
+        {
+          "type": "text",
+          "value": "中"
+        }
+      ],
+      "type": "align"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[align=center]中[/align]",
+  "name": "align-center"
+}

@@ -1,0 +1,24 @@
+{
+  "expected": "20+d6(4)+d6(6)",
+  "fn": "formatDiceTerms",
+  "input": {
+    "terms": [
+      {
+        "kind": "constant",
+        "value": 20
+      },
+      {
+        "faces": 6,
+        "kind": "roll",
+        "value": 4
+      },
+      {
+        "faces": 6,
+        "kind": "roll",
+        "value": 6
+      }
+    ]
+  },
+  "name": "format-terms-rolls-and-constant",
+  "note": "展开式显示串，与网页版同格式"
+}

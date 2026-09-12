@@ -1,0 +1,24 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "开场"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "type": "linebreak"
+    },
+    {
+      "type": "text",
+      "value": "正文"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "===开场===<br/>正文",
+  "name": "heading-line",
+  "note": "行首的 ===x=== 是标题"
+}

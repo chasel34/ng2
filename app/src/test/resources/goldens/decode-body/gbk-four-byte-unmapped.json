@@ -1,0 +1,11 @@
+{
+  "expected": "�",
+  "fn": "decodeResponseBody",
+  "input": {
+    "bytes": "/jn+OQ==",
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "inputEncoding": "base64",
+  "name": "gbk-four-byte-unmapped",
+  "note": "四字节 pointer 越界 → U+FFFD"
+}

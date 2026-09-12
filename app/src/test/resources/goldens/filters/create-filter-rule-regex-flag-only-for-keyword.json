@@ -1,0 +1,20 @@
+{
+  "expected": {
+    "createdAt": 103,
+    "id": "local:category:转帖",
+    "kind": "category",
+    "origin": "local",
+    "regex": false,
+    "value": "转帖"
+  },
+  "fn": "createFilterRule",
+  "input": {
+    "input": {
+      "kind": "category",
+      "regex": true,
+      "value": "转帖"
+    },
+    "nowSeconds": 103
+  },
+  "name": "create-filter-rule-regex-flag-only-for-keyword"
+}

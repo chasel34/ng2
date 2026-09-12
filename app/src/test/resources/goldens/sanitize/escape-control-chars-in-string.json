@@ -1,0 +1,7 @@
+{
+  "expected": "{\"content\":\"第一行\\n第二行\\ttab\"}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"content\":\"第一行\n第二行\ttab\"}",
+  "name": "escape-control-chars-in-string",
+  "note": "§0.6 第 7 步"
+}

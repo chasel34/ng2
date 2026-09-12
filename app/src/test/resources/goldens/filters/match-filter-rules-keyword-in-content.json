@@ -1,0 +1,26 @@
+{
+  "expected": {
+    "id": "local:keyword:内部消息",
+    "kind": "keyword",
+    "origin": "local",
+    "regex": false,
+    "value": "内部消息"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:keyword:内部消息",
+        "kind": "keyword",
+        "origin": "local",
+        "regex": false,
+        "value": "内部消息"
+      }
+    ],
+    "subject": {
+      "content": "这是内部消息，别外传",
+      "title": "闲聊"
+    }
+  },
+  "name": "match-filter-rules-keyword-in-content"
+}

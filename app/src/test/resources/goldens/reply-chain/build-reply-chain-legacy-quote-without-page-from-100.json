@@ -1,0 +1,31 @@
+{
+  "expected": [
+    {
+      "loaded": false,
+      "pid": 66,
+      "ref": {
+        "pid": 66
+      },
+      "role": "upstream"
+    },
+    {
+      "loaded": true,
+      "pid": 100,
+      "role": "current"
+    }
+  ],
+  "fn": "buildReplyChain",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=66]Reply[/pid]老写法引用[/quote]",
+        "lou": 5,
+        "pid": 100
+      }
+    ],
+    "startPid": 100,
+    "tid": 45150945
+  },
+  "name": "build-reply-chain-legacy-quote-without-page-from-100",
+  "note": "引用楼缺失且没有页码信息：节点照样在链上，只是没有定位手段"
+}

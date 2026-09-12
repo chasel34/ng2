@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "unsupported-scheme"
+  },
+  "fn": "parseNgaLink",
+  "input": "ftp://bbs.nga.cn/read.php?tid=1",
+  "name": "parse-scheme-ftp"
+}

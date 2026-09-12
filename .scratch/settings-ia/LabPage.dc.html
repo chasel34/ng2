@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #3A5A7A; } a:hover { color: #14796B; }
+    .nosel { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  </style>
+</helmet>
+
+<div class="nosel" style="width: 390px; height: 800px; background: #FCF4E1; color: #1E1C19; position: relative; overflow: hidden">
+
+  <div style="background: #14796B">
+    <div style="display: flex; align-items: center; height: 54px; padding: 0 4px">
+      <div style="width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; color: #FFFFFF">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </div>
+      <div style="margin-left: 4px; font-size: 17px; font-weight: 600; color: #FFFFFF">实验室与诊断</div>
+    </div>
+  </div>
+
+  <div style="padding: 18px 18px 8px; font-size: 12.5px; line-height: 15px; font-weight: 700; color: #14796B">实验室</div>
+
+  <div style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #EBE3CE">
+    <div style="flex: 1; min-width: 0">
+      <div style="font-size: 15px; line-height: 20px; color: #1E1C19">网页数据源兜底</div>
+      <div style="margin-top: 4px; font-size: 12.5px; line-height: 17px; color: #A39D8E">兜底(默认)</div>
+    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex: 0 0 20px; color: #A39D8E"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #EBE3CE">
+    <div style="flex: 1; min-width: 0">
+      <div style="font-size: 15px; line-height: 20px; color: #1E1C19">帖子接口使用 Windows Phone UA</div>
+      <div style="margin-top: 4px; font-size: 12.5px; line-height: 17px; color: #A39D8E">实测更不容易被封;被封表现变了可以关掉试试</div>
+    </div>
+    <div style="flex: 0 0 46px; width: 46px; height: 26px; border-radius: 13px; padding: 3px; background: #14796B; display: flex; justify-content: flex-end">
+      <div style="width: 20px; height: 20px; border-radius: 10px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3)"></div>
+    </div>
+  </div>
+
+  <div style="padding: 18px 18px 8px; font-size: 12.5px; line-height: 15px; font-weight: 700; color: #14796B">诊断</div>
+
+  <div style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #EBE3CE">
+    <div style="flex: 1; min-width: 0">
+      <div style="font-size: 15px; line-height: 20px; color: #1E1C19">本次运行的组合</div>
+      <div style="margin-top: 4px; font-size: 12.5px; line-height: 17px; color: #A39D8E">topic: json@nga.178.com · board: json@nga.178.com</div>
+    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex: 0 0 20px; color: #A39D8E"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #EBE3CE">
+    <div style="flex: 1; min-width: 0">
+      <div style="font-size: 15px; line-height: 20px; color: #1E1C19">导出诊断日志</div>
+      <div style="margin-top: 4px; font-size: 12.5px; line-height: 17px; color: #A39D8E">最近 50 条</div>
+    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex: 0 0 20px; color: #A39D8E"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

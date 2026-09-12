@@ -1,0 +1,10 @@
+{
+  "expected": {
+    "kind": "username",
+    "username": "0"
+  },
+  "fn": "parseUserSearchInput",
+  "input": "0",
+  "name": "parse-user-search-input-zero",
+  "note": "只有整段都是数字才算 uid——NGA 用户名可以带数字"
+}

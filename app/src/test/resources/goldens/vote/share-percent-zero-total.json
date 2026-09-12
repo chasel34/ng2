@@ -1,0 +1,10 @@
+{
+  "expected": 0,
+  "fn": "voteSharePercent",
+  "input": {
+    "total": 0,
+    "votes": 0
+  },
+  "name": "share-percent-zero-total",
+  "note": "与网页版一样只保留一位小数且向下截断（((num/sum*1000)|0)/10）"
+}

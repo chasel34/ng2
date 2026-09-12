@@ -1,0 +1,6 @@
+{
+  "expected": "",
+  "fn": "unescapeNgaText",
+  "input": "&#1114112;",
+  "name": "unescape-out-of-range-codepoint"
+}

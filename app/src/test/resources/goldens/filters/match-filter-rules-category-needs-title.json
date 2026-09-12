@@ -1,0 +1,20 @@
+{
+  "expected": null,
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:category:转帖",
+        "kind": "category",
+        "origin": "local",
+        "regex": false,
+        "value": "转帖"
+      }
+    ],
+    "subject": {
+      "content": "[转帖]"
+    }
+  },
+  "name": "match-filter-rules-category-needs-title",
+  "note": "楼层没有标题，分类规则对它天然不生效"
+}

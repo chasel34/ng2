@@ -1,0 +1,8 @@
+{
+  "expected": null,
+  "fn": "parseAvatarUrl",
+  "input": {
+    "raw": 42
+  },
+  "name": "parse-avatar-url-not-a-string"
+}

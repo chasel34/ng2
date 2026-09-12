@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "unsupported-scheme"
+  },
+  "fn": "parseNgaLink",
+  "input": "javascript://read.php?tid=1",
+  "name": "parse-scheme-javascript"
+}

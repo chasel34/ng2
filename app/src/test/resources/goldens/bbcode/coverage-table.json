@@ -1,0 +1,37 @@
+{
+  "expected": [
+    {
+      "rows": [
+        {
+          "cells": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "甲"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "乙"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            }
+          ]
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[table][tr][td]甲[/td][td]乙[/td][/tr][/table]",
+  "name": "coverage-table",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "link": {
+      "kind": "topic",
+      "tid": 1
+    },
+    "ok": true
+  },
+  "fn": "parseNgaLink",
+  "input": "http://ngabbs.com/read.php?tid=1",
+  "name": "parse-host-ngabbs-http"
+}

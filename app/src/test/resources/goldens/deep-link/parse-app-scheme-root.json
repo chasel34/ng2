@@ -1,0 +1,10 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "unsupported-path"
+  },
+  "fn": "parseNgaLink",
+  "input": "ng2:///",
+  "name": "parse-app-scheme-root",
+  "note": "冷启动时 expo-router 递进来的就是这个"
+}

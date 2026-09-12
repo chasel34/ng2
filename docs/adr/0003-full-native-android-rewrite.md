@@ -1,0 +1,15 @@
+# 整机重写为 Kotlin 原生 Android 应用
+
+RN/Expo 版经过六轮性能战役(2026-08-11 ~ 08-21,证据在 `.scratch/perf-2026-08/` 与 `docs/performance-diagnosis-2026-08-15.md`*)后,滚动、翻页、列表 drop 簇均已达标,但「冷启后首次进主题 ~31ms 起手冻结」定位到 Hermes 首次执行该屏代码路径,框架内无解;且所有者体感「所有带动画的场景都多多少少有点问题」。决定整机重写为 Kotlin 原生(分支 `android-native`,工程在 `native/`),口径:功能与信息结构 1:1、视觉尽量还原、交互允许 Android 原生惯例;Android-only,RN 版冻结留在分支作移植参照。
+
+**预期账本**(立项时点的证据,防止验收时错账):
+
+- 重写能救:31ms Hermes 冷路径冻结;整套 rAF 分帧揭示补丁(`contentReady`/`chromeReady`/`progressive.tsx`)可拆除;`buildQuoteIndex` 这类重活可下后台线程;反封锁链的 `renewTransport` 从空操作变成真轮换 client。
+- 重写救不了:冷启首屏 2.4–2.8s(NGA RTT + 反封锁链轮换,已裁定不进本次验收);服务端坏字节与限流;图片无像素尺寸导致的布局跳动;中文长标题的 Android 文本测量成本;位图内存 ~350MB 常驻(原生同样是 Glide/Coil 一笔账)。
+- 重写会失去:RN 里已打赢的三仗(滚动 janky 慢拖 0.1%/快甩 2.7%、翻页速度曲线与 anzong 同形、转场五场景清零)回到待验证状态——性能验收因此带不回退条款。
+
+**不回退条款**(所有者裁定):不设尖兵闸门;若原生仍有卡顿,在原生基础上继续优化,不回退 RN。
+
+Considered: ① 继续在 RN 内优化(否:剩余量化卡点在 JS 引擎冷路径,框架内无对应解;所有者对「反复调试依旧卡顿」已失去耐心);② 先做单场景性能尖兵、实测过关再全量(所有者否决,直接全量);③ RN/原生双线维护(否,Android-only)。
+
+*该文档曾被 `d2aaca4` 删除,`git show d2aaca4^:docs/performance-diagnosis-2026-08-15.md` 可取回,M0(票 02)恢复进仓库。

@@ -1,0 +1,9 @@
+{
+  "expected": "rating",
+  "fn": "notificationKind",
+  "input": {
+    "type": 17
+  },
+  "name": "notification-kind-17",
+  "note": "API 文档 §9.1 的类型码枚举；认不出的进 other"
+}

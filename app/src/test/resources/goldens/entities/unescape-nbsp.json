@@ -1,0 +1,7 @@
+{
+  "expected": "a  b",
+  "fn": "unescapeNgaText",
+  "input": "a&nbsp;&nbsp;b",
+  "name": "unescape-nbsp",
+  "note": "&nbsp; 解成不间断空格，保住 NGA 排版"
+}

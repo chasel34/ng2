@@ -1,0 +1,40 @@
+{
+  "expected": {
+    "loaded": [
+      100
+    ],
+    "quotedBy": [
+      [
+        66,
+        [
+          100
+        ]
+      ]
+    ],
+    "quotes": [
+      [
+        100,
+        [
+          {
+            "page": 1,
+            "pid": 66,
+            "tid": 45150945
+          }
+        ]
+      ]
+    ]
+  },
+  "fn": "buildQuoteIndex",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=66,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>第一页的原话[/quote]回它",
+        "lou": 21,
+        "pid": 100
+      }
+    ],
+    "tid": 45150945
+  },
+  "name": "build-quote-index-cross-page-quote-not-loaded",
+  "note": "被引楼不在已加载集合时，节点带 ref 供懒加载"
+}

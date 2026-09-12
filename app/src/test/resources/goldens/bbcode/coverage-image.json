@@ -1,0 +1,14 @@
+{
+  "expected": [
+    {
+      "needsAttachBase": true,
+      "src": "mon_202608/07/a.jpg",
+      "type": "image",
+      "variant": "img"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[img]./mon_202608/07/a.jpg[/img]",
+  "name": "coverage-image",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

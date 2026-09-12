@@ -1,0 +1,19 @@
+{
+  "expected": null,
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:user:xtl150ok",
+        "kind": "user",
+        "origin": "local",
+        "regex": false,
+        "value": "xtl150ok"
+      }
+    ],
+    "subject": {
+      "author": "xtl150ok2"
+    }
+  },
+  "name": "match-filter-rules-user-no-substring"
+}

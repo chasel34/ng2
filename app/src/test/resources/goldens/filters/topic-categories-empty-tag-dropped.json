@@ -1,0 +1,6 @@
+{
+  "expected": [],
+  "fn": "topicCategories",
+  "input": "[]空标签",
+  "name": "topic-categories-empty-tag-dropped"
+}

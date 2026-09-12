@@ -1,0 +1,19 @@
+{
+  "expected": [
+    {
+      "items": [
+        [
+          {
+            "type": "text",
+            "value": "一"
+          }
+        ]
+      ],
+      "ordered": true,
+      "type": "list"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[list=1][*]一[/list]",
+  "name": "list-ordered"
+}

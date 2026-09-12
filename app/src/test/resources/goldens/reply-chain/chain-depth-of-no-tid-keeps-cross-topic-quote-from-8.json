@@ -1,0 +1,15 @@
+{
+  "expected": 2,
+  "fn": "chainDepthOf",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=555,99999,1]Reply[/pid]别帖的话[/quote]",
+        "lou": 4,
+        "pid": 8
+      }
+    ],
+    "startPid": 8
+  },
+  "name": "chain-depth-of-no-tid-keeps-cross-topic-quote-from-8"
+}

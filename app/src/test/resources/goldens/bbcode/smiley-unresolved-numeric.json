@@ -1,0 +1,11 @@
+{
+  "expected": [
+    {
+      "code": "99999",
+      "type": "smiley"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[s:99999]",
+  "name": "smiley-unresolved-numeric"
+}

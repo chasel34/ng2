@@ -1,0 +1,9 @@
+{
+  "expected": "请输入要屏蔽的关键词",
+  "fn": "validateFilterRule",
+  "input": {
+    "kind": "keyword",
+    "value": "   "
+  },
+  "name": "validate-filter-rule-empty-keyword"
+}

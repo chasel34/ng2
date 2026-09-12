@@ -1,0 +1,24 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "[style x]看"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "这"
+        }
+      ],
+      "type": "bold"
+    },
+    {
+      "type": "text",
+      "value": "[/style]"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[style x]看[b]这[/b][/style]",
+  "name": "unknown-tag-inner-known"
+}

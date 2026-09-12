@@ -1,0 +1,9 @@
+{
+  "expected": "https://img.nga.cn/attachments/mon_202608/07/x.png.thumb.jpg",
+  "fn": "thumbnailUrl",
+  "input": {
+    "base": "https://img.nga.cn/attachments",
+    "url": "https://img.nga.cn/attachments/mon_202608/07/x.png"
+  },
+  "name": "thumbnail-url-under-base"
+}

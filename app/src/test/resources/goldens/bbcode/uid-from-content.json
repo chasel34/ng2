@@ -1,0 +1,12 @@
+{
+  "expected": [
+    {
+      "children": [],
+      "type": "userRef",
+      "uid": "41417929"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[uid]41417929[/uid]",
+  "name": "uid-from-content"
+}

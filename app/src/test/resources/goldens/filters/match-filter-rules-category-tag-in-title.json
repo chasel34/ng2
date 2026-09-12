@@ -1,0 +1,25 @@
+{
+  "expected": {
+    "id": "local:category:转帖",
+    "kind": "category",
+    "origin": "local",
+    "regex": false,
+    "value": "转帖"
+  },
+  "fn": "matchFilterRules",
+  "input": {
+    "rules": [
+      {
+        "id": "local:category:转帖",
+        "kind": "category",
+        "origin": "local",
+        "regex": false,
+        "value": "转帖"
+      }
+    ],
+    "subject": {
+      "title": "[转帖]某地新闻"
+    }
+  },
+  "name": "match-filter-rules-category-tag-in-title"
+}

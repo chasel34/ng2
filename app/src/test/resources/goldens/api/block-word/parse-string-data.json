@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "users": [],
+    "words": [
+      "词"
+    ]
+  },
+  "fn": "parseBlockWords",
+  "input": {
+    "value": "1\r\n词\r\n"
+  },
+  "name": "parse-string-data"
+}

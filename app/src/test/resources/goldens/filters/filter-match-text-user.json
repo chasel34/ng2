@@ -1,0 +1,14 @@
+{
+  "expected": "已屏蔽 张三 的楼层",
+  "fn": "filterMatchText",
+  "input": {
+    "rule": {
+      "id": "local:user:张三",
+      "kind": "user",
+      "origin": "local",
+      "regex": false,
+      "value": "张三"
+    }
+  },
+  "name": "filter-match-text-user"
+}

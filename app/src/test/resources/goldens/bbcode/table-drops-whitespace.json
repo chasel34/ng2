@@ -1,0 +1,26 @@
+{
+  "expected": [
+    {
+      "rows": [
+        {
+          "cells": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "a"
+                }
+              ],
+              "colspan": 1,
+              "rowspan": 1
+            }
+          ]
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[table]\n[tr]\n[td]a[/td]\n[/tr]\n[/table]",
+  "name": "table-drops-whitespace"
+}

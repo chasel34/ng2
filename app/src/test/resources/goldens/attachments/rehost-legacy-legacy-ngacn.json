@@ -1,0 +1,9 @@
+{
+  "expected": "https://img.example.test/att/mon_201903/26/x.jpg",
+  "fn": "rehostLegacyAttachment",
+  "input": {
+    "base": "https://img.example.test/att",
+    "src": "http://imgs.ngacn.cc/attachments/mon_201903/26/x.jpg"
+  },
+  "name": "rehost-legacy-legacy-ngacn"
+}

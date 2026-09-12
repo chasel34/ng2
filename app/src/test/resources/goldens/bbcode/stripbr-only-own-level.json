@@ -1,0 +1,27 @@
+{
+  "expected": [
+    {
+      "type": "text",
+      "value": "a"
+    },
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "c"
+        },
+        {
+          "type": "linebreak"
+        },
+        {
+          "type": "text",
+          "value": "d"
+        }
+      ],
+      "type": "bold"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[stripbr]a<br/>[b]c<br/>d[/b][/stripbr]",
+  "name": "stripbr-only-own-level"
+}

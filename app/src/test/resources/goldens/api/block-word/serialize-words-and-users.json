@@ -1,0 +1,20 @@
+{
+  "expected": "1\r\n加密货币 私聊出\r\n42/gerraerd 无 uid 的老数据",
+  "fn": "serializeBlockWords",
+  "input": {
+    "users": [
+      {
+        "name": "gerraerd",
+        "uid": 42
+      },
+      {
+        "name": "无 uid 的老数据"
+      }
+    ],
+    "words": [
+      "加密货币",
+      "私聊出"
+    ]
+  },
+  "name": "serialize-words-and-users"
+}

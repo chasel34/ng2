@@ -1,0 +1,23 @@
+{
+  "expected": [
+    {
+      "args": [
+        "123",
+        "456",
+        "1"
+      ],
+      "children": [
+        {
+          "type": "text",
+          "value": "Reply"
+        }
+      ],
+      "pid": "123",
+      "type": "floorRef"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[pid=123,456,1]Reply[/pid]",
+  "name": "pid-with-args",
+  "note": "第一个参数是 pid，其余留在 args"
+}

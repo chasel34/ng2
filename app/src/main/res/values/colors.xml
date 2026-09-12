@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 与 RN 版同一套品牌底色;冷启动窗口背景用它,避免首帧白/黑闪。 -->
+    <color name="window_background">#FCF4E1</color>
+</resources>

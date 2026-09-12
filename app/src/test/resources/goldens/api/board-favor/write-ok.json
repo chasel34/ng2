@@ -1,0 +1,11 @@
+{
+  "expected": [],
+  "fn": "parseBoardFavorites",
+  "input": {
+    "value": {
+      "0": "操作成功"
+    }
+  },
+  "name": "write-ok",
+  "note": "action=add|del 成功时 data[\"0\"] 是一句文本，不是数组"
+}

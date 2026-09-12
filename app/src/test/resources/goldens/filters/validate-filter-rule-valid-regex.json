@@ -1,0 +1,10 @@
+{
+  "expected": null,
+  "fn": "validateFilterRule",
+  "input": {
+    "kind": "keyword",
+    "regex": true,
+    "value": "^\\[水\\]"
+  },
+  "name": "validate-filter-rule-valid-regex"
+}

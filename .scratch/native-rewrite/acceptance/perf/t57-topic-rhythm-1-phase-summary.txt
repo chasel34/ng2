@@ -1,0 +1,68 @@
+frames=774 duration=7.854s valid_motion=658
+speed_px_s p10/p50/p90/max=1434/9105/15901/49091
+  0.80-  0.90s median=  19276 max=  20719 n= 3
+  0.90-  1.00s median=  15470 max=  17435 n=10
+  1.00-  1.10s median=  14451 max=  30462 n=11
+  1.10-  1.20s median=  13378 max=  34879 n=12
+  1.20-  1.30s median=  11296 max=  14824 n=11
+  1.30-  1.40s median=  15075 max=  18147 n= 6
+  1.40-  1.50s median=  15092 max=  41584 n=12
+  1.50-  1.60s median=  13924 max=  16386 n=12
+  1.60-  1.70s median=  12558 max=  17660 n=11
+  1.70-  1.80s median=  15759 max=  27826 n=11
+  1.80-  1.90s median=  14550 max=  23464 n=11
+  1.90-  2.00s median=   8526 max=  22014 n= 8
+  2.00-  2.10s median=    477 max=    517 n= 5
+  2.10-  2.20s median=    493 max=    520 n= 4
+  2.70-  2.80s median=  12666 max=  13939 n= 2
+  2.80-  2.90s median=  10227 max=  14477 n=11
+  2.90-  3.00s median=   8876 max=  12303 n= 8
+  3.00-  3.10s median=   9181 max=  22898 n=12
+  3.10-  3.20s median=   7813 max=   8372 n=12
+  3.20-  3.30s median=   9399 max=  14704 n=11
+  3.30-  3.40s median=   9520 max=  21787 n=12
+  3.40-  3.50s median=   9192 max=  12472 n=10
+  3.50-  3.60s median=   8063 max=  10537 n=10
+  3.60-  3.70s median=   7678 max=  27042 n=10
+  3.70-  3.80s median=   9890 max=  11410 n=11
+  3.80-  3.90s median=   8876 max=  11613 n= 8
+  3.90-  4.00s median=   9624 max=  21103 n=12
+  4.00-  4.10s median=   7599 max=   8901 n=11
+  4.10-  4.20s median=   9160 max=  11468 n=11
+  4.20-  4.30s median=   9537 max=  17021 n=12
+  4.30-  4.40s median=   9513 max=  11020 n= 9
+  4.40-  4.50s median=   8378 max=   9844 n=12
+  4.50-  4.60s median=   7278 max=  14400 n=11
+  4.60-  4.70s median=   5177 max=   8151 n=12
+  4.70-  4.80s median=   4132 max=   4737 n=12
+  4.80-  4.90s median=   2968 max=   3515 n=10
+  4.90-  5.00s median=   2366 max=   3570 n=12
+  5.00-  5.10s median=  14638 max=  18720 n=11
+  5.10-  5.20s median=  15517 max=  17697 n=10
+  5.20-  5.30s median=   4263 max=  18659 n= 7
+  5.30-  5.40s median=    467 max=    522 n= 6
+  5.40-  5.50s median=    481 max=    483 n= 2
+  5.50-  5.60s median=  15738 max=  32269 n= 9
+  5.60-  5.70s median=  15349 max=  18026 n=10
+  5.70-  5.80s median=  14614 max=  17822 n=11
+  5.80-  5.90s median=  13065 max=  17778 n=13
+  5.90-  6.00s median=  11089 max=  24338 n=12
+  6.00-  6.10s median=  16913 max=  25892 n=11
+  6.10-  6.20s median=  15167 max=  31579 n=10
+  6.20-  6.30s median=  14519 max=  49091 n=12
+  6.30-  6.40s median=  12587 max=  15117 n=12
+  6.40-  6.50s median=  10605 max=  12719 n=12
+  6.50-  6.60s median=   8495 max=  29531 n=12
+  6.60-  6.70s median=   7434 max=   9165 n=10
+  6.70-  6.80s median=   5943 max=   8064 n=10
+  6.80-  6.90s median=   4594 max=  15409 n=10
+  6.90-  7.00s median=   4175 max=   5513 n=11
+  7.00-  7.10s median=   3342 max=   3987 n=10
+  7.10-  7.20s median=   2844 max=   5510 n=10
+  7.20-  7.30s median=   2171 max=   2778 n=12
+  7.30-  7.40s median=   1789 max=   2240 n=11
+  7.40-  7.50s median=   1415 max=   1815 n=10
+  7.50-  7.60s median=    920 max=   3158 n=13
+  7.60-  7.70s median=    494 max=   1311 n=12
+  7.70-  7.80s median=    480 max=   1192 n=10
+  7.80-  7.90s median=    505 max=    505 n= 1

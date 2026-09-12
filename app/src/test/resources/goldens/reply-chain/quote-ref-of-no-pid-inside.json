@@ -1,0 +1,9 @@
+{
+  "expected": null,
+  "fn": "quoteRefOf",
+  "input": {
+    "text": "[quote]光有原话[/quote]"
+  },
+  "name": "quote-ref-of-no-pid-inside",
+  "note": "input 是整段正文，取第一个节点（必是 quote）"
+}

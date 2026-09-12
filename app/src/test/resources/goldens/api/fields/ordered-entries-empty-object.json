@@ -1,0 +1,8 @@
+{
+  "expected": [],
+  "fn": "orderedEntries",
+  "input": {
+    "value": {}
+  },
+  "name": "ordered-entries-empty-object"
+}

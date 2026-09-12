@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "foreign-host"
+  },
+  "fn": "parseNgaLink",
+  "input": "evil.example.com/read.php?tid=1",
+  "name": "parse-foreign-host-no-scheme"
+}

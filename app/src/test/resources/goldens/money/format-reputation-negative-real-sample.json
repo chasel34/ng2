@@ -1,0 +1,9 @@
+{
+  "expected": "-1110.9",
+  "fn": "formatReputation",
+  "input": {
+    "reputation": -1110.9
+  },
+  "name": "format-reputation-negative-real-sample",
+  "note": "固定一位小数（设计稿楼层头 `威望 1.0`）"
+}

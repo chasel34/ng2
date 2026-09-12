@@ -8,31 +8,18 @@
 *.mobileprovision
 *.pem
 
-# dependencies
-node_modules/
-
-# expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-.metro-health-check*
-
-# generated native folders
-/ios
-/android
+# Gradle / AGP 产物
+build/
+.gradle/
 .kotlin/
-*.orig.*
-# 本地 gradle 打包时 local expo module 的产物
-modules/*/android/build/
+local.properties
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
 
-# typescript
-*.tsbuildinfo
+# IDE
+.idea/
+*.iml
+captures/
+.cxx/
 
 # misc
 *.log
@@ -40,3 +27,13 @@ yarn-error.*
 
 # agent worktrees
 .claude/worktrees/
+
+# 设计稿画布的产物:2M 起,里面绝大部分是画布编辑器自己的压缩代码。
+# 源文件是同目录的 *.dc.html 与 canvas.json,产物随时能从它们重新 seed 出来
+.scratch/*/*.html
+!.scratch/*/*.dc.html
+
+# 性能脚本的本地 venv(按 scripts/perf/README.md 重建)
+scripts/perf/.venv/
+__pycache__/
+*.pyc

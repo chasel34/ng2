@@ -1,0 +1,6 @@
+{
+  "expected": null,
+  "fn": "parseBoardIdInput",
+  "input": "65.5",
+  "name": "parse-board-id-input-float"
+}

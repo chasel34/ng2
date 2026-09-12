@@ -1,0 +1,8 @@
+{
+  "expected": {},
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": "AwAAA0MBAAAAIA~1"
+  },
+  "name": "parse-topic-misc-tilde-one-suffix"
+}

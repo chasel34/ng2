@@ -1,0 +1,6 @@
+{
+  "expected": "AB你",
+  "fn": "unescapeNgaText",
+  "input": "&#65;&#x42;&#20320;",
+  "name": "unescape-numeric-entities"
+}

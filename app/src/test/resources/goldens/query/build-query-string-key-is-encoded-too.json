@@ -1,0 +1,13 @@
+{
+  "expected": "a%20b=c%20d",
+  "fn": "buildQueryString",
+  "input": {
+    "params": [
+      [
+        "a b",
+        "c d"
+      ]
+    ]
+  },
+  "name": "build-query-string-key-is-encoded-too"
+}

@@ -1,0 +1,8 @@
+{
+  "expected": true,
+  "fn": "isReplyHeaderNode",
+  "input": {
+    "text": "[b]Reply to 楼上[/b]"
+  },
+  "name": "is-reply-header-node-handwritten-header-without-pid"
+}

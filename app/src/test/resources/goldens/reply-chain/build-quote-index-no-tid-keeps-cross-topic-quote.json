@@ -1,0 +1,39 @@
+{
+  "expected": {
+    "loaded": [
+      8
+    ],
+    "quotedBy": [
+      [
+        555,
+        [
+          8
+        ]
+      ]
+    ],
+    "quotes": [
+      [
+        8,
+        [
+          {
+            "page": 1,
+            "pid": 555,
+            "tid": 99999
+          }
+        ]
+      ]
+    ]
+  },
+  "fn": "buildQuoteIndex",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=555,99999,1]Reply[/pid]别帖的话[/quote]",
+        "lou": 4,
+        "pid": 8
+      }
+    ]
+  },
+  "name": "build-quote-index-no-tid-keeps-cross-topic-quote",
+  "note": "不给 tid 就不做跨帖过滤"
+}

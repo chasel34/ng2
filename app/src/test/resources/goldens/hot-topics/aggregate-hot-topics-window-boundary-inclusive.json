@@ -1,0 +1,46 @@
+{
+  "expected": [
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799913600,
+      "replies": 0,
+      "tid": 1
+    },
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799999990,
+      "replies": 0,
+      "tid": 3
+    }
+  ],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000
+    },
+    "pages": [
+      [
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799913600,
+          "replies": 0,
+          "tid": 1
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799913599,
+          "replies": 0,
+          "tid": 2
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799999990,
+          "replies": 0,
+          "tid": 3
+        }
+      ]
+    ]
+  },
+  "name": "aggregate-hot-topics-window-boundary-inclusive",
+  "note": "恰好 24h 含边界，过线 1 秒就出局"
+}

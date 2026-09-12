@@ -1,0 +1,11 @@
+{
+  "expected": [],
+  "fn": "parseBoardFavorites",
+  "input": {
+    "envelope": "wrapped",
+    "part": "data",
+    "text": "{\"data\":{},\"time\":1786157689}"
+  },
+  "name": "empty",
+  "note": "nuke.php __lib=forum_favor2 __act=forum_favor action=get __output=8，登录态、收藏为空"
+}

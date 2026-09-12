@@ -1,0 +1,14 @@
+{
+  "expected": "https://i.imgur.example/attachments/x.jpg",
+  "fn": "attachmentUrl",
+  "input": {
+    "options": {
+      "base": "https://img.nga.cn/attachments"
+    },
+    "ref": {
+      "needsAttachBase": false,
+      "src": "https://i.imgur.example/attachments/x.jpg"
+    }
+  },
+  "name": "attachment-url-absolute-outside"
+}

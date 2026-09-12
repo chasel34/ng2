@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "ok": false,
+    "reason": "unsupported-path"
+  },
+  "fn": "parseNgaLink",
+  "input": "https://bbs.nga.cn/",
+  "name": "parse-host-root"
+}

@@ -1,0 +1,17 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "内容"
+        }
+      ],
+      "title": "剧透",
+      "type": "collapse"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[collapse=剧透]内容[/collapse]",
+  "name": "collapse-with-title"
+}

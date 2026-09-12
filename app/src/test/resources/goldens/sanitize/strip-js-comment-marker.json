@@ -1,0 +1,7 @@
+{
+  "expected": "{\"data\":{\"0\":1}}",
+  "fn": "sanitizeNgaJson",
+  "input": "{\"data\":/*$js$*/{\"0\":1}}",
+  "name": "strip-js-comment-marker",
+  "note": "§0.6 第 3 步"
+}

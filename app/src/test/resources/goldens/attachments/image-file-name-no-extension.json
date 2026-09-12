@@ -1,0 +1,7 @@
+{
+  "expected": "12345.jpg",
+  "fn": "imageFileName",
+  "input": "https://example.com/image/12345",
+  "name": "image-file-name-no-extension",
+  "note": "MediaStore 靠扩展名认类型，补 .jpg"
+}

@@ -1,0 +1,6 @@
+source=/Users/cola/.claude/jobs/e7f2363b/tmp/perf/s8-native-gallery-verify.mp4
+duration=34.93s frames=1191
+crop=800:1800:210:500 (viewer content center; status/notification bars excluded)
+filter=blackdetect=d=0:pix_th=0.10:pic_th=0.95
+black_intervals=0
+verdict=no all-black frame in the sampled viewer content region

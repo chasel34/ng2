@@ -1,0 +1,14 @@
+{
+  "expected": {
+    "bold": false,
+    "color": "green",
+    "italic": true,
+    "underline": true
+  },
+  "fn": "decodeTitleStyle",
+  "input": {
+    "titlefont": "196"
+  },
+  "name": "decode-title-style-titlefont-string",
+  "note": "196 = 4(绿) + 64(斜) + 128(下划线)"
+}

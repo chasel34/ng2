@@ -1,0 +1,22 @@
+{
+  "expected": [
+    {
+      "loaded": true,
+      "pid": 9,
+      "role": "current"
+    }
+  ],
+  "fn": "buildReplyChain",
+  "input": {
+    "floors": [
+      {
+        "content": "就一句话",
+        "lou": 9,
+        "pid": 9
+      }
+    ],
+    "startPid": 9,
+    "tid": 45150945
+  },
+  "name": "build-reply-chain-lonely-floor-from-9"
+}

@@ -1,0 +1,20 @@
+{
+  "expected": null,
+  "fn": "int",
+  "input": {
+    "key": "missing",
+    "record": {
+      "bad": "abc",
+      "count": 12,
+      "countText": " 34 ",
+      "emojiSubject": "&amp;#55357;&amp;#56836;",
+      "empty": "   ",
+      "float": 3.9,
+      "name": "  原神  ",
+      "nested": {},
+      "subject": "&lt;第六感&gt;那个小孩",
+      "zero": 0
+    }
+  },
+  "name": "int-missing"
+}

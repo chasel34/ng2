@@ -1,0 +1,60 @@
+{
+  "expected": [
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799996400,
+      "replies": 7,
+      "tid": 1
+    },
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799996400,
+      "replies": 5,
+      "tid": 3
+    },
+    {
+      "lastPostAt": 1799999940,
+      "postedAt": 1799996400,
+      "replies": 3,
+      "tid": 2
+    }
+  ],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000
+    },
+    "pages": [
+      [
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 7,
+          "tid": 1
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 3,
+          "tid": 2
+        }
+      ],
+      [
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 7,
+          "tid": 1
+        },
+        {
+          "lastPostAt": 1799999940,
+          "postedAt": 1799996400,
+          "replies": 5,
+          "tid": 3
+        }
+      ]
+    ]
+  },
+  "name": "aggregate-hot-topics-dedup-across-pages",
+  "note": "置顶主题每页都会再回来一次"
+}

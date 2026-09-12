@@ -1,0 +1,14 @@
+{
+  "expected": [],
+  "fn": "aggregateHotTopics",
+  "input": {
+    "options": {
+      "now": 1800000000
+    },
+    "pages": [
+      [],
+      []
+    ]
+  },
+  "name": "aggregate-hot-topics-all-pages-empty"
+}

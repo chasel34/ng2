@@ -1,0 +1,13 @@
+{
+  "expected": "searchpost=1",
+  "fn": "buildQueryString",
+  "input": {
+    "params": [
+      [
+        "searchpost",
+        true
+      ]
+    ]
+  },
+  "name": "build-query-string-true-becomes-one"
+}

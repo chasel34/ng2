@@ -1,0 +1,12 @@
+{
+  "expected": {
+    "mask": 32,
+    "sfid": -8725919
+  },
+  "fn": "parseTopicMisc",
+  "input": {
+    "raw": "A/962mEBAAAAIA"
+  },
+  "name": "parse-topic-misc-negative-sfid",
+  "note": "高位为 1 的 sfid 是负数版块 id，不是四十亿"
+}

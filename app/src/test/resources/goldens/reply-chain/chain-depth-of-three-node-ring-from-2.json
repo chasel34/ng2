@@ -1,0 +1,26 @@
+{
+  "expected": 3,
+  "fn": "chainDepthOf",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=3,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>x[/quote]",
+        "lou": 1,
+        "pid": 1
+      },
+      {
+        "content": "[quote][pid=1,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>x[/quote]",
+        "lou": 2,
+        "pid": 2
+      },
+      {
+        "content": "[quote][pid=2,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>x[/quote]",
+        "lou": 3,
+        "pid": 3
+      }
+    ],
+    "startPid": 2,
+    "tid": 45150945
+  },
+  "name": "chain-depth-of-three-node-ring-from-2"
+}

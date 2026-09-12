@@ -1,0 +1,43 @@
+{
+  "expected": [
+    {
+      "loaded": true,
+      "pid": 7,
+      "ref": {
+        "page": 1,
+        "pid": 7,
+        "tid": 45150945
+      },
+      "role": "upstream"
+    },
+    {
+      "loaded": true,
+      "pid": 9,
+      "role": "current"
+    }
+  ],
+  "fn": "buildReplyChain",
+  "input": {
+    "floors": [
+      {
+        "content": "[quote][pid=7,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>自己[/quote]",
+        "lou": 3,
+        "pid": 7
+      },
+      {
+        "content": "[quote][pid=555,99999,1]Reply[/pid]别帖的话[/quote]",
+        "lou": 4,
+        "pid": 8
+      },
+      {
+        "content": "[quote][pid=7,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>a[/quote][quote][pid=7,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>b[/quote]",
+        "lou": 5,
+        "pid": 9
+      }
+    ],
+    "startPid": 9,
+    "tid": 45150945
+  },
+  "name": "build-reply-chain-self-and-cross-topic-quotes-dropped-from-9",
+  "note": "引用自己、跨帖引用不进索引；同目标引两次只记一条"
+}

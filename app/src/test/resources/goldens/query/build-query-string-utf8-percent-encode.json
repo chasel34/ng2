@@ -1,0 +1,14 @@
+{
+  "expected": "key=%E5%8E%9F%E7%A5%9E",
+  "fn": "buildQueryString",
+  "input": {
+    "params": [
+      [
+        "key",
+        "原神"
+      ]
+    ]
+  },
+  "name": "build-query-string-utf8-percent-encode",
+  "note": "thread.php 的 key 是 UTF-8"
+}

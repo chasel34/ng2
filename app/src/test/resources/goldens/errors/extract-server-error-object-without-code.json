@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "code": "?",
+    "message": "未登录"
+  },
+  "fn": "extractServerError",
+  "input": {
+    "error": {
+      "0": "未登录"
+    }
+  },
+  "name": "extract-server-error-object-without-code"
+}

@@ -1,0 +1,480 @@
+Applications Graphics Acceleration Info:
+Uptime: 291161713 Realtime: 774307200
+
+** Graphics info for pid 760 [com.chasel.ng2.n] **
+
+Stats since: 291151908180911ns
+Total frames rendered: 806
+Janky frames: 1 (0.12%)
+Janky frames (legacy): 10 (1.24%)
+50th percentile: 5ms
+90th percentile: 12ms
+95th percentile: 12ms
+99th percentile: 23ms
+Number Missed Vsync: 0
+Number High input latency: 1336
+Number Slow UI thread: 0
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 1
+Number Frame deadline missed: 1
+Number Frame deadline missed (legacy): 0
+HISTOGRAM: 5ms=500 6ms=36 7ms=10 8ms=6 9ms=10 10ms=60 11ms=62 12ms=86 13ms=18 14ms=2 15ms=2 16ms=2 17ms=0 18ms=0 19ms=2 20ms=0 21ms=0 22ms=0 23ms=4 24ms=2 25ms=0 26ms=0 27ms=0 28ms=2 29ms=0 30ms=0 31ms=0 32ms=2 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=0 97ms=0 101ms=0 105ms=0 109ms=0 113ms=0 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=0 200ms=0 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 3ms
+90th gpu percentile: 10ms
+95th gpu percentile: 11ms
+99th gpu percentile: 12ms
+GPU HISTOGRAM: 1ms=4 2ms=336 3ms=186 4ms=32 5ms=12 6ms=4 7ms=10 8ms=24 9ms=66 10ms=68 11ms=48 12ms=10 13ms=4 14ms=2 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+Pipeline=Skia (Vulkan)
+Memory policy:
+  Max surface area: 3240320
+  Max resource usage: 466.61MB (x48)
+  Background retention: 50% (altUiHidden = true)
+  GPU Context timeout: 10
+Contexts: 1 (stopped = 0)
+CPU Caches:
+  Glyph Cache: 2.41 MB (1 entry)
+  Glyph Count: 72
+Total CPU memory usage:
+  2524993 bytes, 2.41 MB (0.00 bytes is purgeable)
+GPU Caches:
+  Other:
+    Other: 35.70 KB (1 entry)
+    Buffer Object: 2.94 KB (6 entries)
+    GrVkImage: 1.23 MB (7 entries)
+  Image:
+    Surface: 36.04 MB (52 entries)
+  Scratch:
+    Surface: 4.00 MB (3 entries)
+    GrVkTextureRenderTarget: 49.88 MB (13 entries)
+    Buffer Object: 624.62 KB (19 entries)
+    GrVkImage: 896.00 KB (71 entries)
+Total GPU memory usage:
+  97180352 bytes, 92.68 MB (1.11 MB is purgeable)
+Detail dimensions:
+GrVkImage:				0		{1220x2656}	4
+GrVkTextureRenderTarget:				12961280		{1220x2656}	4
+Surface:				43264		{104x104}	26
+Surface:				3535360		{640x1381}	2
+GrVkImage:				0		{640x1381}	2
+Buffer Object:				49152		{0x0}	1
+GrVkImage:				0		{2048x1024}	1
+Surface:				2097152		{2048x1024}	1
+GrVkImage:				0		{320x690}	2
+GrVkImage:				0		{104x104}	26
+GrVkImage:				262144		{512x128}	2
+Surface:				883200		{320x690}	2
+GrVkImage:				0		{8x8}	1
+Buffer Object:				30720		{0x0}	1
+GrVkImage:				524288		{512x256}	2
+GrVkImage:				0		{512x256}	1
+GrVkImage:				0		{512x128}	1
+GrVkImage:				0		{64x128}	5
+GrVkTextureRenderTarget:				32768		{64x128}	5
+GrVkImage:				0		{128x1}	1
+Surface:				128		{128x1}	1
+GrVkTextureRenderTarget:				65536		{128x128}	1
+GrVkImage:				0		{128x128}	1
+GrVkImage:				0		{69x60}	6
+Surface:				16560		{69x60}	6
+GrVkImage:				131072		{256x128}	2
+GrVkImage:				0		{256x128}	1
+Buffer Object:				384		{0x0}	7
+Surface:				1353132		{603x561}	1
+GrVkImage:				0		{603x561}	1
+Surface:				3283200		{1080x760}	1
+GrVkImage:				0		{1080x760}	1
+GrVkImage:				0		{640x1422}	1
+Surface:				3640320		{640x1422}	1
+Surface:				554688		{642x216}	1
+GrVkImage:				0		{642x216}	1
+Surface:				16800		{70x60}	1
+GrVkImage:				0		{70x60}	1
+Surface:				3560960		{640x1391}	1
+GrVkImage:				0		{640x1391}	1
+Surface:				3678720		{640x1437}	1
+GrVkImage:				0		{640x1437}	1
+Surface:				15840		{66x60}	1
+GrVkImage:				0		{66x60}	1
+Surface:				16320		{68x60}	1
+GrVkImage:				0		{65x60}	1
+Surface:				15600		{65x60}	1
+GrVkImage:				0		{1024x512}	1
+GrVkImage:				0		{63x60}	1
+GrVkImage:				0		{792x1024}	1
+Surface:				3244032		{792x1024}	1
+Surface:				15120		{63x60}	1
+GrVkImage:				0		{541x1024}	1
+Surface:				2215936		{541x1024}	1
+Surface:				2199552		{537x1024}	1
+GrVkImage:				0		{68x60}	1
+GrVkImage:				0		{537x1024}	1
+Surface:				3919392		{1116x878}	1
+GrVkImage:				0		{1116x878}	1
+Surface:				2097152		{1024x512}	1
+GrVkImage:				16384		{64x64}	1
+GrVkImage:				262144		{256x256}	1
+GrVkImage:				65536		{256x64}	1
+GrVkImage:				32768		{128x64}	1
+Surface:				64		{8x8}	1
+Buffer Object:				98304		{0x0}	1
+Buffer Object:				131072		{0x0}	1
+GrVkTextureRenderTarget:				65536		{512x128}	1
+Buffer Object:				272		{0x0}	1
+Buffer Object:				192		{0x0}	1
+GrVkTextureRenderTarget:				32768		{256x128}	1
+Buffer Object:				65536		{0x0}	2
+Buffer Object:				32768		{0x0}	6
+Buffer Object:				264		{0x0}	1
+Buffer Object:				186		{0x0}	1
+Buffer Object:				1920		{0x0}	1
+Buffer Object:				180		{0x0}	1
+GrVkTextureRenderTarget:				131072		{512x256}	1
+
+GraphicBufferAllocator buffers:
+            Handle |         Size |     W (Stride) x H | Layers |   Format |      Usage | Requestor
+0xb400007badc385f0 |    30.00 KiB |   69 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc3d240 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc40c00 |  3230.00 KiB | 1080 (1088) x  760 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc4a6b0 |  2304.00 KiB |  537 ( 576) x 1024 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc4c180 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc4cf40 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc4ea10 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc4feb0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc50220 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc502d0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc514b0 |    30.00 KiB |   69 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc51e50 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc539d0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc53a80 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc55290 |  1402.50 KiB |  603 ( 640) x  561 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc57440 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc59d80 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc5bc70 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc5bd20 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc5d110 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc5d320 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc5eea0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc5f420 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc61310 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc61c00 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc62440 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc64a10 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc66380 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc69870 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc6adc0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc6d860 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc6e360 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc6e830 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc6e8e0 |    15.00 KiB |   63 (  64) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc70e00 |    30.00 KiB |   68 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc71010 |   862.50 KiB |  320 ( 320) x  690 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc72140 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc74f50 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc76b80 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc76fa0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc796d0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc7c220 |  3951.00 KiB | 1116 (1152) x  878 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc7ce80 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc7dda0 |  2304.00 KiB |  541 ( 576) x 1024 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badc81970 | 13280.00 KiB | 1220 (1280) x 2656 |      1 |        1 | 0x10000b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007badc823c0 | 13280.00 KiB | 1220 (1280) x 2656 |      1 |        1 | 0x10000b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007badc82aa0 | 13280.00 KiB | 1220 (1280) x 2656 |      1 |        1 | 0x10000b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007badc83440 | 13280.00 KiB | 1220 (1280) x 2656 |      1 |        1 | 0x10000b00 | VRI[MainActivity]#0(BLAST Consumer)0
+0xb400007badcac790 |  3555.00 KiB |  640 ( 640) x 1422 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badccc240 |  3328.00 KiB |  792 ( 832) x 1024 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badccc9d0 |   594.00 KiB |  642 ( 704) x  216 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badccd4d0 |  3477.50 KiB |  640 ( 640) x 1391 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badccea20 |    30.00 KiB |   69 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badce3e70 |    30.00 KiB |   70 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badce7a40 |    30.00 KiB |   69 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd59350 |    30.00 KiB |   69 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd59610 |    30.00 KiB |   66 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd5ab60 |    30.00 KiB |   69 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd5b0e0 |    30.00 KiB |   65 ( 128) x   60 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd5b500 |  3592.50 KiB |  640 ( 640) x 1437 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd5f180 |  3452.50 KiB |  640 ( 640) x 1381 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd61c20 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd65ab0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd67c60 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd68130 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd69470 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd6a2e0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd6af40 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd6b200 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd6c120 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd6ce30 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd6ec70 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd72370 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd74680 |  3452.50 KiB |  640 ( 640) x 1381 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd78bf0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd794e0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd796f0 |   862.50 KiB |  320 ( 320) x  690 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd7aa30 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd7bed0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd7f050 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd7f1b0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd80700 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd80de0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd81f10 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd840c0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd846f0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd84bc0 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+0xb400007badd86b60 |    52.00 KiB |  104 ( 128) x  104 |      1 |        1 | 0x     100 | AHardwareBuffer pid [760]
+Total allocated by GraphicBufferAllocator (estimate): 92871.50 KB
+Imported gralloc buffers:
++ name:AHardwareBuffer pid [760], id:284942, size:3952.00KiB, w/h:1116x878, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284940, size:2304.00KiB, w/h:537x1024, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284937, size:16.00KiB, w/h:63x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284943, size:32.00KiB, w/h:69x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284934, size:32.00KiB, w/h:69x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284906, size:3596.00KiB, w/h:640x1437, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284905, size:32.00KiB, w/h:69x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284904, size:32.00KiB, w/h:70x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284901, size:3556.00KiB, w/h:640x1422, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284900, size:3232.00KiB, w/h:1080x760, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284899, size:1404.00KiB, w/h:603x561, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284885, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284883, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284879, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284881, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284878, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284876, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284939, size:32.00KiB, w/h:68x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284874, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284873, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284872, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284870, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284869, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284903, size:596.00KiB, w/h:642x216, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284867, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284865, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284864, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284936, size:32.00KiB, w/h:65x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284863, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284941, size:2304.00KiB, w/h:541x1024, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284862, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284858, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284854, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284764, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284853, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284907, size:3480.00KiB, w/h:640x1391, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284785, size:864.00KiB, w/h:320x690, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284784, size:864.00KiB, w/h:320x690, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284783, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284868, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284782, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284933, size:32.00KiB, w/h:66x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284780, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284857, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284777, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284871, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284861, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284776, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284774, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:284752, size:13364.00KiB, w/h:1220x2656, usage: 0x10000b00, req fmt:1, fourcc/mod:0/0, dataspace: 0x8810000, compressed: true
++ name:AHardwareBuffer pid [760], id:284778, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284781, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284882, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284773, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:284751, size:13364.00KiB, w/h:1220x2656, usage: 0x10000b00, req fmt:1, fourcc/mod:0/0, dataspace: 0x8810000, compressed: true
++ name:AHardwareBuffer pid [760], id:284772, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284768, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284766, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284765, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284877, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284860, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284775, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284761, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284884, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284763, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284771, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284760, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284938, size:3328.00KiB, w/h:792x1024, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:284750, size:13364.00KiB, w/h:1220x2656, usage: 0x10000b00, req fmt:1, fourcc/mod:0/0, dataspace: 0x8810000, compressed: true
++ name:AHardwareBuffer pid [760], id:284866, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284759, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284758, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284762, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284757, size:3456.00KiB, w/h:640x1381, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284769, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284767, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284770, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284880, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284875, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284756, size:3456.00KiB, w/h:640x1381, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284755, size:32.00KiB, w/h:69x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284855, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284754, size:32.00KiB, w/h:69x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284859, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284856, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:AHardwareBuffer pid [760], id:284935, size:32.00KiB, w/h:69x60, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:VRI[MainActivity]#0(BLAST Consumer)0, id:284749, size:13364.00KiB, w/h:1220x2656, usage: 0x10000b00, req fmt:1, fourcc/mod:0/0, dataspace: 0x8810000, compressed: true
++ name:AHardwareBuffer pid [760], id:284779, size:52.00KiB, w/h:104x104, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
+Total imported by gralloc: 93252.00KiB
+
+Profile data in ms:
+
+	com.chasel.ng2.n/com.chasel.ng2n.MainActivity/android.view.ViewRootImpl@29e9fc8 (visibility=0)
+Window: com.chasel.ng2.n/com.chasel.ng2n.MainActivity
+Stats since: 291151908180390ns
+Total frames rendered: 806
+Janky frames: 1 (0.12%)
+Janky frames (legacy): 10 (1.24%)
+50th percentile: 5ms
+90th percentile: 12ms
+95th percentile: 12ms
+99th percentile: 23ms
+Number Missed Vsync: 0
+Number High input latency: 1336
+Number Slow UI thread: 0
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 1
+Number Frame deadline missed: 1
+Number Frame deadline missed (legacy): 0
+HISTOGRAM: 5ms=500 6ms=36 7ms=10 8ms=6 9ms=10 10ms=60 11ms=62 12ms=86 13ms=18 14ms=2 15ms=2 16ms=2 17ms=0 18ms=0 19ms=2 20ms=0 21ms=0 22ms=0 23ms=4 24ms=2 25ms=0 26ms=0 27ms=0 28ms=2 29ms=0 30ms=0 31ms=0 32ms=2 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=0 97ms=0 101ms=0 105ms=0 109ms=0 113ms=0 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=0 200ms=0 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 3ms
+90th gpu percentile: 10ms
+95th gpu percentile: 11ms
+99th gpu percentile: 12ms
+GPU HISTOGRAM: 1ms=4 2ms=336 3ms=186 4ms=32 5ms=12 6ms=4 7ms=10 8ms=24 9ms=66 10ms=68 11ms=48 12ms=10 13ms=4 14ms=2 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+
+RenderLite trim renderNode error: 0
+
+---PROFILEDATA---
+Flags,FrameTimelineVsyncId,IntendedVsync,Vsync,InputEventId,HandleInputStart,AnimationStart,PerformTraversalsStart,DrawStart,FrameDeadline,FrameStartTime,FrameInterval,WorkloadTarget,SyncQueued,SyncStart,IssueDrawCommandsStart,SwapBuffers,FrameCompleted,DequeueBufferDuration,QueueBufferDuration,GpuCompleted,SwapBuffersCompleted,DisplayPresentTime,CommandSubmissionCompleted,
+32,153574944,291155834500098,291155834500098,0,291155835040649,291155835041326,291155835330336,291155835362941,291156796568799,291155835023826,8318916,13666666,291155835605493,291155835638722,291155835798618,291155837418566,291155839326013,6979,148802,291155839326013,291155837620180,0,291155837418566,
+32,153574952,291155842818994,291155842818994,0,291155843121534,291155843122211,291155843922888,291155844133253,291156813206630,291155843106274,8318915,13666666,291155844249607,291155844305753,291155844458774,291155845776013,291155847748149,6563,145834,291155847748149,291155845975493,0,291155845776013,
+32,153574960,291155851137894,291155851137894,0,291155851483513,291155851484347,291155852037628,291155852067211,291156829844459,291155851465961,8318914,13666666,291155852082107,291155852126482,291155852263878,291155853240857,291155855164972,6563,139583,291155855164972,291155853432003,0,291155853240857,
+32,153574968,291155859456811,291155859456811,0,291155859990701,291155859991534,291155861252315,291155861299086,291156846482287,291155859968513,8318914,13666666,291155863937836,291155864031586,291155864267472,291155866133097,291155868657628,9635,231042,291155868657628,291155866442940,0,291155866133097,
+32,153574976,291155867775720,291155867775720,0,291155869525284,291155869525909,291155869745128,291155869773565,291156863120115,291155869510649,8318914,13666666,291155869984086,291155870062263,291155870310024,291155871156899,291155873266690,5209,128438,291155873266690,291155871331899,0,291155871156899,
+32,153574991,291155876094623,291155876094623,0,291155876490493,291155876490805,291155876737107,291155876766899,291156879757941,291155876475701,8318912,13666666,291155876934868,291155876964295,291155877131326,291155877856743,291155880046847,4531,138803,291155880046847,291155878035597,0,291155877856743,
+32,153575006,291155884413521,291155884413521,0,291155884668357,291155884668774,291155884897472,291155884919399,291156896395765,291155884654295,8318912,13666666,291155885074243,291155885102784,291155885219815,291155885951065,291155887666222,4375,115000,291155887666222,291155886111170,0,291155885951065,
+32,153575021,291155892732433,291155892732433,0,291155893106690,291155893107420,291155893721170,291155893751378,291156913033589,291155893090232,8318912,13666666,291155893846638,291155893930649,291155894086326,291155895145961,291155897327888,7864,148542,291155897327888,291155895352263,7306934700536131427,291155895145961,
+32,153575036,291155901051328,291155901051328,0,291155901439086,291155901439711,291155902087524,291155902122784,291156929671412,291155901421378,8318911,13666666,291155902144086,291155902202628,291155902376222,291155903689711,291155905465597,10572,199219,291155905465597,291155903960909,8318823021040067423,291155903689711,
+32,153575044,291155909370240,291155909370240,0,291155909877263,291155909878201,291155910316274,291155910353357,291156946309234,291155909852159,8318911,13666666,291155910610753,291155910651586,291155910832680,291155912216899,291155913946274,7343,188698,291155913946274,291155912557993,6874028453762003572,291155912216899,
+32,153575052,291155917689151,291155917689151,0,291155918582003,291155918582940,291155919136586,291155919184555,291156962947056,291155918514868,8318911,13666666,291155919462107,291155919518409,291155919703982,291155920986899,291155922771795,8490,200886,291155922771795,291155921259399,7956012745154194530,291155920986899,
+32,153575060,291155926008078,291155926008078,0,291155926463722,291155926464347,291155926718305,291155926746222,291156979584879,291155926448565,8318912,13666666,291155926917368,291155926957055,291155927071795,291155928208930,291155930229763,3646,143333,291155930229763,291155928424503,7307502065682249069,291155928208930,
+32,153575068,291155934326997,291155934326997,0,291155934827211,291155934827836,291155935689243,291155935734555,291156996222703,291155934811638,8318912,13666666,291155935932211,291155935991534,291155936228774,291155937182003,291155939076274,6823,157552,291155939076274,291155937392576,8169381708511007304,291155937182003,
+32,153575076,291155942645896,291155942645896,0,291155942921638,291155942922263,291155943473461,291155943499034,291157012860526,291155942904763,8318911,13666666,291155943514555,291155943559243,291155943696326,291155945010232,291155946891951,5937,147864,291155946891951,291155945210909,8097283393133169494,291155945010232,
+32,153575084,291155950964820,291155950964820,0,291155951464555,291155951465180,291155951818201,291155951850805,291157029498347,291155951446847,8318910,13666666,291155952079659,291155952122836,291155952258513,291155953366118,291155955298409,6666,149323,291155955298409,291155953568982,5431142508371378177,291155953366118,
+32,153575092,291155959283707,291155959283707,0,291155959608045,291155959608565,291155959898774,291155959930493,291157046136167,291155959592159,8318910,13666666,291155960149190,291155960200545,291155960347107,291155961367159,291155963836118,5729,134375,291155963836118,291155961552628,8589934592,291155961367159,
+32,153575100,291155967602608,291155967602608,0,291155967825597,291155967826326,291155968061586,291155968086118,291157062773986,291155967810388,8318909,13666666,291155968301222,291155968368618,291155968515649,291155970625753,291155974459451,7240,451511,291155974459451,291155971247211,0,291155970625753,
+32,153575108,291155975921517,291155975921517,0,291155976893565,291155976896795,291155978243201,291155978391274,291157079411804,291155976800232,8318909,13666666,291155979228826,291155979302576,291155979774347,291155981506795,291155983992420,24740,150729,291155983992420,291155981706899,0,291155981506795,
+32,153575116,291155984240429,291155984240429,0,291155984538357,291155984539034,291155984865024,291155984900284,291157096049622,291155984520545,8318909,13666666,291155985124763,291155985165440,291155985312368,291155986017993,291155987793461,11823,121562,291155987793461,291155986186274,0,291155986017993,
+32,153575132,291156000878263,291156000878263,-923123597,291156001186430,291156001874190,291156002308565,291156002340961,291157112687442,291156001166795,8318911,13666666,291156002629868,291156002691065,291156002862211,291156004430076,291156006278930,11510,188125,291156006278930,291156004694138,0,291156004430076,
+32,153575140,291156009197147,291156009197147,-100886060,291156009660336,291156010460961,291156011128253,291156011180180,291157129325262,291156009627368,8318909,13666666,291156012203201,291156012329920,291156012666482,291156014373201,291156017827003,17136,216667,291156017827003,291156014669920,0,291156014373201,
+32,153575148,291156017516056,291156017516056,-315253995,291156018435440,291156019466378,291156020512732,291156020577263,291157145963080,291156018393097,8318909,13666666,291156021264555,291156021385336,291156021552524,291156022749763,291156024906951,5885,168542,291156024906951,291156022972628,0,291156022749763,
+32,153575156,291156025834968,291156025834968,-866379681,291156026177680,291156026544034,291156026878513,291156026905857,291157162600898,291156026160336,8318909,13666666,291156027160597,291156027218930,291156027366378,291156028315857,291156030105232,6771,159688,291156030105232,291156028530232,0,291156028315857,
+32,153575164,291156034153894,291156034153894,-175867824,291156034551482,291156034931065,291156035224972,291156035250961,291157179238717,291156034535649,8318910,13666666,291156035443305,291156035494503,291156035632003,291156036623670,291156038429868,7292,146250,291156038429868,291156036825388,0,291156036623670,
+32,153575172,291156042472822,291156042472822,-929137385,291156043363409,291156043903149,291156044704659,291156044739190,291157195876538,291156043340753,8318911,13666666,291156044856482,291156044916899,291156045142472,291156046646222,291156048105180,10625,214792,291156048105180,291156046932524,0,291156046646222,
+32,153575180,291156050791750,291156050791750,-946717447,291156051257107,291156051593513,291156052132993,291156052157055,291157212514361,291156051240649,8318912,13666666,291156052171222,291156052230493,291156052392107,291156053192107,291156054889086,5937,152187,291156054889086,291156053396586,0,291156053192107,
+32,153575188,291156059110664,291156059110664,-14967542,291156059523618,291156059919763,291156060322628,291156060351899,291157229152185,291156059504711,8318912,13666666,291156060558305,291156060599295,291156060758253,291156061782368,291156063577263,7916,153125,291156063577263,291156061993045,0,291156061782368,
+32,153575196,291156067429561,291156067429561,-1046625103,291156067897055,291156068312836,291156068647263,291156068673045,291157245790008,291156067880180,8318911,13666666,291156068866899,291156069138878,291156069375909,291156070542940,291156072534555,21042,310104,291156072534555,291156070944295,0,291156070542940,
+32,153575204,291156075748443,291156075748443,-1019581355,291156076305909,291156076737836,291156077523565,291156077550284,291157262427828,291156076288565,8318909,13666666,291156078507003,291156078560492,291156078750492,291156079664763,291156081461951,8802,178750,291156081461951,291156079906482,0,291156079664763,
+32,153575212,291156084067353,291156084067353,-955650398,291156084354763,291156084791378,291156085073097,291156085098930,291157279065646,291156084338045,8318909,13666666,291156085439190,291156085574399,291156085738253,291156086718305,291156088296065,7188,178073,291156088296065,291156086960753,0,291156086718305,
+32,153575228,291156100705198,291156100705198,0,291156101071430,291156101072263,291156101373409,291156101401170,291157295703466,291156101053357,8318911,13666666,291156101613670,291156101650076,291156101798097,291156102956378,291156104518253,9166,181510,291156104518253,291156103204190,0,291156102956378,
+32,153575236,291156109024109,291156109024109,0,291156109255701,291156109256222,291156109504347,291156109532836,291157312341288,291156109241326,8318911,13666666,291156109722628,291156109762472,291156109928513,291156110858357,291156112259607,5834,149843,291156112259607,291156111056430,0,291156110858357,
+32,153575244,291156117343020,291156117343020,0,291156117606638,291156117607263,291156117856222,291156117884295,291157328979110,291156117592211,8318911,13666666,291156118115232,291156118155024,291156118288357,291156119149086,291156120765597,6979,144531,291156120765597,291156119338513,0,291156119149086,
+32,153575252,291156125661931,291156125661931,0,291156126116013,291156126116899,291156127108722,291156127148565,291157345616932,291156126096326,8318911,13666666,291156128435857,291156128521899,291156128707315,291156129864190,291156131581274,9271,226979,291156131581274,291156130163982,0,291156129864190,
+32,153575260,291156133980858,291156133980858,0,291156135872784,291156135873357,291156136097472,291156136128461,291157362254755,291156135858826,8318912,13666666,291156136330388,291156136390857,291156136603982,291156137537628,291156139517940,9115,159583,291156139517940,291156137753617,0,291156137537628,
+32,153575268,291156142299770,291156142299770,0,291156142806795,291156142807628,291156143115180,291156143153253,291157378892579,291156142788513,8318912,13666666,291156143378045,291156143420909,291156143579347,291156144866795,291156146601638,6093,129687,291156146601638,291156145049972,0,291156144866795,
+32,153575276,291156150618696,291156150618696,0,291156151124086,291156151124815,291156151414659,291156151448253,291157395530403,291156151108565,8318912,13666666,291156151649867,291156151703774,291156151858253,291156153029347,291156154806065,5572,147031,291156154806065,291156153232211,0,291156153029347,
+32,153575284,291156158937595,291156158937595,0,291156159272472,291156159273149,291156160253774,291156160283461,291157412168227,291156159255805,8318912,13666666,291156161676847,291156161814867,291156161977732,291156162923409,291156164725336,6615,146302,291156164725336,291156163124555,0,291156162923409,
+32,153575292,291156167256523,291156167256523,0,291156167549867,291156167550388,291156167767263,291156167792680,291157428806052,291156167536378,8318913,13666666,291156167987940,291156168055076,291156170195128,291156171944190,291156173399190,7083,194740,291156173399190,291156172198826,0,291156171944190,
+32,153575300,291156175575420,291156175575420,0,291156175949034,291156175949920,291156176318982,291156176355857,291157445443877,291156175931065,8318912,13666666,291156176578878,291156176620232,291156176791326,291156177774190,291156179522940,7031,143125,291156179522940,291156177969920,0,291156177774190,
+32,153575308,291156183894338,291156183894338,0,291156184255909,291156184256482,291156184520440,291156184551482,291157462081701,291156184240388,8318912,13666666,291156184747992,291156184790076,291156184939763,291156186095388,291156187892107,6146,149844,291156187892107,291156186296795,0,291156186095388,
+32,153575316,291156192213254,291156192213254,0,291156192500545,291156192501117,291156192780336,291156192812940,291157478719525,291156192485232,8318912,13666666,291156193020649,291156193062784,291156193211222,291156194511742,291156196328201,6406,146354,291156196328201,291156194711430,0,291156194511742,
+32,153575324,291156200532168,291156200532168,0,291156200945805,291156200946430,291156201297992,291156201337888,291157495357349,291156200929659,8318912,13666666,291156201608045,291156201665024,291156201844503,291156203356274,291156205816534,9115,194114,291156205816534,291156203622211,0,291156203356274,
+32,153575332,291156208851092,291156208851092,0,291156209259763,291156209260232,291156209480284,291156209503722,291157511995174,291156209246170,8318913,13666666,291156209670492,291156209715128,291156209864659,291156210855076,291156212722784,6823,142969,291156212722784,291156211048357,0,291156210855076,
+32,153575340,291156217170004,291156217170004,0,291156217593461,291156217594242,291156217931222,291156217963982,291157528633001,291156217576378,8318914,13666666,291156218165284,291156218226013,291156218376742,291156219312263,291156221201430,6823,142552,291156221201430,291156219507472,0,291156219312263,
+32,153575348,291156225488926,291156225488926,0,291156225955336,291156225956065,291156226266482,291156226300440,291157545270829,291156225937367,8318914,13666666,291156226595024,291156226631795,291156226807784,291156227916117,291156230146847,6510,180885,291156230146847,291156228152315,0,291156227916117,
+32,153575356,291156233807821,291156233807821,0,291156234151742,291156234152211,291156234761065,291156234789347,291157561908656,291156234137524,8318913,13666666,291156234868982,291156234909190,291156235071378,291156235962992,291156237815649,6146,162292,291156237815649,291156236172680,0,291156235962992,
+32,153575364,291156242126737,291156242126737,0,291156242469242,291156242469815,291156243010649,291156243034867,291157578546482,291156242453253,8318913,13666666,291156243049972,291156243095597,291156243235440,291156244244138,291156246145753,6718,151250,291156246145753,291156244453982,0,291156244244138,
+32,153575372,291156250445637,291156250445637,0,291156250872472,291156250873097,291156251192367,291156251216065,291157595184307,291156250856534,8318912,13666666,291156251531430,291156251617367,291156251765388,291156252734295,291156254528670,6614,130364,291156254528670,291156252913878,0,291156252734295,
+32,153575380,291156258764554,291156258764554,0,291156259093357,291156259093930,291156259361013,291156259390388,291157611822131,291156259077836,8318912,13666666,291156259594242,291156259635440,291156259798461,291156260852992,291156262727628,6041,141563,291156262727628,291156261049242,0,291156260852992,
+32,153575388,291156267083479,291156267083479,0,291156267617367,291156267617992,291156267892732,291156267922576,291157628459955,291156267600805,8318912,13666666,291156268205128,291156268276013,291156268453513,291156269381430,291156272163357,7500,152344,291156272163357,291156269588305,0,291156269381430,
+32,153575396,291156275402376,291156275402376,0,291156275759190,291156275759763,291156276348617,291156276375649,291157645097779,291156275665649,8318912,13666666,291156276465076,291156276525440,291156276703409,291156277633878,291156279623201,6667,155469,291156279623201,291156277842992,0,291156277633878,
+32,153575404,291156283721290,291156283721290,0,291156284074190,291156284075076,291156284632263,291156284710805,291157661735603,291156284057367,8318912,13666666,291156284728670,291156284770649,291156284938097,291156285955128,291156287866690,7188,175260,291156287866690,291156286193149,0,291156285955128,
+32,153575412,291156292040173,291156292040173,0,291156292440909,291156292441482,291156292756274,291156292785545,291157678373425,291156292423565,8318910,13666666,291156292992680,291156293040440,291156293182263,291156294026430,291156295819659,5209,87657,291156295819659,291156294150649,0,291156294026430,
+32,153575420,291156300359085,291156300359085,0,291156300558513,291156300558878,291156300769138,291156300808305,291157695011245,291156300546326,8318910,13666666,291156300943826,291156300967784,291156301062315,291156301624190,291156303413149,4062,103334,291156303413149,291156301760128,0,291156301624190,
+32,153575428,291156308677994,291156308677994,0,291156308831690,291156308831899,291156309167576,291156309186534,291157711649065,291156308821222,8318910,13666666,291156309791117,291156309810336,291156309901899,291156310527211,291156312413617,4427,114583,291156312413617,291156310675024,0,291156310527211,
+32,153575436,291156316996890,291156316996890,0,291156317212003,291156317212419,291156317560232,291156317578930,291157728286884,291156317199659,8318909,13666666,291156317669972,291156317703669,291156317796117,291156321181430,291156323083513,3802,161094,291156323083513,291156321415909,0,291156321181430,
+32,153575444,291156325315799,291156325315799,0,291156325676326,291156325677003,291156326491274,291156326516430,291157744924702,291156325656951,8318909,13666666,291156327774972,291156327836430,291156327977576,291156329000336,291156331541378,7344,146510,291156331541378,291156329200492,0,291156329000336,
+32,153575452,291156333634710,291156333634710,0,291156334026378,291156334026951,291156334347263,291156334385440,291157761562520,291156334009451,8318909,13666666,291156334667472,291156334708982,291156334852940,291156335782628,291156338185232,6979,149896,291156338185232,291156335986378,0,291156335782628,
+32,153575460,291156341953613,291156341953613,0,291156342819451,291156342820336,291156343123044,291156343154190,291157778200337,291156342796899,8318908,13666666,291156343390492,291156343421117,291156343553722,291156344496690,291156346962003,6979,139375,291156346962003,291156344686117,0,291156344496690,
+32,153575468,291156350272533,291156350272533,0,291156350724763,291156350725597,291156350998409,291156351028722,291157794838154,291156350708982,8318909,13666666,291156351286847,291156351347992,291156351480544,291156352798044,291156355529086,6770,143438,291156355529086,291156352996117,0,291156352798044,
+32,153575476,291156358591442,291156358591442,0,291156359051899,291156359052576,291156359343930,291156359372211,291157811475972,291156359035701,8318909,13666666,291156359621326,291156359662992,291156359801794,291156360775388,291156363355076,6406,147500,291156363355076,291156360975961,0,291156360775388,
+32,153575484,291156366910350,291156366910350,0,291156367242003,291156367242680,291156367483878,291156367512003,291157828113791,291156367226690,8318910,13666666,291156367792732,291156367819815,291156367955076,291156369466222,291156372032419,5417,147604,291156372032419,291156369666326,0,291156369466222,
+32,153575492,291156375229275,291156375229275,0,291156375592628,291156375593253,291156375950440,291156375983826,291157844751611,291156375576742,8318910,13666666,291156376281690,291156376350492,291156376480076,291156378292419,291156380808253,5885,139271,291156380808253,291156378514034,0,291156378292419,
+32,153575500,291156383548186,291156383548186,0,291156383945232,291156383945753,291156384219919,291156384249659,291157861389432,291156383930857,8318911,13666666,291156384492263,291156384531794,291156384671586,291156385565492,291156388048774,5834,138750,291156388048774,291156385752628,0,291156385565492,
+32,153575508,291156391867112,291156391867112,0,291156392402367,291156392402940,291156392725492,291156392757940,291157878027254,291156392385440,8318911,13666666,291156393005076,291156393050232,291156393182940,291156394060388,291156396638201,5260,165990,291156396638201,291156394277836,0,291156394060388,
+32,153575516,291156400186029,291156400186029,0,291156400500128,291156400500753,291156401638565,291156401688930,291157894665076,291156400484242,8318911,13666666,291156402016690,291156402086274,291156402297524,291156403283774,291156405605388,6875,142605,291156405605388,291156403468097,0,291156403283774,
+32,153575524,291156408504937,291156408504937,0,291156408856794,291156408857263,291156409142211,291156409176899,291157911302898,291156408838305,8318911,13666666,291156409455284,291156409495649,291156409616794,291156411157628,291156413543669,6719,118490,291156413543669,291156411319086,0,291156411157628,
+32,153575532,291156416823861,291156416823861,0,291156417211065,291156417211742,291156417498826,291156417533982,291157927940721,291156417192003,8318912,13666666,291156417824659,291156417872576,291156418003201,291156418943044,291156421597263,6510,145677,291156421597263,291156419142159,0,291156418943044,
+32,153575540,291156425142773,291156425142773,-341487037,291156426780232,291156426781013,291156426929867,291156426960805,291157944578545,291156426764555,8318912,13666666,291156427074607,291156427115961,291156427254034,291156428202524,291156430534815,6875,131354,291156430534815,291156428385232,0,291156428202524,
+0,153575548,291156433461700,291156433461700,0,291156433698044,291156433761222,291156433764347,291156433794919,291157961216370,291156433681430,8318913,13666666,291156433905388,291156433937992,291156434058878,291156436414867,291156438256951,6614,219428,291156438256951,291156436714242,0,291156436414867,
+32,153575556,291156441780613,291156441780613,-86418681,291156442038722,291156442598461,291156443582576,291156443610544,291157977854196,291156442023669,8318913,13666666,291156444288044,291156444334867,291156444476847,291156445544659,291156447682107,6459,171042,291156447682107,291156445773513,125780153691231,291156445544659,
+32,153575564,291156450099522,291156450099522,-1051711114,291156450475649,291156450857263,291156451121326,291156451149034,291157994492022,291156450460701,8318913,13666666,291156451368409,291156451409815,291156451555961,291156452699034,291156455303149,7344,135781,291156455303149,291156452888982,7309464732524569964,291156452699034,
+32,153575572,291156458418436,291156458418436,-1017049461,291156458879503,291156459431794,291156459878565,291156459912732,291158011129848,291156458856638,8318913,13666666,291156460256482,291156460315857,291156460555284,291156461968044,291156463966222,10104,169480,291156463966222,291156462203357,8100961328684823647,291156461968044,
+32,153575580,291156466737363,291156466737363,-679262275,291156467148774,291156467491222,291156468317055,291156468343461,291158027767675,291156467133982,8318914,13666666,291156469035961,291156469078409,291156469222992,291156470242107,291156471550753,7240,160156,291156471550753,291156470466274,7809911830588908916,291156470242107,
+32,153575588,291156475056252,291156475056252,-744878415,291156475435753,291156475964242,291156476285909,291156476313617,291158044405501,291156475416586,8318912,13666666,291156476536742,291156476574503,291156476729503,291156477750128,291156479158722,7604,210625,291156479158722,291156478039555,7306085877491393385,291156477750128,
+32,153575596,291156483375164,291156483375164,-367994121,291156483683357,291156484043669,291156484323253,291156484347211,291158061043325,291156483668878,8318912,13666666,291156484532211,291156484567211,291156484721169,291156485745284,291156487620440,5781,166355,291156487620440,291156485971482,8097316434837661042,291156485745284,
+32,153575604,291156491694075,291156491694075,-48535601,291156492251586,291156492792107,291156493138722,291156493174242,291158077681149,291156492229867,8318912,13666666,291156493426378,291156493490649,291156493692784,291156494991430,291156496969659,6719,144010,291156496969659,291156495187576,0,291156494991430,
+32,153575612,291156500012989,291156500012989,-834311957,291156500364190,291156500802367,291156501549294,291156501577419,291158094318973,291156500347732,8318912,13666666,291156501667992,291156501698722,291156501952055,291156503030076,291156504912315,6979,159687,291156504912315,291156503248722,0,291156503030076,
+32,153575620,291156508331898,291156508331898,-525670480,291156508619503,291156508958461,291156509989503,291156510013774,291158110956797,291156508604607,8318912,13666666,291156511383513,291156511418878,291156511570180,291156512658305,291156513925180,6615,164167,291156513925180,291156512885128,0,291156512658305,
+32,153575628,291156516650797,291156516650797,-466490734,291156516967940,291156517327576,291156517570440,291156517596742,291158127594620,291156516955336,8318911,13666666,291156518233461,291156518270284,291156518457784,291156519465024,291156521471482,4323,142500,291156521471482,291156519661690,0,291156519465024,
+32,153575636,291156524969694,291156524969694,-810735046,291156525360284,291156525728461,291156526102159,291156526141274,291158144232441,291156525347315,8318910,13666666,291156526905805,291156526966534,291156527146690,291156528927628,291156530210128,8386,187917,291156530210128,291156529183513,0,291156528927628,
+32,153575644,291156533288593,291156533288593,-73396173,291156533652784,291156533673774,291156533962732,291156534021117,291158160870260,291156533630492,8318909,13666666,291156534437940,291156534472992,291156534616326,291156535520544,291156537241482,5729,132188,291156537241482,291156535697992,0,291156535520544,
+32,153575652,291156541607504,291156541607504,0,291156541824451,291156541824919,291156542129711,291156542191899,291158177508078,291156541808253,8318909,13666666,291156542882732,291156542925492,291156543093513,291156544180909,291156545664815,7187,154844,291156545664815,291156544391534,0,291156544180909,
+32,153575660,291156549926413,291156549926413,0,291156550508982,291156550509763,291156550885024,291156550926065,291158194145896,291156550483982,8318909,13666666,291156551739607,291156551794763,291156551974919,291156553410388,291156555268409,7605,197552,291156555268409,291156553677888,0,291156553410388,
+32,153575668,291156558245327,291156558245327,0,291156558875961,291156558876482,291156559177263,291156559208357,291158210783714,291156558857419,8318909,13666666,291156559804190,291156559853096,291156559997367,291156561187211,291156563097836,66875,160625,291156563097836,291156561407055,0,291156561187211,
+32,153575676,291156566564265,291156566564265,0,291156567288878,291156567289555,291156567734503,291156567781586,291158227421534,291156567254711,8318911,13666666,291156568679555,291156568740753,291156569237419,291156571246690,291156573662576,14427,171875,291156573662576,291156571471378,0,291156571246690,
+32,153575684,291156574883180,291156574883180,0,291156575173149,291156575173826,291156575474607,291156575504815,291158244059356,291156575154867,8318911,13666666,291156576244242,291156576293878,291156576463826,291156577967003,291156579918617,5782,203646,291156579918617,291156578230180,0,291156577967003,
+32,153575692,291156583202104,291156583202104,0,291156583623826,291156583624451,291156584964763,291156585030388,291158260697179,291156583601378,8318912,13666666,291156586167992,291156586236221,291156586465805,291156587804763,291156589849138,6823,192396,291156589849138,291156588060024,0,291156587804763,
+32,153575700,291156591521018,291156591521018,0,291156591743357,291156591743826,291156594671690,291156594768253,291158277335003,291156591730440,8318912,13666666,291156595400544,291156595480857,291156595671117,291156596773826,291156598288096,5677,215468,291156598288096,291156597048149,0,291156596773826,
+32,153575708,291156599839927,291156599839927,0,291156600566794,291156600567628,291156601259867,291156601303565,291158293972827,291156600542055,8318912,13666666,291156601858982,291156601904867,291156602071794,291156603216899,291156605155961,7135,141198,291156605155961,291156603414242,0,291156603216899,
+32,153575716,291156608158838,291156608158838,0,291156608635076,291156608635909,291156609011742,291156609080857,291158310610651,291156608611794,8318912,13666666,291156609945701,291156610047159,291156610469503,291156612165544,291156614354503,14480,224844,291156614354503,291156612470753,0,291156612165544,
+32,153575724,291156616477755,291156616477755,0,291156616954034,291156616954659,291156617978357,291156618015961,291158327248475,291156616931690,8318912,13666666,291156619127940,291156619189867,291156619398774,291156620858461,291156623131378,7500,212968,291156623131378,291156621138565,0,291156620858461,
+32,153575732,291156624796667,291156624796667,0,291156625173774,291156625174346,291156625673930,291156625703044,291158343886299,291156625157315,8318912,13666666,291156626214555,291156626279086,291156626475961,291156627672628,291156629445753,6979,191094,291156629445753,291156627923669,0,291156627672628,
+32,153575740,291156633115605,291156633115605,0,291156633445961,291156633446378,291156633806169,291156633842211,291158360524125,291156633428513,8318914,13666666,291156634411899,291156634452576,291156634599242,291156635831274,291156637672628,5261,185677,291156637672628,291156636067315,0,291156635831274,
+32,153575748,291156641434516,291156641434516,0,291156641706586,291156641707159,291156641967055,291156641995232,291158377161953,291156641690076,8318914,13666666,291156642193044,291156642237107,291156642397836,291156643436482,291156645182576,6406,146771,291156645182576,291156643637315,0,291156643436482,
+32,153575756,291156649753431,291156649753431,0,291156650075180,291156650075805,291156651046899,291156651112315,291158393799781,291156650058565,8318914,13666666,291156651835544,291156651895649,291156652081899,291156653169086,291156654983201,6198,160885,291156654983201,291156653384555,0,291156653169086,
+32,153575764,291156658072345,291156658072345,0,291156658454294,291156658455128,291156659089138,291156659127211,291158410437609,291156658434815,8318914,13666666,291156659219867,291156659275284,291156659458253,291156660565492,291156662776378,7344,147343,291156662776378,291156660766690,0,291156660565492,
+32,153575772,291156666391256,291156666391256,0,291156666758461,291156666758930,291156667247211,291156667271690,291158427075436,291156666741378,8318913,13666666,291156667283982,291156667331586,291156667465857,291156668551742,291156670356794,5885,120365,291156670356794,291156668713461,0,291156668551742,
+32,153575780,291156674710154,291156674710154,0,291156674980336,291156674981013,291156675306013,291156675333982,291158443713262,291156674965596,8318913,13666666,291156675546742,291156675575753,291156675732367,291156676793201,291156678572784,5937,145990,291156678572784,291156676993409,0,291156676793201,
+32,153575788,291156683029052,291156683029052,0,291156683317315,291156683317836,291156684285961,291156684313669,291158460351087,291156683302211,8318912,13666666,291156685417159,291156685468721,291156685616846,291156686630284,291156688393669,6667,145781,291156688393669,291156686826013,0,291156686630284,
+32,153575796,291156691347953,291156691347953,0,291156691616690,291156691617367,291156691915440,291156691940388,291158476988910,291156691602159,8318911,13666666,291156692167628,291156692205596,291156692366274,291156693417055,291156695154815,6771,135938,291156695154815,291156693606951,0,291156693417055,
+32,153575804,291156699666867,291156699666867,0,291156700182992,291156700183513,291156700480596,291156700510440,291158493626732,291156700166169,8318911,13666666,291156700727628,291156700766794,291156700905232,291156701842732,291156703597732,7760,137656,291156703597732,291156702031846,0,291156701842732,
+32,153575812,291156707985781,291156707985781,0,291156708631690,291156708633461,291156709404242,291156709474763,291158510264554,291156708574711,8318911,13666666,291156709849659,291156709976013,291156710199294,291156711393409,291156713470336,7031,152812,291156713470336,291156711603149,0,291156711393409,
+32,153575820,291156716304665,291156716304665,0,291156716789451,291156716790076,291156717077367,291156717101586,291158526902374,291156716775753,8318909,13666666,291156717276013,291156717318878,291156717515284,291156718653305,291156720784919,6042,130625,291156720784919,291156718833721,0,291156718653305,
+32,153575828,291156724623574,291156724623574,0,291156726188565,291156726189346,291156726505805,291156726530232,291158543540192,291156726174711,8318909,13666666,291156726762315,291156726817471,291156727052003,291156728047940,291156729933774,5886,118646,291156729933774,291156728210076,0,291156728047940,
+32,153575836,291156732942483,291156732942483,0,291156733249034,291156733249503,291156733593409,291156733629398,291158560178010,291156733224451,8318909,13666666,291156733870701,291156733930544,291156734063930,291156734994242,291156737037107,5990,135365,291156737037107,291156735178409,0,291156734994242,
+32,153575844,291156741261392,291156741261392,0,291156741569346,291156741569919,291156742549503,291156742593878,291158576815828,291156741546534,8318909,13666666,291156742717628,291156742778201,291156742953513,291156744430076,291156746488461,5573,186719,291156746488461,291156744670336,0,291156744430076,
+32,153575852,291156749580301,291156749580301,0,291156749879294,291156749879971,291156750490909,291156750524711,291158593453646,291156749861638,8318909,13666666,291156750542211,291156750595128,291156750767003,291156752224659,291156754138461,6615,150989,291156754138461,291156752431898,0,291156752224659,
+32,153575860,291156757899212,291156757899212,0,291156758456378,291156758456951,291156758927315,291156758972836,291158610091464,291156758437367,8318909,13666666,291156759357523,291156759425648,291156759599294,291156760944086,291156762726690,6563,143125,291156762726690,291156761143826,0,291156760944086,
+32,153575868,291156766218110,291156766218110,0,291156766584398,291156766584971,291156767233044,291156767262159,291158626729281,291156766566117,8318908,13666666,291156767352263,291156767409242,291156767557419,291156768670388,291156770787107,5885,130990,291156770787107,291156768856169,0,291156768670388,
+32,153575876,291156774537021,291156774537021,0,291156774973305,291156774973878,291156775719815,291156775752628,291158643367097,291156774954867,8318908,13666666,291156775844398,291156775898253,291156776081586,291156777022628,291156778820388,6198,146771,291156778820388,291156777224242,0,291156777022628,
+32,153575884,291156782855960,291156782855960,0,291156783301898,291156783302523,291156783874919,291156783903461,291158660004915,291156783283044,8318910,13666666,291156783921013,291156784087211,291156784300596,291156785579503,291156787556638,9687,225521,291156787556638,291156785886742,0,291156785579503,
+32,153575892,291156791174871,291156791174871,0,291156791561898,291156791562576,291156792138513,291156792166378,291158676642735,291156791546273,8318910,13666666,291156792182263,291156792228773,291156792463044,291156793482315,291156795257576,8646,149479,291156795257576,291156793687888,0,291156793482315,
+32,153575908,291156807812708,291156807812708,0,291156808691378,291156808692940,291156811873461,291156811935961,291158693280556,291156808652992,8318911,13666666,291156818312888,291156818364190,291156818743565,291156819826586,291156820963721,9427,167968,291156820963721,291156820045596,0,291156819826586,
+32,153575915,291156816131617,291156816131617,0,291156821883096,291156821883669,291156822212211,291156822270596,291158709918378,291156821868617,8318911,13666666,291156822680492,291156822702628,291156822889659,291156823671534,291156827807263,3594,180521,291156827807263,291156823887159,0,291156823671534,
+32,153576108,291157007042427,291157007042427,0,291157007673044,291157007673617,291157009918825,291157009967575,291158726543711,291157007660440,8306422,13666666,291157019105388,291157019213669,291157019414971,291157021752159,291157023091742,14062,199167,291157023091742,291157022012628,0,291157021752159,
+32,153576115,291157015348849,291157015348849,0,291157019702211,291157019702523,291157019793878,291157019817211,291158743156555,291157019692628,8306422,13666666,291157019849190,291157022034242,291157022113721,291157022725180,291157023721117,3021,377292,291157023721117,291157023129190,0,291157022725180,
+32,153576215,291157131408954,291157131408954,0,291157131611898,291157131612367,291157133165492,291157133252680,291158759764268,291157131600596,8301291,13666666,291157148852107,291157148988878,291157150114190,291157152859450,291157165387575,66666,210156,291157165387575,291157153137003,0,291157152859450,
+0,153576222,291157139710245,291157148011536,0,291157150480128,291157150480805,291157150485544,291157150583200,291158776366850,291157150446534,8301291,13666666,291157150761950,291157153159815,291157153256221,291157153921950,291157166545909,2969,11962448,291157166545909,291157165938044,0,291157153921950,
+---PROFILEDATA---
+
+
+View hierarchy:
+
+  com.chasel.ng2.n/com.chasel.ng2n.MainActivity/android.view.ViewRootImpl@29e9fc8
+  12 views, 22.71 kB of render nodes
+
+
+  Dynamic VRI BBQ Log.  render_draw: false  hdr_dimmer: false  blur_blend: false  hwui_window_decor: false  sync_barrier: false
+
+Total ViewRootImpl   : 1
+Total attached Views : 12
+Total RenderNode     : 22.71 kB (used) / 46.77 kB (capacity)

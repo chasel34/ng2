@@ -1,0 +1,18 @@
+== 来源 ==
+  真机 Perfetto FrameTimeline；仍须独立满足 release(T7)、前台(T4)、120Hz(T1)。
+
+== 配对 ==
+  layer: TX - com.chasel.ng2.n/com.chasel.ng2n.MainActivity#136459
+  actual surface→display token: 744；可用 presented 帧: 743
+  surface present_type: {'Late Present': 661, 'On-time Present': 82, 'Dropped Frame': 1}；display present_type: {'Late Present': 661, 'On-time Present': 83}
+  指标: actual display frame start→present（C8 Perfetto 等价峰形；非 app surface dur）
+  推定 vsync: 8.333 ms；present2present 中位数: 8.319 ms
+
+== 1ms 直方图 ==
+  10ms=81 11ms=1 12ms=1 15ms=4 16ms=11 17ms=14 18ms=540 19ms=75 20ms=5 22ms=4 23ms=4 25ms=3
+
+== 单峰/双峰(C8) ==
+  低簇 [4.2,13.3)ms: 83 (11.2%), 中位 9.995ms
+  高簇 [13.3,22.5]ms: 653 (87.9%), 中位 18.293ms
+  其他: 7；可用帧 display present_type: {'Late Present': 660, 'On-time Present': 83}
+  裁决: 双峰【不通过】：两簇相差约一个 vsync，队列深度在两档间振荡

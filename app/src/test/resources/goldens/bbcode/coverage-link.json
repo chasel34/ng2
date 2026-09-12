@@ -1,0 +1,18 @@
+{
+  "expected": [
+    {
+      "children": [
+        {
+          "type": "text",
+          "value": "站外"
+        }
+      ],
+      "href": "https://example.test",
+      "type": "link"
+    }
+  ],
+  "fn": "parseBBCode",
+  "input": "[url=https://example.test]站外[/url]",
+  "name": "coverage-link",
+  "note": "渲染器覆盖清单（29 节点）里的样例"
+}

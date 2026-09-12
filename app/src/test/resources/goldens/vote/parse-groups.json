@@ -1,0 +1,52 @@
+{
+  "expected": {
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "1",
+            "points": 0,
+            "title": "甲",
+            "votes": 5
+          },
+          {
+            "chosen": false,
+            "id": "2",
+            "points": 0,
+            "title": "乙",
+            "votes": 3
+          }
+        ],
+        "votes": 8
+      },
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "4",
+            "points": 0,
+            "title": "丙",
+            "votes": 2
+          }
+        ],
+        "title": "===第二组===",
+        "votes": 2
+      }
+    ],
+    "kind": "vote",
+    "maxSelect": 1,
+    "multiple": false,
+    "resultAfterEnd": false,
+    "resultAfterVote": false,
+    "totalVotes": 10,
+    "voters": 9
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "1~甲~2~乙~3~===第二组===~4~丙~_1~5,0,9~_2~3,0,0~_3~0,0,0~_4~2,0,0",
+    "tid": 47331456
+  },
+  "name": "parse-groups",
+  "note": "=== 开头是分组分隔行"
+}

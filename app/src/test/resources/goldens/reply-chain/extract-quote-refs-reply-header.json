@@ -1,0 +1,15 @@
+{
+  "expected": [
+    {
+      "page": 2,
+      "pid": 777,
+      "tid": 45150945
+    }
+  ],
+  "fn": "extractQuoteRefs",
+  "input": {
+    "text": "[b]Reply to [pid=777,45150945,2]Reply[/pid] Post by [uid=233]李四[/uid] (2026-08-07 13:00)[/b]<br/>同意楼上"
+  },
+  "name": "extract-quote-refs-reply-header",
+  "note": "[b]Reply to …[/b] 回复头也认成引用"
+}

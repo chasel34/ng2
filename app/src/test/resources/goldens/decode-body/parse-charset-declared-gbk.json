@@ -1,0 +1,8 @@
+{
+  "expected": "gbk",
+  "fn": "parseCharset",
+  "input": {
+    "contentType": "text/javascript; charset=GBK"
+  },
+  "name": "parse-charset-declared-gbk"
+}

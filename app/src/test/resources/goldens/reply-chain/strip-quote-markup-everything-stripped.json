@@ -1,0 +1,8 @@
+{
+  "expected": [],
+  "fn": "stripQuoteMarkup",
+  "input": {
+    "text": "[quote][pid=1,45150945,1]Reply[/pid] [b]Post by [uid=41417929]张三[/uid] (2026-08-07 12:00):[/b]<br/>原话[/quote]"
+  },
+  "name": "strip-quote-markup-everything-stripped"
+}

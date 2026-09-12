@@ -1,0 +1,38 @@
+{
+  "expected": {
+    "groups": [
+      {
+        "options": [
+          {
+            "chosen": false,
+            "id": "1",
+            "points": 0,
+            "title": "甲",
+            "votes": 5
+          },
+          {
+            "chosen": false,
+            "id": "2",
+            "points": 0,
+            "title": "===第二组===",
+            "votes": 3
+          }
+        ],
+        "votes": 8
+      }
+    ],
+    "kind": "vote",
+    "maxSelect": 1,
+    "multiple": false,
+    "resultAfterEnd": false,
+    "resultAfterVote": false,
+    "totalVotes": 8,
+    "voters": 9
+  },
+  "fn": "parseVote",
+  "input": {
+    "raw": "1~甲~2~===第二组===~_1~5,0,9~_2~3,0,0",
+    "tid": 38056407
+  },
+  "name": "parse-groups-disabled-on-old-topic"
+}
