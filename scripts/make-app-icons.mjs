@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-/**
- * B2「阅读路径脚」的确定性图标导出管线。
- * release 是干净的玉色单脚；development 叠加朱红 DEV 徽标。
- * 依赖：rsvg-convert（librsvg）。
- */
 
 import { execFile } from 'node:child_process'
 import { mkdir, unlink, writeFile } from 'node:fs/promises'
@@ -24,7 +19,6 @@ const JADE_ON_DARK = '#1E9384'
 const VERMILION = '#E4512E'
 const WHITE = '#FFFFFF'
 
-// 标识相对上一版缩小约 30%，并顺时针旋转 30°，让脚趾朝向右上方。
 const MARK_SCALE = 0.7
 const MARK_ROTATION = 30
 const MARK_SOURCE_CENTER = { x: 518, y: 500 }

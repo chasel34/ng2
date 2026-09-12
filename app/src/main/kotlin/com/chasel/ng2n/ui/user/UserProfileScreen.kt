@@ -93,23 +93,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 
-/**
- * 用户资料页(设计稿 isProfile 屏)—— 直译 RN 侧 `src/app/user/[uid].tsx`。
- *
- * 从楼层头像/用户名、「我的主题/回复」列表进来。键里只有 uid 是必需的;
- * 名字也带一份,免得资料还没回来时顶栏下的 banner 是空的。
- */
-
-/** 设计稿:banner 118 高、头像 62 见方带 2px 白描边。 */
 private val BANNER_HEIGHT = 118.dp
 private val BANNER_AVATAR = 62.dp
 
-/** 设计稿 banner 的 `repeating-linear-gradient(135deg, …0 12px, …12px 24px)`。 */
 private val STRIPE_WIDTH = 12.dp
 private val STRIPE_PITCH = 34.dp
 private const val STRIPE_COUNT = 20
 
-/** 设计稿:声望条 96 宽、6 高。 */
 private val REPUTATION_BAR_WIDTH = 96.dp
 
 @Composable
@@ -122,7 +112,6 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
   val state = all[key.uid] ?: UserProfileRepository.State()
   LaunchedEffect(key.uid) { deps.userProfiles.ensureLoaded(key.uid) }
 
-  // 签名只能改自己的(服务端认 cookie 里的账号,别人的改不动),入口也只对自己出现
   val currentUid by deps.accounts.currentUid.collectAsStateWithLifecycle(initialValue = null)
   val isMine = currentUid != null && currentUid?.toLongOrNull() == key.uid
   var signOpen by remember { mutableStateOf(false) }
@@ -138,7 +127,6 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
       )
       TopBarTitle(text = "用户资料", variant = TopBarTitleVariant.SUB)
       Spacer(Modifier.weight(1f))
-      // 短消息不在 v1(spec §一.2、`research/inventory.md` §2 的桩清单),入口按设计稿留着
       TopBarButton(
         icon = Ng2nIcon.SMS,
         size = 22.dp,
@@ -166,7 +154,6 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
       )
 
       when {
-        // 这两块挂在滚动内容里,撑不出整屏高度,所以走 inline 档
         state.profile == null && state.loading -> LoadingState(variant = StateVariant.INLINE)
         state.profile == null -> LoadFailedNotice(
           error = state.error,
@@ -180,7 +167,6 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
     }
   }
 
-  // 签名可以换行,所以是多行输入;写的是原文,BBCode 标签照打
   InputDialog(
     open = signOpen,
     title = "修改签名",
@@ -195,8 +181,6 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
       if (writer == null) {
         Snackbars.show("登录后才能改签名")
       } else {
-        // 存的是原文,转义交给 core(提交时转、读回来时解)。存完重拉资料——
-        // 页面上那段签名要以服务端存下来的为准,不能拿输入框里的字冒充
         scope.launch {
           runCatching { deps.userProfiles.saveSignature(writer, text) }.fold(
             onSuccess = { Snackbars.show("签名已保存") },
@@ -208,7 +192,6 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
   )
 }
 
-/** banner:斜纹底 + 头像 + 用户名 + UID(设计稿 isProfile 顶部那块)。 */
 @Composable
 private fun Banner(uid: Long, name: String, avatarUrl: String?) {
   val colors = LocalNg2nColors.current
@@ -219,21 +202,12 @@ private fun Banner(uid: Long, name: String, avatarUrl: String?) {
       .fillMaxWidth()
       .height(BANNER_HEIGHT)
       .background(colors.primary)
-      // 斜条纹会伸到 banner 外面去,靠这一句裁掉(设计稿 `overflow:hidden`)
       .clipToBounds(),
   ) {
-    // 设计稿的 135° 斜条纹。Compose 没有 repeating-linear-gradient,
-    // 拿等距的旋转窄条铺(与 RN 版同一个做法、同一组数值)
     for (index in 0 until STRIPE_COUNT) {
       Box(
         Modifier
-          // RN 侧是 `top:-BANNER_HEIGHT; left:index*PITCH`,旋转绕自身中心 ——
-          // 三倍高的窄条要先上移一整屏高,转 45° 之后才正好斜穿过 banner
           .offset(x = STRIPE_PITCH * index, y = -BANNER_HEIGHT)
-          // ⚠️ 必须是 required 档(票 47):`width`/`height` 会把尺寸**夹进父级传下来的
-          // 约束**,banner 只有 118 高,三倍高的窄条会被压成 118 —— 压完再绕中心转 45°,
-          // 整条就落在 y<0 那一半,被 `clipToBounds` 裁得一根不剩,于是斜纹整层看不见。
-          // `requiredWidth`/`requiredHeight` 不吃父约束,窄条才真有 354 长。
           .requiredWidth(STRIPE_WIDTH)
           .requiredHeight(BANNER_HEIGHT * 3)
           .rotate(45f)
@@ -290,8 +264,6 @@ private fun Banner(uid: Long, name: String, avatarUrl: String?) {
           ),
         )
         Text(
-          // 全角冒号,与 RN 侧 `用户 ID：{uid}` 逐字一致 —— 半角冒号后没有间隔,
-          // 标签和值会挤成一坨(票 47)
           text = "用户 ID：$uid",
           modifier = Modifier.padding(top = Spacing.xs),
           style = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp, color = colors.onPrimary.copy(alpha = 0.85f)),
@@ -301,7 +273,6 @@ private fun Banner(uid: Long, name: String, avatarUrl: String?) {
   }
 }
 
-/** 设计稿基础信息卡:两列八格,状态一格带颜色。 */
 private data class BasicField(val label: String, val value: String, val color: Color? = null)
 
 @Composable
@@ -317,10 +288,7 @@ private fun basicFields(profile: UserProfile, colors: Ng2nColors): List<BasicFie
     BasicField("Tel", profile.phone ?: "N/A"),
     BasicField("用户组", profile.group ?: "N/A"),
     BasicField("发帖数", profile.postCount.toString()),
-    // 金钱是铜币总数,显示成「金.银.铜」(API 文档 §11.1)
     BasicField("金钱", formatMoney(profile.money.toDouble())),
-    // 设计稿的八格里没有威望,但它是资料页该有的一项,补在金钱后面凑满一行;
-    // 值已按 rvrc ÷ 10 换算过
     BasicField("威望", formatReputation(profile.reputation)),
     BasicField("状态", status.first, status.second),
     BasicField("注册日期", profile.registeredAt?.let(::dateText) ?: "N/A"),
@@ -339,17 +307,11 @@ private fun ProfileBody(profile: UserProfile, onEditSignature: (() -> Unit)?) {
   ) {
     Card {
       CardTitle(":: 基础信息 ::")
-      // 设计稿是两列网格,行距 9、列距 12。列距不能写 spacedBy:格子是 50% 宽的,
-      // 加了 gap 就撑破一行,所以拆成两边各半个内距
       Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
         for (row in fields.chunked(2)) {
           Row(Modifier.fillMaxWidth()) {
             for ((column, field) in row.withIndex()) {
               Text(
-                // 一格 = 「标签」+ 「值」两段,颜色分开(票 47):RN 侧外层 `gridCell` 是
-                // fg2、内层那段值才是 `field.color ?? fg`,所以「状态:」的标签是正文色、
-                // 只有「已激活」是绿的 —— 整行染绿是把两段并成一段染出来的。
-                // 冒号用全角,与 RN 侧逐字一致:半角冒号后没有间隔。
                 text = buildAnnotatedString {
                   withStyle(SpanStyle(color = colors.fg2)) { append("${field.label}：") }
                   withStyle(SpanStyle(color = field.color ?: colors.fg)) { append(field.value) }
@@ -366,12 +328,10 @@ private fun ProfileBody(profile: UserProfile, onEditSignature: (() -> Unit)?) {
                 style = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, color = colors.fg2),
               )
             }
-            // 奇数格补一个空位,最后一行才不会把唯一那格拉满宽
             if (row.size == 1) Spacer(Modifier.weight(1f))
           }
         }
       }
-      // 禁言有到期时间时把它说清楚,只标一个「禁言中」看不出还剩多久
       profile.mutedUntil?.let { until ->
         Text(
           text = "禁言至 ${dateText(until)}",
@@ -385,7 +345,6 @@ private fun ProfileBody(profile: UserProfile, onEditSignature: (() -> Unit)?) {
       }
     }
 
-    // 自己的资料页即使还没有签名也要出这张卡,不然没有地方点「编辑」
     if (profile.signature != null || onEditSignature != null) {
       Card {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -449,8 +408,6 @@ private fun ProfileBody(profile: UserProfile, onEditSignature: (() -> Unit)?) {
     }
 
     if (profile.reputations.isNotEmpty()) {
-      // 条形图按本页最大绝对值归一化:声望的绝对刻度没有上限,
-      // 拿本人各版的最大值当满格才看得出彼此的高低
       val max = profile.reputations.maxOf { abs(it.value) }
       Card {
         CardTitle(":: 声望 ::")
@@ -496,10 +453,6 @@ private fun ProfileBody(profile: UserProfile, onEditSignature: (() -> Unit)?) {
   }
 }
 
-/**
- * 签名是 BBCode,和楼层正文同一个渲染器;签名里没有附件,基址走兜底。
- * 设计稿的签名比楼层正文小一档(13.5 · 1.7,fg-2 色),覆盖掉默认的 body 档。
- */
 @Composable
 private fun Signature(bbcode: String) {
   val colors = LocalNg2nColors.current
@@ -558,8 +511,6 @@ private fun CardCaption(text: String) {
   val colors = LocalNg2nColors.current
   Text(
     text = text,
-    // RN 侧这行是 `marginTop:-spacing.xs` —— 把标题的下距吃掉一半。Compose 没有负内距,
-    // 等效做法是标题那边少给一点,这里只留下距
     modifier = Modifier.padding(bottom = 10.dp),
     style = TextStyle(
       fontSize = Typo.listMeta.size,

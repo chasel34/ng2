@@ -13,12 +13,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 对拍框架自己的回归。
- *
- * 「金样本全绿」这句话值不值钱,取决于框架**红得起来**:比对放宽一格、少跑一条、
- * 把抛错当成通过,都会让后面十几张票的验收变成走过场。所以这里逐条钉死它的失败面。
- */
 class GoldenFrameworkTest {
 
   private fun case(
@@ -30,8 +24,6 @@ class GoldenFrameworkTest {
     "self",
     Json.parseToJsonElement("""{"expected":$expected,"fn":"$fn","input":$input,"name":"$name"}"""),
   )
-
-  // --- 相等口径 ------------------------------------------------------------
 
   @Test
   fun `JSON 数字 1 与 1_0 视为相等`() {
@@ -47,7 +39,6 @@ class GoldenFrameworkTest {
 
   @Test
   fun `字符串逐码元比,不做规范化`() {
-    // 组合字符 é(e + U+0301)与预组合 é(U+00E9)不是一回事
     assertNotNull(checkGolden(case("\"e\\u0301\"")) { "\u00e9" })
     assertNull(checkGolden(case("\"e\\u0301\"")) { "e\u0301" })
   }
@@ -72,8 +63,6 @@ class GoldenFrameworkTest {
     assertNotNull(checkGolden(case("true")) { "true" })
   }
 
-  // --- diff 可读性 ---------------------------------------------------------
-
   @Test
   fun `一条用例的多处差异全列出来,带路径`() {
     val failure = checkGolden(case("""{"a":1,"b":{"c":"x"},"d":[1,2]}""")) {
@@ -94,8 +83,6 @@ class GoldenFrameworkTest {
     assertNotNull(failure)
     assertTrue(failure.contains("首处不同在码元 #120"), failure)
   }
-
-  // --- 抛错形态 ------------------------------------------------------------
 
   @Test
   fun `期望抛错而实际正常返回 = 不通过`() {
@@ -123,7 +110,6 @@ class GoldenFrameworkTest {
     }
     assertNull(checkGolden(case(expected), describer) { throw IllegalStateException("响应为空") })
 
-    // retryable 对不上 = 不通过(它决定反封锁链要不要往下走,ADR-0002)
     val failure = checkGolden(case(expected), describer) { throw IllegalStateException("别的错") }
     assertNotNull(failure)
     assertTrue(failure.contains("throws.retryable"), failure)
@@ -144,14 +130,11 @@ class GoldenFrameworkTest {
     assertTrue(failure.contains("对拍框架自己出错"), failure)
   }
 
-  // --- 表驱动跑法 ----------------------------------------------------------
-
   @Test
   fun `没注册实现的 fn 是失败,不是跳过`() {
     val error = assertFailsWith<AssertionError> {
       runGoldenDomain("entities") {
         fn("unescapeNgaText") { case -> unescapeNgaText(case.inputString()) }
-        // 故意不注册 escapeForSubmit
       }
     }
     val message = error.message ?: ""
@@ -180,7 +163,6 @@ class GoldenFrameworkTest {
       }
     }
     val message = error.message ?: ""
-    // entities 有 20 条,除了本来就返回空串的那两条以外全会红
     assertTrue(message.contains("20 条中"), message)
     assertTrue(message.contains("unescape-plain-text"), message)
     assertTrue(message.contains("escape-for-submit-emoji"), message)
@@ -190,8 +172,6 @@ class GoldenFrameworkTest {
   fun `不存在的 domain 直接报错,不静默通过`() {
     assertFailsWith<AssertionError> { runGoldenDomain("no-such-domain") { fn("x") { "" } } }
   }
-
-  // --- 索引与语料完整性 ----------------------------------------------------
 
   @Test
   fun `index_json 里登记的每一条都读得出来`() {

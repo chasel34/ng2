@@ -52,28 +52,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 「收藏到…」多选收藏夹对话框(设计稿 `dialog:'folder'`)——
- * 直译 RN 侧 `src/ui/favorite-folder-dialog.tsx`。
- *
- * **传 tid 即可从任意入口调起**:主题详情顶栏菜单「收藏本帖」与楼层菜单「收藏」用的
- * 是同一个调用(票 33 把这两处从桩 Toast 换成了它)。
- *
- * 关着的时候整棵子树不挂载([DialogShell] 的 `open` 为假直接 return),所以不会在每次
- * 进详情页时白打一发 `list_folder` —— 与 RN 版同一条边界。
- *
- * ## 状态逻辑都在 `data/favorites/FavoriteFolderSelection.kt`
- *
- * 勾选切换、差异计算、完成提示语、「新建收藏夹…」露不露,全是那边的纯函数,
- * JVM 单测直接跑。这里只负责画,以及把结果交给
- * [com.chasel.ng2n.data.favorites.TopicFavoriteRepository.applyTopicFavorites]。
- *
- * ## 游客态不由这里挡
- *
- * 调用方先用 [com.chasel.ng2n.ui.common.showLoginPrompt] 挡住(与抽屉、版块收藏那些入口
- * 同一套「登录后才能…」+「去登录」提示条),对话框只在已登录时才开:
- * 接口对游客一律回「你必须先登录论坛」,开出来也只是一个必然失败的空列表。
- */
 @Composable
 fun FavoriteFolderDialog(open: Boolean, tid: Long, onClose: () -> Unit) {
   if (!open) return
@@ -86,8 +64,6 @@ private fun FolderPicker(tid: Long, onClose: () -> Unit) {
   val deps = rememberAppDeps()
   val scope = rememberCoroutineScope()
 
-  // 登录态三态:还没从磁盘读到(null)/ 游客 / 某个 uid。账号表是 DataStore,
-  // 第一次发射必然晚于首帧 —— 少了这一档,已登录用户会先看到一格「一个夹都没有」
   val accountsState: AccountsState? by deps.accounts.accounts
     .collectAsStateWithLifecycle(initialValue = null)
   val uidKnown = accountsState != null
@@ -97,8 +73,6 @@ private fun FolderPicker(tid: Long, onClose: () -> Unit) {
   val foldersState = remember(folderBuckets, uid) { deps.topicFavorites.foldersOf(uid) }
   val folders = foldersState.folders
 
-  // 打开这一刻的归属就是「改动前」的基准;之后勾选只动 selected,不跟着索引跑
-  // (写成功后仓库会改索引,跟着跑的话第二次点「完成」会把刚做的事又算一遍差)。
   var initial by remember { mutableStateOf<List<Int>?>(null) }
   var selected by remember { mutableStateOf<List<Int>>(emptyList()) }
   var busy by remember { mutableStateOf(false) }
@@ -137,7 +111,6 @@ private fun FolderPicker(tid: Long, onClose: () -> Unit) {
           Snackbars.show(plan.doneMessage)
           onClose()
         },
-        // 串行写到一半失败:已做成的那几个不回滚,提示里把服务端的话原样带出来
         onFailure = {
           busy = false
           Snackbars.show(failureText(it))
@@ -159,7 +132,6 @@ private fun FolderPicker(tid: Long, onClose: () -> Unit) {
         onSuccess = { createdId ->
           busy = false
           creating = false
-          // 新建完顺手勾上 —— 用户点「新建收藏夹…」就是想把这帖收进去
           selected = selectCreatedFolder(selected, createdId)
           Snackbars.show("已新建收藏夹「$trimmed」")
         },
@@ -171,8 +143,6 @@ private fun FolderPicker(tid: Long, onClose: () -> Unit) {
     }
   }
 
-  // 「新建收藏夹」在设计稿里是同一个对话框槽位的另一个形态,所以整面板换掉而不是叠一层
-  // (叠着的话两层遮罩会把底下压得死黑)。勾选状态留在本组件里,建完就回到多选。
   if (creating) {
     InputDialog(
       open = true,
@@ -224,7 +194,6 @@ private fun FolderPicker(tid: Long, onClose: () -> Unit) {
         else -> Column(
           Modifier
             .padding(top = Spacing.md)
-            // 夹多了也不让对话框顶到屏幕外,列表自己滚(RN 版 maxHeight 320)
             .heightIn(max = 320.dp)
             .verticalScroll(rememberScrollState()),
         ) {
@@ -257,7 +226,6 @@ private fun FolderPicker(tid: Long, onClose: () -> Unit) {
               )
             }
           }
-          // 勾选状态是本机攒的(服务端给不出反查),这层限制得跟用户说清楚
           Text(
             text = "勾选状态取自本机记录，在网页版等别处收藏的帖子可能显示为未勾选。",
             modifier = Modifier.padding(top = 6.dp, bottom = 2.dp),
@@ -275,7 +243,6 @@ private fun FolderPicker(tid: Long, onClose: () -> Unit) {
         destructive = false,
         onCancel = onClose,
         onConfirm = ::confirm,
-        // 夹列表还没回来就没法算差异,「完成」这时候点了只会是个空动作
         enabled = !busy && uidKnown && foldersState.loaded && initial != null,
       )
     }
@@ -296,7 +263,6 @@ private fun DialogNotice(text: String) {
   )
 }
 
-/** 一行复选夹条目(设计稿「收藏到…」那档:21 见方的方框 + 名字 + 副行)。 */
 @Composable
 private fun FolderCheckRow(
   name: String,

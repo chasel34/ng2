@@ -7,13 +7,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * 实验室页那两个「发出去」的入口(票 17c)拿到的文本必须已经脱敏(P1-04)。
- *
- * `DiagnosticLogTest` 盯的是 [formatDiagnostic] 这个纯函数;这里盯的是**屏幕真正读的
- * 那两条路** —— 落盘日志(`exportText`)与本次运行的请求表(`runLog`)。
- * 两者都由 [DiagnosticLogStore] 在**写入时**收口,UI 侧不做二次拼装。
- */
 class DiagnosticExportTest {
 
   private fun store() = DiagnosticLogStore(FakePreferencesDataStore())

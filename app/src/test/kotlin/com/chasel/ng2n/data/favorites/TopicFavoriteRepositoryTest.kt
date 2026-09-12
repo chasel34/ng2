@@ -14,19 +14,10 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 收藏夹仓库 —— 重点是 **P1-02:两份缓存都按 uid 分桶**。
- *
- * RN 版 `store/topic-favor.ts:40-43` 的 TanStack Query key
- * (`['favorite-folders']` / `['favorite-topics', folderId]`)里**没有 uid**,
- * 切号之后进收藏夹页看到的还是上一个账号的夹与夹内主题;夹 id 在两个账号之间
- * 没有任何关系,撞车时更是拿旧账号的 id 去打新账号的接口(审计 P1-02)。
- */
 class TopicFavoriteRepositoryTest {
 
   private fun settings() = SettingsStore(FakePreferencesDataStore())
 
-  /** 一份夹列表响应。`default` 键存在的那个是默认夹。 */
   private fun foldersBody(vararg folders: String): String =
     """{"data":{"0":{${folders.withIndex().joinToString(",") { (i, f) -> "\"$i\":$f" }}}}}"""
 
@@ -41,11 +32,8 @@ class TopicFavoriteRepositoryTest {
     return """{"data":{"__T":{$entries},"__F":{},"__ROWS":$totalRows,"__T__ROWS_PAGE":35}}"""
   }
 
-  // ------------------------------------------------------------ P1-02
-
   @Test
   fun `两个账号的夹列表互不串 —— 修 P1-02 的一半`() = runTest {
-    // 服务端按当前凭证给不同的夹;假 transport 只能按请求次数分,所以用一个计数器
     var call = 0
     val transport = RecordingTransport {
       call += 1
@@ -73,7 +61,6 @@ class TopicFavoriteRepositoryTest {
     }
     val repo = TopicFavoriteRepository(testClient(transport), settings())
 
-    // 两个账号各有一个 id 都是 7 的夹(审计 P1-02 点名的「相同 folder ID 碰撞」)
     repo.ensureTopics("1001", 7)
     repo.ensureTopics("1002", 7)
 
@@ -93,8 +80,6 @@ class TopicFavoriteRepositoryTest {
     assertTrue(repo.foldersOf(null).folders.isEmpty())
     assertTrue(repo.foldersOf(null).loaded, "游客态是确定的空,不该一直转圈")
   }
-
-  // ------------------------------------------------------------ 翻页与索引
 
   @Test
   fun `翻页拼在一起 并按 tid 去重`() = runTest {
@@ -122,7 +107,6 @@ class TopicFavoriteRepositoryTest {
     val index = store.currentTopicFavorIndex("1001")
     assertEquals(listOf(7), foldersOfTopic(index, 111))
     assertEquals(listOf(7), foldersOfTopic(index, 222))
-    // 索引是按 uid 分键的:另一个账号看不到
     assertEquals(emptyList(), foldersOfTopic(store.currentTopicFavorIndex("1002"), 111))
   }
 
@@ -132,7 +116,6 @@ class TopicFavoriteRepositoryTest {
     var call = 0
     val transport = RecordingTransport {
       call += 1
-      // 第一次:两页(totalRows 100),第二次:一页(totalRows 1)
       if (call == 1) {
         ok(topicsBody(topic(111), topic(222)))
       } else {
@@ -151,8 +134,6 @@ class TopicFavoriteRepositoryTest {
       "整个夹都在手上了,记着却没出现的那条是过期记录",
     )
   }
-
-  // ------------------------------------------------------------ 夹的增删改
 
   @Test
   fun `写完必重拉夹列表 —— 计数与默认徽标以服务端为准`() = runTest {
@@ -209,7 +190,6 @@ class TopicFavoriteRepositoryTest {
         request.url.contains("del_folder") -> ok("""{"data":{"0":"操作成功"}}""")
         else -> {
           folderCall += 1
-          // 删之前两个夹,删之后只剩 3
           if (folderCall == 1) {
             ok(foldersBody(folder(7, "要删的"), folder(3, "留着的")))
           } else {
@@ -243,7 +223,6 @@ class TopicFavoriteRepositoryTest {
     repo.applyTopicFavorites("1001", tid = 555, added = listOf(3), removed = listOf(7))
 
     val writes = transport.requests.filter { it.url.contains("topic_favor_v2") }
-    // add / del / 善后重拉的 list_folder
     assertTrue(writes.any { it.url.contains("__act=add") })
     assertTrue(writes.any { it.url.contains("__act=del&") || it.url.endsWith("__act=del") })
     assertEquals(listOf(3), foldersOfTopic(store.currentTopicFavorIndex("1001"), 555))
@@ -262,8 +241,6 @@ class TopicFavoriteRepositoryTest {
     assertFalse(body.contains("&tid=") || body.startsWith("tid="), body)
   }
 
-  // ------------------------------------------------------------ 票 33:列表里取消收藏
-
   @Test
   fun `列表里取消收藏走 del，并把这个夹的主题列表重取回来`() = runTest {
     var listed = 0
@@ -271,7 +248,6 @@ class TopicFavoriteRepositoryTest {
       when {
         request.url.contains("thread.php") -> {
           listed += 1
-          // 第二次拉(取消之后的那一次)少一条
           if (listed == 1) ok(topicsBody(topic(111), topic(222))) else ok(topicsBody(topic(222)))
         }
         request.url.contains("list_folder") -> ok(foldersBody(folder(7, "夹", length = 1)))
@@ -288,13 +264,9 @@ class TopicFavoriteRepositoryTest {
 
     val del = transport.requests.first { it.url.contains("__act=del") }
     assertTrue(del.body?.toString(Charsets.UTF_8).orEmpty().contains("tidarray=111"))
-    // 屏还开着,`ensureTopics` 的 key 没变不会再跑 —— 这一发必须由仓库自己补上,
-    // 否则 `afterFolderChange` 把桶丢掉之后屏上永远停在 loading
     assertEquals(listOf(222L), repo.topicsOf("1001", 7).topics.map { it.tid })
     assertFalse(repo.topicsOf("1001", 7).loading)
-    // 计数以服务端为准:善后必重拉夹列表
     assertTrue(transport.requests.count { it.url.contains("list_folder") } >= 1)
-    // 本机索引里这一帖也不再属于这个夹
     assertEquals(emptyList(), foldersOfTopic(store.currentTopicFavorIndex("1001"), 111))
   }
 
@@ -321,8 +293,6 @@ class TopicFavoriteRepositoryTest {
     assertFalse(repo.topicsOf("1001", 7).loading)
   }
 
-  // ------------------------------------------------------------ pickFavoriteFolder
-
   @Test
   fun `没手动选过就落在默认夹`() {
     val folders = listOf(
@@ -337,7 +307,6 @@ class TopicFavoriteRepositoryTest {
   fun `服务端没标默认就退到第一个夹`() {
     val folders = listOf(FavoriteFolder(id = 5, name = "甲"), FavoriteFolder(id = 6, name = "乙"))
     assertEquals(5L, pickFavoriteFolder(folders, pickedId = null)?.id)
-    // 选过的夹被删掉之后同样退回默认/第一个,不会留在一个不存在的夹上
     assertEquals(5L, pickFavoriteFolder(folders, pickedId = 999)?.id)
   }
 

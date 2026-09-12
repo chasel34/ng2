@@ -40,15 +40,10 @@ import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/** 设计稿 isChain:每往链的下游走一张卡,左缩进加 14。 */
 private val INDENT_STEP = 14.dp
 
-/** 缩进封顶。设计稿只画了 4 层;长链一路缩下去卡片会被挤没,到这一档就并排。 */
 private const val MAX_INDENT_STEPS = 8
 
-/**
- * 回复链页(CONTEXT.md「回复链」;设计稿 isChain 屏)。
- */
 @Composable
 fun ChainScreen(key: ChainKey, nav: Navigator) {
   val vm = rememberChainViewModel(key)
@@ -78,7 +73,6 @@ fun ChainScreen(key: ChainKey, nav: Navigator) {
         BackArrowIcon(tint = colors.onTopbar)
       }
       TopBarTitle(text = "回复链 · ${vm.chain.size} 层", modifier = Modifier.weight(1f))
-      // 回帖是 v1 排除项(spec §一.2),设计稿这个入口保留
       TopBarButton(onClick = notAvailable, label = "回复") { ReplyIcon(tint = colors.onTopbar) }
     }
 
@@ -113,7 +107,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.itemsIndexedChain(
   items(
     items = vm.chain,
     key = { it.pid },
-    // 链上有两种形状差很远的行:已加载的楼层卡与降级占位卡
     contentType = { if (vm.entries.containsKey(it.pid)) "card" else "missing" },
   ) { node ->
     val index = vm.chain.indexOfFirst { it.pid == node.pid }.coerceAtLeast(0)
@@ -139,10 +132,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.itemsIndexedChain(
   }
 }
 
-/**
- * 链上一张已加载的卡(设计稿 chainCards):缩进、当前楼主题色描边 + 「当前楼层」徽标;
- * 正文剥掉引用容器 —— 上一层就画在这张卡上面,不必重复。
- */
 @Composable
 private fun ChainCard(
   entry: ChainEntry,
@@ -228,7 +217,6 @@ private fun ChainCard(
   }
 }
 
-/** 设计稿链卡头像:30 见方、圆角 10、无图时纯色底 + 名字首字(12/700)。 */
 @Composable
 private fun ChainAvatar(entry: ChainEntry) {
   val colors = LocalNg2nColors.current
@@ -256,11 +244,6 @@ private fun ChainAvatar(entry: ChainEntry) {
   }
 }
 
-/**
- * 链上一个没加载出来的节点的降级占位(票面要求:**不阻塞整链**)。
- * 三种情况:那一页还在拉(转圈)、拉失败(给「重试」)、
- * 拉回来了但里面没有这一楼 / 引用里根本没有页码(只能说明情况)。
- */
 @Composable
 private fun MissingCard(
   node: ChainNode,

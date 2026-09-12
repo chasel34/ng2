@@ -67,18 +67,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 已收藏的主题 —— 直译 RN 侧 `src/app/favorites/index.tsx`
- * (设计稿 `screen:'favorites'`,CONTEXT.md「收藏夹」)。
- *
- * **一次只展示一个收藏夹**:每个夹的主题是各自的 `thread.php?favor=<夹id>`,
- * 把所有夹拼成一屏就是开屏打 N 个请求,正撞在 NGA 封第三方客户端的枪口上(ADR-0002)。
- * 所以进来先落在默认夹,点副标题条换夹 —— 设计稿那句「默认收藏夹 · 126 个主题」
- * 说的就是当前这个夹。
- *
- * 收藏夹是**云端按账号分**的:夹列表与夹内主题两份缓存都按 uid 分桶
- * ([com.chasel.ng2n.data.favorites.TopicFavoriteRepository],修 P1-02)。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
@@ -94,14 +82,11 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
 
   val folderBuckets by deps.topicFavorites.folderStates.collectAsStateWithLifecycle()
   val topicBuckets by deps.topicFavorites.topicStates.collectAsStateWithLifecycle()
-  // 从收集到的两张桶表里取本屏这一格 —— `remember` 的 key 带上桶表本身,
-  // 仓库那边一变(拉回来了 / 写完重拉了)本屏就跟着重算
   val foldersState = remember(folderBuckets, uid) { deps.topicFavorites.foldersOf(uid) }
   val folders = foldersState.folders
 
   var pickedFolderId by rememberSaveable { mutableStateOf<Long?>(null) }
   var pickedFolderUid by rememberSaveable { mutableStateOf<String?>(null) }
-  // 账号加载中的 null 不应抹掉恢复的收藏夹；真实切号才重置选择。
   LaunchedEffect(accountsState) {
     if (accountsState != null && pickedFolderUid != uid) {
       pickedFolderId = null
@@ -110,7 +95,6 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
   }
   var switcherOpen by remember { mutableStateOf(false) }
 
-  // 没手动选过就落在默认夹;服务端没标默认(老账号)时退到第一个夹
   val folder = remember(folders, pickedFolderId, pickedFolderUid, uid) {
     pickFavoriteFolder(folders, pickedFolderId.takeIf { pickedFolderUid == uid })
   }
@@ -121,10 +105,8 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
   LaunchedEffect(uid) { deps.topicFavorites.ensureFolders(uid) }
   LaunchedEffect(uid, folder?.id) { deps.topicFavorites.ensureTopics(uid, folder?.id) }
 
-  // 收藏夹也是主题列表(票 29 的「顺带」,RN 版这一屏没接)
   val filterRules = rememberFilterRules()
   val rows = remember(state.topics, filterRules, colors, titleColors) {
-    // 收藏夹是二级列表(设计稿 simple-list):标题 16、右侧那格换成发帖日期
     buildTopicRows(
       topics = filterTopics(filterRules, state.topics),
       colors = colors,
@@ -135,13 +117,9 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
   }
 
   val openTopic: (Topic) -> Unit = { topic ->
-    // 收藏夹列表的 tpcurl 带 fav 码,进详情页要带上才打得开隐藏/过期主题
     nav.push(TopicKey(tid = topic.tid, title = topic.subject, fav = topic.favCode))
   }
 
-  // 长按一行 → 确认 → `removeTopicFavorite`(票 33)。确认这一步不能省:
-  // 收藏夹里长按误触的代价是「收藏没了、找不回来」,而列表行本来就没有长按语义,
-  // 用户不会预期长按会写点什么
   var unfavoriting by remember { mutableStateOf<Topic?>(null) }
   var busy by remember { mutableStateOf(false) }
 
@@ -179,7 +157,6 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
     }
 
     when {
-      // 游客态:接口一律回「你必须先登录论坛」,先自己挡住并把出路递到手边
       uid == null -> EmptyState(
         icon = Ng2nIcon.PERSON_ADD,
         text = "登录后才能看云端收藏夹",
@@ -224,7 +201,6 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
 
       else -> {
         val listState = rememberLazyListState()
-        // 票 57:按距离而不是按项数拉下一页
         val shouldLoadMore by rememberShouldLoadNextPage(listState, rows.size)
         LaunchedEffect(listState, state.hasNextPage, state.loadingNextPage) {
           snapshotFlow { shouldLoadMore }.collect {
@@ -234,11 +210,9 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
         val flingBehavior = rememberPagedFlingBehavior(listState) {
           state.hasNextPage || state.loadingNextPage
         }
-        // 下一页在路上时,尾部铺几屏能滚的骨架行(票 57 三轮)
         val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
         ListPullToRefreshBox(
-          // 翻下一页时不要亮:不然底部转圈会连带把顶部也拽出来
           isRefreshing = state.refreshing && !state.loadingNextPage,
           onRefresh = { scope.launch { deps.topicFavorites.refreshTopics(uid, folder.id) } },
           modifier = Modifier.fillMaxSize(),
@@ -264,8 +238,6 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
             item(key = ListKeys.FOOTER, contentType = "footer") {
               Column {
                 if (!state.hasNextPage && !state.loadingNextPage) {
-                  // 长按取消收藏是个藏起来的动作,翻到底时说一句(设计稿没有这条,
-                  // 但不说的话没人找得到 —— RN 版压根没有取消收藏的入口)
                   Text(
                     text = "长按一条可以把它从这个收藏夹里移出。",
                     modifier = Modifier.fillMaxWidth().padding(Spacing.row),
@@ -318,8 +290,6 @@ fun FavoritesScreen(nav: Navigator, modifier: Modifier = Modifier) {
       val currentFolder = folder ?: return@ConfirmDialog
       busy = true
       scope.launch {
-        // `unfavoriteTopic` 走的是 `removeTopicFavorite`(参数名 `tidarray`),
-        // 完了重拉夹列表(计数以服务端为准)并把这个夹的主题列表重取回来
         val result = runCatching {
           deps.topicFavorites.unfavoriteTopic(
             uid = currentUid,

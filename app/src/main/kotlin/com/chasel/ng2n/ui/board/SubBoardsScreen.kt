@@ -59,16 +59,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 子版块订阅 / 屏蔽 —— 直译 RN 侧 `src/app/board/sub-boards.tsx`。
- *
- * 数据**不另打接口**:子版块随主题列表的 `__F.sub_forums` 一起下来,这里用**同一个
- * key** 读版块页已经拉过的第一页(ADR-0002:能少打就少打)。所以排序也要取默认那一档,
- * 否则 key 对不上会再拉一次。
- *
- * 设计稿没画这一屏,按列表页的行样式延伸:一行一个子版块,点行进它的主题列表,
- * 右边那颗按钮切订阅/屏蔽。
- */
 @Composable
 fun SubBoardsScreen(key: SubBoardsKey, nav: Navigator, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
@@ -86,7 +76,6 @@ fun SubBoardsScreen(key: SubBoardsKey, nav: Navigator, modifier: Modifier = Modi
 
   val firstPage = state.pages.firstOrNull()
   val subBoards = firstPage?.subBoards.orEmpty()
-  // 操作要带父版块的 fid;合集没有 fid 时退回键上的 id
   val parentFid = firstPage?.board?.fid ?: key.id
 
   val accountsState by deps.accounts.accounts.collectAsStateWithLifecycle(
@@ -105,8 +94,6 @@ fun SubBoardsScreen(key: SubBoardsKey, nav: Navigator, modifier: Modifier = Modi
         contentDescription = "返回",
         onClick = nav::pop,
       )
-      // 设计稿把版块名并进顶栏标题(「子板块 · 网事杂谈」),没有副标题条。
-      // (设计稿写的是「子板块」,CONTEXT.md 的词条是「子版块」,按术语表来)
       TopBarTitle(
         text = "子版块 · ${key.name ?: "版块 ${key.id}"}",
         variant = TopBarTitleVariant.SUB,
@@ -129,7 +116,6 @@ fun SubBoardsScreen(key: SubBoardsKey, nav: Navigator, modifier: Modifier = Modi
       ) {
         items(
           count = subBoards.size,
-          // key 用 kind+id:合集与版块各自编号(stid vs fid),只用 id 有撞车的可能
           key = { index -> "${subBoards[index].kind}/${subBoards[index].id}" },
           contentType = { "sub-board" },
         ) { index ->
@@ -152,7 +138,6 @@ fun SubBoardsScreen(key: SubBoardsKey, nav: Navigator, modifier: Modifier = Modi
                     deps.subBoards.toggle(uid, subBoard, parentFid, action)
                   }.fold(
                     onSuccess = { Snackbars.show("已$verb「${subBoard.name}」") },
-                    // 失败时本地状态已经回滚,只把服务端的话说出来
                     onFailure = { Snackbars.show(failureText(it)) },
                   )
                 }
@@ -176,7 +161,6 @@ fun SubBoardsScreen(key: SubBoardsKey, nav: Navigator, modifier: Modifier = Modi
   }
 }
 
-/** 一行子版块:左边名字与副标题,右边订阅开关。 */
 @Composable
 private fun SubBoardRow(
   subBoard: SubBoard,
@@ -225,7 +209,6 @@ private fun SubBoardRow(
       }
     }
 
-    // 服务端不让改的(attributes 太小)只显示状态,不给按钮
     if (!state.filterable) {
       Text(
         text = "不可更改",
@@ -238,11 +221,6 @@ private fun SubBoardRow(
       return@Row
     }
 
-    /*
-     * 三态(票 07 修掉的「白名单误报」):白名单是「已订阅」的唯一证据,没命中只说明
-     * 我们认不出来,**不等于被屏蔽**。RN 版原行为是把 UNKNOWN 一律画成「已屏蔽」,
-     * 实测「网络游戏综合」从没被屏蔽过却显示已屏蔽。
-     */
     val label = when {
       pending -> "处理中"
       state.subscription == SubBoardSubscription.SUBSCRIBED -> "已订阅"

@@ -54,16 +54,6 @@ import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/**
- * 对话框类浮层 —— 直译 RN 侧 `ui/overlay.tsx` + `ui/input-dialog.tsx` + `ui/confirm-dialog.tsx`。
- *
- * 入场动效照设计稿 952–953 行:遮罩 `omfade .18s`、面板 `ompop .2s`
- * (淡入 + 从 .94 放到 1),两条同时起跑、遮罩先落。
- *
- * 铺在页面里而不是用 `androidx.compose.ui.window.Dialog`:后者会新起一个窗口,
- * 遮罩与面板落在不同的合成层上,两条动画的起跑时刻对不齐;而设计稿要的正是
- * 「同时起跑」。返回键关闭由 [BackHandler] 接。
- */
 @Composable
 internal fun DialogShell(
   open: Boolean,
@@ -74,7 +64,6 @@ internal fun DialogShell(
   val colors = LocalNg2nColors.current
   BackHandler(enabled = true, onBack = onDismiss)
 
-  // 条件渲染 ⇒ 只有入场;关的时候整块被摘掉(与 RN 侧同一条边界)
   var started by remember { mutableStateOf(false) }
   LaunchedEffect(Unit) { started = true }
   val scrim by animateFloatAsState(
@@ -112,7 +101,6 @@ internal fun DialogShell(
         .shadow(Elevation.level2, RoundedCornerShape(Radius.dialog))
         .clip(RoundedCornerShape(Radius.dialog))
         .background(colors.menu)
-        // 面板本身吃掉点击,不然点在面板上会穿到遮罩去
         .clickable(
           interactionSource = remember { MutableInteractionSource() },
           indication = null,
@@ -122,7 +110,6 @@ internal fun DialogShell(
   }
 }
 
-/** 「标题 + 一段正文 + 取消/确定」。危险操作(清空/删除)把确定钮染成 danger。 */
 @Composable
 fun ConfirmDialog(
   open: Boolean,
@@ -168,15 +155,6 @@ fun ConfirmDialog(
   }
 }
 
-/**
- * 「标题 + 一行下划线输入 + 取消/确定」。
- *
- * [error] 是输入不合法时就地顶掉 [hint] 的红字(「由 URL 读取」:链接解不开
- * 不跳转、不关框);改了输入立刻把红字撤掉,不该赖到下一次点确定才刷新。
- *
- * [multiline] 给「修改签名」用(票 17b):签名可以换行,回车要落进文本而不是提交,
- * 所以那一档把 `singleLine` 关掉、IME 动作退回默认换行键,提交只认「保存」钮。
- */
 @Composable
 fun InputDialog(
   open: Boolean,
@@ -268,7 +246,6 @@ fun InputDialog(
   }
 }
 
-/** 多行输入框(签名)的高度区间:一进来就是三行高,写长了到八行封顶再滚。 */
 private const val MULTILINE_MIN_LINES = 3
 private const val MULTILINE_MAX_LINES = 8
 
@@ -309,7 +286,6 @@ internal fun DialogActions(
         .clip(RoundedCornerShape(Radius.full))
         .background(
           (if (destructive) colors.danger else colors.primary)
-            // 写操作在飞的时候钮压暗(设计稿 confirmBusy 的 opacity .6)
             .copy(alpha = if (enabled) 1f else 0.6f),
         )
         .clickable(enabled = enabled, onClick = onConfirm)

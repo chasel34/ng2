@@ -12,12 +12,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 移植自 `src/core/net/strategies/topic-cache.test.ts`(12 条中的 10 条)。
- *
- * **payload 的反序列化归票 07 / 13**,本票只落接口层面:`topicCacheKeyOf` 的取键规则、
- * 链上这一档的位置与让位语义。两条「信封往返」用例是序列化器的性质,归票 07,见文末说明。
- */
 class TopicCacheStrategyTest {
 
   private val pageJson = """{"data":{"__R":{"0":{"content":"第一楼","lou":0}},"__ROWS":1},"time":1}"""
@@ -29,8 +23,6 @@ class TopicCacheStrategyTest {
     transport,
     strategies = listOf(FormatRotationStrategy(), TopicCacheStrategy(store)),
   )
-
-  // ── topicCacheKeyOf ───────────────────────────────────────────────────────
 
   @Test
   fun `整帖阅读的 read_php 认得出 tid 与页码`() {
@@ -64,8 +56,6 @@ class TopicCacheStrategyTest {
     assertNull(topicCacheKeyOf(readRequest("thread.php", queryOf("fid" to 7))))
     assertNull(topicCacheKeyOf(readRequest("read.php")))
   }
-
-  // ── 链上的缓存档 ───────────────────────────────────────────────────────────
 
   @Test
   fun `前面全败、缓存命中时返回缓存数据`() = runTest {

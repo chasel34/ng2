@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 冷启动场景要能把被测 app 杀干净再拉起。 -->
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
 </manifest>

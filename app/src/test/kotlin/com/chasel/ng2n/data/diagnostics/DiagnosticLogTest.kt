@@ -5,17 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * **票 14 验收项③:诊断日志导出样本无敏感字段**(修 P1-04)。
- *
- * 审计 2026-08-20 列出的三条实锤泄露源,逐条断言它们不会出现在导出文本里:
- * - `read.php` 的 `fav`(隐藏主题访问码,`src/core/api/topic-detail.ts:374-381`);
- * - `thread.php` 的 `key`(搜索词,`src/core/api/search.ts:68-83`);
- * - `nuke.php&__act=set_block_word` 的 `data`(整张屏蔽词表,`block-word.ts:165-175`)。
- *
- * 同时钉住反面:排障真正要看的结构性字段(tid/page/fid)必须还在,
- * 否则脱敏就把日志本身废掉了。
- */
 class DiagnosticLogTest {
 
   private val attempt = AttemptLog(
@@ -26,8 +15,6 @@ class DiagnosticLogTest {
     uid = "42",
     error = AttemptError(kind = "http", message = "Forbidden", status = 403),
   )
-
-  // ------------------------------------------------------------ 脱敏
 
   @Test
   fun `隐藏主题的 fav 码不进日志`() {
@@ -42,7 +29,6 @@ class DiagnosticLogTest {
     )
     assertFalse(text.contains("s3cr3t-fav-code"), text)
     assertTrue(text.contains("fav=$REDACTED_PLACEHOLDER"), text)
-    // 排障要用的结构性字段还在
     assertTrue(text.contains("tid=44191387"), text)
     assertTrue(text.contains("page=3"), text)
   }
@@ -87,7 +73,6 @@ class DiagnosticLogTest {
     )
     assertEquals("1", redacted["tid"])
     assertEquals(REDACTED_PLACEHOLDER, redacted["some_new_param"])
-    // `__` 开头的框架参数上游就剔掉了,这里再挡一次
     assertFalse("__output" in redacted)
   }
 
@@ -117,12 +102,9 @@ class DiagnosticLogTest {
         attempts = listOf(attempt),
       ),
     )
-    // AttemptLog 压根没有放 cid 的地方 —— 这条断言钉住的是「以后也别加」
     assertTrue(text.contains("uid=42"), text)
     assertFalse(text.contains("ngaPassportCid"), text)
   }
-
-  // ------------------------------------------------------------ 50 条上限
 
   @Test
   fun `日志裁到 50 条 最新的在最后`() {

@@ -10,13 +10,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 手工移植 `src/core/net/envelope.test.ts` 里的控制流与抛错分支。
- *
- * 金样本已经把「入参 → 出参」逐条锁住了,这里补的是它表达不了的两件事:
- * 抛出来的是不是 [NgaError] 这个**类型**(下游靠 `is NgaError` 分流),
- * 以及真实抓包解出来的结构对不对。
- */
 class EnvelopeTest {
 
   private fun captureText(name: String): String =
@@ -31,11 +24,6 @@ class EnvelopeTest {
     assertNull(envelope.fakeError)
   }
 
-  /**
-   * 以前这里把顶层当 data,于是任何一个陌生 JSON 都成了「合法的空数据」,
-   * 一路走到 UI 变成「这个版块还没有主题」,还会被反封锁链记进成功组合缓存
-   * (2026-08-13,「版块全空」排查;ADR-0002 第 1 条)。
-   */
   @Test
   fun `顶层既没有 data 也没有 error 时默认报解析错`() {
     val error = assertFailsWith<NgaError> {
@@ -81,7 +69,6 @@ class EnvelopeTest {
     assertNull(envelope.data, "只有 error 的响应,data 必须是「没有」而不是空对象")
   }
 
-  /** 解析失败 ≈ 被封,必须可重试,否则链上后面的网页兜底与帖子缓存一个都轮不到。 */
   @Test
   fun `解析失败抛 parse 错误且可重试`() {
     val error = assertFailsWith<NgaError> { parseNgaJson("<html>你被封了</html>") }
@@ -91,10 +78,6 @@ class EnvelopeTest {
     assertTrue(error.text.startsWith("响应不是合法 JSON"), "实际是:${error.text}")
   }
 
-  /**
-   * `Json.parseToJsonElement` 比 `JSON.parse` 松:整页 HTML 会被它当成一个不带引号的原语
-   * 收下,于是「洗不成 JSON」这条信号会被降级成「顶层不是对象」。两者得分得开。
-   */
   @Test
   fun `顶层是合法 JSON 但不是对象时报的是另一句话`() {
     val error = assertFailsWith<NgaError> { parseNgaJson("[1,2,3]") }
@@ -141,11 +124,6 @@ class EnvelopeTest {
     assertNotNull(data["__R"])
   }
 
-  /**
-   * fid=414:服务端下发的字节本身就坏,洗完仍然不是合法 JSON。
-   * **必须抛 parse(可重试)**,链才会轮到 `__output=11` 那一档——它是另一个序列化器,
-   * 只有它救得了这个版块(ADR-0002 第 8 条)。
-   */
   @Test
   fun `坏字节的响应抛 parse 而不是 server`() {
     val error = assertFailsWith<NgaError> {

@@ -3,10 +3,6 @@ package com.chasel.ng2n.data.cache
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * `src/core/local/topic-cache.test.ts` 的手工移植(票 14 验收项①)。
- * 用例逐条对应,断言口径不动。
- */
 class TopicCachePolicyTest {
 
   private fun page(
@@ -20,8 +16,6 @@ class TopicCachePolicyTest {
     bytes: Long = 1000,
     usedAt: Long = 1_000,
   ) = CachedPage(tid, page, subject, boardName, favCode, floors, totalPages, bytes, usedAt)
-
-  // ------------------------------------------------------------ summarizeCachedPages
 
   @Test
   fun `同一主题的页聚合成一条 字节相加 时间取最近`() {
@@ -44,7 +38,6 @@ class TopicCachePolicyTest {
     val topics = summarizeCachedPages(
       listOf(
         page(tid = 7, page = 1, subject = "旧标题", boardName = "硬件", usedAt = 100),
-        // 从第 2 页写入时拿不到版块名(__F 只有部分响应带)
         page(tid = 7, page = 2, subject = "新标题", usedAt = 200),
       ),
     )
@@ -66,8 +59,6 @@ class TopicCachePolicyTest {
     assertEquals(listOf(2L, 3L, 1L), topics.map { it.tid })
   }
 
-  // ------------------------------------------------------------ planCacheEviction
-
   private fun topics(count: Int, bytes: Long) = summarizeCachedPages(
     (1..count).map { page(tid = it.toLong(), page = 1, bytes = bytes, usedAt = it.toLong()) },
   )
@@ -79,7 +70,6 @@ class TopicCachePolicyTest {
 
   @Test
   fun `字节数超限时同样按最久未用淘汰 淘汰到不超为止`() {
-    // 4 个主题 × 100 字节,上限 250 → 掉最老的两个
     assertEquals(listOf(1L, 2L), planCacheEviction(topics(4, 100), maxBytes = 250))
   }
 
@@ -105,8 +95,6 @@ class TopicCachePolicyTest {
     assertEquals(listOf(1L), planCacheEviction(topics(2, 900), maxBytes = 100))
   }
 
-  // ------------------------------------------------------------ cachePagesLabel
-
   @Test
   fun `只缓存一页时顺带报楼数`() {
     assertEquals("第 1 页 · 40 楼", cachePagesLabel(listOf(1), floors = 40))
@@ -127,8 +115,6 @@ class TopicCachePolicyTest {
     assertEquals("第 1、3、5 等 5 页", cachePagesLabel(listOf(1, 3, 5, 7, 9), floors = 20))
   }
 
-  // ------------------------------------------------------------ formatCacheSize
-
   @Test
   fun `照设计稿的口径给出人读的大小`() {
     assertEquals("512 B", formatCacheSize(512))
@@ -138,19 +124,13 @@ class TopicCachePolicyTest {
     assertEquals("2.00 GB", formatCacheSize(2L * 1024 * 1024 * 1024))
   }
 
-  // ------------------------------------------------------------ utf8ByteLength
-
   @Test
   fun `与 UTF-8 编码器的结果一致 ASCII 中文 emoji 落单代理项`() {
     for (text in listOf("", "abc", "网事杂谈", "a中🀄b", "楼层😀")) {
       assertEquals(text.toByteArray(Charsets.UTF_8).size.toLong(), utf8ByteLength(text), text)
     }
-    // 落单代理项:与 TextEncoder 一致按 U+FFFD 算 3 字节 —— JVM 的编码器会写成 '?'(1 字节),
-    // 所以这里必须自己数,不能用 toByteArray 的长度(见 utf8ByteLength 的注释)
     assertEquals(3L, utf8ByteLength("\uD800"))
   }
-
-  // ------------------------------------------------------------ cacheTotalBytes
 
   @Test
   fun `把各主题的占用加起来`() {

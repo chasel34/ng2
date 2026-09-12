@@ -61,36 +61,10 @@ import com.chasel.ng2n.ui.theme.MonoFontFamily
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/** uiautomator / 票 18 找网页兜底屏的锚点。 */
 const val WEB_SCREEN_TAG: String = "ng2n-web-screen"
 
-/**
- * 网页版是浅色纸底,深色主题下也别在加载间隙闪黑(照抄 RN 版写死的这一档)。
- */
 private val PAPER = Color(0xFFF2EFE6)
 
-/**
- * 网页版兜底页(设计稿 isWebview,ADR-0002 反封锁链的最后一档)——
- * `src/app/web.tsx` 的移植。
- *
- * 反封锁链把格式 × 域名、换账号、Web 反解全试完还是拿不到数据时,用户至少还能读到
- * 这一页 —— 直接把网页版装进 WebView。
- *
- * 它是**站内页**而不是系统浏览器:回退到系统浏览器就丢了「用 APP 阅读这一页」这个
- * 回切入口,而被封往往是一时的,下一次多半就通了。
- *
- * ## 登录态
- *
- * 靠 Android 的原生 cookie 仓库(与登录屏共用同一个 `CookieManager`)。
- * **多账号时那份 cookie 是最后一次登录的账号**,不一定是 app 里当前切到的那个 ——
- * 这与 RN 版是同一个差异,记在这里。app 自己的请求不受影响:它们走票 06 的自管
- * CookieJar,账号状态只有 `AccountStore` 一个来源(P1-03)。
- *
- * ## 返回键
- *
- * 页内有历史时先在 WebView 里后退,退到头才退出这一屏(Android 惯例;
- * RN 版没做这一层,是原生这边该有的行为)。
- */
 @Composable
 fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -105,10 +79,8 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
     if (view != null && view.canGoBack()) view.goBack() else onBack()
   }
 
-  /** 顶栏第二行那串地址,照设计稿去掉协议头。 */
   val urlHint = remember(url) { url.replace(Regex("^https?://"), "") }
 
-  /** 网页菜单,条目与顺序照设计稿 `MENUS.web`。 */
   fun pick(run: () -> Unit): () -> Unit = {
     menuOpen = false
     run()
@@ -118,7 +90,6 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
       webView?.reload()
       toast("已刷新网页")
     }),
-    // 回切:退回来的就是那一屏帖子详情,它在重新获得焦点时会再打一次原生接口
     MenuItem("app", "用 APP 阅读", onClick = pick(onBack)),
     MenuItem("copy", "复制网址", onClick = pick {
       copyToClipboard(context, url)
@@ -128,7 +99,6 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
       runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
         .onFailure { toast("没有可用的浏览器") }
     }),
-    // 网页字号要往页面里注 JS 改 zoom —— 桩项(research/inventory.md §2)
     MenuItem("font", "网页字号", onClick = pick { toast(NOT_AVAILABLE_MESSAGE) }),
   )
 
@@ -147,7 +117,6 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
           contentDescription = "返回",
           onClick = onBack,
         )
-        // 设计稿这里是两行:标题 + 等宽字的地址
         Column(Modifier.weight(1f).padding(start = 4.dp)) {
           Text(
             text = title ?: "网页版",
@@ -198,10 +167,7 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
                 )
                 view.settings.javaScriptEnabled = true
                 view.settings.domStorageEnabled = true
-                // 缩放口径照 RN 侧那套默认(票 46):不开 useWideViewPort 的话
-                // WebView 不认页面的 viewport meta,同一张移动页会整体放大约 30%
                 view.applyRnWebViewZoom()
-                // 页内跳转留在 WebView 里,别甩给系统浏览器
                 view.webViewClient = object : WebViewClient() {
                   override fun onPageStarted(v: WebView?, u: String?, favicon: android.graphics.Bitmap?) {
                     loading = true
@@ -211,7 +177,6 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
                     loading = false
                   }
                 }
-                // 登录 cookie 在原生仓库里(见文件头),不用 incognito 否则读不到
                 CookieManager.getInstance().setAcceptCookie(true)
                 CookieManager.getInstance().setAcceptThirdPartyCookies(view, true)
                 view.loadUrl(url)
@@ -228,7 +193,6 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
               Modifier
                 .fillMaxSize()
                 .background(PAPER)
-                // 加载遮罩不吃点击穿透以外的任何事:pointerInput 空实现挡住底下的 WebView
                 .pointerInput(Unit) {},
               contentAlignment = Alignment.Center,
             ) {
@@ -239,7 +203,6 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
       }
     }
 
-    // 设计稿:悬浮在底部的回切按钮,左右 16、底 20、高 48
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     Row(
       modifier = Modifier
@@ -256,7 +219,6 @@ fun WebFallbackScreen(url: String, title: String?, onBack: () -> Unit) {
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterHorizontally),
     ) {
-      // RN 侧 `src/app/web.tsx:130` 写死的是 `smartphone`(票 40:原来错拿了文档图标)
       AppIcon(icon = Ng2nIcon.SMARTPHONE, tint = colors.onFab, size = 21.dp)
       Text(
         text = "用 APP 阅读这一页",

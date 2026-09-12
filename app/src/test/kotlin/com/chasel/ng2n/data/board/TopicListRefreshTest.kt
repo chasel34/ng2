@@ -15,17 +15,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 票 36:**下拉刷新不该把已经拿到的版块元信息弄丢**。
- *
- * 现场(fid=-7,登录态)是:进版块 → 版头行 + 子版块 chip 行都在;下拉刷新一次,
- * 两块一起消失,「更多 → 子版块」变空态,**退出重进也不恢复**——`refresh` 把
- * `pages` 整份换成刷新到的那一页,而 `ensureFirstPage` 看见 `pages` 非空就不再拉,
- * 坏状态一直留到进程重启。
- *
- * 判据取「刷新那一发不带 `__F`」这个最坏情形:不管是服务端没下发还是链路上丢了,
- * 到了这一层都是同一种形状,合并语义都得兜住。
- */
 class TopicListRefreshTest {
 
   private val key = TopicListRepository.Key(
@@ -34,7 +23,6 @@ class TopicListRefreshTest {
     sort = TopicSort.LAST_POST,
   )
 
-  /** 一页带 `__F`(含版头 + 两个子版块)的主题列表。 */
   private fun pageWithForum(topicTid: Long): String = """
     {"data":{
       "__T":{"0":{"tid":$topicTid,"subject":"帖 $topicTid","author":"作者","replies":3,
@@ -45,7 +33,6 @@ class TopicListRefreshTest {
       "__ROWS":100,"__T__ROWS_PAGE":35}}
   """.trimIndent()
 
-  /** 同一页,但**整块 `__F` 缺席**——这就是现场那一发刷新的形状。 */
   private fun pageWithoutForum(topicTid: Long): String = """
     {"data":{
       "__T":{"0":{"tid":$topicTid,"subject":"帖 $topicTid","author":"作者","replies":9,
@@ -177,10 +164,6 @@ class TopicListRefreshTest {
     assertEquals(47000001L, pages[0].board?.head, "第一页原样留着")
     assertNull(pages[1].board, "第二页照实存,不给它补第一页的 `__F`")
   }
-
-  // ---------------------------------------------------------------------------
-  // 合并函数本身
-  // ---------------------------------------------------------------------------
 
   private val board = Board(id = -7, kind = BoardKind.BOARD, fid = -7, name = "网事杂谈", head = 1001)
 

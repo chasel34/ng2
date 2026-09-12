@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-"""Split the fixed scene-9 drawer/settings trace into interaction windows."""
 import argparse
 
 from perfetto.trace_processor import TraceProcessor
-
 
 def percentile(values, percent):
     values = sorted(values)
@@ -16,14 +14,7 @@ def percentile(values, percent):
         return values[lower]
     return values[lower] * (upper - position) + values[upper] * (position - lower)
 
-
 def nearest_frame(frames, ts):
-    """The presented frame a GPU fence slice belongs to.
-
-    Ticket 59 round 2 needs GPU fence durations bucketed by the pipeline-depth
-    state of the frame they belong to, so pair each fence slice with the frame
-    whose span contains it, else with the closest one that starts before it.
-    """
     best = None
     for frame in frames:
         if frame.ts <= ts < frame.ts + frame.dur:
@@ -33,7 +24,6 @@ def nearest_frame(frames, ts):
         else:
             break
     return best
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -142,7 +132,6 @@ def main():
             print(f"  {name}: n={len(values)} "
                   f"p50={percentile(values, 50):.3f} p95={percentile(values, 95):.3f} "
                   f"max={max(values):.3f}ms")
-
 
 if __name__ == "__main__":
     main()

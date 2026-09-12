@@ -1,35 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""gfxinfo framestats 逐帧分析 — 判据编号见 docs/perf-playbook.md (C2 / C5 / C6 / T3 / T5 / T7 / T8)。
+"""分析 gfxinfo framestats，采样要求见 docs/perf-playbook.md。
 
-采样:
-    adb shell dumpsys gfxinfo <pkg> reset
-    # 操作。input swipe 单次时长必须 >80ms,起步段 ≤80ms 不作证据 (T5)
-    adb shell dumpsys gfxinfo <pkg> framestats > fs.txt
-分析:
-    scripts/perf/analyze_framestats.py fs.txt --source device
-
-列一律按表头名定位:新版 framestats 在 Flags 后插了 FrameTimelineVsyncId (T3)。
-
-自检:
-    scripts/perf/analyze_framestats.py --selftest
-"""
+用法：scripts/perf/analyze_framestats.py fs.txt --source device
+自检：scripts/perf/analyze_framestats.py --selftest"""
 import argparse
 import sys
 
-MS = 1e6  # ns -> ms
+MS = 1e6
 
-# hwui FrameInfoFlags(frameworks/base/libs/hwui/FrameInfo.h)。低 4 位含义自 Android 5 起没变过:
-FLAG_WINDOW_LAYOUT_CHANGED = 1 << 0  # 窗口布局/尺寸变化的那一帧(含首帧),必然超时,不计入
-FLAG_RT_ANIMATION = 1 << 1           # RenderThread 驱动的动画帧,是正常帧,要计入
-FLAG_SURFACE_CANVAS = 1 << 2         # Surface.lockCanvas 软件帧,hwui 阶段时间戳残缺,不计入
-FLAG_SKIPPED_FRAME = 1 << 3          # hwui 主动跳过的帧,时间戳是上一帧残留(会算出负数耗时),不计入
-#
-# bit4 及以上是新版本追加的位。Android 16 / API 36 真机(25113PN0EC,120Hz)上 bit5(=32)
-# 几乎覆盖每一个交互/滚动帧:s3-native 120 帧里 119 帧是 32,而同一份 dump 的现代
-# FrameTimeline 汇总是 6,318 帧 / 1 janky(0.02%)——32 不可能是「无效帧」标记,它是常态位
-# (与手势/滚动窗口共现,静止段反而是 0;s4-native-fast 里 32 的连续段正好是那一次 swipe)。
-# 因此这里不再按 `Flags != 0` 剔除,而是只把上面三位当无效帧,未知高位一律放行(票 52)。
+FLAG_WINDOW_LAYOUT_CHANGED = 1 << 0
+FLAG_RT_ANIMATION = 1 << 1
+FLAG_SURFACE_CANVAS = 1 << 2
+FLAG_SKIPPED_FRAME = 1 << 3
 INVALID_FLAGS = FLAG_WINDOW_LAYOUT_CHANGED | FLAG_SURFACE_CANVAS | FLAG_SKIPPED_FRAME
 
 FLAG_NAMES = [
@@ -39,25 +22,19 @@ FLAG_NAMES = [
     (FLAG_SKIPPED_FRAME, "SkippedFrame"),
 ]
 
-# 计算 C5/C6 必须的列;缺一列直接报错,别拿半份表头算出「看着挺像」的数
 REQUIRED_COLUMNS = ("Flags", "IntendedVsync", "HandleInputStart", "SwapBuffers", "FrameCompleted")
 
-
 def flag_names(flags):
-    """把 Flags 数值翻成可读名字,未知高位按 bitN 列出。"""
     names = [n for bit, n in FLAG_NAMES if flags & bit]
     rest = flags & ~sum(bit for bit, _ in FLAG_NAMES)
     names += ["bit%d" % i for i in range(64) if rest >> i & 1]
     return "+".join(names) if names else "无"
 
-
 def is_invalid_frame(flags):
-    """只有首帧/窗口变化、软件 canvas、跳过帧算无效;其余(含 API 36 的 bit5=32)都是正常帧。"""
     return bool(flags & INVALID_FLAGS)
 
-
 def timestamps_sane(row):
-    """跳过帧偶尔不带 SkippedFrame 位,只留下一帧的残留时间戳 —— 用单调性兜底。"""
+    """跳过帧可能缺少标志位，通过时间戳单调性排除残留数据。"""
     try:
         iv = int(row["IntendedVsync"])
         hi = int(row["HandleInputStart"])
@@ -67,7 +44,6 @@ def timestamps_sane(row):
         return False
     return iv > 0 and hi > 0 and sb >= hi and fc >= sb and hi >= iv
 
-# 阶段拆分口径与 .scratch/perf-2026-08/report.md §2.3 的表一致
 STAGES = [
     ("输入处理", "HandleInputStart", "AnimationStart"),
     ("动画", "AnimationStart", "PerformTraversalsStart"),
@@ -78,13 +54,8 @@ STAGES = [
     ("交换缓冲(等 GPU/合成,不归 app)", "SwapBuffers", "FrameCompleted"),
 ]
 
-
 def parse_profiledata(text):
-    """返回 (block_count, rows)。rows 为 dict,键取自各 block 自己的表头。
-
-    每个 block 是一个 window/surface,自带一份表头(新版在 Flags 后插了 FrameTimelineVsyncId,
-    所以只能按列名取值)。行里额外塞一个 `_block`,跨 window 的帧不能拿来算帧间隔。
-    """
+    """按各窗口的表头解析列；不同窗口的帧不能用于计算相邻帧间隔。"""
     inside, header, rows, blocks = False, None, [], 0
     for line in text.splitlines():
         line = line.strip()
@@ -106,7 +77,6 @@ def parse_profiledata(text):
             rows.append(row)
     return blocks, rows
 
-
 def pct(values, q):
     if not values:
         return float("nan")
@@ -114,16 +84,11 @@ def pct(values, q):
     i = min(len(s) - 1, max(0, int(round((len(s) - 1) * q))))
     return s[i]
 
-
 def fmt(values):
     return "p50 %.1f / p90 %.1f / p95 %.1f / p99 %.1f / max %.1f ms" % (
         pct(values, .50), pct(values, .90), pct(values, .95), pct(values, .99), pct(values, 1.0))
 
-
 def selftest():
-    """Flags 过滤 + 列解析的最小回归(票 52)。标准库跑,不引 pytest。"""
-    # 两个 block:第一个是 API 36 表头(Flags 后插了 FrameTimelineVsyncId),第二个是老表头,
-    # 且两块列顺序不同 —— 按下标取列必然错位,按列名取才对得上。
     new_hdr = ("Flags,FrameTimelineVsyncId,IntendedVsync,Vsync,InputEventId,HandleInputStart,"
                "AnimationStart,PerformTraversalsStart,DrawStart,FrameDeadline,FrameStartTime,"
                "FrameInterval,WorkloadTarget,SyncQueued,SyncStart,IssueDrawCommandsStart,"
@@ -148,7 +113,7 @@ def selftest():
     base = 1000000000000
     step = 8330000
     lines = ["---PROFILEDATA---", new_hdr]
-    flags_seq = [32, 32, 2, 32, 1, 32, 4, 32, 40, 32]  # 32/2 常态位应留下,1/4/40 应剔除
+    flags_seq = [32, 32, 2, 32, 1, 32, 4, 32, 40, 32]
     for i, f in enumerate(flags_seq):
         lines.append(new_row(f, base + i * step))
     lines += ["---PROFILEDATA---", "", "---PROFILEDATA---", old_hdr,
@@ -157,32 +122,27 @@ def selftest():
     assert blocks == 2, blocks
     assert len(rows) == 12, len(rows)
 
-    # 1) 列按名字取:新表头里 IntendedVsync 是第 3 列,老表头里是第 2 列,两块都要取对
     assert int(rows[0]["IntendedVsync"]) == base, rows[0]["IntendedVsync"]
     assert int(rows[0]["FrameTimelineVsyncId"]) == 123456
     assert int(rows[10]["IntendedVsync"]) == base + 100 * step, rows[10]["IntendedVsync"]
     assert "FrameTimelineVsyncId" not in rows[10]
     assert rows[0]["_block"] == 1 and rows[10]["_block"] == 2
 
-    # 2) Flags 语义:0/2/32(含未知高位)是正常帧;1/4/8/40 是无效帧
     for f in (0, 2, 32, 34, 64, 96):
         assert not is_invalid_frame(f), f
     for f in (1, 4, 8, 12, 33, 40, 36):
         assert is_invalid_frame(f), f
     kept = [r for r in rows if not is_invalid_frame(int(r["Flags"]))]
-    assert len(kept) == 8, len(kept)  # 新块 10 行剔掉 1/4/40 剩 7,老块 0 留下、8 剔除
+    assert len(kept) == 8, len(kept)
     assert sorted({int(r["Flags"]) for r in kept}) == [0, 2, 32]
 
-    # 3) 时间戳兜底:SwapBuffers 落在 HandleInputStart 之前(跳过帧残留)必须被剔除
     bad = dict(rows[0])
     bad["SwapBuffers"] = str(int(bad["IntendedVsync"]) - 1000000000)
     assert timestamps_sane(rows[0]) and not timestamps_sane(bad)
 
-    # 4) 名字翻译
     assert flag_names(40) == "SkippedFrame+bit5", flag_names(40)
     assert flag_names(0) == "无"
     print("selftest OK:%d block / %d 行,Flags 过滤与按列名取值均正确" % (blocks, len(rows)))
-
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -212,7 +172,7 @@ def main():
 
     rows.sort(key=lambda r: int(r["IntendedVsync"]))
     total_rows = len(rows)
-    dropped = {}  # 剔除原因 -> 帧数
+    dropped = {}
     for r in rows:
         f = int(r["Flags"])
         if is_invalid_frame(f):
@@ -234,15 +194,12 @@ def main():
 
     app_cpu = [(int(r["SwapBuffers"]) - int(r["HandleInputStart"])) / MS for r in rows]
     total = [(int(r["FrameCompleted"]) - int(r["IntendedVsync"])) / MS for r in rows]
-    # 帧间隔只在同一个 window(block)内相邻两帧之间算,跨 window 的相邻行没有先后语义
     gaps_at = [(i, (int(rows[i]["IntendedVsync"]) - int(rows[i - 1]["IntendedVsync"])) / MS)
                for i in range(1, len(rows)) if rows[i]["_block"] == rows[i - 1]["_block"]]
     gaps = [g for _, g in gaps_at]
     intervals = [int(r["FrameInterval"]) / MS for r in rows if "FrameInterval" in r and int(r["FrameInterval"]) > 0]
     interval = pct(intervals, .50) if intervals else pct(gaps, .50)
 
-    # 静止段(app 没内容要画,本来就不出帧)不是丢帧:间隔 ≥ --idle-ms 的空档单独计,不进 C6。
-    # 真机数据里这两类是分得开的:一次卡顿的空档 13~60ms,静止/换阶段的空档 ≥100ms(票 52)。
     idle = [(i, g) for i, g in gaps_at if g >= a.idle_ms]
     drops = [(i, g) for i, g in gaps_at if a.drop_ms < g < a.idle_ms]
     missed = sum(max(1, int(round(g / interval)) - 1) for _, g in drops) if interval else len(drops)
@@ -295,7 +252,6 @@ def main():
     for c, t, r in sorted(zip(app_cpu, total, rows), key=lambda x: -x[0])[:a.top]:
         print("  app %6.2f ms / 整帧 %6.2f ms @ +%.0f ms"
               % (c, t, (int(r["IntendedVsync"]) - int(rows[0]["IntendedVsync"])) / MS))
-
 
 if __name__ == "__main__":
     main()

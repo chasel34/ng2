@@ -16,13 +16,6 @@ import kotlin.coroutines.ContinuationInterceptor
 import kotlinx.coroutines.Dispatchers
 import java.net.URI
 
-/**
- * 票 13 单测共用的假件:一个按脚本吐 `read.php` 响应的 [NgaClient]。
- *
- * **假的是传输层不是端点层** —— 请求照常走票 06 的策略链、票 04 的清洗与信封、
- * 票 07 的 `parseTopicDetail`,所以「页转换」这条断言链是端到端的:
- * 字节 → 解码 → 清洗 → 解析 → [TopicPageBuilder] 建模。
- */
 object TopicFixtures {
 
   val STYLE = TopicRenderStyle(
@@ -34,12 +27,6 @@ object TopicFixtures {
 
   val URLS: AttachmentUrls = DefaultAttachmentUrls
 
-  /**
-   * 一页 `read.php` 的信封。
-   *
-   * @param floors 每一楼:`lou to 正文`
-   * @param rows 楼层总数(`__ROWS`),总页数按它算
-   */
   fun pageEnvelope(
     tid: Long = 45150945,
     page: Int = 1,
@@ -101,7 +88,6 @@ object TopicFixtures {
     }
   }
 
-  /** 按 URL 里的 `page=` 分发响应;`onRequest` 可以记账或改行为。 */
   fun client(
     onRequest: ((HttpRequest) -> Unit)? = null,
     respond: (page: Int, uri: URI) -> FakeResponse,
@@ -122,7 +108,6 @@ object TopicFixtures {
     FakeResponse(status = 200, contentType = "text/javascript; charset=UTF-8", body = utf8(body))
 }
 
-/** 把存下来的快照记在内存里的假 sink。 */
 class FakeSnapshotSink : TopicSnapshotSink {
   val saved = mutableListOf<TopicPageSnapshot>()
   override suspend fun save(snapshot: TopicPageSnapshot) {
@@ -130,7 +115,6 @@ class FakeSnapshotSink : TopicSnapshotSink {
   }
 }
 
-/** 单测里造 [TopicRepository] —— IoScope 用测试自己的 scope。 */
 fun testRepository(
   client: NgaClient,
   scope: CoroutineScope,
@@ -145,10 +129,5 @@ fun testRepository(
   io = io,
 )
 
-/**
- * 请求那一发的调度器(票 37)。默认跟传进来的 scope 用**同一个**——单测给的是
- * `StandardTestDispatcher(testScheduler)`,`advanceUntilIdle()` 才推得动 `withContext(io)`
- * 里的活;换成 `Dispatchers.IO` 就跑到真线程池上去了,虚拟时间管不着。
- */
 fun CoroutineScope.testDispatcher(): CoroutineDispatcher =
   coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher ?: Dispatchers.Unconfined

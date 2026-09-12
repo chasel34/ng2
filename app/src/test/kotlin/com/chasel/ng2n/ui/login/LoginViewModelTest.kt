@@ -25,27 +25,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 
-/**
- * 登录收割的逻辑(票 15 验收①里不需要真人的那一半)。
- *
- * ⚠️ 用 `runCurrent()` 而不是 `advanceUntilIdle()`:轮询是个「永远还排着下一个 `delay`」的
- * 循环,`advanceUntilIdle` 会一直往前推虚拟时间、永不返回。
- *
- * 真登录要所有者在模拟器里输账号密码,不能自动化;能自动化的是**收割规则**:
- * 什么时候算登录成功、用户名怎么解、账号落哪、以及 WebView cookie 的两次清理。
- * `CookieManager` 这一侧换成 [FakeWebCookieVault],真实行为由 androidTest 的
- * `AndroidWebCookieVaultTest` 在设备上验。
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LoginViewModelTest {
 
   private val dispatcher = StandardTestDispatcher()
 
-  /**
-   * 建出来的 VM 要在用例结束前把 `viewModelScope` 取消掉 —— 真实生命周期里
-   * 这件事由 `onCleared()` 做。不取消的话轮询会一直往测试调度器里排下一个 `delay`,
-   * `runTest` 收尾时的排空永远排不完(整条测试卡死,不是超时)。
-   */
   private val models = mutableListOf<LoginViewModel>()
 
   private val uid = "67241234"
@@ -53,7 +37,6 @@ class LoginViewModelTest {
 
   @BeforeTest
   fun setUp() {
-    // viewModelScope 跑在 Dispatchers.Main 上,JVM 里得先给它一个
     Dispatchers.setMain(dispatcher)
   }
 
@@ -62,13 +45,6 @@ class LoginViewModelTest {
     Dispatchers.resetMain()
   }
 
-  /**
-   * 每条用例都从这里进。
-   *
-   * ⚠️ VM 的 scope **必须在 `runTest` 的 body 里**取消:`runTest` 返回前会把测试调度器
-   * 排空,而收割轮询永远排着下一个 `delay` —— 放进 `@AfterTest` 就太晚了,
-   * 表现是整个 `:app:testDebugUnitTest` 卡死(不是超时,是一直空转)。
-   */
   private fun loginTest(body: suspend TestScope.() -> Unit) = runTest(dispatcher) {
     try {
       body()
@@ -101,7 +77,6 @@ class LoginViewModelTest {
     val model = viewModel(vault, store)
     runCurrent()
 
-    // 用户走完官方登录流程,cookie 出现在原生仓库里(阴阳师妄想 的 GBK 双重编码)
     vault.cookie =
       "ngaPassportUid=$uid; ngaPassportCid=$cid; " +
         "ngaPassportUrlencodedUname=%25D2%25F5%25D1%25F4%25CA%25A6%25CD%25FD%25CF%25EB"
@@ -153,7 +128,6 @@ class LoginViewModelTest {
     val model = viewModel(vault, store)
     runCurrent()
 
-    // 页面还没登录时挂着的那些占位值
     vault.cookie = "ngaPassportUid=guest; ngaPassportCid=deleted; guestJs=1754600001"
     advanceTimeBy(COOKIE_POLL_MS * 6)
     runCurrent()
@@ -173,7 +147,6 @@ class LoginViewModelTest {
     vault.cookie = "ngaPassportUid=$uid; ngaPassportCid=$cid"
     advanceTimeBy(COOKIE_POLL_MS)
     runCurrent()
-    // 收割那一下把 vault 清空了;就算页面又写回来,循环已经退出,不该再动账号
     vault.cookie = "ngaPassportUid=99999999; ngaPassportCid=$cid"
     advanceTimeBy(COOKIE_POLL_MS * 4)
     runCurrent()

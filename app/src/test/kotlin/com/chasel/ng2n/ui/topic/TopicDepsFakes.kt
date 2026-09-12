@@ -21,18 +21,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
-/**
- * 票 13 的 ViewModel 单测要一整套 [TopicDeps]。
- *
- * 三份存储都用**内存假件**:Room 的两个 DAO 是 interface(票 14 特意做成薄层),
- * DataStore 只有 `data` / `updateData` 两个成员,自己实现一份 20 行的就够。
- * 这样单测跑在纯 JVM 上,不起 Robolectric、不碰磁盘。
- */
 class FakeBrowseHistoryDao : BrowseHistoryDao {
   private val rows = LinkedHashMap<Long, BrowseHistoryEntity>()
   private val state = MutableStateFlow<List<BrowseHistoryEntity>>(emptyList())
 
-  /** 落盘了几次(阅读进度节流的断言用)。 */
   var writes: Int = 0
     private set
 
@@ -105,7 +97,6 @@ class FakeTopicCacheDao : TopicCacheDao {
   )
 }
 
-/** 内存 DataStore。`updateData` 的语义(读改写、返回新值)照 [DataStore] 的合同。 */
 class InMemoryPreferences : DataStore<Preferences> {
   private val state = MutableStateFlow(emptyPreferences())
   override val data: Flow<Preferences> = state
@@ -125,7 +116,6 @@ class FakeCredentials(private var credential: Credential? = null) : CredentialSo
   }
 }
 
-/** 一整套内存版 [TopicDeps]。 */
 class FakeTopicDeps(
   client: NgaClient,
   scope: CoroutineScope,

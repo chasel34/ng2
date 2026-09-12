@@ -56,23 +56,8 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import com.chasel.ng2n.ui.theme.avatarColorFor
 
-/** uiautomator 找账号管理屏的锚点。 */
 const val ACCOUNTS_SCREEN_TAG: String = "ng2n-accounts-screen"
 
-/**
- * 多账号管理屏 —— `src/app/accounts.tsx` 的移植(设计稿 isAccounts 屏)。
- *
- * 一条账号 = 头像 + 名字 + 「UID xxx · cookie N 天后过期」+ 当前标记 + 退出按钮;
- * 点整条切号,点右侧小门标退出。「30 天后过期」是**客户端假设值**:
- * `Set-Cookie` 的真实 expires 拿不到,按 passport 的 30 天惯例从登录时刻推算,
- * 只作展示、不做任何强制(见 `data/account/Accounts.kt`)。
- *
- * 视觉走全 app 同一套(票 32 补的是票 15 留下的欠账):顶栏用 [TopBar] +
- * [TopBarButton] / [TopBarTitle],配色取 `LocalNg2nColors`、字号取 `Typo`。
- * 票 15 落地时设计 token 还没铺完,这一屏当时用的是 Material3 默认配色与就地拼的
- * `Row` 顶栏 —— 于是它成了唯一一屏换主题不跟着变、顶栏尺寸和别处对不齐、
- * 返回钮在无障碍树里没名字的屏(TalkBack 念不出,uiautomator 也点不到)。
- */
 @Composable
 fun AccountsScreen(
   viewModel: AccountsViewModel,
@@ -82,7 +67,6 @@ fun AccountsScreen(
   val state by viewModel.state.collectAsStateWithLifecycle()
   val context = LocalContext.current
   val colors = LocalNg2nColors.current
-  // 过期天数只随进屏那一刻算一次:秒级刷新对「还剩 29 天」毫无意义
   val now = remember { System.currentTimeMillis() }
 
   LaunchedEffect(viewModel) {
@@ -97,7 +81,6 @@ fun AccountsScreen(
       .background(colors.bg)
       .semantics { contentDescription = ACCOUNTS_SCREEN_TAG },
   ) {
-    // 状态栏安全区归 TopBar 自己撑(edge-to-edge),这里不再叠 windowInsetsPadding
     TopBar(paddingHorizontal = 4.dp) {
       TopBarButton(
         icon = Ng2nIcon.ARROW_BACK,
@@ -128,9 +111,6 @@ fun AccountsScreen(
         Spacer(Modifier.height(10.dp))
       }
 
-      // 「添加账号」是**虚线**描边的空框(RN 侧 `borderStyle: 'dashed'` + `colors.track`)——
-      // Compose 的 `Modifier.border` 只画实线,虚线要自己 `drawBehind` 一条带
-      // `dashPathEffect` 的描边(票 48)
       val dash = with(LocalDensity.current) {
         PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))
       }
@@ -204,10 +184,6 @@ private fun AccountRow(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(13.dp),
   ) {
-    // 头像方块按 **uid** 散列取色 + 白字(RN 侧 `accounts.tsx` 的
-    // `avatarColorFor(account.uid)` + `onPrimary`)。票 32 当时选的
-    // 「primaryContainer 底 + primary 字」是照收藏夹「默认」徽标抄的,语义不同:
-    // 那是一个状态徽标,这是**身份**色 —— 登了多个账号时全屏一个色就分不出人了(票 48)
     Box(
       modifier = Modifier
         .size(46.dp)
@@ -249,8 +225,6 @@ private fun AccountRow(
       )
     }
     RadioIcon(tint = if (isCurrent) colors.primary else colors.meta, checked = isCurrent)
-    // 原先是 Material3 的 IconButton(涟漪取 M3 色);换成与全 app 同款的圆形触控盒,
-    // onClickLabel 让 TalkBack 的「双击以…」也念得出这是「退出」
     Box(
       modifier = Modifier
         .size(32.dp)
@@ -264,14 +238,6 @@ private fun AccountRow(
   }
 }
 
-/**
- * 账号头像里的缩写 —— `src/ui/initial.ts` 的 `nameAbbrev` 直译:
- * 拉丁名取前 [asciiCount] 个可见 ASCII(设计稿 `chasel43` → 抽屉「chas」、账号管理页「ch」),
- * CJK 名一个字就够宽,只取首字。
- *
- * 按**码点**切而不是按 `Char`:名字里可能有 emoji 或生僻字,按 UTF-16 码元切会劈出
- * 半个代理对,渲染成豆腐块(RN 版用 `Array.from` 是同一个理由)。
- */
 internal fun nameAbbrev(name: String, asciiCount: Int): String {
   val chars = name.trim().codePoints().toArray()
   if (chars.isEmpty()) return "#"
@@ -281,5 +247,4 @@ internal fun nameAbbrev(name: String, asciiCount: Int): String {
   return String(chars, 0, count)
 }
 
-/** RN 版的 `/^[\x21-\x7e]$/`:可见 ASCII(不含空格)。 */
 private fun isVisibleAscii(codePoint: Int): Boolean = codePoint in 0x21..0x7e

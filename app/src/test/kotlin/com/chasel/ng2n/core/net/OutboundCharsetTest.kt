@@ -5,22 +5,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * `__inchst` 撤销 与 POST Content-Type 切换。
- *
- * 这两条在 RN 版里落在 `core/net/strategies/attempt.ts` 的**未导出**函数里
- * (掺着 context / 凭证 / Referer,不是纯函数),进不了金样本;票 03 把它们抠成纯函数,
- * 用例**手工移植**自这几处 TS 断言:
- *
- * - `src/core/net/fetcher.test.ts`「自动带公共参数、格式参数,并剔除空值参数」
- * - `src/core/net/fetcher.test.ts`「GBK 参数按 GBK 编码进 query,并撤掉 __inchst=UTF8」
- * - `src/core/net/fetcher.test.ts`「表单里有 GBK 值时声明 charset=GBK」
- * - `src/core/api/search.test.ts`「thread.php 的 key 按 UTF-8…」/「forum.php 的 key 按 GBK…」
- * - `src/core/api/block-word.test.ts`「data 按 GBK percent-encode 进 query,且不再声明 __inchst」
- */
 class OutboundCharsetTest {
 
-  /** RN 版 `RESPONSE_FORMATS.json.params`,票 06 会把它搬进 constants。 */
   private val jsonFormat = queryOf("__output" to "8")
   private val jsonLiteFormat = queryOf("lite" to "js")
 
@@ -41,7 +27,6 @@ class OutboundCharsetTest {
     val gbkUrl = outboundUrl("https://bbs.nga.cn", "thread.php", outboundQuery(gbkQuery, jsonFormat))
     val utf8Url = outboundUrl("https://bbs.nga.cn", "thread.php", outboundQuery(utf8Query, jsonFormat))
 
-    // 同一个 thread.php,author 是 GBK 而 key 是 UTF-8(API 文档 §0.5)
     assertTrue(gbkUrl.contains("author=%D4%AD%C9%F1"), gbkUrl)
     assertFalse(gbkUrl.contains("__inchst"), "GBK 参数在场时必须撤掉 UTF8 声明:$gbkUrl")
     assertTrue(utf8Url.contains("key=%E5%8E%9F%E7%A5%9E"), utf8Url)
@@ -91,7 +76,6 @@ class OutboundCharsetTest {
       formContentType(queryOf("access_uid" to "123", "access_token" to "abc")),
     )
     assertEquals("application/x-www-form-urlencoded", formContentType(null))
-    // 空 GBK 值不算 GBK 参数(它会被整个剔除,服务端根本看不到 GBK 字节)
     assertEquals("application/x-www-form-urlencoded", formContentType(queryOf("content" to gbk(""))))
   }
 
@@ -100,11 +84,9 @@ class OutboundCharsetTest {
     val query = queryOf("fid" to 650)
     val form = queryOf("content" to gbk("原神"))
 
-    // query 全 UTF-8 → 声明照留;form 有 GBK → Content-Type 仍要切
     assertEquals(QueryValue.Text("UTF8"), inchstParam(query))
     assertEquals("application/x-www-form-urlencoded;charset=GBK", formContentType(form))
 
-    // 反过来:query 有 GBK 而 form 没有
     assertEquals(null, inchstParam(queryOf("author" to gbk("原神"))))
     assertEquals("application/x-www-form-urlencoded", formContentType(queryOf("content" to "原神")))
   }
@@ -124,7 +106,6 @@ class OutboundCharsetTest {
 
   @Test
   fun `GBK 表外字符逐 UTF-16 码元写十进制实体再 percent 编码`() {
-    // 😄 = U+1F604 → 代理对 55357 / 56836;实体本身再 percent 编码(& # ; 都不是 unreserved)
     assertEquals(
       "author=%C3%FE%D3%E3%26%2355357%3B%26%2356836%3B",
       buildQueryString(queryOf("author" to gbk("摸鱼😄"))),

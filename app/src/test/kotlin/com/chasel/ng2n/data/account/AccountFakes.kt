@@ -10,13 +10,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Base64
 
-/**
- * 账号相关单测共用的两个假件。
- *
- * `DataStore<Preferences>` 本身就是个接口,内存实现十几行 —— 比在单测里起一个真文件
- * DataStore 稳(不用管临时目录、也不会因为并发跑的别的用例互相踩)。
- * `Preferences` / `MutablePreferences` 是纯 Kotlin 类,JVM 上直接可用。
- */
 class FakePreferencesDataStore(
   initial: Preferences = emptyPreferences(),
 ) : DataStore<Preferences> {
@@ -35,13 +28,6 @@ class FakePreferencesDataStore(
   }
 }
 
-/**
- * 直通版 [AccountCrypto]:只做 Base64,不加密。
- *
- * 真实装 [KeystoreCrypto] 要 `AndroidKeyStore` 与 `android.util.Base64`,
- * 在 JVM 单测里两样都是会抛的桩。加解密算法本身由 androidTest 的
- * `KeystoreCryptoTest` 在真机/模拟器上验;单测这边只需要「存得进、读得回」。
- */
 class PassThroughCrypto : AccountCrypto {
 
   override fun encrypt(plaintext: ByteArray): String? =
@@ -51,7 +37,6 @@ class PassThroughCrypto : AccountCrypto {
     runCatching { Base64.getDecoder().decode(blob) }.getOrNull()
 }
 
-/** 内存版 [WebCookieVault]:记下被清了几次、被灌了什么。 */
 class FakeWebCookieVault(var cookie: String = "") : WebCookieVault {
 
   var clearCount: Int = 0
@@ -77,7 +62,6 @@ class FakeWebCookieVault(var cookie: String = "") : WebCookieVault {
   }
 }
 
-/** 建一个跑在内存里的 [AccountStore](真类、真状态迁移,只有加密与落盘是假的)。 */
 fun inMemoryAccountStore(): AccountStore =
   AccountStore(FakePreferencesDataStore(), PassThroughCrypto())
 

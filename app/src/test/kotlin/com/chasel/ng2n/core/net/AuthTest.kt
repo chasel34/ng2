@@ -3,10 +3,6 @@ package com.chasel.ng2n.core.net
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * 逐条移植自 `src/core/net/auth.test.ts`
- * (`buildAuthAttachment · 两种等价认证方式(API 文档 §0.2)`,5 条,全部移植)。
- */
 class AuthTest {
 
   private val credential = Credential(uid = "10000001", token = "fake-cid-token")

@@ -7,13 +7,6 @@ import com.chasel.ng2n.ui.board.dateText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * 屏蔽规则行第二行灰字的文案 —— 与 RN 侧 `src/app/filters.tsx` 的 `localRuleSub`
- * **逐字对拍**(票 18 的验收要按文案点)。
- *
- * 时间那一半交给 [dateText](设备时区),这里只固定「有添加时间 / 没有添加时间」
- * 两种拼法与四种生效范围文案。
- */
 class FiltersScreenTextTest {
 
   private fun rule(

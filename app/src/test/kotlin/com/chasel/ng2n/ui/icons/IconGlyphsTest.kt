@@ -4,19 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * 票 40:图标集与 RN 侧同形。
- *
- * 手画版与 RN 版画的**不是同一个东西**(线框 vs 实心、软盘 vs 下箭头、加号在人形左还是右……
- * 逐屏对照数出 17 处),所以形状不再手画,而是把 RN 那份字体
- * (`assets/fonts/MaterialIconsOutlined-Regular.otf`)里同名字形的轮廓导成路径常量
- * (`native/tools/gen_icon_paths.py` → [ICON_PATHS])。
- *
- * 能在 JVM 上钉住的是这三件:**表是齐的**(每颗枚举都有路径)、**表是同一张**
- * (键 = RN `ICON_GLYPHS` 的名字)、**尺寸是同一档**(轮廓都落在 24 格设计栅格里,
- * 放大倍数 = 边长 / 24,所以视觉尺寸与 RN 的 `fontSize` 一致)。
- * 画出来长什么样只有真机能看,但「拿错图标」这一类(票 40 最要紧的那条)在这里就挡住了。
- */
 class IconGlyphsTest {
 
   @Test
@@ -36,7 +23,6 @@ class IconGlyphsTest {
 
   @Test
   fun `枚举名小写就是 Material 图标名`() {
-    // RN 侧 `src/ui/icons.generated.ts` 的键是同一批名字,两版靠这个约定对齐
     assertEquals("arrow_back", Ng2nIcon.ARROW_BACK.glyphName)
     assertEquals("local_fire_department", Ng2nIcon.LOCAL_FIRE_DEPARTMENT.glyphName)
     assertEquals("sticky_note_2", Ng2nIcon.STICKY_NOTE_2.glyphName)
@@ -44,15 +30,12 @@ class IconGlyphsTest {
 
   @Test
   fun `轮廓都落在 24 格设计栅格里`() {
-    // 落在栅格里 = 视觉尺寸只由调用方的 size 决定。手画版就栽在这:通知空态那颗铃铛
-    // 只画了 0.36 个格,同一个 40dp 的框里比别的屏小 22%(票 40 表里那一行)。
     for (icon in Ng2nIcon.entries) {
       val data = ICON_PATHS.getValue(icon.glyphName)
       val numbers = NUMBER.findAll(data).map { it.value.toFloat() }.toList()
       assertTrue(numbers.isNotEmpty(), "${icon.glyphName} 的路径是空的")
       val min = numbers.min()
       val max = numbers.max()
-      // 少数字形(warning / campaign)会贴着边缘出去零点几,给半格容差
       assertTrue(min >= -0.5f, "${icon.glyphName} 的坐标越界:$min")
       assertTrue(max <= 24.5f, "${icon.glyphName} 的坐标越界:$max")
     }
@@ -67,11 +50,6 @@ class IconGlyphsTest {
     }
   }
 
-  /**
-   * 导出变换钉一颗:字体是 512 upem、基线在 0、y 向上,转成 24 视口就是
-   * `x * 24 / 512` 与 `24 - y * 24 / 512`。变换写错(比如漏了翻转)图标会上下颠倒,
-   * 那是模拟器上一眼能看出、JVM 上只有这条能挡住的事。
-   */
   @Test
   fun `arrow_back 的轮廓与字体里那颗一致`() {
     assertEquals(

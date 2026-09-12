@@ -6,17 +6,6 @@ import com.chasel.ng2n.core.net.strategies.TopicCacheReader
 import java.net.URI
 import java.nio.charset.Charset
 
-/**
- * 反封锁链单测共用的假件。
- *
- * 两套并存(票面要求):
- * 1. **纯 Kotlin 假 [Transport]**(本文件)—— 钉链的控制流:试了几个组合、什么顺序、
- *    缓存记了什么、错误怎么分类。不起服务端,毫秒级,可精确编排每一发的响应。
- * 2. **MockWebServer**(`data/net/OkHttpTransportTest`)—— 钉 okhttp 内部才看得见的事:
- *    `Cookie` 头到底有没有装上、`renew()` 是不是真换了连接、GBK 表单 Content-Type
- *    有没有原样发出去。假 Transport 证明不了这些。
- */
-
 val UTF8_JS = "text/javascript; charset=UTF-8"
 val GBK_JS = "text/javascript; charset=GBK"
 
@@ -24,13 +13,10 @@ fun utf8(text: String): ByteArray = text.toByteArray(Charsets.UTF_8)
 
 fun gbkBytes(text: String): ByteArray = text.toByteArray(Charset.forName("GB18030"))
 
-/** 一份正常的响应体。 */
 const val OK_JSON = """{"data":{"0":"ok"},"time":1}"""
 
-/** 被封的典型表现:返回一坨 HTML,洗不成 JSON(ADR-0002)。 */
 const val BLOCKED_HTML = "<html><body>403 Forbidden</body></html>"
 
-/** 假响应的脚本片段。 */
 class FakeResponse(
   val status: Int = 200,
   val contentType: String? = UTF8_JS,
@@ -42,7 +28,6 @@ fun blocked(): FakeResponse =
 
 fun ok(json: String = OK_JSON): FakeResponse = FakeResponse(body = utf8(json))
 
-/** 记录收到的请求,按脚本返回响应。 */
 class RecordingTransport(private val respond: (HttpRequest) -> FakeResponse) : Transport {
 
   val requests = mutableListOf<HttpRequest>()
@@ -55,7 +40,6 @@ class RecordingTransport(private val respond: (HttpRequest) -> FakeResponse) : T
     return HttpResponse(status = response.status, headers = headers, body = response.body)
   }
 
-  /** 这次请求用的组合,断言顺序时比生 URL 好读:`__output=8@https://bbs.nga.cn`。 */
   fun combos(): List<String> = requests.map { comboOf(it) }
 
   fun uids(): List<String?> = requests.map { it.credential?.uid }
@@ -63,7 +47,6 @@ class RecordingTransport(private val respond: (HttpRequest) -> FakeResponse) : T
   fun clear() = requests.clear()
 }
 
-/** 从 URL 里认出格式档:`lite=js` 或 `__output=N`。 */
 fun formatOf(request: HttpRequest): String {
   val query = URI(request.url).rawQuery.orEmpty().split("&")
     .mapNotNull { pair -> pair.split("=", limit = 2).takeIf { it.size == 2 }?.let { it[0] to it[1] } }
@@ -76,15 +59,12 @@ fun originOf(request: HttpRequest): String = URI(request.url).let { "${it.scheme
 
 fun comboOf(request: HttpRequest): String = "${formatOf(request)}@${originOf(request)}"
 
-/** 不带格式参数 = 网页版;带 `__output` / `lite` 的都是原生接口。 */
 fun isWebRequest(request: HttpRequest): Boolean =
   !request.url.contains("__output=") && !request.url.contains("lite=")
 
-/** 只有 `only` 这个组合是通的,其余一律返回封禁页。 */
 fun onlyWorking(only: String): RecordingTransport =
   RecordingTransport { if (comboOf(it) == only) ok() else blocked() }
 
-/** 一个可控的 [TransportFactory]:数得清 `renew()` 被调了几次。 */
 class CountingTransportFactory(private val transport: Transport) : TransportFactory {
 
   var built = 0
@@ -101,7 +81,6 @@ class CountingTransportFactory(private val transport: Transport) : TransportFact
   }
 }
 
-/** 固定凭证 / 账号表的 [CredentialSource]。 */
 class FakeCredentials(
   var signedIn: Credential? = null,
   var accounts: List<Credential> = emptyList(),
@@ -110,7 +89,6 @@ class FakeCredentials(
   override suspend fun all(): List<Credential> = accounts
 }
 
-/** 可改的设置源(「每请求现读」的单测就靠改它)。 */
 class FakeSettings(
   var hostValue: String = DEFAULT_NGA_HOST,
   var mode: WebFallbackMode = DEFAULT_WEB_FALLBACK_MODE,
@@ -125,7 +103,6 @@ val ALICE = Credential(uid = "10000001", token = "cid-a")
 val BOB = Credential(uid = "10000002", token = "cid-b")
 val CAROL = Credential(uid = "10000003", token = "cid-c")
 
-/** 单测里最常用的读请求构造器 —— `operation` 必填,这里一次写好。 */
 fun readRequest(
   path: String,
   query: QueryParams = emptyMap(),
@@ -157,7 +134,6 @@ fun readRequest(
   refererPath = refererPath,
 )
 
-/** 建一个只有指定策略的 client(TS 侧 `createNgaFetcher({ strategies })` 的对应物)。 */
 fun testClient(
   transport: Transport,
   strategies: List<FetchStrategy> = listOf(DirectStrategy()),
@@ -182,10 +158,6 @@ fun testClient(
   onDiagnostic = onDiagnostic,
 )
 
-/**
- * 一档假策略:要么恒成功、要么恒返回给定错误,并数着自己被跑了几次。
- * TS 侧 `stubStrategy` 的对应物。
- */
 class StubStrategy(
   override val name: String,
   private val error: NgaError? = null,
@@ -213,7 +185,6 @@ class StubStrategy(
   }
 }
 
-/** 跑一段代码,断言它抛了 [NgaError] 并把它交出来。 */
 inline fun assertThrowsNga(block: () -> Unit): NgaError = try {
   block()
   throw AssertionError("期望抛 NgaError,但什么都没抛")
@@ -221,7 +192,6 @@ inline fun assertThrowsNga(block: () -> Unit): NgaError = try {
   error
 }
 
-/** 一份只读缓存的假 store。 */
 class FakeTopicCacheStore : TopicCacheReader {
 
   private val entries = mutableMapOf<String, String>()

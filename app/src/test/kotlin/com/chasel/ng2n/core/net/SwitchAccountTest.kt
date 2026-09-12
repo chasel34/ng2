@@ -9,15 +9,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 逐条移植自 `src/core/net/strategies/switch-account.test.ts`
- * (`nextCredentialsAfter` 3 条 + `换账号重试` 5 条 = 8 条,全部移植)。
- */
 class SwitchAccountTest {
 
   private fun uidOf(request: HttpRequest) = request.credential?.uid
 
-  /** 只有 Bob 的凭证能拿到数据,Alice 一律被封。 */
   private fun onlyBobWorks() =
     RecordingTransport { if (uidOf(it) == BOB.uid) ok() else blocked() }
 
@@ -34,8 +29,6 @@ class SwitchAccountTest {
     credentials = FakeCredentials(signedIn = accounts.firstOrNull(), accounts = accounts),
     comboCache = cache,
   )
-
-  // ── nextCredentialAfter ───────────────────────────────────────────────────
 
   @Test
   fun `取当前账号之后的下一个,循环`() {
@@ -54,8 +47,6 @@ class SwitchAccountTest {
     assertEquals(ALICE, nextCredentialAfter(listOf(ALICE, BOB), null))
     assertEquals(ALICE, nextCredentialAfter(listOf(ALICE, BOB), Credential("999", "x")))
   }
-
-  // ── 换账号重试 ─────────────────────────────────────────────────────────────
 
   @Test
   fun `多账号时取下一个账号的 cookie 重试,成了就用它的结果`() = runTest {
@@ -76,7 +67,6 @@ class SwitchAccountTest {
     }
 
     assertEquals(NgaErrorKind.PARSE, error.kind)
-    // 只有 format-rotation 那一档发过请求,全是 Alice
     assertEquals(listOf(ALICE.uid), transport.uids())
   }
 

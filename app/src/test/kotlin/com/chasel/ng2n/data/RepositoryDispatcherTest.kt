@@ -25,21 +25,8 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
 
-/**
- * 票 35 的第二半:**仓库入口自己把网络切到 IO,不靠调用方**。
- *
- * 现场是首页那两个 `LaunchedEffect` —— 组合的上下文是 `AndroidUiDispatcher`(主线程),
- * 仓库里又没有 `withContext(Dispatchers.IO)`,于是 `NgaClient.execute` 的前半段
- * (含 `UserAgents.get`)就在主线程上跑,一头撞进 UA 那把锁里(线程栈见票 35)。
- * 死锁修掉之后这仍然是个独立缺陷:首页冷启动在主线程上跑请求链,白白卡首帧。
- *
- * 判据取的是「**发请求的线程不是调用仓库的那条线程**」:`runTest` 的协程跑在测试调度器的
- * 线程上,`withContext(Dispatchers.IO)` 之后必然换线程。UA 取值那一发单独再断一次 ——
- * 它是死锁现场里主线程栈的最后一帧,必须跟着一起离开调用方线程。
- */
 class RepositoryDispatcherTest {
 
-  /** 记下「请求真正发出去时」和「UA 真正取值时」各自在哪条线程上。 */
   private class ThreadProbe {
     @Volatile
     var transportThread: Thread? = null
@@ -135,14 +122,6 @@ class RepositoryDispatcherTest {
     probe.assertOffThread(caller)
   }
 
-  /**
-   * 票 37:详情页是同一类缺陷的最后一处 —— [TopicRepository.loadDetail] 里的
-   * `fetchTopicDetail` 原本跟着调用方走,而 `TopicViewModel` / `ChainViewModel` 一律
-   * `viewModelScope.launch`(= `Main.immediate`),于是每翻一页请求链前半段都在主线程上。
-   *
-   * 这里给的 `io` 是真的 [Dispatchers.IO](不是测试调度器),判据才有意义:
-   * **发请求的线程不是调用方线程**。
-   */
   @Test
   fun `主题详情 loadDetail 切走`() = runTest {
     val caller = Thread.currentThread()

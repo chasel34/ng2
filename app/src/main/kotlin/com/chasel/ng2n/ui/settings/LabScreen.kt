@@ -16,10 +16,6 @@ import com.chasel.ng2n.ui.common.rememberToaster
 import com.chasel.ng2n.ui.rememberAppDeps
 import kotlinx.coroutines.launch
 
-/**
- * 网页数据源兜底的四档(ADR-0002 / API 文档 §0.8)。设计稿这行画的是开关,
- * 但落地的是四档档位,所以改成选项行 —— 按同屏其它选项行的形状延伸。
- */
 private val FALLBACK_OPTIONS = listOf(
   SettingsOption(WebFallbackMode.DISABLED, "关闭", "原生接口失败就直接报错"),
   SettingsOption(WebFallbackMode.SECONDARY, "兜底(默认)", "原生接口全垮了才去反解网页版"),
@@ -30,13 +26,10 @@ private val FALLBACK_OPTIONS = listOf(
 private fun labelOf(mode: WebFallbackMode): String =
   FALLBACK_OPTIONS.first { it.value == mode }.label
 
-/** 一次分享出去的诊断条数上限。日志一条就是多行,整份几百条分享面板会塞不下。 */
 private const val EXPORT_LIMIT = 50
 
-/** 「本次运行」里分享出去的请求条数。 */
 private const val RUN_LOG_EXPORT_LIMIT = 20
 
-/** 实验室与诊断屏的静态 key(票 28:同一张表里不许有重复 key)。 */
 internal object LabKeys {
   const val S_LAB = "s-lab"
   const val FALLBACK = "fallback"
@@ -45,23 +38,9 @@ internal object LabKeys {
   const val COMBOS = "combos"
   const val EXPORT = "export"
 
-  /** 这一屏 LazyColumn 会用到的静态 key,顺序即屏上顺序。 */
   val all: List<String> = listOf(S_LAB, FALLBACK, WP_UA, S_DIAG, COMBOS, EXPORT) + SETTINGS_TAIL_KEY
 }
 
-/**
- * 实验室与诊断(设置的二级页)—— `src/app/settings/lab.tsx` 的移植。
- *
- * 这一页只收「排查时才会用到」的四条:两档改反封锁链行为的开关,两个把内存里的
- * 链路状态倒出来的入口。
- *
- * ## 脱敏(P1-04,已在存储层收口)
- *
- * 导出的两份文本都来自 `data/diagnostics` —— 那一层写日志前就把白名单之外的参数
- * 换成了 `<redacted>`(`fav` 访问码、搜索词、整张屏蔽词表都在挡下之列)。
- * **这一屏不做二次拼装**:凡是要发出去的字符串都取已脱敏的那一份,
- * 免得脱敏点分散到 UI 里(一处漏一次就重新泄露一次)。
- */
 @Composable
 fun LabScreen(onBack: () -> Unit) {
   val deps = rememberAppDeps()
@@ -74,7 +53,6 @@ fun LabScreen(onBack: () -> Unit) {
 
   val version = remember(context) { versionLabel(context) }
 
-  // 组合表活在内存里(故意不持久化),每次进这一屏现读
   val combos = deps.ngaClient.successfulCombos()
   val comboSummary =
     if (combos.isEmpty()) "还没有成功的请求"
@@ -82,13 +60,6 @@ fun LabScreen(onBack: () -> Unit) {
       "$key: ${record.combo.format.wire} @ ${record.combo.host}"
     }
 
-  /**
-   * 「本次运行的组合」(RN 版 2026-08-13「版块全空」排查加的)。
-   *
-   * 反封锁链把每个接口钉在「上次试通的格式 × 域名」上,这个状态只活在内存里,
-   * 出问题时最想知道的就是它。顺带把本次运行的请求落点也分享出去:成功的请求同样在里面,
-   * 「链自认为成功但拿回来 0 条」只有在这儿才看得出来。
-   */
   fun shareRunLog() {
     val runLog = deps.diagnostics.runLog.take(RUN_LOG_EXPORT_LIMIT)
     val lines = buildList {
@@ -97,7 +68,6 @@ fun LabScreen(onBack: () -> Unit) {
       add(if (combos.isEmpty()) "(还没有成功的请求)" else comboSummary)
       add("【最近 ${runLog.size} 个请求】")
       runLog.forEach { entry ->
-        // entry.params 在 `DiagnosticLogStore` 入库时就已经脱敏过了
         val query = entry.params.entries.joinToString("&") { "${it.key}=${it.value}" }
         val target = if (query.isEmpty()) entry.path else "${entry.path}?$query"
         val time = runLogClock(entry.at)
@@ -107,7 +77,6 @@ fun LabScreen(onBack: () -> Unit) {
     share(context, "本次运行", lines.joinToString("\n"), toast)
   }
 
-  /** 导出诊断日志。走系统分享面板(选「保存到文件」也走得通),省一个依赖。 */
   fun exportLog() {
     scope.launch {
       val log = deps.diagnostics.currentLog()
@@ -164,14 +133,12 @@ fun LabScreen(onBack: () -> Unit) {
   }
 }
 
-/** 版本号从 `PackageManager` 现读,不写死 —— 「用户报的版本」与「装的那一版」对不上最难查。 */
 private fun versionLabel(context: Context): String = runCatching {
   val info = context.packageManager.getPackageInfo(context.packageName, 0)
   val code = if (android.os.Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
   "${info.versionName} ($code)"
 }.getOrDefault("未知版本")
 
-/** 系统分享面板。没有分享目标时(某些精简 ROM)给一句提示,别静默失败。 */
 private fun share(context: Context, title: String, text: String, toast: (String) -> Unit) {
   val intent = Intent(Intent.ACTION_SEND).apply {
     type = "text/plain"

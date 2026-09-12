@@ -60,27 +60,14 @@ import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/**
- * 弹出层:溢出菜单、输入对话框、签名弹窗、Snackbar。
- *
- * 与 [TopicChrome] 同一条归属说明:公共 UI 体系归票 17,这里只做主题三屏要的那一份。
- */
-
 @Immutable
 data class MenuItem(
   val key: String,
   val label: String,
-  /** 这一条起一个新分组:上面画一条分割线 */
   val gapBefore: Boolean = false,
   val onClick: () -> Unit,
 )
 
-/**
- * 顶栏右上角的弹出菜单。设计稿:右侧留 8,圆角 14,条目高 50,弹出 .16s。
- *
- * 左手模式下整块镜像到左上角 —— 它是浮在内容上、要单手够的东西,
- * 缩放的原点也跟着换边,免得动画从一个够不着的角上长出来。
- */
 @Composable
 fun OverflowMenu(
   open: Boolean,
@@ -108,10 +95,6 @@ fun OverflowMenu(
       modifier = Modifier
         .align(if (leftHanded) Alignment.TopStart else Alignment.TopEnd)
         .padding(top = top, start = Spacing.sm, end = Spacing.sm)
-        // 票 43:条目是 `fillMaxWidth` 的,而这一列原来没有任何上界 —— 于是整块菜单
-        // 铺到 394(几乎占满屏宽),和顶栏 kebab 那份(208)自家都不一致。
-        // `width(IntrinsicSize.Max)` 把宽度收到最长那条条目上,再由 defaultMinSize
-        // 兜到 186 —— 与 RN 侧 `ui/menu.tsx` 的 `minWidth: 186` + wrap-content 同义。
         .defaultMinSize(minWidth = MENU_MIN_WIDTH)
         .width(IntrinsicSize.Max)
         .heightIn(max = MENU_MAX_HEIGHT)
@@ -127,7 +110,6 @@ fun OverflowMenu(
         .padding(vertical = 6.dp),
     ) {
       items.forEachIndexed { index, item ->
-        // 第一条上面不画:面板顶上贴着一条线没有分组意义,还会怼到圆角上
         if (item.gapBefore && index > 0) Divider()
         Box(
           modifier = Modifier
@@ -137,8 +119,6 @@ fun OverflowMenu(
             .padding(horizontal = MENU_ITEM_PADDING),
           contentAlignment = Alignment.CenterStart,
         ) {
-          // 菜单条目是 `menuItem` 那一档 15.5(RN `ui/menu.tsx` 的 `label`),
-          // 不是提示条的 13.5 —— 票 43 复量:同一条「贴条」Expo 39px、原生 35px
           Text(
             text = item.label,
             fontSize = Typo.menuItem.size,
@@ -155,9 +135,6 @@ private const val MENU_MS = 160
 private const val POP_SCALE = 0.94f
 private const val PANEL_MS = 220
 
-/**
- * 设计稿那个「标题 + 一行下划线输入 + 取消/确定」的对话框。跳页用。
- */
 @Composable
 fun InputDialog(
   open: Boolean,
@@ -208,10 +185,6 @@ fun InputDialog(
   }
 }
 
-/**
- * 「查看签名」弹窗(设计稿 `dialog:'sign'`:标题 + 正文 + 取消/知道了)。
- * 签名是 BBCode(可能带图带折叠),复用正文渲染器;没设置签名给一句占位。
- */
 @Composable
 fun SignatureDialog(state: SignatureDialogState?, onClose: () -> Unit) {
   if (state == null) return
@@ -228,7 +201,6 @@ fun SignatureDialog(state: SignatureDialogState?, onClose: () -> Unit) {
       if (model == null || model.isEmpty) {
         Text("${state.user.name} 没有设置签名", fontSize = Typo.notice.size, color = colors.meta)
       } else {
-        // 签名可以很长(装机单/许愿墙…),超出就在弹窗里滚
         BBCodeContent(model = model, callbacks = BBCodeCallbacks())
       }
     }
@@ -269,7 +241,6 @@ private fun DialogScaffold(onDismiss: () -> Unit, content: @Composable () -> Uni
         }
         .clip(RoundedCornerShape(Radius.lg))
         .background(colors.menu)
-        // 面板自己吃掉点击,不然点面板会被遮罩当成「点外面」关掉
         .clickable(
           interactionSource = remember { MutableInteractionSource() },
           indication = null,
@@ -320,12 +291,6 @@ private fun DialogActions(
   }
 }
 
-/**
- * Snackbar(深底浅字 + 右侧一枚薄荷绿动作)。
- *
- * 与 toast 的分工照抄 RN 版:需要带动作(撤销 / 查看)或要在浅深主题下与设计稿 1:1 的
- * 提示走这里;纯气泡提示走系统 Toast。
- */
 @Composable
 fun SnackbarHost(message: SnackbarMessage?, dark: Boolean, onDismiss: () -> Unit) {
   if (message == null) return
@@ -335,9 +300,6 @@ fun SnackbarHost(message: SnackbarMessage?, dark: Boolean, onDismiss: () -> Unit
     kotlinx.coroutines.delay(autoDismissMs(message.action != null))
     onDismiss()
   }
-  // 设计稿的 92 是「距底」——底部系统栏那一截不算在内。不加这个 inset,提示条就压进
-  // 导航栏区域,与同样让开了 inset 的右下角 FAB 横向重叠(票 25 顺带):
-  // FAB 占 [24+inset, 74+inset],提示条占 [92, 134],inset 一超过 18dp 就压上了
   val navBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
   Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
@@ -383,25 +345,15 @@ fun SnackbarHost(message: SnackbarMessage?, dark: Boolean, onDismiss: () -> Unit
   }
 }
 
-/** 设计稿:snack 条距底 92(给 FAB 让路)、左右 16,滑入走 omup 的 .22s。 */
 private val SNACK_BOTTOM = 92.dp
 
-/** 自动消失时长(RN 侧 `ui/snackbar.tsx` 同值)。 */
 private const val AUTO_DISMISS_MS = 4000L
 
-/**
- * 带动作的那一档给更长的窗口(票 25,**对 RN 版的有意偏离**)。
- *
- * 4 秒是「读完一句话」的时间,不是「读完 + 认出右边那枚小字 + 抬手点中」的时间;
- * 撤销是误操作的安全网,窗口关早了等于没有。Material 的口径也是带动作的提示要更久。
- */
 private const val AUTO_DISMISS_ACTION_MS = 8000L
 
-/** 这一条该挂多久。 */
 private fun autoDismissMs(hasAction: Boolean): Long =
   if (hasAction) AUTO_DISMISS_ACTION_MS else AUTO_DISMISS_MS
 
-/** 设计稿 `snackbarColors`(浅色 `#33322C`,深色 `#3A3A36`;字 `#F4F1E8`、动作 `#8FD8C9`)。 */
 private val SNACK_BG_LIGHT = Color(0xFF33322C)
 private val SNACK_BG_DARK = Color(0xFF3A3A36)
 private val SNACK_FG = Color(0xFFF4F1E8)

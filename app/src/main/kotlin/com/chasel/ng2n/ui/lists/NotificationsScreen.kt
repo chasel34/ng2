@@ -63,18 +63,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 「最近被喷」页 —— 直译 RN 侧 `src/app/notifications.tsx`
- * (CONTEXT.md「通知」:UI 文案沿用设计稿,代码统一叫通知)。
- *
- * 设计稿 `isNotify` 屏 1:1:顶栏「我的被喷」+ 删除按钮;正文按类型分组,分组头是
- * 图标 + 组名 + 条数,条目是头像 + 三行(谁干了什么 / 主题 / 页码·时间)。
- * 设计稿条目第二行画的是对方内容摘要,但 `noti` 接口不给正文(API 文档 §9.1),
- * 这一行放主题标题,第三行放「第 N 页 · 时间」。
- *
- * 进页即把当前条目**全部标记已读**(角标就是为了引到这儿);条目点击跳对方楼层
- * 所在页,短信类点击是「本版本未开放」(spec §1 短消息不在 v1)。
- */
 @Composable
 fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
@@ -91,14 +79,11 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
   val refreshing by deps.notifications.refreshing.collectAsStateWithLifecycle()
   val error by deps.notifications.lastError.collectAsStateWithLifecycle()
 
-  // 通知屏也是「前台」:首页退场之后这条循环得由它接着跑,不然停在这一屏就不再刷新
   DisposableEffect(Unit) {
     deps.notifications.start()
     onDispose { deps.notifications.stop() }
   }
-  // 进页刷一次,不等下一个轮询周期
   LaunchedEffect(Unit) { deps.notifications.refresh() }
-  // 页面开着就算看过:当前条目(含轮询期间新到的)全部记已读,角标随之熄灭
   LaunchedEffect(items) {
     if (items.isNotEmpty()) deps.notifications.markRead(items.map { it.id })
   }
@@ -124,16 +109,12 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
         size = 23.dp,
         contentDescription = "清空全部通知",
         onClick = {
-          // 游客态先挡住(票 31):`clearAll()` 对游客是「正常返回」而不是抛,
-          // 直接跑下去会走进 onSuccess 报一句「已清空全部通知」—— 没登录、没通知、
-          // 连 `noti&__act=del` 都没发出去,纯粹是句谎话。
           when (val gate = signedInGate(uid, "登录后才能清空通知")) {
             is SignedInGate.NeedLogin -> showLoginPrompt(nav, gate.message)
 
             is SignedInGate.Proceed -> scope.launch {
               runCatching { deps.notifications.clearAll() }.fold(
                 onSuccess = { Snackbars.show("已清空全部通知") },
-                // 服务端怎么说就怎么显示(与全 app 同一套话术)
                 onFailure = { Snackbars.show(failureText(it)) },
               )
             }
@@ -151,7 +132,6 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
 
       items.isEmpty() && refreshing -> LoadingState()
 
-      // 拉失败也是空列表,得说清是「没人喷」还是「没拉到」
       items.isEmpty() && error != null -> LoadFailedNotice(
         error = error,
         onRetry = { scope.launch { deps.notifications.refresh() } },
@@ -173,7 +153,6 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
           ) { index ->
             val item = group.items[index]
             NotificationRow(item = item, nowMs = nowMs) {
-              // 短消息不在 v1(spec §1);没有 tid 的条目也没处可跳
               if (item.kind == NotificationKind.MESSAGE || item.tid == 0L) {
                 Snackbars.show(NOT_AVAILABLE_MESSAGE)
               } else {
@@ -188,19 +167,9 @@ fun NotificationsScreen(nav: Navigator, modifier: Modifier = Modifier) {
   }
 }
 
-/**
- * 按稳定 id 去重(留第一条)。
- *
- * `get_all` 的三个容器装的是同一批通知的不同视图,分类看的是条目自己的类型码而不是
- * 所在容器(`core/api/Notifications.kt`),所以同一条通知**可以在两个容器里各出现一次**,
- * 解出来就是两个 id 相同的条目。列表行的 key 正是这个 id —— 重复 key 会让 Compose
- * 在首次布局抛 `Key … was already used`,整屏必崩(票 28 同一类)。
- * RN 侧的 LegendList 只是打一条警告,所以这个坑在那边一直没响。
- */
 internal fun dedupeNotifications(items: List<NgaNotification>): List<NgaNotification> =
   items.distinctBy { it.id }
 
-/** 分组的展示文案与图标。组名照设计稿,设计稿没画的组(评价/短信)按同款式补。 */
 private data class GroupMeta(val label: String, val icon: Ng2nIcon)
 
 private val GROUPS: Map<NotificationKind, GroupMeta> = mapOf(
@@ -212,7 +181,6 @@ private val GROUPS: Map<NotificationKind, GroupMeta> = mapOf(
   NotificationKind.OTHER to GroupMeta("其他通知", Ng2nIcon.NOTIFICATIONS_ACTIVE),
 )
 
-/** 分组顺序(RN 侧 `GROUP_ORDER`,一字未改)。 */
 private val GROUP_ORDER: List<NotificationKind> = listOf(
   NotificationKind.REPLY,
   NotificationKind.MENTION,
@@ -222,7 +190,6 @@ private val GROUP_ORDER: List<NotificationKind> = listOf(
   NotificationKind.OTHER,
 )
 
-/** 「谁干了什么」的动词,按**原始类型码**分。@ 的文案照设计稿原字。 */
 internal fun notificationVerb(type: Int): String = when (type) {
   1 -> "回复了你的主题"
   2 -> "回复了你的楼层"
@@ -235,7 +202,6 @@ internal fun notificationVerb(type: Int): String = when (type) {
   else -> "发来一条通知"
 }
 
-/** 设计稿:分组头 padding 15/16/9,底 surface2,压一条分隔线。 */
 @Composable
 private fun GroupHeader(icon: Ng2nIcon, label: String, count: Int) {
   val colors = LocalNg2nColors.current
@@ -260,7 +226,6 @@ private fun GroupHeader(icon: Ng2nIcon, label: String, count: Int) {
         fontSize = Typo.caption.size,
         lineHeight = Typo.caption.lineHeight,
         fontWeight = FontWeight.Bold,
-        // 抽屉的「论坛功能」那种分节标题带 .4 字间距,设计稿这处组名没有
         color = colors.primary,
       ),
     )
@@ -275,7 +240,6 @@ private fun GroupHeader(icon: Ng2nIcon, label: String, count: Int) {
   }
 }
 
-/** 设计稿:条目 padding 13/16,头像与正文 gap 12,头像 36 见方圆角 12。 */
 @Composable
 private fun NotificationRow(item: NgaNotification, nowMs: Long, onClick: () -> Unit) {
   val colors = LocalNg2nColors.current

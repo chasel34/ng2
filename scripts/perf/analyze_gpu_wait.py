@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Summarize HWUI GPU fence waits from a rich Perfetto trace."""
 import argparse
 import statistics
 
 from perfetto.trace_processor import TraceProcessor
-
 
 def percentile(values, percent):
     ordered = sorted(values)
@@ -13,7 +11,6 @@ def percentile(values, percent):
     upper = min(lower + 1, len(ordered) - 1)
     fraction = position - lower
     return ordered[lower] * (1 - fraction) + ordered[upper] * fraction
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -40,9 +37,6 @@ def main():
              order by s.ts
         """ % args.package.replace("'", "''")))
         if not rows:
-            # The HWUI fence is sometimes attached to a graphics/process track
-            # rather than RenderThread's thread_track. The rich config enables
-            # app atrace for this package only, so these slices remain app HWUI.
             rows = list(tp.query("""
                 select ts, dur, name, '' thread_name
                   from slice
@@ -61,7 +55,6 @@ def main():
           f"{percentile(durations, 90):.3f}/{percentile(durations, 95):.3f}/{max(durations):.3f}")
     print(f">6ms: {sum(value > 6 for value in durations)} ({sum(value > 6 for value in durations) / len(durations) * 100:.1f}%)")
     print(f">8.333ms: {sum(value > 8.333 for value in durations)}")
-
 
 if __name__ == "__main__":
     main()

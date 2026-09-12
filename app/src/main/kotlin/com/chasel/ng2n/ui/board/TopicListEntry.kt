@@ -8,7 +8,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.chasel.ng2n.data.board.TopicListRepository
 
-/** 新入栈拉最新第一页；详情返回时恢复原有分页，缓存被淘汰才补拉。 */
 @Composable
 internal fun LoadTopicListOnEntry(repository: TopicListRepository, key: TopicListRepository.Key) {
   var loaded by rememberSaveable(key) { mutableStateOf(false) }

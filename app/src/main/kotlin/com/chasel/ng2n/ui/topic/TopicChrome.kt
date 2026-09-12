@@ -51,23 +51,8 @@ import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/**
- * 主题三屏的「壳」:顶栏、页码条、两条提示条、上次读到浮条、失败页。
- *
- * **归属说明**:顶栏 / 菜单 / 对话框这几样在 RN 侧是 `src/ui/` 下的公共组件
- * (`top-bar.tsx` / `menu.tsx` / `input-dialog.tsx` …),原生这边完整的公共 UI 体系
- * 归**票 17**。本票只做主题三屏用得到的那一份、就近放在 `ui/topic/`,避免与
- * 并行开工的票 16/17 抢同一批文件;票 17 铺开时把它们提升到 `ui/common/` 即可。
- */
-
-/** 设计稿:顶栏一行 54 高。 */
 private val TOP_BAR_HEIGHT = 54.dp
 
-/**
- * 顶栏色块。状态栏是透明的(edge-to-edge),所以顶栏自己撑开安全区高度。
- *
- * @param below 顶栏色块里、行下面的东西(详情页的页码条)
- */
 @Composable
 fun TopicTopBar(
   paddingHorizontal: Dp = 4.dp,
@@ -90,9 +75,6 @@ fun TopicTopBar(
   }
 }
 
-/**
- * 顶栏圆形图标按钮。设计稿两档:最左边那枚(返回)46,右侧动作钮 44。
- */
 @Composable
 fun TopBarButton(
   onClick: () -> Unit,
@@ -111,13 +93,6 @@ fun TopBarButton(
   ) { icon() }
 }
 
-/**
- * 顶栏标题。详情页那一档 16.5/600(标题后面还跟着两枚图标,所以再矮半档)。
- *
- * [maxWidth] 是设计稿给的截断宽度(详情 190),语义与 RN 侧
- * `top-bar.tsx` 的 `maxWidth` + `flexShrink:1` 一致:**上限**而不是定宽 ——
- * 短标题照样只占自己那么宽,右边的图标不会被顶开(票 39)。
- */
 @Composable
 fun TopBarTitle(text: String, modifier: Modifier = Modifier, maxWidth: Dp? = null) {
   val colors = LocalNg2nColors.current
@@ -138,12 +113,6 @@ private fun Double.sp() = androidx.compose.ui.unit.TextUnit(
   androidx.compose.ui.unit.TextUnitType.Sp,
 )
 
-/**
- * 顶栏下面那条页码条(设计稿 isArticle 的第二行)。
- *
- * 页数多的帖子有上千页,全铺出来会卡,所以只画一个围绕当前页的窗口,
- * 首尾两页固定露出来 —— 跳到最后一页是最常用的动作之一([visiblePages])。
- */
 @Composable
 fun PageBar(
   page: Int,
@@ -155,7 +124,6 @@ fun PageBar(
   val scroll = rememberScrollState()
   val pages = remember(page, totalPages) { visiblePages(page, totalPages) }
 
-  // 滚到当前页时给它左边留几格的余量,不然当前页永远贴在最左边
   LaunchedEffect(page, totalPages) {
     val index = pages.indexOf(page).takeIf { it >= 0 } ?: return@LaunchedEffect
     val approx = ((index - SCROLL_LEAD) * (CHIP_MIN_WIDTH + CHIP_GAP).value).toInt()
@@ -172,7 +140,6 @@ fun PageBar(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     pages.forEachIndexed { index, value ->
-      // 窗口跳号的地方画个省略号,免得 3 后面直接跟 128 看着像少了页
       if (index > 0 && value - pages[index - 1] > 1) {
         Text("…", color = colors.onTopbar.copy(alpha = 0.5f), fontSize = Typo.caption.size)
       }
@@ -222,14 +189,8 @@ private val CHIP_MIN_WIDTH = 30.dp
 private val CHIP_GAP = 6.dp
 private const val SCROLL_LEAD = 2
 
-/** 顶栏上「当前选中」那一格的底色(设计稿页码格与抽屉当前账号都用它)。 */
 private val TOPBAR_OVERLAY = Color(0x1FFFFFFF)
 
-/**
- * 数据源降级提示条(设计稿 fallbackBar)。
- *
- * 钉在页码条下面而不是跟着列表滚:它说的是「整页数据的来源」,不是某一楼的事。
- */
 @Composable
 fun SourceNoticeBar(
   source: TopicSource,
@@ -267,7 +228,6 @@ fun SourceNoticeBar(
   }
 }
 
-/** 整帖缓存进度条:跟数据源提示条同一条带子的语言,右侧是「停止」。 */
 @Composable
 fun CacheProgressBar(done: Int, total: Int, onStop: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -287,7 +247,6 @@ fun CacheProgressBar(done: Int, total: Int, onStop: () -> Unit) {
   }
 }
 
-/** 只看该楼提示条。 */
 @Composable
 fun OnlyFloorBar(onShowAll: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -311,7 +270,6 @@ fun OnlyFloorBar(onShowAll: () -> Unit) {
   }
 }
 
-/** 只看此人过滤条(设计稿 onlyUser):退出即恢复全楼。 */
 @Composable
 fun OnlyUserBar(name: String, onExit: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -350,7 +308,6 @@ fun OnlyUserBar(name: String, onExit: () -> Unit) {
   }
 }
 
-/** 设计稿 fallbackBar 的底:内距 11 12 11 14、primary-c 底、底边一条 divider。 */
 @Composable
 private fun NoticeBar(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
   val colors = LocalNg2nColors.current
@@ -389,17 +346,6 @@ fun Divider(color: Color? = null) {
   Box(Modifier.fillMaxWidth().height(1.dp).background(color ?: colors.divider))
 }
 
-/**
- * 「上次读到第 N 楼」提示条(设计稿 progressTip),**浮层版**:不占布局,
- * 一滚动 / 一翻页 / 5 秒没人理就淡出。
- *
- * 进场照设计稿 progressTip:`.28s` 上浮 14px 淡入(omup);退场用短一档(`.2s`)
- * 原路淡回去 —— 退场比进场快是通例,让位给用户正在做的那件事。
- *
- * **5 秒兜底从「进场动画真的跑完」起算**,不是从「该显示了」起算。两者平时只差一帧,
- * 但首屏重的时候能差出好几秒(RN 侧 2026-08-20 录屏抓到过只亮 0.8 秒就走的一次)。
- * `Animatable.animateTo` 挂起到动画真的跑完才返回,正好是那个判据。
- */
 @Composable
 fun LastReadBanner(
   floor: Long,
@@ -414,7 +360,6 @@ fun LastReadBanner(
   LaunchedEffect(visible) {
     if (visible) {
       progress.animateTo(1f, tween(NOTICE_MS))
-      // 亮够 5 秒还没人理就自己走
       kotlinx.coroutines.delay(RESUME_AUTO_HIDE_MS)
       onAutoHide()
     } else {
@@ -469,24 +414,12 @@ fun LastReadBanner(
   }
 }
 
-/** 设计稿 `duration.notice` / `duration.base` / `RISE_OFFSET`。 */
 private const val NOTICE_MS = 280
 private const val BASE_MS = 200
 private const val RISE_OFFSET_PX = 14f * 3f
 
-/**
- * 「上次读到」浮条的兜底寿命。它盖在楼层上,不该一直杵着;
- * 5s 足够看清一句话并决定要不要点,再久就只剩碍事了。
- */
 private const val RESUME_AUTO_HIDE_MS = 5000L
 
-/**
- * 「加载失败」页(设计稿 isError 屏)。
- *
- * 反封锁链(ADR-0002)把格式 × 域名的组合、换账号、Web 反解都试遍还是不行时落到这里:
- * 说清楚服务端返回了什么 + 重试 / 用网页版打开 / 重新登录三个出路。
- * 它是屏内的一块而不是一个路由:顶栏与页码条仍在,失败的只是内容区。
- */
 @Composable
 fun LoadFailed(
   error: Throwable?,
@@ -542,7 +475,6 @@ fun LoadFailed(
   }
 }
 
-/** 「这一页没有楼层」。 */
 @Composable
 fun EmptyPage(onRefresh: () -> Unit, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
@@ -589,7 +521,6 @@ private fun SecondaryButton(text: String, onClick: () -> Unit) {
   }
 }
 
-/** 被屏蔽规则挡下的楼层折成一行灰字(点一下就地展开)。 */
 @Composable
 fun BlockedFloorRow(text: String, onExpand: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -623,6 +554,5 @@ fun BlockedFloorRow(text: String, onExpand: () -> Unit) {
   }
 }
 
-/** 主题屏根底色:「使用纯色背景」开着时把奶油底换成卡片那一档纯色。 */
 fun rootBackground(colors: Ng2nColors, solid: Boolean): Color =
   if (solid) colors.surface else colors.bg

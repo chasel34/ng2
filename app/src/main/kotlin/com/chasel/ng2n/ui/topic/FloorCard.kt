@@ -63,13 +63,6 @@ import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/**
- * 一个楼层卡片(设计稿 isArticle 的 `floors` 行)。
- *
- * **滚动路径零计算**:这里出现的每个值都来自 [FloorRenderItem](后台建好的成品),
- * 没有解析、没有拼串、没有 URL 计算。回调经 [FloorActions] 一次性传入,
- * 引用在整屏生命周期内不变 —— 菜单开合、对话框弹出不会让屏上的卡片重画。
- */
 @Immutable
 data class FloorActions(
   val onOpenImage: (FloorRenderItem, String) -> Unit,
@@ -96,7 +89,6 @@ fun FloorCard(
 ) {
   val colors = LocalNg2nColors.current
 
-  // 回调都只依赖 floor 与 actions,两者在这张卡的生命周期内不变
   val callbacks = remember(floor, actions, chainDepth) {
     BBCodeCallbacks(
       onOpenLink = actions.onOpenLink,
@@ -108,14 +100,11 @@ fun FloorCard(
       onOpenExternal = actions.onOpenLink,
       onOpenChain = { actions.onOpenChain(floor) },
       chainDepth = chainDepth,
-      // 正文段自己吃 down 事件,长按得从渲染器转发上来,否则「长按整卡出菜单」
-      // 只在正文以外的空白处才灵(见 BBCodeCallbacks.onLongPress)
       onLongPress = { actions.onOpenMenu(floor) },
     )
   }
 
   Column(
-    // 长按整卡也能出楼层菜单(RN 侧「长按或菜单钮」)
     modifier = modifier
       .fillMaxWidth()
       .combinedClickable(
@@ -124,12 +113,10 @@ fun FloorCard(
         onLongClick = { actions.onOpenMenu(floor) },
         onClick = { },
       )
-      // 设计稿:楼层内距 14/16/6,底部一条 divider
       .padding(top = Spacing.row, start = Spacing.lg, end = Spacing.lg, bottom = 6.dp),
   ) {
     FloorHeader(floor = floor, onOpenProfile = { actions.onOpenProfile(floor) })
 
-    // 回复楼层也可以自带标题;主楼的标题就是主题标题,顶栏已经有了
     floor.subject?.let {
       Text(
         text = it,
@@ -144,10 +131,8 @@ fun FloorCard(
       BBCodeContent(model = floor.body, callbacks = callbacks)
     }
 
-    // 签名档:附在正文后面的一小块,压一档字号 + 上面一条分隔线
     if (showSignature) floor.signature?.let { SignatureBlock(model = it) }
 
-    // 投票是楼层字段不是 BBCode(API 文档 §3),所以画在正文之后而不是渲染器里
     floor.vote?.let { VoteBlock(vote = it, onNotAvailable = actions.onNotAvailable) }
 
     if (floor.attachmentCount > 0) {
@@ -182,7 +167,6 @@ private fun FloorHeader(floor: FloorRenderItem, onOpenProfile: () -> Unit) {
             withStyle(SpanStyle(color = floor.nameColor ?: colors.primary)) {
               append(floor.displayName)
             }
-            // 用户状态标注(功能文档 §2.3):楼主 / 匿名 / 禁言 / 已封禁
             if (floor.isStarter) {
               withStyle(SpanStyle(color = colors.accent)) { append("(楼主)") }
             }
@@ -199,7 +183,6 @@ private fun FloorHeader(floor: FloorRenderItem, onOpenProfile: () -> Unit) {
         Text(
           text = buildAnnotatedString {
             append(floor.postedAtText)
-            // alterinfo 非空 = 被编辑过(API 文档 §3);编辑记录本身不展开
             if (floor.edited) withStyle(SpanStyle(color = colors.meta)) { append(" · 已编辑") }
           },
           fontSize = Typo.meta.size,
@@ -238,10 +221,6 @@ private fun MetaText(text: String) {
   Text(text, fontSize = Typo.meta.size, color = LocalNg2nColors.current.meta)
 }
 
-/**
- * 楼层头像。没设头像、或者图挂了,一律回落到「纯色圆底 + 名字首字」。
- * 边长由「字体和头像大小」设置定 —— 那一档归票 17,这里先用基准值。
- */
 @Composable
 private fun Avatar(floor: FloorRenderItem, onClick: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -277,10 +256,6 @@ private fun Avatar(floor: FloorRenderItem, onClick: () -> Unit) {
   }
 }
 
-/**
- * 赞踩与楼层菜单。回复是 v1 排除项(spec §一.2),入口保留占位。
- * 赞数 = 服务端 score + 本会话增量;已赞时图标与数字染主题色(设计稿 f.likeColor)。
- */
 @Composable
 private fun FloorActionRow(
   floor: FloorRenderItem,
@@ -297,9 +272,6 @@ private fun FloorActionRow(
     horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.End),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    // 点赞钮为了把图标和赞数排进同一个圆角背景,没走 [IconAction],语义得自己挂:
-    // 不挂的话无障碍树里是个 text 与 content-desc 都为空的可点节点(票 26),
-    // TalkBack 只念得出里面那个赞数。**不合并子节点** —— 赞数那条 Text 仍要单独读得到。
     Row(
       modifier = Modifier
         .height(40.dp)
@@ -328,7 +300,6 @@ private fun FloorActionRow(
         ReplyIcon(tint = colors.meta)
       }
     }
-    // 设计稿把这一排最右边的「更多」收窄 4pt,让它贴着卡片右缘
     IconAction(label = "楼层菜单", width = 34.dp) {
       Box(
         Modifier.clickable { actions.onOpenMenu(floor) },
@@ -350,30 +321,6 @@ private fun IconAction(label: String, width: Dp, content: @Composable () -> Unit
   ) { content() }
 }
 
-/**
- * 附件宫格。默认折叠成设计稿那条「点击显示附件(N)」,展开后是三列方格。
- *
- * 默认折叠不只是照设计稿:附件常常是几张几 MB 的原图,一进帖子全量拉图既费流量又慢。
- * 「仅 Wi-Fi 下加载图片」关掉自动展开的那条路 —— 折叠条上多一句「移动网络」,
- * 点了照样能看。
- *
- * **展开/收起是有动画的(票 54)**。原先这里写的是「`if (!open) { 折叠条; return }`」,
- * 折叠条与宫格瞬时互换、正文下方整块跳位;票 19 场景 7 的 120Hz 录屏里因此根本
- * 裁不出速度曲线。现在折叠条与宫格各挂一个 [AnimatedVisibility],同一条时间轴上
- * **一个收、一个放**:任一时刻的总高 = `折叠条高 × (1-t) + 宫格高 × t`,连续变化,
- * 楼层在 LazyColumn 里只是被逐帧推高/推低,不会出现整块突现。
- *
- * 为什么不用 `Modifier.animateContentSize()`:那个只补容器高度,内容在第 0 帧就已经
- * 换成宫格了,首帧还是一次肉眼可见的像素突变(42dp 高的窗口里直接露出宫格顶部)。
- * 双 `AnimatedVisibility` 顺带把两块内容交叉淡入淡出,首帧不跳。
- *
- * 曲线与时长取 [Motion] 那份唯一 token(`DURATION_BASE` 200ms + `easeStandard`),
- * 与正文 `[collapse]` 折叠卡([com.chasel.ng2n.ui.bbcode.CollapsibleCard])同一档。
- *
- * 反复展开收起不重新发请求:宫格会随 [AnimatedVisibility] 一起进出 composition,
- * 但 [com.chasel.ng2n.di.ImageModule] 给全局 ImageLoader 配了内存缓存(默认策略
- * ENABLED),第二次展开是内存命中;Coil 对内存命中不放 crossfade,所以也不会再闪一下。
- */
 @Composable
 private fun AttachmentGrid(
   images: List<FloorAttachment>,
@@ -410,8 +357,6 @@ private fun AttachmentGrid(
 
     AnimatedVisibility(visible = open, enter = ATTACH_ENTER, exit = ATTACH_EXIT) {
       Column(Modifier.fillMaxWidth()) {
-        // 三列方格,格间距 6(设计稿)。只有图片进宫格 —— 压缩包、种子当图片渲染
-        // 就是一格加载失败,所以另起一行按「文件名 · 大小」列出来
         images.chunked(ATTACH_COLUMNS).forEach { row ->
           Row(
             modifier = Modifier.fillMaxWidth().padding(bottom = ATTACH_GAP),
@@ -427,7 +372,6 @@ private fun AttachmentGrid(
                   .clickable { onOpenImage(attachment.url) },
               ) {
                 AsyncImage(
-                  // 宫格里用缩略图,点开大图才拉原图
                   model = attachment.thumbnailUrl ?: attachment.url,
                   contentDescription = null,
                   contentScale = ContentScale.Crop,
@@ -435,7 +379,6 @@ private fun AttachmentGrid(
                 )
               }
             }
-            // 最后一行不足三格时补空,免得那一两张被拉宽
             repeat(ATTACH_COLUMNS - row.size) { Box(Modifier.weight(1f)) }
           }
         }
@@ -482,11 +425,6 @@ private fun AttachmentGrid(
   }
 }
 
-/**
- * 折叠条 ↔ 宫格的进出场。两边共用同一组曲线与时长,交叉时总高才是连续的
- * (见 [AttachmentGrid] 的说明)。放在顶层是因为这几个对象是不可变的纯数据,
- * 没必要每次重组都重新造一遍。
- */
 private val ATTACH_ENTER: EnterTransition =
   expandVertically(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)) +
     fadeIn(tween(Motion.DURATION_BASE, easing = Motion.easeStandard))
@@ -495,15 +433,12 @@ private val ATTACH_EXIT: ExitTransition =
   shrinkVertically(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)) +
     fadeOut(tween(Motion.DURATION_BASE, easing = Motion.easeStandard))
 
-/** 设计稿:附件宫格三列、格间距 6、方格圆角 10。 */
 private const val ATTACH_COLUMNS = 3
 private val ATTACH_GAP = 6.dp
 
-/** 服务端给的 `size` 单位是 KB。 */
 private fun formatSize(sizeKb: Long): String =
   if (sizeKb >= 1024) "%.1f MB".format(sizeKb / 1024.0) else "$sizeKb KB"
 
-/** 热门回复区里的卡片与正文楼层同一个组件,只是底色压一档。 */
 @Composable
 fun HotReplyCard(
   floor: FloorRenderItem,

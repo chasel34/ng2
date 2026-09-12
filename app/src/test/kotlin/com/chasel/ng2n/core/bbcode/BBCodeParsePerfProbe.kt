@@ -4,15 +4,6 @@ import com.chasel.ng2n.golden.Goldens
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-/**
- * 长正文解析耗时抽查(票 09 验收项 3)。给票 13「后台一次性预转换」提供预算参考。
- *
- * **这是 JVM 桌面数据,不是性能裁决**:真机(小米 17)与 ART 的数字不同,性能只在票 19
- * 裁决(spec §五)。这里只要一个数量级:一屏楼层几十条正文,一次性转换该不该分帧。
- *
- * 断言口径故意放得极松(单条 < 200ms),只为防「某次改动把解析退化成指数级」——
- * 不做性能门禁,免得在忙的构建机上假红。真实数字看 stdout 那几行。
- */
 class BBCodeParsePerfProbe {
 
   @Test
@@ -30,7 +21,6 @@ class BBCodeParsePerfProbe {
       repeat(ROUNDS) { parseBBCode(source) }
       val perParse = (System.nanoTime() - start).toDouble() / ROUNDS / 1_000_000.0
 
-      // 序列化(进 Room 帖子缓存那一步)也一起量,票 13 要的是「解析 + 落盘」的总账
       val encodeStart = System.nanoTime()
       repeat(ROUNDS) { encodeBBCodeToString(parseBBCode(source)) }
       val perParseAndEncode = (System.nanoTime() - encodeStart).toDouble() / ROUNDS / 1_000_000.0

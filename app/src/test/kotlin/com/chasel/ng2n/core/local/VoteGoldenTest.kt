@@ -6,12 +6,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * `vote` domain 全量对拍(24 条)。
- *
- * `Floor.vote` 不是 BBCode,是 `~` 分隔的 kv 串;这里只解析到**只读渲染**够用为止
- * (spec §1 把投票操作排除在 v1 之外)。
- */
 class VoteGoldenTest {
 
   @Test
@@ -27,8 +21,6 @@ class VoteGoldenTest {
       voteSharePercent(case.longField("votes"), case.longField("total"))
     }
   }
-
-  // --- 手工移植:`vote.test.ts` 里金样本没单列的边界 ----------------------------
 
   @Test
   fun `空串、切不出一对、只有配置项时都没有投票`() {
@@ -47,7 +39,6 @@ class VoteGoldenTest {
   @Test
   fun `分组语法只对新帖生效`() {
     val raw = "1~甲~2~===第二组===~_1~5,0,9~_2~3,0,0"
-    // 老帖(tid 不大于 38056407)的 `===` 是普通选项
     assertEquals(1, checkNotNull(parseVote(raw, 38056407)).groups.size)
     assertEquals(2, checkNotNull(parseVote(raw, 38056408)).groups.size)
   }
@@ -81,7 +72,6 @@ private fun VoteOption.toGoldenMap(): Map<String, Any?> = mapOf(
   "votes" to votes,
 )
 
-/** 枚举名 → TS 侧那几个字面量。 */
 private fun VoteKind.wire(): String = when (this) {
   VoteKind.VOTE -> "vote"
   VoteKind.BET -> "bet"

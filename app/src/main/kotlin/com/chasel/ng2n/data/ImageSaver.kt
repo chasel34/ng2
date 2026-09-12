@@ -19,16 +19,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
-/**
- * 大图查看器的落盘动作:保存到相册、系统分享、批量下载(RN 侧原件 `src/ui/image-files.ts`)。
- *
- * 相册与分享吃的都是本地文件,所以先把原图下到缓存目录中转;文件名由
- * [AttachmentUrls.imageFileName] 从 URL **稳定**推出,同一张图重复保存不会在缓存里
- * 越积越多,也让「这张存过没有」变成一次文件名比对(RN 侧 M4 验收 G8)。
- *
- * 下载走注入的 [OkHttpClient] —— 与图片管线、协议层是**同一个** client(票 06 会替换它的
- * 构造),附件域名要登录态的场景才不豆腐。
- */
 @Singleton
 class ImageSaver @Inject constructor(
   @ApplicationContext private val context: Context,
@@ -36,17 +26,12 @@ class ImageSaver @Inject constructor(
   private val attachmentUrls: AttachmentUrls,
 ) {
 
-  /** 设计稿 toast 说的「相册/NGA」:保存的目标相册名。 */
   private val albumRelativePath = "${Environment.DIRECTORY_PICTURES}/$ALBUM_NAME"
 
   enum class SaveOutcome { SAVED, DUPLICATE }
 
   data class BatchSaveResult(val saved: Int, val skipped: Int, val failed: Int)
 
-  /**
-   * 把原图下到缓存目录,返回本地文件。已存在的直接复用(Coil 的磁盘缓存不暴露路径,
-   * 而且那里存的是它自己的键名,拿不到能给系统分享用的文件名)。
-   */
   suspend fun download(url: String): File = withContext(Dispatchers.IO) {
     val directory = File(context.cacheDir, CACHE_DIR).apply { mkdirs() }
     val file = File(directory, attachmentUrls.imageFileName(url))
@@ -65,13 +50,6 @@ class ImageSaver @Inject constructor(
     file
   }
 
-  /**
-   * 把一张图存进「相册/NGA」;已经存过的不再存第二份。
-   *
-   * **对 RN 版的改进**:RN 侧走 expo-media-library,`Asset.create` 统一按「有没有授权」
-   * 把关,于是每次保存都要先弹一次运行时权限。原生这边 minSdk 31,往 MediaStore 写
-   * **自己创建的**图片不需要任何运行时权限(分区存储),所以整条权限路径去掉了 —— 少一个弹窗。
-   */
   suspend fun saveToAlbum(url: String): SaveOutcome = withContext(Dispatchers.IO) {
     val name = attachmentUrls.imageFileName(url)
     if (albumContains(name)) return@withContext SaveOutcome.DUPLICATE
@@ -79,10 +57,6 @@ class ImageSaver @Inject constructor(
     SaveOutcome.SAVED
   }
 
-  /**
-   * 批量下载进相册。顺序下,一张失败不拦着后面的;已经在相册里的跳过。
-   * 相册里已有的文件名**只查一次**,批内新存进去的补进同一个集合。
-   */
   suspend fun saveAllToAlbum(urls: List<String>): BatchSaveResult = withContext(Dispatchers.IO) {
     val existing = albumFilenames().toMutableSet()
     var saved = 0
@@ -105,7 +79,6 @@ class ImageSaver @Inject constructor(
     BatchSaveResult(saved, skipped, failed)
   }
 
-  /** 系统分享面板分享**图片文件本体**(不是分享一条链接)。 */
   suspend fun shareIntent(url: String): Intent {
     val file = download(url)
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
@@ -117,10 +90,6 @@ class ImageSaver @Inject constructor(
     return Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
   }
 
-  /**
-   * 相册里已有的文件名。文件名从 URL 稳定推出,所以「同名」就是「同一张图存过了」。
-   * MediaStore 的 `RELATIVE_PATH` 存的是带结尾斜杠的形式。
-   */
   private fun albumFilenames(): Set<String> {
     val names = mutableSetOf<String>()
     val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
@@ -142,7 +111,6 @@ class ImageSaver @Inject constructor(
 
   private fun albumContains(name: String): Boolean = name in albumFilenames()
 
-  /** 写进 `Pictures/NGA`。IS_PENDING 期间对别的 app 不可见,写完才落定。 */
   private fun insert(file: File, name: String): Uri {
     val resolver = context.contentResolver
     val values = ContentValues().apply {
@@ -161,7 +129,6 @@ class ImageSaver @Inject constructor(
       throw it
     }
     resolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
-    // 拿 id 只为让调用方(将来)能直接跳相册;这里保持返回值稳定
     ContentUris.parseId(uri)
     return uri
   }

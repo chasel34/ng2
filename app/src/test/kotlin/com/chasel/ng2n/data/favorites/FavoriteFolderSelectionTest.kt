@@ -6,14 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * 「收藏到…」多选夹对话框的状态与差异计算(票 33)。
- *
- * RN 版这几步长在 `ui/favorite-folder-dialog.tsx` 的组件里,只能靠人点着验;
- * 移过来做成纯函数([FavoriteFolderSelection] 那一组),这里逐条钉住。
- *
- * `diffFolderSelection` 本身的用例在 `data/settings` 那边(票 14),不重复。
- */
 class FavoriteFolderSelectionTest {
 
   private fun folder(id: Long, name: String, count: Long = 0, isDefault: Boolean = false) =
@@ -24,8 +16,6 @@ class FavoriteFolderSelectionTest {
     folder(7, "以后再看", count = 4),
     folder(9, "攒图", count = 0),
   )
-
-  // ------------------------------------------------------------------ 行
 
   @Test
   fun `夹列表摊成行，本机索引里记着的那几个初始就是勾上的`() {
@@ -44,13 +34,10 @@ class FavoriteFolderSelectionTest {
 
   @Test
   fun `本机索引里记着一个已经不存在的夹，不会凭空多出一行`() {
-    // 别处把夹删了,本机索引还记着 —— 行只按服务端的夹列表出
     val rows = favoriteFolderRows(folders, listOf(7, 404))
     assertEquals(3, rows.size)
     assertEquals(listOf(false, true, false), rows.map { it.checked })
   }
-
-  // ------------------------------------------------------------------ 勾选
 
   @Test
   fun `点一行来回切勾选`() {
@@ -88,11 +75,8 @@ class FavoriteFolderSelectionTest {
     assertFalse(canCreateFavoriteFolder(FAVORITE_FOLDER_LIMIT + 1))
   }
 
-  // ------------------------------------------------------------------ 差异
-
   @Test
   fun `什么都没动就是空计划，一个请求都不发`() {
-    // 顺序变了也不算动过
     val plan = planFavoriteApply(folders, initial = listOf(3, 7), selected = listOf(7, 3))
     assertTrue(plan.isEmpty)
     assertEquals(emptyList(), plan.added)
@@ -120,8 +104,6 @@ class FavoriteFolderSelectionTest {
     assertEquals(emptyList(), plan.added)
     assertEquals(listOf(3, 7, 9), plan.removed)
   }
-
-  // ------------------------------------------------------------------ 提示语
 
   @Test
   fun `完成提示语照设计稿那句「已收藏到「默认收藏夹」」`() {

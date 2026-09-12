@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
-"""Estimate vertical content velocity from a device screen recording.
-
-The comparison is intentionally restricted to the scrolling body and uses three
-per-row image signatures, so fixed top bars and small animated icons do not
-dominate the displacement estimate.
-"""
+"""仅比较滚动正文的逐行图像特征，避免固定顶栏和动画图标干扰位移估计。"""
 import argparse
 import csv
 from pathlib import Path
 
 import av
 import numpy as np
-
 
 def decode(path: str, width: int):
     times, frames = [], []
@@ -31,7 +25,6 @@ def decode(path: str, width: int):
             frames.append(signatures)
     return np.asarray(times), frames, 1.0 / scale
 
-
 def displacement(previous, current, max_shift):
     height = len(previous)
     lo, hi = round(height * 0.08), round(height * 0.92)
@@ -47,7 +40,6 @@ def displacement(previous, current, max_shift):
     ranked = np.partition(np.asarray(errors), min(4, len(errors) - 1))
     quality = ranked[min(4, len(errors) - 1)] / max(errors[best], 1e-6)
     return shifts[best], quality
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -82,7 +74,6 @@ def main():
         if bucket:
             print(f"{bucket_start:6.2f}-{bucket_start + 0.1:6.2f}s median={np.median(bucket):7.0f} max={max(bucket):7.0f} n={len(bucket):2d}")
         bucket_start += 0.1
-
 
 if __name__ == "__main__":
     main()

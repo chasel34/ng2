@@ -1,28 +1,13 @@
 package com.chasel.ng2n.ui.bbcode
 
-/**
- * 本文件由 `scripts/gen-smilies-kt.mjs` 生成,请勿手改。
- * 历史数据源（已随 Expo 清理移除，见 Git 历史）:`src/core/smilies/table.generated.ts`(它本身由 `scripts/fetch-smilies.mjs`
- * 从 https://img4.nga.cn/common_res/js_bbscode_core.js 抓出来)。
- *
- * 7 个套系、265 个表情、265 个随包文件。
- * 图片在 `app/src/main/assets/smilies/`,文件名即 CDN 原名。
- */
-
-/** 一个套系。`entries` 的顺序与官方表一致(表情面板按此排列)。 */
 data class SmileyCategory(
-  /** BBCode 里的分类标识,如 `ac`;`"0"` 是 `[s:数字]` 用的默认套。 */
   val key: String,
-  /** 官方套系中文名,如 `AC娘(v1)`。 */
   val label: String,
-  /** `名称 to 文件名`。 */
   val entries: List<Pair<String, String>>,
 )
 
-/** CDN 上表情图所在目录,远程兜底 URL 的前缀。 */
 const val SMILEY_BASE_URL: String = "https://img4.nga.cn/ngabbs/post/smile"
 
-/** 官方表里的套系顺序。 */
 val SMILEY_CATEGORIES: List<SmileyCategory> = listOf(
   SmileyCategory(
     key = "0",
@@ -333,13 +318,8 @@ val SMILEY_CATEGORIES: List<SmileyCategory> = listOf(
   ),
 )
 
-/**
- * 随包图片的原始像素尺寸。生成期从 PNG/GIF 文件头读出来写死——
- * 运行期不解码就能知道一个表情该占多宽(高度由「表情大小」设置定,宽度按比例算)。
- */
 data class SmileySize(val width: Int, val height: Int)
 
-/** 实际随包下载成功的文件名 → 原始尺寸。表里有、这里没有的走远程 URL。 */
 val BUNDLED_SMILEY_SIZES: Map<String, SmileySize> = mapOf(
   "smile.gif" to SmileySize(19, 19),
   "mrgreen.gif" to SmileySize(19, 19),
@@ -608,5 +588,4 @@ val BUNDLED_SMILEY_SIZES: Map<String, SmileySize> = mapOf(
   "pg15.png" to SmileySize(60, 60),
 )
 
-/** 随包文件名集合(三级兜底的第一级判据)。 */
 val BUNDLED_SMILEY_FILES: Set<String> = BUNDLED_SMILEY_SIZES.keys

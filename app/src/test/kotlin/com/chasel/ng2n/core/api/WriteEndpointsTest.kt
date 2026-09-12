@@ -8,17 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 八个写端点(inventory §2「真写操作」)的请求装配 + **`operation = WRITE` 的闸**。
- *
- * 手工移植自 `topic-recommend.test.ts` / `topic-favor.test.ts` / `board-favor.test.ts` /
- * `check-in.test.ts` / `set-sign.test.ts` / `sub-board.test.ts` / `block-word.test.ts` /
- * `notifications.test.ts`,外加 RN 版没有的一组回归:**写请求只发一次、不换账号**
- * (修 P1-01;闸本身在 `core/net/WriteOperationTest`,这里逐个端点验它真的挂上了)。
- */
 class WriteEndpointsTest {
-
-  // ── ① topic_recommend:点赞 / 点踩 ────────────────────────────────────────
 
   @Test
   fun `赞踩打 nuke_php topic_recommend add,value 与 pid 都在 query 里`() = runTest {
@@ -60,7 +50,6 @@ class WriteEndpointsTest {
 
   @Test
   fun `切换式状态迁移与服务端 delta 语义互相一致`() {
-    // [当前状态, 动作, 下一状态, 预期 delta]
     val cases = listOf(
       Triple(RecommendState.NONE, RecommendAction.LIKE, RecommendState.LIKED) to 1L,
       Triple(RecommendState.LIKED, RecommendAction.LIKE, RecommendState.NONE) to -1L,
@@ -73,15 +62,11 @@ class WriteEndpointsTest {
       val (current, action, next) = transition
       assertEquals(next, nextRecommendState(current, action))
       assertEquals(delta, expectedRecommendDelta(current, action))
-      // 按预期 delta 反推回的就是预测状态
       assertEquals(next, recommendStateOf(action, delta))
     }
-    // 其余组合都是取消:赞收到负 delta、踩收到正 delta、delta 为 0
     assertEquals(RecommendState.NONE, recommendStateOf(RecommendAction.LIKE, 0))
     assertEquals(RecommendState.NONE, recommendStateOf(RecommendAction.DISLIKE, 0))
   }
-
-  // ── ② forum_favor2:版块收藏增删 ──────────────────────────────────────────
 
   @Test
   fun `版块收藏 add del 走 form,合集也把 stid 当 fid 传`() = runTest {
@@ -131,8 +116,6 @@ class WriteEndpointsTest {
     assertEquals(1, fixture.requests.size)
   }
 
-  // ── ③ topic_favor_v2:收藏夹 CRUD ─────────────────────────────────────────
-
   @Test
   fun `收藏 add 带 tid,取消 del 的参数名是 tidarray 不是 tid`() = runTest {
     val add = ApiFixture()
@@ -155,9 +138,6 @@ class WriteEndpointsTest {
     assertEquals(4699991L, createFavoriteFolder(plain.client, name = "装机"))
     assertEquals("new_folder", plain.query()["__act"])
     assertEquals("3", plain.query()["raw"])
-    // ⚠️ RN 版这条用例的注释写着「opt=0 会被剔掉」,但 `buildQueryString` 的规则是
-    // **数字 0 保留**(只剔 null/空串/false/空 gbk 值,goldens/README 的 query 一节)。
-    // 那句注释不准,行为一直是原样发 `opt=0`——这里如实钉住实际行为
     assertEquals("0", plain.form()["opt"])
 
     val asDefault = ApiFixture()
@@ -191,8 +171,6 @@ class WriteEndpointsTest {
     assertTrue(error.text.contains("收藏夹数量已达上限"))
   }
 
-  // ── ④ check_in:签到 ──────────────────────────────────────────────────────
-
   @Test
   fun `签到打 check_in,没有额外参数，首次成功带上服务端原话`() = runTest {
     val fixture = ApiFixture("""{"data":{"0":"签到成功，获得 12 个铜币"},"time":1}""")
@@ -215,8 +193,6 @@ class WriteEndpointsTest {
     assertThrowsNga { checkIn(guest.client) }
   }
 
-  // ── ⑤ user_option:子版块订阅 / 屏蔽 ──────────────────────────────────────
-
   @Test
   fun `订阅 type=1 的子版块——query 带 del=filterId,form 带父 fid type info`() = runTest {
     val fixture = ApiFixture()
@@ -224,7 +200,6 @@ class WriteEndpointsTest {
     assertEquals("user_option", fixture.query()["__lib"])
     assertEquals("set", fixture.query()["__act"])
     assertEquals("12700430", fixture.query()["del"])
-    // 另一个参数名连出现都不能出现,否则服务端按它理解成反向操作
     assertNull(fixture.query()["add"])
     assertEquals("-7", fixture.form()["fid"])
     assertEquals("1", fixture.form()["type"])
@@ -245,8 +220,6 @@ class WriteEndpointsTest {
     assertEquals("0", inverted.form()["type"])
   }
 
-  // ── ⑥ set_sign:改签名 ────────────────────────────────────────────────────
-
   @Test
   fun `改签名走 form,emoji 转成 UTF-16 十进制实体,清空传一个空格`() = runTest {
     val plain = ApiFixture()
@@ -260,13 +233,10 @@ class WriteEndpointsTest {
     updateSignature(emoji.client, uid = "42", signature = "A😂B")
     assertEquals("A&#55357;&#56834;B", emoji.form()["sign"])
 
-    // 空串会被 buildQueryString 当成「不传这个参数」丢掉,清空签名得显式传一个空格
     val cleared = ApiFixture()
     updateSignature(cleared.client, uid = "42", signature = "")
     assertEquals(" ", cleared.form()["sign"])
   }
-
-  // ── ⑦ set_block_word:官方屏蔽词整表写回 ─────────────────────────────────
 
   @Test
   fun `屏蔽表整表写回——data 按 GBK 编码进 query,并撤掉 inchst 声明`() = runTest {
@@ -277,7 +247,6 @@ class WriteEndpointsTest {
       list = BlockWordList(words = listOf("加密货币", "测试"), users = listOf(BlockedUser(42, "张三"))),
     )
     assertEquals("set_block_word", fixture.query()["__act"])
-    // `1\r\n加密货币 测试\r\n42/张三` 的 GBK 编码;这一串对不上,网页版看到的就是乱码
     assertTrue(
       fixture.url().contains("data=1%0D%0A%BC%D3%C3%DC%BB%F5%B1%D2%20%B2%E2%CA%D4%0D%0A42%2F%D5%C5%C8%FD"),
       "实际 URL:${fixture.url()}",
@@ -293,8 +262,6 @@ class WriteEndpointsTest {
     assertTrue(fixture.url().contains("data=1%0D%0A%0D%0A"))
   }
 
-  // ── ⑧ noti del:清空通知 ─────────────────────────────────────────────────
-
   @Test
   fun `清空通知走 raw=3 的 del`() = runTest {
     val fixture = ApiFixture()
@@ -303,8 +270,6 @@ class WriteEndpointsTest {
     assertEquals("3", fixture.query()["raw"])
     assertEquals("del", fixture.query()["__act"])
   }
-
-  // ── 修 P1-01:八个写端点都真的标了 operation = WRITE ──────────────────────
 
   @Test
   fun `八个写端点在整条链上都只发一次、不换账号`() = runTest {
@@ -337,7 +302,6 @@ class WriteEndpointsTest {
   }
 }
 
-/** 真实样本(fid=-7 的 sub_forums)里的两种子版块。 */
 private val TID_SUB_BOARD = SubBoard(
   id = 570,
   kind = BoardKind.BOARD,

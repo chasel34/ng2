@@ -6,27 +6,17 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-/**
- * 从 classpath 读金样本。
- *
- * **不遍历目录**:资源打进 jar 后目录遍历不可靠(README 明写了),一律先读
- * `goldens/index.json` 拿到 `domains.<domain>` 的 case 名单,再逐文件读。
- * 索引里有、文件没有 = 报错,不是「跳过」。
- */
 object Goldens {
 
   private val json = Json {
-    // 金样本是生成物,格式不该有回旋余地:多一个键、少一个键都要炸出来
     ignoreUnknownKeys = false
     isLenient = false
   }
 
   private val index: JsonObject by lazy { json.parseToJsonElement(readText("goldens/index.json")).jsonObject }
 
-  /** 索引里登记的全部 domain 名。 */
   fun domains(): List<String> = index.getValue("domains").jsonObject.keys.sorted()
 
-  /** 索引里登记的总条数(README 的「当前规模」)。 */
   fun total(): Int = index.getValue("total").jsonPrimitive.content.toInt()
 
   fun caseNames(domain: String): List<String> {
@@ -38,7 +28,6 @@ object Goldens {
     return names.jsonArray.map { it.jsonPrimitive.content }
   }
 
-  /** 一个 domain 的全部 case,顺序照索引。 */
   fun load(domain: String): List<GoldenCase> {
     val cases = caseNames(domain).map { name ->
       val path = "goldens/$domain/$name.json"

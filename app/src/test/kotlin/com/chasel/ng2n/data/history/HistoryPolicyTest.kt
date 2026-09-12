@@ -8,9 +8,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/**
- * `src/core/local/history.test.ts` 的手工移植(票 14 验收项①)。
- */
 class HistoryPolicyTest {
 
   private fun entry(
@@ -23,8 +20,6 @@ class HistoryPolicyTest {
     maxFloor: Int = 40,
     updatedAt: Long = 1000,
   ) = HistoryEntry(tid, subject, author, boardName, favCode, lastFloor, maxFloor, updatedAt)
-
-  // ------------------------------------------------------------ upsertHistory
 
   @Test
   fun `新主题插到最前`() {
@@ -80,8 +75,6 @@ class HistoryPolicyTest {
     assertEquals(listOf(HISTORY_LIMIT.toLong()), result.evictedTids)
   }
 
-  // ------------------------------------------------------------ advanceHistoryFloor
-
   @Test
   fun `楼层前进时更新条目`() {
     val result = advanceHistoryFloor(listOf(entry(1, lastFloor = 3)), 1, 18, 2000)
@@ -95,7 +88,6 @@ class HistoryPolicyTest {
     val before = listOf(entry(1, lastFloor = 18))
     assertFalse(advanceHistoryFloor(before, 1, 5, 2000).changed)
     assertFalse(advanceHistoryFloor(before, 1, 18, 2000).changed)
-    // changed 为 false 时必须返回原 List,仓库按引用相等跳过持久化
     assertSame(before, advanceHistoryFloor(before, 1, 5, 2000).entries)
   }
 
@@ -117,8 +109,6 @@ class HistoryPolicyTest {
     assertEquals(listOf(2L, 1L), result.entries.map { it.tid })
   }
 
-  // ------------------------------------------------------------ 进度文案
-
   @Test
   fun `读到最后一楼算读完`() {
     assertTrue(isHistoryFinished(40, 40))
@@ -137,8 +127,6 @@ class HistoryPolicyTest {
     assertEquals("读到主楼", historyProgressLabel(0, 40))
   }
 
-  // ------------------------------------------------------------ pageOfFloor
-
   @Test
   fun `主楼在第 1 页 每页最后一楼不越页`() {
     assertEquals(1, pageOfFloor(0, 20))
@@ -152,9 +140,6 @@ class HistoryPolicyTest {
     assertEquals(4, pageOfFloor(3, 0))
   }
 
-  // ------------------------------------------------------------ formatHistoryTime
-
-  /** 固定时区,免得 CI 与本机的默认时区不一样把「今天/昨天」判翻。 */
   private val zone: ZoneId = ZoneId.of("Asia/Shanghai")
 
   private fun at(day: Int, hour: Int, minute: Int): Long =
@@ -179,7 +164,6 @@ class HistoryPolicyTest {
   @Test
   fun `凌晨刚过零点 昨晚的记录按日历日算昨天而不是按 24 小时窗口`() {
     val midnight = at(8, 0, 10)
-    // 隔了 2 小时 29 分:按 24 小时窗口算会说成「今天」,按日历日才是「昨天」
     val lastNight = at(7, 21, 41)
     assertEquals("昨天 21:41", formatHistoryTime(lastNight, midnight, zone))
   }

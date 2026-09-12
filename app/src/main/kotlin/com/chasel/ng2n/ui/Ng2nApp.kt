@@ -40,31 +40,18 @@ import com.chasel.ng2n.ui.topic.topicEntries
 import com.chasel.ng2n.ui.settings.settingsEntries
 import kotlinx.serialization.Serializable
 
-/** 导航键。Nav3 的 back stack 就是一串 [NavKey],屏幕由 entryProvider 按键类型分派。 */
 @Serializable
 data object Home : NavKey
 
-/** WebView 登录屏(票 15)。 */
 @Serializable
 data object Login : NavKey
 
-/** 多账号管理屏(票 15)。 */
 @Serializable
 data object Accounts : NavKey
 
-/**
- * 全 app 的导航宿主。
- *
- * 其余 20 个键在 `ui/nav/Keys.kt`(票 16 一次定齐);这三个留在本文件,
- * 是因为票 01 / 票 15 就在这儿声明的 —— 挪走只会让并行期合并多三处冲突。
- *
- * manifest 关闭预测性返回预览，侧滑提交后与顶栏返回共用淡出转场。
- */
 @Composable
 fun Ng2nApp() {
   val backStack = rememberNavBackStack(Home)
-  // 账号状态是全 app 一份(RN 版是全局 zustand store):在 NavDisplay **外面**取一次,
-  // 各屏共用同一个实例 —— 每屏各 hiltViewModel() 的话,切号之后另一屏的账号头不会跟着变。
   val accounts: AccountsViewModel = hiltViewModel()
   val nav = remember(backStack) {
     object : Navigator {
@@ -78,8 +65,6 @@ fun Ng2nApp() {
     }
   }
 
-  // 系统深链(`ng2n://…`):Activity 收 intent 投进收件箱,这里取件并 push。
-  // back stack 恒以 Home 开局,所以深链目标永远是第二格 —— 按返回回首页,不会直接退出。
   val pendingLink by DeepLinkInbox.pending.collectAsStateWithLifecycle()
   LaunchedEffect(pendingLink) {
     val key = pendingLink ?: return@LaunchedEffect
@@ -100,24 +85,15 @@ fun Ng2nApp() {
       predictivePopTransitionSpec = {
         fadeIn(tween(PAGE_FADE_MS)) togetherWith fadeOut(tween(PAGE_FADE_MS))
       },
-      // 票 13:NavDisplay 默认只装 SaveableStateHolder 那一个装饰器,ViewModel 的作用域
-      // 要自己加 —— 不加的话条目里的 ViewModel 挂在 Activity 上,pop 之后不 clear,
-      // 主题详情的页级渲染成品(几百 KB / 页)会一直留着。
       entryDecorators = listOf(
         rememberSaveableStateHolderNavEntryDecorator(),
         rememberViewModelStoreNavEntryDecorator(),
       ),
       entryProvider = entryProvider {
-        // 票 13:主题详情 / 回复链 / 用户资料占位
         topicEntries(nav)
-        // 票 16:首页 / 版块面 / 抽屉宿主,外加还没落地那些键的占位条目
-        // (Login / Accounts 的占位条目也在里面,票 15 合并时换成真屏 —— 见票 16 Comments)
         homeEntries(nav = nav, accounts = accounts, onOpenDevMenu = { backStack.add(DevMenuKey) })
-        // 票 17b:屏蔽规则 / 用户资料 / 我的主题·我的回复
         filtersAndUserEntries(nav = nav)
-        // 票 17c:设置树三屏 / 关于 / 网页兜底
         settingsEntries(nav = nav, onOpenAccounts = { backStack.add(Accounts) })
-        // 票 17a:搜索 / 收藏 / 收藏夹管理 / 历史 / 缓存管理 / 通知
         listEntries(nav = nav)
         entry<Login> {
           LoginScreen(onBack = { backStack.removeLastOrNull() })
@@ -130,15 +106,6 @@ fun Ng2nApp() {
           )
         }
 
-        /*
-         * 开发者入口(抽屉「关于」长按)。票 11 / 12 的手验屏收在这儿 ——
-         * demo 屏本身**不删**(票 18 的功能验收要用),只是不再挂在首页上。
-         *
-         * 票 17c 的决定:**留在长按里,不并进「实验室」**。实验室页收的是「排查线上
-         * 问题时要动的四条」(兜底档位、UA、组合表、日志导出),而这几个是 demo 屏的
-         * 手验入口 —— 混进去会让一个用户会点开的页面里出现两类完全不同的东西。
-         * 长按「关于」是个只有自己知道的口子,正合适。
-         */
         entry<DevMenuKey> {
           DevMenuScreen(
             onBack = { backStack.removeLastOrNull() },
@@ -175,9 +142,6 @@ fun Ng2nApp() {
           BBCodeDemoScreen(onOpenViewer = { backStack.add(it) })
         }
 
-        // 查看器是「盖在当前页上的全屏浮层」:RN 侧 transparentModal + fade
-        // (`motion.ts` 的 screenTransition.overlay),这里对应成 fade 进 fade 出,
-        // 时长取 duration.panel = 220ms(同一份设计稿 token)。
         entry<ImageViewerKey>(
           metadata = NavDisplay.transitionSpec {
             fadeIn(tween(VIEWER_FADE_MS)) togetherWith fadeOut(tween(VIEWER_FADE_MS))
@@ -192,7 +156,6 @@ fun Ng2nApp() {
       },
     )
 
-    // 提示要盖在所有页面上,并且在发起它的页面退场后还能活着把「撤销」等到
     SnackbarHost()
   }
 }
@@ -200,31 +163,16 @@ fun Ng2nApp() {
 private const val VIEWER_FADE_MS = 220
 private const val PAGE_FADE_MS = 160
 
-/**
- * 图片管线手验用的三张公网图(票 12)。挑的是尺寸确定、覆盖三种形态的:
- * 横图 3:2、竖图 2:3、以及会触发比例封顶的 1:4 长图。
- */
 private val DEMO_IMAGES = listOf(
   "https://picsum.photos/seed/ng2n-a/1200/800",
   "https://picsum.photos/seed/ng2n-b/800/1200",
   "https://picsum.photos/seed/ng2n-c/600/2400",
 )
 
-/**
- * macrobenchmark 等首帧内容的锚点(票 19 用;uiautomator 认 contentDescription)。
- * **票 01 立的锚,语义不变**:首页首帧可用时打这个 tag —— 现在打在真首页的版块宫格上
- * (`ui/home/HomeScreen.kt`)。
- */
 const val SKELETON_READY_TAG: String = "ng2n-skeleton-ready"
 
-/**
- * 票 11 / 12 / 15 的手验入口锚点。入口从首页搬进了开发者菜单
- * (抽屉「关于」长按 → [DevMenuKey]),**锚点名一个字没改** —— 那几张票的
- * uiautomator 脚本按 content-desc 找它们。
- */
 const val IMAGE_DEMO_BUTTON_TAG: String = "ng2n-image-demo"
 
-/** 票 15 手验入口锚点(现挂在开发者菜单里)。 */
 const val LOGIN_ENTRY_TAG: String = "ng2n-login-entry"
 const val ACCOUNTS_ENTRY_TAG: String = "ng2n-accounts-entry"
 const val TOPIC_DEMO_BUTTON_TAG: String = "ng2n-topic-demo"

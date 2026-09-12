@@ -52,13 +52,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 浏览历史页 —— 直译 RN 侧 `src/app/history.tsx`(设计稿 `isSimpleList` 的 history 档)。
- *
- * 副标题条 + 行列表,右侧一格是阅读进度「读到 N 楼 / 读完」,点行重新打开主题。
- * **纯本地,零请求**:数据是 [com.chasel.ng2n.data.history.HistoryRepository] 内存里
- * 那份唯一事实来源(冷启动由 `StorageBootstrap` 在后台灌进去,首屏不等它)。
- */
 @Composable
 fun HistoryScreen(nav: Navigator, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
@@ -109,8 +102,6 @@ fun HistoryScreen(nav: Navigator, modifier: Modifier = Modifier) {
     }
   }
 
-  // 设计稿是「立即清空 + 可撤销 toast」,但清空之后没有可撤销的对象(200 条记录
-  // 已经从库里删了),RN 版为此退成先问一句 —— 这里照抄那个决定
   ConfirmDialog(
     open = clearOpen,
     title = "清空浏览历史",
@@ -128,18 +119,6 @@ fun HistoryScreen(nav: Navigator, modifier: Modifier = Modifier) {
   )
 }
 
-/**
- * 一条历史记录重新打开时的主题键。
- *
- * **带上进度楼层**:这一屏右边那格写着「读到 96 楼」,点进去却落在第 1 页顶部,
- * 是在自己打自己的脸(功能走查 checklist #11)。RN 版只传了 tid/title/fav,
- * 这是对它的有意偏离 —— 是**修已知缺陷**,不是加功能。
- *
- * 只传 `floor` 不传 `page`:历史里没存 `rowsPerPage`,页码由
- * [com.chasel.ng2n.ui.topic.TopicViewModel] 按每页 20 楼估,真实值回来后
- * `redeemPendingFloor` 再核对一次 —— 估错也只是多翻一页,不会落错楼。
- * 主楼(`lastFloor` 0)不带:那本来就是第 1 页顶部,带了反而多一次滚动。
- */
 internal fun historyTopicKey(entry: HistoryEntry): TopicKey = TopicKey(
   tid = entry.tid,
   title = entry.subject,
@@ -147,12 +126,6 @@ internal fun historyTopicKey(entry: HistoryEntry): TopicKey = TopicKey(
   floor = entry.lastFloor.takeIf { it >= 1 }?.toLong(),
 )
 
-/**
- * 历史的一行(设计稿:padding 14/16/12,下分隔线;信息行上距 9、gap 6、12.5 号)。
- *
- * 标题与后面那个灰色 `[版块名]` 拼成**一个** [buildAnnotatedString] ——
- * 分成两个 Text 的话窄屏上版块名会被甩到下一行的行首。
- */
 @Composable
 private fun HistoryRow(entry: HistoryEntry, now: Long, onClick: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -190,7 +163,6 @@ private fun HistoryRow(entry: HistoryEntry, now: Long, onClick: () -> Unit) {
       horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
       AppIcon(icon = Ng2nIcon.PERSON, tint = colors.meta, size = 11.dp)
-      // 从非第 1 页进过来的主题拿不到楼主名,这一格留白
       Text(
         text = entry.author.orEmpty(),
         maxLines = 1,
@@ -208,7 +180,6 @@ private fun HistoryRow(entry: HistoryEntry, now: Long, onClick: () -> Unit) {
   }
 }
 
-/** 信息行的行盒高度写死 17 —— 左右几段文字各自居中之后基线才不会错开。 */
 internal fun metaStyle(color: androidx.compose.ui.graphics.Color): TextStyle = TextStyle(
   fontSize = Typo.listMeta.size,
   lineHeight = 17.sp,

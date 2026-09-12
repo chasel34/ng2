@@ -15,16 +15,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-/**
- * 24 小时热帖(CONTEXT.md「热帖」)的端到端聚合:拉页(票 07)+ 窗口过滤排序(票 10)。
- *
- * 判据全在 `core/local/HotTopics.kt`(那儿有票 10 的金样本),这里钉的是**首页/版块面
- * 真正调用的那一条路**:并发拉 5 页 → 跨页去重 → 剔掉合集/镜像/外链 → 按发帖时间
- * 过窗口 → 回复数降序。
- */
 class HotTopicsAggregationTest {
 
-  /** 秒级 unix 时间戳的「现在」。 */
   private val now = 1_787_371_200L
 
   private fun pageOf(vararg rows: String): String {
@@ -67,7 +59,6 @@ class HotTopicsAggregationTest {
 
     assertEquals(5, result.pagesTried)
     assertEquals(emptyList(), result.failedPages)
-    // 置顶主题每页都会再回来一次,按 tid 去重
     assertEquals(listOf(2L, 3L, 1L), result.topics.map { it.tid })
   }
 
@@ -77,9 +68,7 @@ class HotTopicsAggregationTest {
       if (pageIndexOf(request.url) == 1) {
         ok(
           pageOf(
-            // 发帖在窗口内
             topic(tid = 1, replies = 3, hoursAgo = 5),
-            // 十年老坟,刚被顶起来:lastpost 很新,但 postdate 在窗口外
             topic(tid = 2, replies = 999, hoursAgo = HOT_WINDOW_HOURS + 1L, lastPostHoursAgo = 0),
           ),
         )
@@ -99,9 +88,7 @@ class HotTopicsAggregationTest {
         ok(
           pageOf(
             topic(tid = 1, replies = 1, hoursAgo = 1),
-            // type 含 0x8000 = 合集
             topic(tid = 2, replies = 100, hoursAgo = 1, extra = ""","type":32768"""),
-            // 外链活动帖
             topic(
               tid = 3,
               replies = 100,
@@ -160,7 +147,6 @@ class HotTopicsAggregationTest {
     }
 
     val result = fetchHotTopics(testClient(transport), 7, BoardKind.BOARD, now)
-    // 最后回复更新的排前;并列时 tid 升序
     assertEquals(listOf(10L, 20L, 30L), result.topics.map { it.tid })
   }
 }

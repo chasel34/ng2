@@ -6,9 +6,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/**
- * `src/core/local/notifications.test.ts` 的手工移植(票 14 验收项①)。
- */
 class NotificationPolicyTest {
 
   private data class Item(
@@ -18,8 +15,6 @@ class NotificationPolicyTest {
   ) : NotificationLike
 
   private fun item(id: String, timestamp: Long) = Item(id, timestamp)
-
-  // ------------------------------------------------------------ notificationId
 
   @Test
   fun `稳定 ID 是 时间戳-类型-tid-pid`() {
@@ -36,8 +31,6 @@ class NotificationPolicyTest {
     assertEquals(first, second)
   }
 
-  // ------------------------------------------------------------ mergeNotifications
-
   @Test
   fun `重复拉取不重置已读 合并不碰已读集合`() {
     val feed = listOf(item("a", 300), item("b", 200))
@@ -45,11 +38,9 @@ class NotificationPolicyTest {
     var readIds = markRead(emptySet(), listOf("a"))
     assertEquals(1, unreadCount(items, readIds))
 
-    // 服务端原样又发了一遍(轮询的常态)
     items = mergeNotifications(items, feed)
     assertEquals(1, unreadCount(items, readIds))
 
-    // 全部读掉再刷新,未读数不回弹
     readIds = markRead(readIds, listOf("b"))
     items = mergeNotifications(items, feed)
     assertEquals(0, unreadCount(items, readIds))
@@ -72,8 +63,6 @@ class NotificationPolicyTest {
     assertEquals("旧标题", merged[0].subject)
   }
 
-  // ------------------------------------------------------------ markRead
-
   @Test
   fun `返回新集合 不改入参`() {
     val before = setOf("a")
@@ -89,8 +78,6 @@ class NotificationPolicyTest {
     assertSame(before, markRead(before, listOf("a")))
     assertSame(before, markRead(before, emptyList()))
   }
-
-  // ------------------------------------------------------------ groupNotifications
 
   private data class Noti(
     override val id: String,

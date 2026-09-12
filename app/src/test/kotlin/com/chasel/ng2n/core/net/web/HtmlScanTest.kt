@@ -4,16 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * 扫描器的边界用例。手工移植自 `src/core/net/web/html-scan.test.ts`(全部 8 条)。
- *
- * 整页反解的回归线在金样本 domain `web`(真实抓包),这里钉的是那份注释里说
- * 「所以不能用正则」的那几种情形——**都出自用户内容**,一旦踩中,
- * 表现是整页反解莫名其妙地少几楼或串行。
- */
 class HtmlScanTest {
-
-  // ── findCalls ─────────────────────────────────────────────────────────────
 
   @Test
   fun `实参里的括号与引号不算数,按顶层逗号切`() {
@@ -47,16 +38,12 @@ class HtmlScanTest {
     assertEquals(listOf(JsArgument.Num(1.0), JsArgument.Num(3.0)), first)
   }
 
-  // ── elementIdOf ───────────────────────────────────────────────────────────
-
   @Test
   fun `只认 dollar 括号引号 id 这一种,别的实参一律 null`() {
     assertEquals("postcontent7", elementIdOf(JsArgument.Expression("\$('postcontent7')")))
     assertNull(elementIdOf(JsArgument.Null))
     assertNull(elementIdOf(JsArgument.Str("postcontent7")))
   }
-
-  // ── innerHtmlOf ───────────────────────────────────────────────────────────
 
   @Test
   fun `同名标签嵌套时找到对的那个收尾`() {
@@ -88,8 +75,6 @@ class HtmlScanTest {
     assertNull(innerHtmlOf("<h3 id='c'></h3>", "nope"))
   }
 
-  // ── parseObjectLiterals ───────────────────────────────────────────────────
-
   @Test
   fun `键不带引号的 JS 对象数组(附件表就是这个形态)`() {
     val parsed = parseObjectLiterals("[{aid:'',url:'a.jpg',thumb:'56'},{url:'b.jpg',size:101}]")
@@ -103,12 +88,8 @@ class HtmlScanTest {
     )
   }
 
-  // ── 直译到 Kotlin 时才冒出来的坑(TS 那边不用管) ────────────────────────────
-
   @Test
   fun `匹配到空串与整支没匹配是两回事`() {
-    // TS 靠 `match[2] ?? match[3] ?? match[4]` 区分,Kotlin 的 groupValues 一律给 ""——
-    // 这条钉住 `aid:''` 收成空串而不是掉进数字那一支
     assertEquals(listOf(mapOf("aid" to "", "n" to "-3")), parseObjectLiterals("{aid:'',n:-3}"))
   }
 

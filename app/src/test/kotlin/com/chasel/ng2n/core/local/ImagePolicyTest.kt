@@ -4,11 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * 图片加载策略。用例口径照搬 RN 侧 `src/ui/network.ts` 的两个 hook 与
- * `image-viewer.tsx:66-75` 的取址分支 —— 那边没有单测(hook 跑不了),
- * 移过来正好把它钉住。
- */
 class ImagePolicyTest {
 
   private val original = "https://img.nga.cn/attachments/mon_202608/07/a.jpg"
@@ -80,7 +75,6 @@ class ImagePolicyTest {
 
   @Test
   fun `查看器不看 wifiOnly —— 是用户自己点进来的`() {
-    // 同一组条件下正文图会折叠,查看器照拉
     val plan = ImagePolicy.resolveViewer(original, thumbnail, ImageQuality.SMART, metered = true)
     assertEquals(thumbnail, plan.url)
   }

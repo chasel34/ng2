@@ -7,15 +7,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 逐条移植自 `src/core/net/fetcher.test.ts` 的 `createNgaFetcher · 请求拼装`(12 条,全部移植)。
- *
- * 两处与 TS 版的**表述**差异(语义不变,理由见各用例):
- * - `Cookie` 断言改成断言 `HttpRequest.credential`:凭证不再由链写进请求头,
- *   而是交给自管 CookieJar(修 P1-03 / ADR-0002 第 4 条)。
- *   真的有没有变成 `Cookie:` 头由 `data/net/OkHttpTransportTest` 用 MockWebServer 钉。
- * - `Content-Type` 与 body 也从 headers 挪到了 [HttpRequest] 的独立字段。
- */
 class NgaClientRequestTest {
 
   private fun paramsOfUrl(url: String): Map<String, String> =
@@ -74,7 +65,6 @@ class NgaClientRequestTest {
     client.execute(readRequest("thread.php", queryOf("author" to gbk("原神"))))
     client.execute(readRequest("thread.php", queryOf("key" to "原神")))
 
-    // 同一个 thread.php,author 是 GBK 而 key 是 UTF-8(API 文档 §0.5)
     assertTrue(transport.requests[0].url.contains("author=%D4%AD%C9%F1"))
     assertTrue(!transport.requests[0].url.contains("__inchst"))
     assertTrue(transport.requests[1].url.contains("key=%E5%8E%9F%E7%A5%9E"))

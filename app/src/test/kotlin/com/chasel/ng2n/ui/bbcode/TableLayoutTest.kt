@@ -6,7 +6,6 @@ import com.chasel.ng2n.core.bbcode.parseBBCode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** 手工移植自 `src/ui/bbcode/table.test.ts`。 */
 class TableLayoutTest {
 
   private fun tableOf(source: String): TableNode =

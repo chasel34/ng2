@@ -16,11 +16,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * [TopicPageBuilder]:一页 [TopicDetail] → [PageRenderModel]。
- *
- * 重点在「成品到底成没成」——楼层卡里不许再有解析、拼串、正则(anzong 四原则第三条)。
- */
 class TopicPageBuilderTest {
 
   private val base = "https://img.nga.cn/attachments"
@@ -123,8 +118,6 @@ class TopicPageBuilderTest {
 
   @Test
   fun `投票在后台解析成只读模型`() {
-    // `~` 逐项分隔(键、值交替);选项是纯数字键、计数是 `_键`(core/local/Vote.kt)。
-    // 串照 `goldens/vote/is-closed-exactly-at-end` 的 raw 抄
     val raw = "208133~华为~208134~美国高通~max_select~1~_208133~123,0,138~_208134~15,0,0"
     val model = build(
       detail(
@@ -152,7 +145,6 @@ class TopicPageBuilderTest {
     assertEquals(1, item.attachmentImages.size)
     assertEquals(1, item.attachmentFiles.size)
     assertEquals(2, item.attachmentCount)
-    // 正文图在前、附件图在后 —— 与它们在屏上的出现顺序相同
     assertEquals(
       listOf("$base/mon_202608/07/body.jpg", "$base/mon_202608/07/a.jpg"),
       item.images.map { it.url },
@@ -234,7 +226,6 @@ class TopicPageBuilderTest {
 
   @Test
   fun `avatarColorFor 与 RN 版同一个弱散列口径`() {
-    // 同一个 key 恒定同色;不同 key 落在七档里
     assertEquals(avatarColorFor("41417929"), avatarColorFor("41417929"))
     assertTrue(avatarColorFor("a") != avatarColorFor("abcd") || true)
   }
@@ -243,16 +234,11 @@ class TopicPageBuilderTest {
   fun `initialOf 按码点切 不劈开代理对`() {
     assertEquals("甲", initialOf(" 甲乙丙 "))
     assertEquals("#", initialOf("   "))
-    // U+1F600,UTF-16 是一对代理项:按码元切会出豆腐块
     assertEquals("😀", initialOf("😀笑"))
   }
 
-  // --- 骰子:文档顺序 vs 作用域顺序 ------------------------------------------
-
   @Test
   fun `骰子按文档顺序排回来 —— 折叠块排在顶层骰子之前时不会贴错`() {
-    // 作用域顺序(票 10 flatten):顶层的 d8,再折叠块里的 d100
-    // 文档顺序(渲染器遍历):先折叠块里的 d100,再顶层的 d8
     val source = "[collapse][dice]d100[/dice][/collapse][dice]d8[/dice]"
     val nodes = parseBBCode(source)
     val seed = DiceSeed(authorId = 41417929, tid = 45150945, pid = 800000000)
@@ -262,7 +248,6 @@ class TopicPageBuilderTest {
 
     assertEquals(listOf("d8", "d100"), scopeOrder.map { it.expression })
     assertEquals(listOf("d100", "d8"), documentOrder.map { it.expression })
-    // 两个序列是同一批结果,只是顺序不同 —— 不能有第二次投掷
     assertEquals(scopeOrder.toSet(), documentOrder.toSet())
   }
 

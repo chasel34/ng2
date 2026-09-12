@@ -14,17 +14,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * 票 15 验收③的 CookieJar 那一半:**登出 / 切号之后,真发出去的请求带的是谁**。
- *
- * 起一个 `mockwebserver3` 真服务端,走的是生产那条路:
- * `AccountStore.current()`(每请求现读)→ `HttpRequest.credential` →
- * 自管 `NgaCookieJar` → okhttp 的 `BridgeInterceptor` 装 `Cookie` 头。
- * 断言的是**服务端收到的头**,不是我们自己拼的字符串。
- *
- * 票 06 的 `OkHttpTransportTest` 已经证明了 jar 那一层的行为(下发的 Set-Cookie 不保存、
- * 一发一身份);这里补的是「账号状态变化之后,下一发请求的身份跟着变」这条端到端链路。
- */
 class AccountCookieIsolationTest {
 
   private lateinit var server: MockWebServer
@@ -54,7 +43,6 @@ class AccountCookieIsolationTest {
     }
   }
 
-  /** 一发请求,凭证按生产路径**现读**当前账号。 */
   private suspend fun fetchAs(store: AccountStore) {
     OkHttpTransport(client).execute(
       HttpRequest(
@@ -94,7 +82,6 @@ class AccountCookieIsolationTest {
     store.upsert(testAccount("10000001", cid = "cid-a"))
     store.upsert(testAccount("10000002", cid = "cid-b"))
 
-    // 登进来的立刻是当前账号
     fetchAs(store)
     assertEquals(
       "ngaPassportUid=10000002; ngaPassportCid=cid-b",
@@ -124,7 +111,7 @@ class AccountCookieIsolationTest {
     store.upsert(testAccount("10000001", cid = "cid-a"))
     store.upsert(testAccount("10000002", cid = "cid-b"))
 
-    store.remove("10000002") // 退的是当前账号
+    store.remove("10000002")
     fetchAs(store)
 
     assertEquals(
@@ -138,7 +125,6 @@ class AccountCookieIsolationTest {
     enqueueOk(1)
     val store = inMemoryAccountStore()
     val vault = FakeWebCookieVault()
-    // WebView 里还留着上一个账号(RN 版 P1-03 的典型现场)
     vault.cookie = "ngaPassportUid=99999999; ngaPassportCid=cid-stale"
     store.upsert(testAccount("10000001", cid = "cid-a"))
 

@@ -37,23 +37,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.collections.immutable.ImmutableList
 
-/**
- * 楼层里三块「装着正文的容器」:签名档、贴条区、热门回复折叠区。
- *
- * 楼层卡片本体(头像/作者行/赞踩/菜单)归**票 13**;这三块单独放在渲染器这边,
- * 是因为它们的内容都是 BBCode、都复用 [BBCodeContent],而票 13 只需要摆位置。
- * RN 侧原件:`src/ui/floor-card.tsx` 的 `Signature`/`NoteList` 与
- * `src/app/topic/[tid].tsx` 的 `HotReplies`。
- */
-
-/**
- * 签名档(「显示签名档」设置)。
- *
- * 用引用块那一档字号(14/1.6),颜色压到次级——签名再长也不该抢正文。
- * 内容是 BBCode(常带图与折叠),所以还是走正文渲染器。
- *
- * @param model 用 [signatureRenderOptions] 建出来的模型(字号/颜色已经压过一档)
- */
 @Composable
 fun SignatureBlock(
   model: FloorRenderModel,
@@ -63,7 +46,6 @@ fun SignatureBlock(
   if (model.isEmpty) return
   val colors = LocalNg2nColors.current
   Column(modifier = modifier.padding(top = 10.dp).fillMaxWidth()) {
-    // 与正文之间一条分隔线(设计稿 `borderTopWidth: 1`)
     Box(
       modifier = Modifier
         .fillMaxWidth()
@@ -76,35 +58,19 @@ fun SignatureBlock(
   }
 }
 
-/**
- * 建签名档模型的参数:比正文小一档、颜色压到 meta。
- *
- * 签名与正文用**同一个**建模器,只是换一组底样式——`[collapse]`、`[img]`、表格
- * 在签名里照样要能用(NGA 上签名档花样比正文还多)。
- */
 fun signatureRenderOptions(base: BBCodeRenderOptions): BBCodeRenderOptions = base.copy(
   bodyFontSize = Typo.quoteBody.size.value,
-  // 14 · 1.6 = 22.4,与 `Typo.quoteBody` 同
   bodyLineHeight = Typo.quoteBody.lineHeight.value / Typo.quoteBody.size.value,
   colors = base.colors.copy(fg = base.colors.meta),
 )
 
-/** 贴条区里的一条:谁 + 已经压成一行的正文。 */
 @Immutable
 data class CommentEntry(
   val id: String,
   val author: String,
-  /** 已经过 [plainTextOf] 压平的内容 */
   val text: String,
 )
 
-/**
- * 贴条区(设计稿:surface2 底、圆角 12 的一块,每条一行「谁:内容」)。
- *
- * 贴条正文里常带一整段 `[b]Reply to …[/b]` 引用头,连同图片一起展开会把这一小块撑爆,
- * 所以压成纯文本一行(引用关系在回复链里看)——压平用 [plainTextOf],
- * 而且要在**后台**压好再传进来,别在 composition 里解析 BBCode。
- */
 @Composable
 fun CommentStrip(
   comments: ImmutableList<CommentEntry>,
@@ -139,12 +105,6 @@ fun CommentStrip(
   }
 }
 
-/**
- * 热门回复区:服务端只在主楼里标,独立成一块,默认收起。
- *
- * 里面装的是**楼层卡片**(票 13 的 `FloorCard`),所以内容用 slot 交出去——
- * 渲染器不认识楼层。
- */
 @Composable
 fun HotRepliesSection(
   count: Int,
@@ -195,5 +155,4 @@ fun HotRepliesSection(
   )
 }
 
-/** 设计稿 `duration.base`。 */
 private const val HOT_REPLIES_MS = 200

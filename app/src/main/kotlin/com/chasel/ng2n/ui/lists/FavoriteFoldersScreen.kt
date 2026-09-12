@@ -64,20 +64,12 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 收藏夹管理 —— 直译 RN 侧 `src/app/favorites/folders.tsx`
- * (设计稿 `screen:'folders'`,CONTEXT.md「收藏夹」)。
- *
- * 新建 / 重命名 / 设默认 / 删除四件事都走 `topic_favor_v2`,**每次写完都重拉夹列表** ——
- * 屏上的计数与默认徽标一律以服务端为准(RN 版 11 票验收项)。
- */
 private sealed interface FolderDialog {
   data object Create : FolderDialog
   data class Rename(val folder: FavoriteFolder) : FolderDialog
   data class Delete(val folder: FavoriteFolder) : FolderDialog
 }
 
-/** 游客态碰到写操作时递出去的那句话 —— 与空态的文案同一句,不各说各话。 */
 private const val GUEST_PROMPT = "登录后才能管理云端收藏夹"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,14 +93,6 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
 
   LaunchedEffect(uid) { deps.topicFavorites.ensureFolders(uid) }
 
-  /**
-   * 写操作的统一善后:成功报一句,失败把服务端的话原样带出来。
-   *
-   * 游客态走登录引导(票 30)。原先这里是 `val currentUid = uid ?: return` ——
-   * 新建 / 重命名 / 设默认 / 删除四件事全过这个函数,于是游客填完名字点「创建」
-   * 是彻底的静默:对话框不关、不报错、连一发请求都没有。先收对话框再弹提示条,
-   * 不然 snackbar 会被对话框压住。
-   */
   fun run(done: String, action: suspend (String) -> Unit) {
     val currentUid = when (val gate = signedInGate(uid, GUEST_PROMPT)) {
       is SignedInGate.NeedLogin -> {
@@ -189,8 +173,6 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
               EmptyState(
                 icon = Ng2nIcon.FOLDER,
                 text = "还没有收藏夹，点右上角新建一个",
-                // 下面紧跟着那段说明文字,用 INLINE 的下 56 会把两者拉开约 36dp
-                // (票 50);RN 侧这一屏的空态是上 60 / 下 20
                 variant = StateVariant.INLINE_HEAD,
               )
             }
@@ -206,7 +188,6 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
               onRename = { dialog = FolderDialog.Rename(folder) },
               onSetDefault = {
                 if (!folder.isDefault) {
-                  // 设默认与重命名是同一个 modify_folder,name 必传,所以把现名原样带回去
                   run("已把「${folder.name}」设为默认收藏夹") { currentUid ->
                     deps.topicFavorites.modifyFolder(
                       uid = currentUid,
@@ -259,7 +240,6 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
   InputDialog(
     open = renaming != null,
     title = "重命名收藏夹",
-    // InputDialog 每次打开都会回到 initialValue,换个夹改名不会留着上一个夹的名字
     initialValue = renaming?.folder?.name.orEmpty(),
     confirmLabel = if (busy) "保存中…" else "保存",
     onCancel = { dialog = null },
@@ -293,7 +273,6 @@ fun FavoriteFoldersScreen(nav: Navigator, modifier: Modifier = Modifier) {
   )
 }
 
-/** 设计稿:14 内边距、13 间距、圆角 14、surface 底 + 1px divider 描边,行距 10。 */
 @Composable
 private fun FolderCard(
   folder: FavoriteFolder,

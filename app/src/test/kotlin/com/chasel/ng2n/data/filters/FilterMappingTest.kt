@@ -19,14 +19,6 @@ import com.chasel.ng2n.core.local.FilterRuleKind as CoreKind
 import com.chasel.ng2n.core.local.FilterRuleOrigin as CoreOrigin
 import com.chasel.ng2n.data.settings.FilterRule as StoredRule
 
-/**
- * 票 17b:屏蔽规则屏读写这条路上的两件事。
- *
- * 1. **存储形态 ↔ 判定形态的桥**([toCore] / [toStored])—— 票 10 与票 14 各落了一份
- *    `FilterRule`,屏幕这一层要在 DataStore 边界上换形状,换错了就是「加了规则不生效」。
- * 2. **P3-05 的写入路径**:对话框读的必须是 `core/local` 那份带资源上限的
- *    `validateFilterRule`,而不是 `data/settings` 里那份没有上限的同名函数。
- */
 class FilterMappingTest {
 
   private val rule = createFilterRule(
@@ -54,19 +46,15 @@ class FilterMappingTest {
     val broken = StoredRule(id = "local:???:x", kind = "???", origin = "local", value = "x")
     assertNull(broken.toCore())
 
-    // 票 14 的落盘容错也认同一条口径:坏条目滤掉,好条目留着
     val good = rule.toStored()
     assertEquals(listOf(good), sanitizeFilterRules(listOf(broken, good)))
   }
 
   @Test
   fun `origin 缺失的老存档按本地规则读回来`() {
-    // 本地表里存的本来就只有本地规则,origin 是后加的字段
     val legacy = StoredRule(id = "local:keyword:x", kind = "keyword", origin = "", value = "x")
     assertEquals(CoreOrigin.LOCAL, assertNotNull(legacy.toCore()).origin)
   }
-
-  // --- P3-05:对话框走的是带上限的那一份校验(RN 版没有,移植时修)-----------------
 
   @Test
   fun `P3-05 嵌套量词在存之前就被拦住 存不进本地表`() {
@@ -75,7 +63,6 @@ class FilterMappingTest {
       message?.startsWith("正则表达式不合法") == true,
       "对话框应当拿到一句拒绝理由,实际是 $message",
     )
-    // 同一个串当**普通子串**用是合法的:上限只针对开了正则的那一档
     assertNull(validateFilterRule(FilterRuleInput(CoreKind.KEYWORD, "(a+)+\$")))
   }
 
@@ -90,7 +77,6 @@ class FilterMappingTest {
 
   @Test
   fun `P3-05 就算病态规则已经躺在存档里 判定这一层也不会卡死或抛`() {
-    // 老版本存下来的 / 手改过存档的:读回来照样进判定,这时只剩匹配期的那道闸
     val stored = StoredRule(
       id = "local:keyword:(?:a|aa)+b",
       kind = "keyword",
@@ -99,10 +85,8 @@ class FilterMappingTest {
       regex = true,
     )
     val rules = listOf(assertNotNull(stored.toCore()))
-    // 这条在 RN 版会把 UI 线程跑到天荒地老;这里按「不命中」收场
     assertNull(matchFilterRules(rules, FilterSubject(content = "a".repeat(4_000))))
 
-    // pattern 本身超长的那一档连编译都不做
     val huge = StoredRule(
       id = "local:keyword:long",
       kind = "keyword",
@@ -122,7 +106,6 @@ class FilterMappingTest {
     val rules = listOf<CoreRule>(assertNotNull(stored.toCore()))
     assertNotNull(matchFilterRules(rules, FilterSubject(title = "[水]今天吃什么")))
     assertNull(matchFilterRules(rules, FilterSubject(title = "今天吃什么")))
-    // 输入截断只砍超出 MAX_REGEX_INPUT_LENGTH 的部分,之内的一律看得到
     assertNotNull(
       matchFilterRules(rules, FilterSubject(title = "[水]" + "x".repeat(MAX_REGEX_INPUT_LENGTH - 10))),
     )

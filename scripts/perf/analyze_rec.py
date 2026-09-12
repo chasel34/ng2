@@ -1,28 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""录屏逐帧分析 — 感知层 ground truth,判据编号见 docs/perf-playbook.md (C1 / C10 / C11 / T5 / T7 / T8)。
+"""按帧间时间和灰度差分分析录屏，仅在运动窗口内判定停格与内容突现。
 
-帧间 dt(按 pts)+ 下采样灰度差分:
-  「停格」= 运动窗口内的 dt 大洞;「内容突现」= 灰度 diff 爆点;
-  静止画面的出帧空洞【不算缺陷】——只在运动窗口内判,且**不含窗口的第一个 dt**
-  (那一格跨的是「最后一帧静止画面 → 动画首帧」,即点击到起步的延迟,见票 53)。
-
-采样:
-    adb shell screenrecord --time-limit 8 /sdcard/rec.mp4 &
-    # 操作(input swipe 单次 >80ms,起步段不作证据 T5)
-    adb pull /sdcard/rec.mp4
-分析:
-    scripts/perf/.venv/bin/python scripts/perf/analyze_rec.py rec.mp4 --source device
-"""
+窗口首个间隔属于启动延迟，不计入运动停格。
+用法：scripts/perf/.venv/bin/python scripts/perf/analyze_rec.py rec.mp4 --source device"""
 import argparse
 import sys
 
 import av
 import numpy as np
 
-
 def decode(path, width):
-    """返回 (ts[s], gray[N,h,w])。ts 取 pts,没有 pts 的帧按序号补。"""
+    """返回 (ts[s], gray[N,h,w])；缺少 PTS 的帧按序号补时刻。"""
     ts, frames = [], []
     with av.open(path) as c:
         st = c.streams.video[0]
@@ -33,9 +22,8 @@ def decode(path, width):
             frames.append(f.reformat(width=width, height=h, format="gray").to_ndarray())
     return np.asarray(ts, dtype=np.float64), np.asarray(frames, dtype=np.float32)
 
-
 def runs(mask, gap):
-    """mask 里的连续 True 段(允许 gap 帧断口),返回 [(start, end)] 闭区间。"""
+    """返回连续 True 段的闭区间，允许 gap 帧断口。"""
     out = []
     i, n = 0, len(mask)
     while i < n:
@@ -53,7 +41,6 @@ def runs(mask, gap):
         out.append((i, j))
         i = j + 1
     return out
-
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -88,18 +75,6 @@ def main():
           % (len(windows), int(moving.sum()), len(diff), mid))
 
     stall_ms = a.stall * base * 1000
-    # 每个运动窗口的**第一个 dt** 不是停格:它跨的是「最后一帧静止画面 → 动画第一帧」,
-    # 也就是点击到动画起步的延迟,期间屏幕一动不动(票 53)。
-    #
-    # screenrecord 是 VFR,画面不变就不出帧;而真机点一下会把屏幕顶到 120Hz 保持
-    # 约 600ms(touch boost),boost 退了就彻底停帧。于是每个「点击 → 动画」都在
-    # 动画首帧前留一个 60–210ms 的空洞——原生 / RN / anzong 三个包全都有,量的是
-    # `adb shell input tap` 的到达延迟,不是动画卡了。
-    #
-    # 它算不算进窗口只差一帧:boost 退出后恢复的第一帧若恰好已是动画首帧,窗口就从
-    # 空洞那一格起算,空洞被误判成停格;若恢复的第一帧还是静止画面(动画晚一个 vsync
-    # 起步),空洞就落在窗口外。票 53 原生 21 处 / anzong 0 处的差距全部来自这一帧,
-    # 两边的动画本身 max dt 分别是 17.7ms 与 13.8ms,没有可见差。
     starts = {s for s, _ in windows}
     stalls, idle, leads = [], 0, []
     for i, d in enumerate(dt):
@@ -139,7 +114,6 @@ def main():
                   % (ts[s], ts[min(e + 1, len(ts) - 1)], e - s + 1,
                      float(np.median(seg)) * 1000 if len(seg) else 0,
                      float(seg.max()) * 1000 if len(seg) else 0))
-
 
 if __name__ == "__main__":
     main()

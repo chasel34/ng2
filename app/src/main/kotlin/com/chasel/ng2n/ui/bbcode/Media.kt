@@ -30,21 +30,11 @@ import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/**
- * 媒体与特殊标签的卡片:`[dice]` `[flash]` `[attach]` `[album]`
- * (RN 侧原件 `src/ui/bbcode/media.tsx`)。
- *
- * `[flash]` 不内联播放(ADR-0001):与其做一个半残的内置播放器,不如给一张卡片、
- * 点了交给系统——手机上装了播放器的体验比任何内置方案都好,没装的话浏览器兜底。
- */
-
-/** `[dice]` 的结果卡。排版照网页版那张小表:`ROLL : 表达式 = 展开 = 合计`。 */
 @Composable
 internal fun DiceCard(segment: DiceSegment) {
   val colors = LocalNg2nColors.current
   val outcome = segment.outcome
 
-  // 点数要靠楼层的 authorId/tid/pid 才算得出来,调用方没给就退回显示表达式
   if (outcome == null) {
     Text(
       text = "[骰子 ${segment.expression}]",
@@ -62,7 +52,6 @@ internal fun DiceCard(segment: DiceSegment) {
       withStyle(SpanStyle(color = colors.meta)) { append(" = $expanded") }
     }
     if (outcome.sum == null) {
-      // 网页版此时显示 OUT OF LIMIT / ERROR:一次最多 10 颗、面数最多 100000
       withStyle(SpanStyle(color = colors.danger)) { append(" = 超出骰子上限") }
     } else {
       withStyle(SpanStyle(color = colors.fg, fontWeight = FontWeight.Bold)) {
@@ -97,7 +86,6 @@ internal fun DiceCard(segment: DiceSegment) {
   }
 }
 
-/** `[flash]` / `[flash=video]` / `[flash=audio]`:点了交给系统播放器或浏览器。 */
 @Composable
 internal fun MediaCard(segment: MediaSegment, callbacks: BBCodeCallbacks) {
   val colors = LocalNg2nColors.current
@@ -143,7 +131,6 @@ internal fun MediaCard(segment: MediaSegment, callbacks: BBCodeCallbacks) {
   }
 }
 
-/** `[attach]`:附件本体,和楼层附件区一样点了外跳下载。 */
 @Composable
 internal fun AttachCard(segment: AttachSegment, callbacks: BBCodeCallbacks) {
   val colors = LocalNg2nColors.current
@@ -172,11 +159,6 @@ internal fun AttachCard(segment: AttachSegment, callbacks: BBCodeCallbacks) {
   }
 }
 
-/**
- * `[album]`:默认收起成一条「共 N 张」,展开后按正文图片的样式竖排。
- *
- * 相册动辄十几张原图,一进楼就全拉等于把流量烧光——和附件宫格同一个理由。
- */
 @Composable
 internal fun AlbumCard(segment: AlbumSegment, callbacks: BBCodeCallbacks) {
   if (segment.images.isEmpty()) return

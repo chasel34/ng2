@@ -43,24 +43,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
-/**
- * **TODO(票 16 移除)**:BBCode 渲染器的模拟器手验入口(票 11)。
- *
- * 三档:
- * 1. **29 类型**——金样本 `bbcode/coverage-*` 的 29 条 input 逐条一块,与
- *    `src/ui/bbcode/render.tsx` 的分支逐条肉眼对照(票 11 验收项 ①);
- * 2. **拼成一楼**——`coverage-all-joined` 那一条,看各种块摞在一起的间距;
- * 3. **超长楼层**——上面那条重复 30 遍(≈2 万字、900 段),外加金样本里最长的那条
- *    `deep-nesting-5000`(5000 层 `[b]`,解析器 64 层封顶后退化成文本)。
- *    用来甩着看有没有崩、有没有明显卡死(票 11 验收项 ②;**性能不在这里裁**,
- *    模拟器与 debug 包永不裁性能,正式闸在票 19)。
- *
- * 票 16 铺真首页时连同本文件一起删掉。
- */
 @Serializable
 data object BBCodeDemoKey : NavKey
 
-/** 模拟器 / uiautomator 找入口用的锚点。 */
 const val BBCODE_DEMO_BUTTON_TAG: String = "ng2n-bbcode-demo"
 const val BBCODE_DEMO_LIST_TAG: String = "ng2n-bbcode-demo-list"
 
@@ -76,8 +61,6 @@ fun BBCodeDemoScreen(onOpenViewer: (ImageViewerKey) -> Unit) {
   var mode by remember { mutableStateOf(DemoMode.TYPES) }
   val uriHandler = LocalUriHandler.current
 
-  // demo 里的图片地址是假的(附件域名 + 编出来的路径),点开查看器只为验证接线通;
-  // 真实图片在票 12 的 demo 里看
   val callbacks = remember(onOpenViewer) {
     BBCodeCallbacks(
       onOpenLink = { runCatching { uriHandler.openUri(it) } },
@@ -91,7 +74,6 @@ fun BBCodeDemoScreen(onOpenViewer: (ImageViewerKey) -> Unit) {
     )
   }
 
-  // MainActivity 开了 edge-to-edge(票 01),不让开就顶到状态栏底下去了
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -129,7 +111,6 @@ fun BBCodeDemoScreen(onOpenViewer: (ImageViewerKey) -> Unit) {
   }
 }
 
-/** 29 条 input 各占一行卡片,行首标着类型名。 */
 @Composable
 private fun TypesDemo(callbacks: BBCodeCallbacks) {
   val colors = LocalNg2nColors.current
@@ -167,12 +148,10 @@ private fun TypesDemo(callbacks: BBCodeCallbacks) {
   }
 }
 
-/** 一整段 BBCode 当成一楼画。 */
 @Composable
 private fun SingleFloorDemo(source: String, callbacks: BBCodeCallbacks) {
   val colors = LocalNg2nColors.current
   val options = demoOptions()
-  // 建模丢后台:这正是票 13 该有的用法,demo 顺手把这条路走通
   val model by produceState(initialValue = EMPTY_MODEL, source, options) {
     value = withContext(Dispatchers.Default) {
       RenderModelBuilder.build(parseBBCode(source), options)
@@ -199,11 +178,6 @@ private fun SingleFloorDemo(source: String, callbacks: BBCodeCallbacks) {
   }
 }
 
-/**
- * 超长楼层:`coverage-all-joined` 重复 30 遍,再加一条 5000 层嵌套。
- *
- * 一楼一张卡,和真实楼层流一个形状(票 13 会换成真的 `FloorCard`)。
- */
 @Composable
 private fun LongFloorDemo(callbacks: BBCodeCallbacks) {
   val colors = LocalNg2nColors.current
@@ -251,10 +225,7 @@ private fun demoOptions(): BBCodeRenderOptions {
   return remember(colors) {
     BBCodeRenderOptions(
       attachBase = "https://img.nga.cn/attachments",
-      // 让 [noimg] 有日期目录可补(2026-08-07 12:00 UTC+8)
       postedAt = 1786075200L,
-      // demo 屏只有一条 [dice],给一颗定值好看清结果卡长什么样;
-      // 真楼层的点数由票 13 用 `resolveFloorDice(nodes, DiceSeed(...))` 复算
       dice = persistentListOf(
         DiceOutcome(
           expression = "1d100",
@@ -271,11 +242,9 @@ private val EMPTY_MODEL = FloorRenderModel(persistentListOf())
 
 private const val LONG_FLOOR_REPEATS = 30
 
-/** 与金样本 `bbcode/deep-nesting-5000` 同形:64 层封顶之后余下的开标签退化成文本。 */
 private val DEEP_NESTING_5000: String =
   "[b]".repeat(5000) + "深" + "[/b]".repeat(5000)
 
-/** 29 条 input,与金样本 `bbcode/coverage-*` 逐条相同。 */
 private val DEMO_SAMPLES: List<Pair<String, String>> = listOf(
   "text" to "一段字",
   "linebreak" to "上<br/>下",
@@ -306,7 +275,6 @@ private val DEMO_SAMPLES: List<Pair<String, String>> = listOf(
   "flash" to "[flash=video]./a.mp4[/flash]",
   "attach" to "[attach]./a.zip[/attach]",
   "album" to "[album=相册][img]./a.jpg[/img][img]./b.jpg[/img][/album]",
-  // 上面 29 条是覆盖清单本身;下面几条是渲染器**特有**的分支,清单里没有
   "防剧透 [color=white]" to "答案是:[color=white]42[/color](点一下白字)",
   "Reply to 回复头" to
     "[b]Reply to [pid=879039681,47406116,1]Reply[/pid] Post by [uid=64858574]某人[/uid] " +
@@ -317,5 +285,4 @@ private val DEMO_SAMPLES: List<Pair<String, String>> = listOf(
   "行内标签裹图片" to "[b][color=red][img]./mon_202608/07/a.jpg[/img][/color][/b]",
 )
 
-/** `coverage-all-joined`:29 条用 `<br/>` 拼成一段。 */
 private val DEMO_JOINED: String = DEMO_SAMPLES.take(29).joinToString("<br/>") { it.second }

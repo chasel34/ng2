@@ -6,20 +6,12 @@ import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/**
- * `src/core/account/accounts.test.ts` 的手工移植。
- *
- * 票 14 搬了 `accounts.ts` 但没搬它的测试;票 15 的验收②③(切号 / 登出的 currentUid 语义)
- * 全压在这几条纯函数上,所以在这里补齐。
- */
 class AccountsTest {
 
   private val two = AccountsState(
     accounts = listOf(testAccount("1001"), testAccount("1002")),
     currentUid = "1001",
   )
-
-  // ---------------------------------------------------------------- addAccount
 
   @Test
   fun `新账号追加到末尾并立即成为当前账号`() {
@@ -40,8 +32,6 @@ class AccountsTest {
     assertEquals(relogin, state.accounts[0])
     assertEquals("1001", state.currentUid)
   }
-
-  // ------------------------------------------------- switchAccount / removeAccount
 
   @Test
   fun `切换只动 currentUid uid 不在表里原样返回`() {
@@ -71,8 +61,6 @@ class AccountsTest {
     assertNull(currentAccountOf(EMPTY_ACCOUNTS))
   }
 
-  // ------------------------------------------------ cycleAccountUid(抽屉左右滑动)
-
   private val three = AccountsState(
     accounts = listOf(testAccount("1001"), testAccount("1002"), testAccount("1003")),
     currentUid = "1002",
@@ -97,8 +85,6 @@ class AccountsTest {
     )
   }
 
-  // -------------------------------------------- cookie 过期天数(30 天惯例,本地推算)
-
   private val day = 24L * 60 * 60 * 1000
   private val loginAt = 1_754_000_000_000
 
@@ -115,8 +101,6 @@ class AccountsTest {
     assertEquals("已过期", formatCookieExpiry(loginAt, loginAt + 31 * day))
     assertEquals("30 天后过期", formatCookieExpiry(loginAt, loginAt))
   }
-
-  // ---------------------------------------------------------------- 存档容错
 
   @Test
   fun `坏账号剔除 重复 uid 去重 currentUid 失效时落到第一个`() {

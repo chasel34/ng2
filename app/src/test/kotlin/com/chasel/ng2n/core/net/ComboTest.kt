@@ -6,17 +6,12 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 逐条移植自 `src/core/net/combo.test.ts`(五组共 15 条,全部移植)。
- */
 class ComboTest {
 
   private fun ids(combos: List<FetchCombo>) = combos.map { "${it.format.wire}@${it.host}" }
 
   private val formats = listOf(ResponseFormat.JSON, ResponseFormat.JSON_LITE)
   private val hosts = listOf("https://a", "https://b")
-
-  // ── interfaceKeyOf · 成功组合按「接口」缓存 ────────────────────────────────
 
   @Test
   fun `光有 path 的接口就用 path`() {
@@ -44,8 +39,6 @@ class ComboTest {
       interfaceKeyOf(readRequest("read.php", queryOf("tid" to 2))),
     )
   }
-
-  // ── enumerateCombos · 格式 × 域名 ─────────────────────────────────────────
 
   @Test
   fun `域名外层格式内层·换格式比换域名便宜,先在同一台上换`() {
@@ -82,7 +75,6 @@ class ComboTest {
   @Test
   fun `上限截断,免得让用户等十几个来回`() {
     assertEquals(3, enumerateCombos(formats, hosts, maxAttempts = 3).size)
-    // 上限再离谱也要发一次,否则这一档等于不存在
     assertEquals(1, enumerateCombos(formats, hosts, maxAttempts = 0).size)
   }
 
@@ -115,8 +107,6 @@ class ComboTest {
     )
   }
 
-  // ── 组合缓存 ──────────────────────────────────────────────────────────────
-
   @Test
   fun `记住、读回、清掉`() {
     val cache = InMemoryComboCache()
@@ -132,8 +122,6 @@ class ComboTest {
 
   @Test
   fun `条目有保质期·过期后当没记过,重新从默认组合试探`() {
-    // 「全组合都失败才清缓存」这一条出口不够用:组合半通不通(能解析但没有业务数据)时
-    // 缓存永远清不掉,唯一复位手段变成杀进程(2026-08-13「版块全空」排查)
     var clock = 0L
     val cache = InMemoryComboCache(ttlMs = 1000) { clock }
     cache.remember("thread.php", FetchCombo(ResponseFormat.JSON, "https://a"))
@@ -160,12 +148,9 @@ class ComboTest {
       cache.entries(),
     )
 
-    // 过期的不列出来
     clock = 1200
     assertEquals(listOf("read.php"), cache.entries().map { it.first })
   }
-
-  // ── formatParamsOf · 诊断日志里要看得出实际发的是什么 ──────────────────────
 
   @Test
   fun `给出格式档位对应的 query 参数`() {
@@ -174,14 +159,8 @@ class ComboTest {
     assertEquals("(无格式参数)", formatParamsOf(ResponseFormat.HTML))
   }
 
-  // ── 默认轮换表 · 冗余来自「不共用同一段服务端代码」 ────────────────────────
-
   @Test
   fun `jsonVerbose 在表里,而且排在 jsonLite 前面`() {
-    // fid=414 的教训:`json`(__output=8) 与 `jsonLite`(lite=js) 是**同一份字节**,
-    // 只差一层 `window.script_muti_get_var_store=` 包装。服务端把坏字节写进那份响应时,
-    // 这两档一起完蛋,换几个域名都一样。`jsonVerbose`(__output=11) 是另一个序列化器,
-    // 必须在耗掉一整轮域名之前就试到它。
     assertTrue(DEFAULT_ROTATION_FORMATS.contains(ResponseFormat.JSON_VERBOSE))
     assertTrue(
       DEFAULT_ROTATION_FORMATS.indexOf(ResponseFormat.JSON_VERBOSE) <
@@ -197,12 +176,10 @@ class ComboTest {
       maxAttempts = DEFAULT_MAX_ATTEMPTS,
     )
 
-    // 第一个域名把三个格式都试到(坏字节靠换格式救)
     assertEquals(
       listOf("json@https://a", "jsonVerbose@https://a", "jsonLite@https://a"),
       ids(combos).take(3),
     )
-    // 同时保住三域名覆盖(被封靠换域名救),两者都不能丢
     assertEquals(3, combos.map { it.host }.toSet().size)
   }
 }

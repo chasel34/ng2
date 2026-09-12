@@ -7,21 +7,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.math.BigDecimal
 
-/**
- * 一处差异:JSON 路径 + 期望 + 实际。
- */
 data class JsonDiff(val path: String, val expected: String, val actual: String, val detail: String? = null)
 
-/**
- * 金样本的深度比较口径(与 `goldens/README.md` 的规范化规则配套):
- *
- * - **数字按数值比**:JSON 的 `1` 与 `1.0` 相等(TS 只有一种 number,Kotlin 侧 Int/Long/Double
- *   序列化出来的字面量不一样,按字面量比会假红)。
- * - **字符串逐 UTF-16 码元比**,不做 Unicode 规范化、不 trim。
- * - **`null` 与「缺键」不等价**:README 规范 2 说了值为 `undefined` 的键整个删掉,
- *   所以文件里出现 `null` 就是真的 `null`,缺键就是缺键。
- * - 对象键序无所谓(比的是映射),数组顺序有所谓。
- */
 object JsonDeepCompare {
 
   private const val ABSENT = "<缺键>"
@@ -96,7 +83,7 @@ object JsonDeepCompare {
     val equal = if (expectedNumber != null && actualNumber != null) {
       expectedNumber.compareTo(actualNumber) == 0
     } else {
-      expected.content == actual.content // true/false 走这条
+      expected.content == actual.content
     }
     if (!equal) out += mismatch(path, expected, actual)
   }
@@ -114,10 +101,6 @@ object JsonDeepCompare {
   private fun clip(text: String, limit: Int = 120): String =
     if (text.length <= limit) text else text.take(limit) + "…(共 ${text.length} 码元)"
 
-  /**
-   * 长文本(sanitize / decode-body 的期望动辄几十 KB)光看前 120 字看不出问题在哪,
-   * 这里指出第一处不同的码元位置并把两边的上下文窗口打出来。
-   */
   private fun describeStringDiff(expected: String, actual: String): String {
     var i = 0
     while (i < expected.length && i < actual.length && expected[i] == actual[i]) i++

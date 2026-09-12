@@ -53,18 +53,8 @@ import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/** uiautomator / 票 18 找关于屏的锚点。 */
 const val ABOUT_SCREEN_TAG: String = "ng2n-about-screen"
 
-/**
- * 关于屏那一个 `LazyColumn` 里的全部 key,顺序即屏上从上到下的顺序。
- *
- * **为什么要摊成常量**:票 28 —— 页脚那段免责文案原本也叫 `disclaimer`,与行表里
- * 「免责声明」那一行撞了,Compose 在首次布局就抛
- * `Key "disclaimer" was already used`,整屏一帧都没画出来、进程直接没了。
- * 两处 key 各写各的字面量时,人眼看不出它们在同一张表里;摊成一份清单之后,
- * [com.chasel.ng2n.ui.common.SCREEN_LAZY_KEYS] 的单测能在编译期之外把重复挡下来。
- */
 internal object AboutKeys {
   const val HEADER = "header"
   const val SOURCE = "source"
@@ -73,32 +63,21 @@ internal object AboutKeys {
   const val LICENSES = "licenses"
   const val DISCLAIMER = "disclaimer"
 
-  /** 页脚那段居中的短版免责声明。**不能叫 `disclaimer`** —— 行表里已经有一条了。 */
   const val FOOTER = "disclaimer-footer"
 
-  /** 行表(`items`)铺出来的 key,顺序即 `rows` 的顺序。 */
   val rows: List<String> = listOf(SOURCE, LINKS, DIAGNOSTIC, LICENSES, DISCLAIMER)
 
   val all: List<String> = listOf(HEADER) + rows + FOOTER
 }
 
-/** 设计稿底部那句免责声明。 */
 private const val DISCLAIMER =
   "本客户端与 NGA 官方无关,仅供个人学习与自用。所有内容版权归原作者与 NGA 所有,不做任何分发。"
 
-/**
- * 「免责声明」行展开后的全文。底部那句常驻页脚已经把短版摆着了,
- * 行里再展开同一句会像渲染重复,所以这里给的是说全乎的长版。
- */
 private const val DISCLAIMER_DETAIL =
   "本客户端是个人开发的第三方阅读工具,与 NGA(bbs.nga.cn)及其运营方没有任何关联。" +
     "所有帖子、图片、表情等内容的版权归原作者与 NGA 所有;本应用只做阅读呈现," +
     "不缓存分发任何内容,也不提供公开下载。仅供个人学习与自用。"
 
-/**
- * 打包进 APK 的第三方组件。RN 版列的是那一侧的依赖表,这一版列的是
- * `gradle/libs.versions.toml` 里实际在用的。
- */
 private val LICENSES = listOf(
   "Kotlin · AndroidX · Jetpack Compose — Apache-2.0",
   "Navigation 3 · Hilt · Room · DataStore — Apache-2.0",
@@ -115,22 +94,10 @@ private data class AboutRow(
   val icon: Ng2nIcon,
   val label: String,
   val sub: String? = null,
-  /** 点开在行下面展开的长文本;与 [onClick] 二选一 */
   val detail: String? = null,
   val onClick: (() -> Unit)? = null,
 )
 
-/**
- * 关于(设计稿 `isAbout` 屏)—— `src/app/settings/about.tsx` 的移植。
- *
- * 版本号从 `PackageManager` 现读,不写死 —— 真机上「用户报的版本」与「装的那一版」
- * 对不上是最难查的一类问题。
- *
- * 设计稿那五行是给一个公开发行的客户端画的(检查更新 / 开源地址 / 反馈问题 /
- * 开源许可 / 免责声明)。这个客户端只给自己用:没有更新服务器、没有仓库地址、
- * 也没有 issue 收件人,所以前三行换成本机说得出口的三件事 —— 数据来源、系统授权、
- * 诊断日志 —— 行的形状与顺序照设计稿不动。
- */
 @Composable
 fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -140,16 +107,11 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
 
   val rows = remember(version) {
     listOf(
-      // 五行的图标名对着 RN 侧 `src/app/settings/about.tsx` 的 rows:
-      // code / update / bug_report / description / gavel(票 40:原来五颗全挑错了)
       AboutRow(AboutKeys.SOURCE, Ng2nIcon.CODE, "数据来源", "直接读 NGA 官方接口", detail = DATA_SOURCE),
       AboutRow(
         key = AboutKeys.LINKS,
         icon = Ng2nIcon.UPDATE,
         label = "系统设置",
-        // Android 12+ 要用户自己在系统设置里开「打开支持的链接」。
-        // 并行期本 app **没有注册 NGA 域名**(spec §三),只认 `ng2n://`;
-        // 这一行留着是为了切换期结束接管域名之后就地能跳,顺带也是「本 app 的系统设置」入口。
         sub = "打开本应用的系统设置(权限 / 默认打开方式)",
         onClick = { openAppSettings(context) },
       ),
@@ -183,7 +145,6 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
     }
 
     LazyColumn(Modifier.fillMaxSize()) {
-      // 设计稿:76 见方的圆角方块 logo + 应用名 + 版本行,整块居中(34 上 / 26 下)
       item(AboutKeys.HEADER) {
         Column(
           Modifier
@@ -265,7 +226,6 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
                 )
               }
             }
-            // 「可展开」的行用朝下的 chevron,「点了会跳走」的用朝右的
             AppIcon(
               icon = Ng2nIcon.CHEVRON_RIGHT,
               tint = colors.meta,
@@ -299,7 +259,6 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
         }
       }
 
-      // 设计稿:20 内距、11.5 · 1.7、居中
       item(AboutKeys.FOOTER) {
         Text(
           text = DISCLAIMER,
@@ -321,7 +280,6 @@ private fun versionOf(context: Context): String = runCatching {
   "${info.versionName} (build $code)"
 }.getOrDefault("未知")
 
-/** 跳到本应用的系统设置页(权限、默认打开方式都在那儿)。 */
 private fun openAppSettings(context: Context) {
   val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
     .setData(Uri.fromParts("package", context.packageName, null))

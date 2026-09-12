@@ -4,10 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * 手工移植自 `src/core/smilies/resolve.test.ts` 的核心几条,外加生成表本身的完整性
- * (票 11 把表从 TS 转成了 Kotlin,转丢了不该发现在真机上)。
- */
 class SmileyResolveTest {
 
   @Test

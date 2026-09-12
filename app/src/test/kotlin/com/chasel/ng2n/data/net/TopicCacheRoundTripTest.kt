@@ -27,21 +27,12 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 帖子缓存载荷的端到端(票 07 把 `TopicCachePayloadReader` 接实的那一半):
- * 在线拉一页 → 攒下的信封进缓存 → 断网时同一页从缓存还回来。
- *
- * 两趟走的是**同一个** `fetchTopicDetail`,差别只在链上哪一档产出了信封——
- * 这正是「信封天然同构」这条设计的验收(手工移植自 `topic-detail.cache.test.ts`)。
- */
 class TopicCacheRoundTripTest {
 
   private val tid = 44191387L
 
-  /** 在线那一趟。 */
   private fun onlineClient() = testClient(RecordingTransport { ok(READ_PAGE) })
 
-  /** 断网那一趟:链上只剩缓存档,一个字节都发不出去。 */
   private fun offlineClient(store: FakeTopicCacheStore) = testClient(
     Transport { throw IOException("断网") },
     strategies = listOf(TopicCacheStrategy(store)),
@@ -141,8 +132,6 @@ class TopicCacheRoundTripTest {
     assertEquals(listOf(tid to 9), store.reads.map { it.tid to it.page })
   }
 
-  // ── 存储侧的接缝:快照 → Room 行 → 还回来的 payload ────────────────────────
-
   @Test
   fun `快照经 TopicCachePayloadReader 落库,再从同一个口读回来`() = runTest {
     val dao = InMemoryTopicCacheDao()
@@ -155,19 +144,16 @@ class TopicCacheRoundTripTest {
 
     assertEquals(snapshot.payload, reader.read(TopicCacheKey(tid, 1)))
     assertNull(reader.read(TopicCacheKey(tid, 2)))
-    // 元数据也照抄过去了(「我的缓存」列表要显示它们)
     val meta = dao.loadMeta().single()
     assertEquals(snapshot.subject, meta.subject)
     assertEquals(snapshot.floors, meta.floors)
   }
 }
 
-/** 匿名楼层的用户 key 带请求级前缀(每次请求换一个),比对前统一抹掉。 */
 private fun normalizeContext(detail: com.chasel.ng2n.core.api.TopicDetail): String =
   ApiGoldenJson.encodeToJsonElement(detail).toString()
     .replace(Regex("[a-z0-9]+\\.[a-z0-9]+,-"), "ctx,-")
 
-/** 带一个匿名楼层的真实形状(匿名 key 前缀必须在两趟之间被抹掉才比得了)。 */
 private const val READ_PAGE =
   """{"data":{"__GLOBAL":{"_ATTACH_BASE_VIEW":"img.nga.cn/attachments"},
   "__T":{"tid":44191387,"subject":"测试主题","author":"nga_user","authorid":10000001},
@@ -178,7 +164,6 @@ private const val READ_PAGE =
          "1":{"pid":1,"lou":1,"authorid":-1,"content":"匿名回复","postdate":"2025-09-18 23:56"}},
   "__ROWS":2,"__R__ROWS_PAGE":20},"time":1}"""
 
-/** 内存版 DAO:票 14 的 Room 实现由 `androidTest` 的 `Ng2nDatabaseTest` 盯着,这里只验搬运。 */
 private class InMemoryTopicCacheDao : TopicCacheDao {
 
   private val rows = LinkedHashMap<Pair<Long, Int>, TopicCacheEntity>()

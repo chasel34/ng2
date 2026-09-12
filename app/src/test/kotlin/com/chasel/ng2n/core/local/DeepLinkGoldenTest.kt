@@ -7,12 +7,6 @@ import kotlinx.serialization.json.long
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * `deep-link` domain 全量对拍(56 条)。
- *
- * 同一张映射表既服务系统深链也服务抽屉「由 URL 读取」;失败一律给 reason 不抛异常
- * ——调用方里有一个是系统深链回调,那儿抛错会直接崩掉冷启动。
- */
 class DeepLinkGoldenTest {
 
   @Test
@@ -21,15 +15,12 @@ class DeepLinkGoldenTest {
     fn("ngaLinkPath") { case -> ngaLinkPath(case.link()) }
   }
 
-  // --- 手工移植:`deep-link.test.ts` 里金样本没覆盖的那条同构断言 -----------------
-
   @Test
   fun `拼出来的路径再解一遍不会串味(read_php ↔ 路由参数同构)`() {
     val source = "https://bbs.nga.cn/read.php?tid=45150945&page=3&pid=880123456&fav=1a2b3c"
     val parsed = parseNgaLink(source)
     val link = (parsed as NgaLinkResult.Ok).link
     assertEquals("/topic/45150945?page=3&pid=880123456&fav=1a2b3c", ngaLinkPath(link))
-    // 自定义 scheme 与网页地址落到同一个目标
     assertEquals(parsed, parseNgaLink("ng2://read.php?tid=45150945&page=3&pid=880123456&fav=1a2b3c"))
   }
 
@@ -51,14 +42,12 @@ private fun NgaLink.toGoldenMap(): Map<String, Any?> = when (this) {
   is NgaLink.Topic -> buildMap {
     put("kind", "topic")
     put("tid", tid)
-    // README 规范 2:值为 undefined 的键整个删掉,所以缺席的参数不写成 null
     page?.let { put("page", it) }
     pid?.let { put("pid", it) }
     fav?.let { put("fav", it) }
   }
 }
 
-/** `ngaLinkPath` 的 `input` 直接就是一个 `NgaLink` 对象。 */
 private fun GoldenCase.link(): NgaLink {
   val kind = stringField("kind")
   return if (kind == "board") {

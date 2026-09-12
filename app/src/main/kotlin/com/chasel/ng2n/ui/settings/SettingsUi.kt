@@ -66,41 +66,10 @@ import com.chasel.ng2n.ui.theme.Typo
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * 设置页的通用件 —— 直译 RN 侧 `ui/settings-shell.tsx` + `ui/settings-row.tsx` + `ui/slider.tsx`。
- *
- * 设置一级页、实验室二级页、字号屏的行长得完全一样,只有内容不同 —— 所以行本身抽在这儿,
- * 屏里只写数据。
- *
- * ## 与 RN 版的一处实现差异(语义不变)
- *
- * RN 侧那一屏要靠 `ProgressiveChildren`(首帧 1 行、每帧 +2)分帧挂载,否则二十几行
- * 自绘开关同步挂载要 16~19ms,push 动画第 1 帧就掉帧。Compose 这边用 [LazyColumn] ——
- * 只有落在视口里的行会进 composition,分帧那套补丁不必移植。
- */
-
-// ---- 设计稿字号档(RN 侧 `ui/tokens.ts` 同名档,值一字未改)。
-// 这几档只有设置树在用,先落在本文件里,不往共用的 `Typo` 里塞(并行期少一处冲突面)。
-
-/** 滑杆标题 16 · 400 */
 private val SLIDER_LABEL_SIZE = 16.sp
 
-/** 滑杆取值气泡 14 · 600 */
 private val SLIDER_VALUE_SIZE = 14.sp
 
-/**
- * 设置页外壳:顶栏「← 标题」+ 一列可滚的行。
- *
- * RN 版那句「三屏向导拆成一屏」的理由一并保留:设置是随机访问的,用户带着
- * 「我要关签名档」进来要的是滚+找;而且设置项即时生效,没有「完成」这一步。
- *
- * [overlays] 单开一个口子而不是混在 [content] 里:对话框铺的是**视口**,
- * 混进滚动内容里会被摆到内容中段。
- */
-/**
- * [SettingsShell] 自己补在列表末尾的那一项。用这个壳的屏(设置 / 实验室 / 字号)
- * 各自的 key 清单里都得带上它 —— 屏里再写一个同名 key 就是票 28 那种必崩。
- */
 internal const val SETTINGS_TAIL_KEY: String = "settings-tail"
 
 @Composable
@@ -128,7 +97,6 @@ fun SettingsShell(
       }
       LazyColumn(Modifier.fillMaxSize()) {
         content()
-        // 最后一行的分隔线不该贴着屏幕底边
         item(SETTINGS_TAIL_KEY) {
           Spacer(Modifier.height(30.dp))
           Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
@@ -139,7 +107,6 @@ fun SettingsShell(
   }
 }
 
-/** 分组标题(设计稿:12.5/700 的主题色小标题;设置屏这一档不带字间距)。 */
 @Composable
 fun SettingsSection(text: String) {
   val colors = LocalNg2nColors.current
@@ -160,7 +127,6 @@ fun SettingsSection(text: String) {
   )
 }
 
-/** 开关行。整行可点,点了就翻档(RN 版同)。 */
 @Composable
 fun SettingsSwitchRow(
   label: String,
@@ -177,7 +143,6 @@ fun SettingsSwitchRow(
   )
 }
 
-/** 点进二级页或弹对话框的行,右侧是 chevron。 */
 @Composable
 fun SettingsNavRow(
   label: String,
@@ -243,17 +208,11 @@ private fun SettingsRow(
   }
 }
 
-/** 设计稿:轨道 46×26 圆角 13、内距 3,滑块 20 见方,开时右移 20。 */
 private val TRACK_WIDTH = 46.dp
 private val TRACK_HEIGHT = 26.dp
 private val TRACK_PADDING = 3.dp
 private val KNOB_SIZE = 20.dp
 
-/**
- * 开关本体。自己画而不是用 Material3 的 `Switch`:后者的尺寸、圆角与滑块比例
- * 都跟设计稿差得远(RN 版拒绝平台 `Switch` 是同一个理由)。
- * 过渡走设计稿的 `transition:.18s`(动效 token 的 quick 档)。
- */
 @Composable
 fun SettingsSwitch(value: Boolean) {
   val colors = LocalNg2nColors.current
@@ -284,18 +243,8 @@ fun SettingsSwitch(value: Boolean) {
   }
 }
 
-// ---------------------------------------------------------------- 单选对话框
-
-/** 一个互斥档位。[sub] 是第二行灰字说明。 */
 data class SettingsOption<T>(val value: T, val label: String, val sub: String? = null)
 
-/**
- * 单选对话框(设计稿 `dialog:'theme'` 那种「标题 + 单选列表 + 取消/应用」)。
- *
- * 设置页里凡是「一组互斥档位」的行都用它:NGA 域名、主题风格、图片加载策略、
- * 网页数据源兜底档位。**选中先只改本地态,点「应用」才回调** —— 域名这种改了要
- * 重打请求的档位,手滑点中不该立刻生效(照抄 RN 版)。
- */
 @Composable
 fun <T> SettingsOptionDialog(
   open: Boolean,
@@ -309,7 +258,6 @@ fun <T> SettingsOptionDialog(
 ) {
   if (!open) return
   val colors = LocalNg2nColors.current
-  // 每次打开都从当前生效的档位开始:上次点了取消,选中态不该留在那儿
   var picked by remember(value) { mutableStateOf(value) }
 
   SettingsDialogShell(onDismiss = onCancel) {
@@ -324,7 +272,6 @@ fun <T> SettingsOptionDialog(
           color = colors.fg,
         ),
       )
-      // 域名有五个、兜底档位有四个,长列表在面板里滚而不是把面板顶出屏幕
       LazyColumn(
         Modifier
           .padding(top = Spacing.md)
@@ -392,7 +339,6 @@ fun <T> SettingsOptionDialog(
   }
 }
 
-/** 单选圈。两个同心圆就够,不为它往共用图标集里加一档(并行期少一处冲突面)。 */
 @Composable
 private fun RadioMark(selected: Boolean) {
   val colors = LocalNg2nColors.current
@@ -408,11 +354,6 @@ private fun RadioMark(selected: Boolean) {
   )
 }
 
-/**
- * 对话框壳子。与 `ui/common/Dialogs.kt` 的 `DialogShell` 同款(遮罩 .18s + 面板 ompop .2s),
- * 那一个是 private 的,这里按同一份设计稿复刻;两处的取值来自同一组 [Motion] 常量,
- * 不会各说各话。
- */
 @Composable
 private fun SettingsDialogShell(onDismiss: () -> Unit, content: @Composable () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -451,7 +392,6 @@ private fun SettingsDialogShell(onDismiss: () -> Unit, content: @Composable () -
         .shadow(Elevation.level2, RoundedCornerShape(Radius.dialog))
         .clip(RoundedCornerShape(Radius.dialog))
         .background(colors.menu)
-        // 面板本身吃掉点击,不然点在面板上会穿到遮罩去
         .pointerInput(Unit) { detectTapGestures { } },
     ) { content() }
   }
@@ -508,21 +448,10 @@ private fun SettingsDialogActions(
   }
 }
 
-// ---------------------------------------------------------------- 滑杆
-
-/** 设计稿:轨道 3 高、圆钮 18、整块滑杆区 66 高。 */
 private val SLIDER_AREA_HEIGHT = 66.dp
 private val SLIDER_TRACK_HEIGHT = 3.dp
 private val SLIDER_KNOB_SIZE = 18.dp
 
-/**
- * 字号调节屏的滑杆(设计稿 `T.fontSliders`:取值气泡 + 3px 轨道 + 18 圆钮 + 两端 ±)。
- *
- * 自己画而不是用 Material3 的 `Slider`:要的形状很具体(气泡跟着钮走、两端带步进钮),
- * 而且这是全 app 唯一一处滑杆。
- *
- * 手势与 RN 版同:落手先跳到按住的位置,之后按位移接着拖。
- */
 @Composable
 fun SettingsSlider(
   label: String,
@@ -534,7 +463,6 @@ fun SettingsSlider(
   val colors = LocalNg2nColors.current
   var width by remember { mutableFloatStateOf(0f) }
   var bubbleWidth by remember { mutableFloatStateOf(0f) }
-  // 手势回调不能进 pointerInput 的 key(换了会把正在进行的手势掐断),所以从 ref 里读
   val slide = remember { SliderCallback() }
   slide.onSlide = onSlide
   slide.width = width
@@ -563,7 +491,6 @@ fun SettingsSlider(
     ) {
       val filled = width * ratio
 
-      // 气泡以钮为中心。宽度随文字变(「1.70」比「17」宽),量出来再抵掉一半
       Box(
         Modifier
           .align(Alignment.TopStart)
@@ -585,7 +512,6 @@ fun SettingsSlider(
         )
       }
 
-      // 轨道本身只有 3px 拖不住,给它套一条 34 高的可拖带
       Box(
         Modifier
           .align(Alignment.BottomStart)
@@ -639,7 +565,6 @@ fun SettingsSlider(
         )
       }
 
-      // ± 压在轨道下方的两端,与可拖带有一小段重叠(设计稿本来就这样)
       StepButton(
         minus = true,
         label = "调小$label",
@@ -656,7 +581,6 @@ fun SettingsSlider(
   }
 }
 
-/** 滑杆手势的可变状态。`pointerInput` 的闭包只建一次,要改的量全从这里读。 */
 private class SliderCallback {
   var width: Float = 0f
   var start: Float = 0f
@@ -680,7 +604,6 @@ private fun StepButton(
     contentAlignment = Alignment.Center,
   ) {
     if (minus) {
-      // 「−」在共用图标集里没有一档,一条横线就够
       Box(
         Modifier
           .fillMaxSize()

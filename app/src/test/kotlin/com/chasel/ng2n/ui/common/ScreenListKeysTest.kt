@@ -20,21 +20,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * 票 28:`LazyColumn` / `LazyVerticalGrid` 的 key **在同一张表里重复就必崩** ——
- * Compose 在首次布局抛 `IllegalArgumentException: Key "x" was already used`,
- * 那一屏一帧都画不出来,进程直接没。关于屏就是这么死的(行表的「免责声明」与页脚
- * 那段免责文案都叫 `disclaimer`)。
- *
- * 这份单测把「屏上会用到哪些 key」当成数据来查:
- *
- * - 静态 key 摊在各屏的 `XxxKeys` 里,[SCREEN_LAZY_KEYS] 收齐,逐屏查重;
- * - 数据里来的 key(云端屏蔽词、通知 id、首页格子)另外三组用例 —— 它们不由我们写死,
- *   服务端给重了同样会崩,所以在铺进列表之前就得去重/带前缀。
- */
 class ScreenListKeysTest {
-
-  // ---------------------------------------------------------------- 静态 key
 
   @Test
   fun `每一屏的静态 key 在同一张表里都不重复`() {
@@ -49,7 +35,6 @@ class ScreenListKeysTest {
 
   @Test
   fun `关于屏页脚的免责声明与行表里那一行不是同一个 key`() {
-    // 票 28 的原样:两处都叫 disclaimer
     assertTrue(AboutKeys.DISCLAIMER != AboutKeys.FOOTER)
     assertContentEquals(
       listOf("header", "source", "links", "diagnostic", "licenses", "disclaimer", "disclaimer-footer"),
@@ -63,11 +48,8 @@ class ScreenListKeysTest {
     assertEquals(listOf("b", "a"), duplicateKeys(listOf("a", "b", "b", "a", "b")))
   }
 
-  // ---------------------------------------------------------------- 屏蔽规则屏
-
   @Test
   fun `云端屏蔽词的行 key 带前缀,和状态行的字面量撞不上`() {
-    // 用户完全可以把「hint」「empty-words」加成屏蔽词;裸 key 会和状态行撞成同一个
     val statics = FiltersKeys.all
     for (word in statics) {
       assertTrue(
@@ -81,7 +63,6 @@ class ScreenListKeysTest {
 
   @Test
   fun `云端那张表里的重复条目在铺进列表前就去掉`() {
-    // 官方屏蔽表是「空格分隔的一行文本」,同一个词加两遍在网页版那边是合法的
     assertEquals(listOf("代购", "剧透"), distinctBlockWords(listOf("代购", "剧透", "代购")))
 
     val users = listOf(
@@ -94,8 +75,6 @@ class ScreenListKeysTest {
     assertEquals(2, distinct.size)
     assertEquals(emptyList(), duplicateKeys(distinct.map(FiltersKeys::user)))
   }
-
-  // ---------------------------------------------------------------- 通知屏
 
   @Test
   fun `同一条通知在两个容器里各出现一次时只铺一行`() {
@@ -119,8 +98,6 @@ class ScreenListKeysTest {
     pid = 2,
     timestamp = 1_700_000_000,
   )
-
-  // ---------------------------------------------------------------- 首页宫格
 
   @Test
   fun `同一个版块在分组里出现两次时首页只铺一格`() {

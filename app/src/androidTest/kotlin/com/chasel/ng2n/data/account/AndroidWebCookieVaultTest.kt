@@ -12,16 +12,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * `CookieManager` 真实行为的验证 —— **在设备上跑**
- * (`./gradlew :app:connectedDebugAndroidTest --tests '*AndroidWebCookieVaultTest'`)。
- *
- * 票 15 验收③「登出 / 切号后 WebView 与 CookieJar 互不污染」的 WebView 那一半:
- * JVM 单测证明的是「登出会调 clearAll」(对着假实现),这里证明「clearAll 真的清得掉」。
- * 两条合起来才算数。
- *
- * ⚠️ 它会清掉本 app 进程里 WebView 的全部 cookie —— 那正是它要证明的事,不碰别的 app。
- */
 @RunWith(AndroidJUnit4::class)
 class AndroidWebCookieVaultTest {
 
@@ -58,7 +48,6 @@ class AndroidWebCookieVaultTest {
 
     vault.seed(url, Credential(uid = "10000002", token = "cid-b"))
 
-    // 网页兜底屏(票 17)靠它保证「网页那边就是 app 的当前账号」
     val cookies = parseCookieString(vault.read(url))
     assertEquals("10000002", cookies["ngaPassportUid"])
     assertEquals("cid-b", cookies["ngaPassportCid"])
@@ -76,8 +65,6 @@ class AndroidWebCookieVaultTest {
 
   @Test
   fun read_读得到_HttpOnly_的_cid() = runTest {
-    // 收割能成立的前提:HttpOnly 的 ngaPassportCid 只有原生 CookieManager 拿得到,
-    // 页内 document.cookie 看不见(真机实测 2026-08-08)
     CookieManager.getInstance().setCookie(url, "ngaPassportCid=cid-httponly; Path=/; HttpOnly")
     CookieManager.getInstance().flush()
 

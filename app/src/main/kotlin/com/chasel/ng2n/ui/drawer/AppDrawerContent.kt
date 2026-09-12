@@ -39,16 +39,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.TopbarOverlay
 import com.chasel.ng2n.ui.theme.Typo
 
-/**
- * 抽屉正文 —— 直译 RN 侧 `src/ui/app-drawer.tsx`。
- *
- * **14 项入口,顺序与图标照抄设计稿**;每一条要么跳一个屏,要么关掉抽屉、由宿主页面
- * 弹对应的对话框,要么就地执行(签到)。
- *
- * 顶部的账号头是一个**插槽**:票 15(登录与多账号)产出 `ui/accounts/AccountHeader.kt`
- * (滑动循环切号、点头像进资料、点账号名进账号管理),主控合并后把它接到这里。
- * 本票给的是 [GuestAccountHeader] 占位 —— 游客态那一档本来就长这样,不算白写。
- */
 enum class DrawerEntryKey {
   LOGIN,
   CHECK_IN,
@@ -74,22 +64,15 @@ private data class DrawerEntry(
 
 private val ENTRIES = listOf(
   DrawerEntry(DrawerEntryKey.LOGIN, Ng2nIcon.PERSON_ADD, "登录账号"),
-  // 签到是设计稿缺失页面(spec §1:抽屉「登录账号」下加一行),按现有条目的设计语言延伸
   DrawerEntry(DrawerEntryKey.CHECK_IN, Ng2nIcon.WORKSPACE_PREMIUM, "每日签到"),
   DrawerEntry(DrawerEntryKey.ADD_BOARD, Ng2nIcon.LIBRARY_ADD, "添加版面 ID"),
   DrawerEntry(DrawerEntryKey.FROM_URL, Ng2nIcon.ARROW_FORWARD, "由 URL 读取"),
-  // 收藏夹(收藏的主题)与收藏夹管理(新建/改名/设默认)是两屏,顶栏 kebab 撤掉后
-  // 前者只剩这一个入口,两条挨着放
   DrawerEntry(DrawerEntryKey.FAVORITES, Ng2nIcon.BOOKMARK, "收藏夹"),
   DrawerEntry(DrawerEntryKey.FAVORITE_FOLDERS, Ng2nIcon.FOLDER_SPECIAL, "收藏夹管理"),
   DrawerEntry(DrawerEntryKey.CLEAR_FAVORITES, Ng2nIcon.WARNING, "清空我的收藏"),
-  // 我的主题/我的回复是同一个屏,只差一个 kind
   DrawerEntry(DrawerEntryKey.MY_TOPICS, Ng2nIcon.ARTICLE, "我的主题"),
   DrawerEntry(DrawerEntryKey.MY_REPLIES, Ng2nIcon.REPLY, "我的回复"),
-  // 设计稿把「我的缓存」放在首页菜单里,抽屉这条是顺手的第二入口——
-  // 抽屉在每一屏都拉得出来,不必先退回首页再开菜单
   DrawerEntry(DrawerEntryKey.CACHES, Ng2nIcon.CACHED, "我的缓存"),
-  // 短消息整块不在 v1(spec §1),入口留着走「本版本未开放」
   DrawerEntry(DrawerEntryKey.MESSAGES, Ng2nIcon.SMS, "短消息"),
   DrawerEntry(DrawerEntryKey.NOTIFICATIONS, Ng2nIcon.NOTIFICATIONS_ACTIVE, "最近被喷"),
   DrawerEntry(DrawerEntryKey.SETTINGS, Ng2nIcon.SETTINGS, "设置"),
@@ -101,19 +84,12 @@ private val ENTRIES = listOf(
 fun AppDrawerContent(
   onEntry: (DrawerEntryKey) -> Unit,
   modifier: Modifier = Modifier,
-  /** 票 15 的 `AccountHeader` 接到这里;缺省是游客态那一档占位 */
   accountHeader: @Composable () -> Unit = {},
-  /** 签到那行右侧的状态灰字;游客态给 null(RN 侧同:没登录不显示) */
   checkInStatus: String? = null,
-  /** 「最近被喷」的未读角标 */
   unread: Int = 0,
-  /** 「关于」长按 → 开发者入口(**TODO 票 17 决定去留**) */
   onAboutLongPress: () -> Unit = {},
 ) {
   val colors = LocalNg2nColors.current
-  // 底色不在这儿画:面板那一层([DrawerHost])已经铺了同一个 `colors.surface`,
-  // 再铺一遍就是同一块 900×2712px 的不透明填充每帧画两遍(票 59;成因见票 58 裁定
-  // 第五节 —— 抽屉链每帧 GPU 光栅是 tab 链的 4 倍,p95 贴着 120Hz 的 8.333ms 预算)。
   Column(
     modifier
       .fillMaxSize()
@@ -190,7 +166,6 @@ fun AppDrawerContent(
   }
 }
 
-/** 未读角标照设计稿短消息屏:18 高胶囊、红底白字,顶到行尾。 */
 @Composable
 private fun UnreadBadge(count: Int) {
   val colors = LocalNg2nColors.current
@@ -215,12 +190,6 @@ private fun UnreadBadge(count: Int) {
   }
 }
 
-/**
- * 抽屉顶部账号头的**占位**(游客态那一档)。
- *
- * TODO(票 15):换成 `ui/accounts/AccountHeader.kt` —— 登录态的头像、左右滑动循环
- * 切号、点头像进资料页、点账号名进账号管理页,都归那张票。
- */
 @Composable
 fun GuestAccountHeader(onLogin: () -> Unit, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current

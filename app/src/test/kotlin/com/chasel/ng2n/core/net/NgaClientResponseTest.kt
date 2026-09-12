@@ -9,11 +9,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 逐条移植自 `src/core/net/fetcher.test.ts` 的 `createNgaFetcher · 响应处理`(10 条,全部移植)。
- *
- * 唯一的语义偏离是最后一条「调用方取消」:见该用例的注释。
- */
 class NgaClientResponseTest {
 
   @Test
@@ -99,14 +94,6 @@ class NgaClientResponseTest {
     assertTrue(error.retryable)
   }
 
-  /**
-   * TS 版是「取消 → `kind: 'network'`、`retryable: false`,链不往下走」。
-   *
-   * Kotlin 这边**有意偏离表述、不偏离语义**:取消走协程的
-   * [kotlinx.coroutines.CancellationException],原样往上抛而不是折成 NgaError ——
-   * 把它吞成普通失败会让结构化并发失效(父作用域以为子任务正常结束)。
-   * 「链不往下走」这一半保持不变,并且比 TS 更彻底:后面的策略一档都不跑。
-   */
   @Test
   fun `调用方取消不算被封,不触发后面的兜底`() = runTest {
     val fallback = StubStrategy("cache")

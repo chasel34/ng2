@@ -15,12 +15,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * `AccountStore` 的状态迁移 —— 票 15 验收②③里「切号 / 登出之后凭证跟着变」那一半。
- *
- * 用内存 DataStore + 直通 crypto([inMemoryAccountStore]):真类、真状态迁移、真落盘往返,
- * 只有「加密」和「写文件」是假的。
- */
 class AccountStoreTest {
 
   @Test
@@ -37,14 +31,13 @@ class AccountStoreTest {
   fun `切号之后下一次读凭证就是新账号 —— 每请求现读`() = runTest {
     val store = inMemoryAccountStore()
     store.upsert(testAccount("1001"))
-    store.upsert(testAccount("1002")) // 登进来的立刻成为当前账号
+    store.upsert(testAccount("1002"))
 
     val source: CredentialSource = store
     assertEquals(Credential("1002", "cid-1002"), source.current())
 
     store.switchTo("1001")
 
-    // 关键断言:没有任何缓存/快照挡在中间,下一发请求拿到的就是新身份
     assertEquals(Credential("1001", "cid-1001"), source.current())
   }
 
@@ -101,7 +94,6 @@ class AccountStoreTest {
     first.upsert(testAccount("1002"))
     first.switchTo("1001")
 
-    // 冷启动:同一份存档换一个 store 实例读
     val reborn = AccountStore(dataStore, crypto)
     val state = reborn.accounts.first()
 
@@ -115,7 +107,6 @@ class AccountStoreTest {
     val store = AccountStore(
       FakePreferencesDataStore(),
       object : AccountCrypto {
-        // 密钥被系统清掉(改锁屏、恢复出厂、备份还原)的那一档
         override fun encrypt(plaintext: ByteArray): String? = "看起来像密文其实解不开"
         override fun decrypt(blob: String): ByteArray? = null
       },
@@ -135,9 +126,8 @@ class AccountStoreTest {
     }
 
     store.upsert(testAccount("1001"))
-    store.upsert(testAccount("1002")) // 登进来的立刻成为当前账号
+    store.upsert(testAccount("1002"))
     store.switchTo("1001")
-    // 同 uid 重登只刷新 cid,当前账号还是 1001 —— 下游(按 uid 分键的缓存)不该被惊动
     store.upsert(testAccount("1001", cid = "cid-refreshed"))
 
     assertEquals(listOf(null, "1001", "1002", "1001"), seen)
@@ -149,12 +139,6 @@ class AccountStoreTest {
     assertTrue(store.all().isEmpty())
   }
 
-  // ── 票 60:读不出的存档绝不被写空 ─────────────────────────────────────────────
-
-  /**
-   * 老写法的毁证路径:一次解密失败 → 读成空表 → 下一次写把空表加密回去 →
-   * 那串密文永久没了。现在密文必须原样搬进留证键。
-   */
   @Test
   fun `解不开的存档不会被下一次写入覆盖掉 而是挪去留证键`() = runTest {
     val dataStore = FakePreferencesDataStore(
@@ -162,11 +146,9 @@ class AccountStoreTest {
     )
     val store = AccountStore(dataStore, undecryptableCrypto())
 
-    // 读:退游客态(不抛)
     assertEquals(EMPTY_ACCOUNTS, store.accounts.first())
     assertNull(store.current())
 
-    // 写:重新登录一次
     store.upsert(testAccount("1001"))
 
     val prefs = dataStore.data.first()
@@ -178,7 +160,6 @@ class AccountStoreTest {
     assertNotNull(prefs[stringPreferencesKey("accounts.v1")], "新表照样落盘")
   }
 
-  /** 失败路径要能在 logcat 里看见 —— 单测这一侧只验「告警口确实被叫了」。 */
   @Test
   fun `存档读不出时会告警 而不是一声不响`() = runTest {
     val warnings = mutableListOf<String>()
@@ -198,10 +179,6 @@ class AccountStoreTest {
     assertTrue(warnings.all { "读不出" in it })
   }
 
-  /**
-   * 加密失败(Keystore 临时不可用)时,盘上那份好好的凭证不许被删 ——
-   * 老写法在这一档 `prefs.remove(KEY)`,等于「写不进就把已有的也毁了」。
-   */
   @Test
   fun `加密失败时盘上旧存档保持不变 不再被删掉`() = runTest {
     val dataStore = FakePreferencesDataStore()
@@ -210,7 +187,6 @@ class AccountStoreTest {
     val onDisk = dataStore.data.first()[stringPreferencesKey("accounts.v1")]
     assertNotNull(onDisk)
 
-    // Keystore 忽然写不了(读还正常)
     val flaky = object : AccountCrypto {
       override fun encrypt(plaintext: ByteArray): String? = null
       override fun decrypt(blob: String): ByteArray? = good.decrypt(blob)
@@ -223,11 +199,9 @@ class AccountStoreTest {
       dataStore.data.first()[stringPreferencesKey("accounts.v1")],
       "写不进就保持原样,重启后回到上一次成功落盘的账号,而不是游客态",
     )
-    // 换个实例重读(= 冷启动):1001 还在
     assertEquals(Credential("1001", "cid-1001"), AccountStore(dataStore, good).current())
   }
 
-  /** 但「本来就是要退光」时该清就清,不留悬空凭证。 */
   @Test
   fun `加密失败但目标是空表时照样清干净`() = runTest {
     val dataStore = FakePreferencesDataStore()
@@ -248,7 +222,6 @@ class AccountStoreTest {
 
     const val CIPHERTEXT = "这串是解不开的密文"
 
-    /** 密钥没了的那一档:写得进(新钥匙),读不出(旧密文)。 */
     fun undecryptableCrypto(): AccountCrypto = object : AccountCrypto {
       private val passThrough = PassThroughCrypto()
       override fun encrypt(plaintext: ByteArray): String? = passThrough.encrypt(plaintext)

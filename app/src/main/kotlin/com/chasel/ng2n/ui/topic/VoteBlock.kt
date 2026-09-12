@@ -30,12 +30,6 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-/**
- * 楼层里的投票(spec §一.2:v1 **只读**渲染,点投票按钮给「本版本未开放」)。
- *
- * 数据来自楼层的 `vote` 字段,不是 BBCode —— 所以这块画在楼层卡片上而不是渲染器里。
- * 每一项的百分比按**组内**票数算,和网页版一致(分组见 `core/local/Vote.kt`)。
- */
 @Composable
 fun VoteBlock(vote: Vote, onNotAvailable: () -> Unit, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
@@ -84,7 +78,6 @@ fun VoteBlock(vote: Vote, onNotAvailable: () -> Unit, modifier: Modifier = Modif
 
     Text(summaryOf(vote, label), fontSize = Typo.listMeta.size, color = colors.meta)
 
-    // 投票操作是 v1 排除项;按钮照旧摆着,点了给 toast
     Box(
       modifier = Modifier
         .fillMaxWidth()
@@ -156,7 +149,6 @@ private val KIND_LABELS: Map<VoteKind, String> = mapOf(
   VoteKind.QA to "问答",
 )
 
-/** 底下那行说明,项目与顺序照网页版的 `voteBasicInfoString`。 */
 private fun summaryOf(vote: Vote, label: String): String {
   val parts = mutableListOf("共计 ${vote.voters} 人$label", "共计 ${vote.totalVotes} 票")
   parts.add("最多选择 ${vote.maxSelect} 项")
@@ -167,13 +159,11 @@ private fun summaryOf(vote: Vote, label: String): String {
   return parts.joinToString(" · ")
 }
 
-/** NGA 的时间一律按论坛所在时区(UTC+8)显示,不跟设备时区走。 */
 private fun formatEnd(endAt: Long): String = END_FORMAT.format(
   Instant.ofEpochSecond(endAt).atOffset(ZoneOffset.ofHours(8)),
 )
 
 private val END_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
-/** `voteSharePercent` 给的是 Double;整数就不拖小数点。 */
 private fun formatPercent(percent: Double): String =
   if (percent == percent.toLong().toDouble()) percent.toLong().toString() else "%.1f".format(percent)

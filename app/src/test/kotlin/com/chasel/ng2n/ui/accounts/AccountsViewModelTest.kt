@@ -25,18 +25,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * 账号管理屏 / 抽屉账号头背后的那个 ViewModel:切号、循环切号、登出。
- *
- * 票 15 验收③的另一半在这里:**登出与切号都会清 WebView 的 cookie**
- * (审计 P1-03 的整改建议原文:「至少在退出时清理 cookie」)。
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class AccountsViewModelTest {
 
   private val dispatcher = StandardTestDispatcher()
 
-  /** 用例结束前把 VM 的 scope 取消掉 —— 真实生命周期里这件事由 `onCleared()` 做。 */
   private val models = mutableListOf<AccountsViewModel>()
 
   @BeforeTest
@@ -47,7 +40,6 @@ class AccountsViewModelTest {
     Dispatchers.resetMain()
   }
 
-  /** VM 的 scope 在 body 里取消 —— 理由见 `LoginViewModelTest.loginTest`。 */
   private fun accountsTest(body: suspend TestScope.() -> Unit) = runTest(dispatcher) {
     try {
       body()
@@ -98,7 +90,7 @@ class AccountsViewModelTest {
     val vault = FakeWebCookieVault()
     val model = viewModel(store, vault)
 
-    model.switchTo("1002") // 1002 本来就是当前账号
+    model.switchTo("1002")
     advanceUntilIdle()
 
     assertEquals(0, vault.clearCount)
@@ -119,7 +111,6 @@ class AccountsViewModelTest {
   fun `左右滑循环切号 到头绕回`() = accountsTest {
     val store = storeWith("1001", "1002", "1003")
     val model = viewModel(store, FakeWebCookieVault())
-    // 1003 是最后登进来的,也是当前账号
 
     model.cycle(1)
     advanceUntilIdle()
@@ -183,8 +174,6 @@ class AccountsViewModelTest {
     val store = storeWith("1001", "1002")
     val model = viewModel(store, FakeWebCookieVault())
     val messages = mutableListOf<String>()
-    // 收集器用 Unconfined:`toasts` 是没有 replay 的 SharedFlow,
-    // 在 StandardTestDispatcher 上收会慢一拍(最后一条要等下一轮调度才到手)
     backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
       model.toasts.toList(messages)
     }

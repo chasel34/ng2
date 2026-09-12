@@ -30,24 +30,9 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.serialization.Serializable
 
-/**
- * 开发者入口。
- *
- * 票 11 / 12 / 15 各自留了一个「模拟器手验屏」,票 18 的功能验收还要用它们
- * (BBCode 渲染覆盖、图片管线、登录流程),所以**不删 demo 屏本身**,
- * 只把入口从首页收进这里 —— 首页是真首页了,不该再挂四个 demo 按钮。
- *
- * 每一行照旧挂着原来的 `contentDescription` 锚点([Entry.tag]),
- * 那几张票的 uiautomator 脚本按它找按钮,搬家不该让脚本失效。
- *
- * 进入方式:抽屉「关于」**长按**。不做成常驻入口是因为它不是给用户的。
- *
- * TODO(票 17):由那张票决定这个菜单是留(挪进「实验室」)还是删。
- */
 @Serializable
 data object DevMenuKey : NavKey
 
-/** uiautomator 找这一屏用的锚点(票 18 的手验脚本认它)。 */
 const val DEV_MENU_TAG: String = "ng2n-dev-menu"
 
 @Composable
@@ -111,5 +96,4 @@ fun DevMenuScreen(
   }
 }
 
-/** 一行入口。[tag] 是原来挂在首页那颗按钮上的 content-desc 锚点,搬家后照旧。 */
 data class DevMenuEntry(val label: String, val tag: String, val onClick: () -> Unit)

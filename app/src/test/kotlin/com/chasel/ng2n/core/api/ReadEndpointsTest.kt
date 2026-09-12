@@ -8,18 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 读端点的**请求装配**与错误分支,手工移植自 `src/core/api/…test.ts` 里
- * 不进金样本的那一半(README「不在金样本里的东西」:出站 URL 装配与控制流)。
- *
- * 出处逐条:`topic-list.service.test.ts` / `board-tree.service.test.ts` /
- * `topic-detail.test.ts`(请求参数那一节)/ `user-topics.test.ts` / `search.test.ts` /
- * `user-profile.test.ts` / `notifications.test.ts` / `topic-favor.test.ts` /
- * `board-favor.test.ts` / `block-word.test.ts` / `hot-topics.test.ts`。
- */
 class ReadEndpointsTest {
-
-  // ── thread.php 一族 ────────────────────────────────────────────────────────
 
   @Test
   fun `普通版块传 fid、合集传 stid(二选一)`() = runTest {
@@ -74,8 +63,6 @@ class ReadEndpointsTest {
 
   @Test
   fun `data 在但不是主题列表的形状时报解析错,而不是「这个版块是空的」`() = runTest {
-    // 事故形态:能洗成 JSON、data 也是个对象,就是没有 __T/__F/__ROWS。
-    // 以前这里会安静地返回 0 条主题,UI 只能说「这个版块还没有主题」
     val fixture = ApiFixture("""{"data":{"__CU":{"uid":10000001}},"time":1}""")
     val error = assertThrowsNga { fetchTopicList(fixture.client, -7, BoardKind.BOARD, page = 1) }
     assertTrue(error.text.contains("没有主题列表结构"))
@@ -109,12 +96,8 @@ class ReadEndpointsTest {
     val list = fetchUserTopics(fixture.client, uid = 1, kind = UserPostKind.REPLIES, page = 500)
     assertEquals(emptyList(), list.topics)
     assertEquals(false, hasMoreUserPosts(list))
-    // 这一档服务端还是给了个 data(只剩 __MESSAGE),所以走的是普通解析而不是
-    // `serverEmptyTopicList()`——`listStructure` 如实为 false,与金样本
-    // `api/topic-list/user-replies-end` 一致
     assertEquals(false, list.listStructure)
 
-    // 连 data 都没有的那一档才归一成「服务端把话说清楚了,只是没内容」
     val noData = ApiFixture(NO_RESULT_NO_DATA)
     val empty = fetchUserTopics(noData.client, uid = 1, kind = UserPostKind.REPLIES, page = 500)
     assertTrue(empty.listStructure)
@@ -128,8 +111,6 @@ class ReadEndpointsTest {
     assertEquals("4699990", fixture.query()["favor"])
     assertEquals("1", fixture.query()["page"])
   }
-
-  // ── 搜索:两条路的关键词编码不一样(票 07 的核心差异,API 文档 §0.5)────────
 
   @Test
   fun `thread_php 的 key 按 UTF-8 编码并保留 inchst 声明`() = runTest {
@@ -146,7 +127,6 @@ class ReadEndpointsTest {
     fetchBoardSearch(fixture.client, key = "炉石")
     assertTrue(fixture.url().contains("/forum.php?"))
     assertTrue(fixture.url().contains("key=%C2%AF%CA%AF"))
-    // GBK 参数在场时必须撤掉 UTF8 声明,否则服务端按 UTF-8 解 GBK 字节
     assertTrue(!fixture.url().contains("__inchst"))
   }
 
@@ -189,11 +169,8 @@ class ReadEndpointsTest {
     )
     val list = fetchTopicSearch(fixture.client, key = "x", page = 1)
     assertEquals(listOf(1L), list.topics.map { it.tid })
-    // totalRows 不动:那是服务端给的命中总数,翻页判据要跟它对齐
     assertEquals(2L, list.totalRows)
   }
-
-  // ── app_api / nuke.php 读端点 ─────────────────────────────────────────────
 
   @Test
   fun `分类树打的是 app_api home category,并声明 bare 信封`() = runTest {
@@ -205,7 +182,6 @@ class ReadEndpointsTest {
     assertTrue(fixture.url().contains("/app_api.php?"))
     assertEquals("home", fixture.query()["__lib"])
     assertEquals("category", fixture.query()["__act"])
-    // JSON 家族的格式参数由 net 层统一带上
     assertEquals("8", fixture.query()["__output"])
     assertEquals(listOf("魔兽世界"), tree.categories.map { it.name })
   }
@@ -318,8 +294,6 @@ class ReadEndpointsTest {
     assertEquals(listOf("加密货币", "私聊出"), list.words)
   }
 
-  // ── 热帖:客户端聚合,不是端点 ─────────────────────────────────────────────
-
   @Test
   fun `热帖并发拉前 N 页,页码 1 到 N`() = runTest {
     val fixture = ApiFixture(THREAD_OK)
@@ -344,7 +318,6 @@ class ReadEndpointsTest {
 
   @Test
   fun `热帖聚合按 24h 窗口过滤并按回复数排序`() = runTest {
-    // now = 1786100000;老坟(发帖在窗口外)不进榜,回复多的排前面
     val fixture = ApiFixture(
       """{"data":{"__T":{
       "0":{"tid":1,"subject":"新帖少回复","author":"a","authorid":1,"replies":3,"postdate":1786090000,"lastpost":1786099000},
@@ -369,11 +342,9 @@ private const val THREAD_OK =
   "replies":1,"postdate":1758210953,"lastpost":1774011037}},"__F":{"fid":-7,"name":"网事杂谈"},
   "__ROWS":1,"__T__ROWS_PAGE":35},"time":1}"""
 
-/** 翻到底了:服务端给的是 error + 一个只剩 `__MESSAGE` 的 data。 */
 private const val NO_RESULT =
   """{"error":{"0":"2048:没有符合条件的结果"},"data":{"__MESSAGE":{"0":2048}},"time":1}"""
 
-/** 同上,但连 data 都没有——`fetchTopicSearch` 的假错误分支走的是这一条。 */
 private const val NO_RESULT_NO_DATA = """{"error":{"0":"2048:没有符合条件的结果"},"time":1}"""
 
 private const val READ_OK =

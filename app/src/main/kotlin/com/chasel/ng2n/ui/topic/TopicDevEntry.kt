@@ -28,15 +28,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 
-/**
- * **TODO(票 16 移除)**:主题详情屏的模拟器手验入口。
- *
- * 真首页(分类 tab + 版块宫格 + 抽屉)是票 16 的活;在它落地之前,楼层流没有任何
- * 进得去的路。这里给一个输入框 + 一个按钮,输 tid 直接开主题详情。
- *
- * 刻意做成**一个独立文件里的一个 composable**:`Ng2nApp.kt` 正被票 15/16 反复改,
- * 那边只加一行调用,合并冲突面最小。
- */
 @Composable
 fun TopicDevOpenSection(onOpen: (Long) -> Unit, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
@@ -82,6 +73,5 @@ fun TopicDevOpenSection(onOpen: (Long) -> Unit, modifier: Modifier = Modifier) {
   }
 }
 
-/** 票 13 手验用的锚点(uiautomator 按 content-desc 找它们)。票 16 随 demo 一起删。 */
 const val TOPIC_DEV_INPUT_TAG: String = "ng2n-topic-dev-input"
 const val TOPIC_DEV_BUTTON_TAG: String = "ng2n-topic-dev-open"

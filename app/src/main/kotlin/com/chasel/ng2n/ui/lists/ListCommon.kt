@@ -34,20 +34,8 @@ import com.chasel.ng2n.ui.theme.avatarColorFor
 import com.chasel.ng2n.ui.common.rowClickable
 import kotlinx.coroutines.delay
 
-/**
- * 票 17a 五组列表屏共用的零件。
- *
- * 屏本身按设计稿分档(`isSimpleList` 历史/缓存、`isSearch`、`isFolders`、`isNotify`),
- * 但副标题条、列表末尾留白、头像占位、每分钟走一格的时钟这几样是同一份,收在这里。
- */
-
-/** 设计稿列表末尾留白 26。 */
 val LIST_TAIL_HEIGHT: Dp = 26.dp
 
-/**
- * 设计稿 `listSub`:11/16 内边距、surface2 底、下分隔线的 12 号 meta 字副标题条。
- * [onClick] 非空时整条可点(收藏夹页的「点此换收藏夹」)。
- */
 @Composable
 fun ListSubtitle(
   text: String,
@@ -84,18 +72,11 @@ fun ListSubtitle(
   }
 }
 
-/** 列表末尾的留白。 */
 @Composable
 fun ListTail(modifier: Modifier = Modifier) {
   Box(modifier.fillMaxWidth().height(LIST_TAIL_HEIGHT))
 }
 
-/**
- * 「纯色圆底 + 名字首字」的头像占位(RN 侧 `ui/avatar.tsx` 的回落形态)。
- *
- * 通知条目与用户搜索结果都用它。底色按 [colorKey] 稳定取一档
- * ([avatarColorFor]),同一个人到处同色。
- */
 @Composable
 fun InitialAvatar(
   name: String,
@@ -116,13 +97,6 @@ fun InitialAvatar(
   }
 }
 
-/**
- * 每分钟走一格的时钟(秒级 unix 时间戳)。
- *
- * 「N 分钟前」这类相对时间会过期,页面停留时要刷基准 —— RN 侧是 `useMinuteTick`
- * 的 `setInterval`。**只在整页级别订阅一次**,行组件拿它当纯参数:
- * 每行各起一个协程的话,一屏几十行就是几十个定时器。
- */
 @Composable
 fun rememberMinuteTick(): State<Long> = produceState(initialValue = nowSeconds()) {
   while (true) {

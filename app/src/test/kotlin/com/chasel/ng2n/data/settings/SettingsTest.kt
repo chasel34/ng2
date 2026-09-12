@@ -6,16 +6,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * `src/core/local/settings.test.ts` 的手工移植(票 14 验收项①)。
- * 重点是**逐字段容错**:加了新设置项的版本读旧存档,老项要留着;
- * 某一项写坏了只丢那一项。
- */
 class SettingsTest {
 
   private fun json(raw: String) = Json.parseToJsonElement(raw)
-
-  // ------------------------------------------------------------ 默认值
 
   @Test
   fun `默认域名就是 API 文档 §0点1 的首选域名`() {
@@ -39,8 +32,6 @@ class SettingsTest {
     assertEquals(16, SMILEY_BASE_HEIGHT)
   }
 
-  // ------------------------------------------------------------ clampSlider
-
   private val lineHeight = sliderSpec("bodyLineHeight")
 
   @Test
@@ -55,7 +46,6 @@ class SettingsTest {
     assertEquals(15.5, clampSlider(sliderSpec("bodyFontSize"), 15.3))
   }
 
-  /** 0.02 步长连加会攒出 1.7000000000000002,气泡上就露出来了。 */
   @Test
   fun `浮点步长不会攒出长尾小数`() {
     var value = lineHeight.min
@@ -70,8 +60,6 @@ class SettingsTest {
       clampSlider(lineHeight, Double.NaN),
     )
   }
-
-  // ------------------------------------------------------------ 滑杆比例
 
   private val avatar = sliderSpec("avatarScale")
 
@@ -91,8 +79,6 @@ class SettingsTest {
     assertEquals(avatar.min, sliderValueAt(avatar, -3.0))
   }
 
-  // ------------------------------------------------------------ formatSliderValue
-
   @Test
   fun `整数档不带小数点 百分比档带百分号`() {
     assertEquals("17", formatSliderValue(sliderSpec("listFontSize"), 17.0))
@@ -100,8 +86,6 @@ class SettingsTest {
     assertEquals("15.5", formatSliderValue(sliderSpec("bodyFontSize"), 15.5))
     assertEquals("1.70", formatSliderValue(lineHeight, 1.7))
   }
-
-  // ------------------------------------------------------------ parseSettings
 
   @Test
   fun `存档不是对象时整份回落`() {
@@ -119,7 +103,6 @@ class SettingsTest {
     )
   }
 
-  /** 加了新设置项的版本读旧存档,老项不能被整份默认值盖掉。 */
   @Test
   fun `只认得一半的存档里 认得的那一半保留`() {
     val parsed = parseSettings(json("""{"solidBackground":true,"imageQuality":"thumbnail"}"""))
@@ -165,8 +148,6 @@ class SettingsTest {
     assertEquals(settings, parseSettings(settings.toJson()))
   }
 
-  // ------------------------------------------------------------ 其余 MMKV 键的容错
-
   @Test
   fun `签到日只认 YYYY-MM-DD 坏值当没签过`() {
     val days = sanitizeCheckInDays(
@@ -177,7 +158,6 @@ class SettingsTest {
 
   @Test
   fun `签到日按 UTC加8 算而不是设备时区`() {
-    // 2026-08-08 00:30 UTC+8 == 2026-08-07 16:30 UTC
     val ms = java.time.Instant.parse("2026-08-07T16:30:00Z").toEpochMilli()
     assertEquals("2026-08-08", beijingDayKey(ms))
     assertTrue(isCheckedInOn(mapOf("42" to "2026-08-08"), "42", ms))

@@ -13,22 +13,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * 移植自 `src/core/net/strategies/web-fallback.test.ts`(9 条)。
- *
- * 分两段:
- * - **链的性质**(四档档位、域名沿用、诊断记录、反解器缺席时让位)用一个假反解器
- *   ([FakeWebReadParser])钉,免得每条用例都拖着一整页 HTML;
- * - **换上真反解器之后的行为**(票 08)另起一段,语料取金样本 `web` domain 的
- *   `input.text` —— 真实抓包的整页 HTML 从传输层进来,一路解码、反解、成信封。
- *   `only` 档那两条(可重试的失败被改写成终点 / 本来就不可重试的原样上交)在这一段。
- */
 class WebFallbackTest {
 
   private val okJson = """{"data":{"__R":{"0":{"content":"原生","lou":0}}},"time":1}"""
   private val webPageBody = "WEB-PAGE"
 
-  /** 票 08 的反解器在这条链上的替身。 */
   private class FakeWebReadParser(private val body: String) : WebReadParser {
     override val available = true
     override fun parse(text: String, via: String): NgaEnvelope {
@@ -61,12 +50,10 @@ class WebFallbackTest {
     ((data as? JsonObject)?.get("__R") as? JsonObject)
       ?.get("0")?.jsonObject?.get("content")?.jsonPrimitive?.content
 
-  /** 原生接口全被封、网页版还通 —— 这一档存在的理由就是这个局面。 */
   private fun nativeBlocked() = RecordingTransport { request ->
     if (isWebRequest(request)) FakeResponse(body = utf8(webPageBody)) else blocked()
   }
 
-  /** 两条都通:用来看档位有没有真的改变「谁先上」。 */
   private fun bothWork() = RecordingTransport { request ->
     if (isWebRequest(request)) FakeResponse(body = utf8(webPageBody)) else ok(okJson)
   }
@@ -79,7 +66,6 @@ class WebFallbackTest {
 
     assertEquals("web-fallback", result.via)
     assertEquals(listOf(false, true), transport.requests.map(::isWebRequest))
-    // 反解出来的信封长得跟 `__output=8` 一样,所以下游认得出这是第几楼
     assertEquals("网页", firstFloorContent(result.data))
   }
 
@@ -156,7 +142,6 @@ class WebFallbackTest {
     client.execute(read)
 
     assertTrue(transport.requests[0].url.startsWith("https://ngabbs.com/read.php"))
-    // 不带格式参数才是网页版
     assertTrue(!transport.requests[0].url.contains("__output="))
   }
 
@@ -177,11 +162,8 @@ class WebFallbackTest {
     assertEquals("html", error.diagnostic?.attempts?.single()?.format)
   }
 
-  // ── 反解器的注入点 ─────────────────────────────────────────────────────────
-
   @Test
   fun `反解器没接上时这一档直接让位,不白打一次网络请求`() = runTest {
-    // 反解本体若因为 NGA 改版被临时摘掉,多打一次只是给 NGA 送一次限流计数
     val transport = nativeBlocked()
 
     val error = assertThrowsNga {
@@ -192,9 +174,6 @@ class WebFallbackTest {
     assertEquals(listOf(false), transport.requests.map(::isWebRequest))
   }
 
-  // ── 票 08:换上真反解器之后的链行为 ─────────────────────────────────────────
-
-  /** 金样本 `web/<case>` 的 `input.text` —— Kotlin 侧 classpath 上只有金样本,没有 `.gbk.bin`。 */
   private fun webGolden(case: String): String =
     Goldens.load("web").first { it.name == case }.stringField("text")
 
@@ -218,7 +197,6 @@ class WebFallbackTest {
     ).execute(read)
 
     assertEquals("web-fallback", result.via)
-    // 信封与 `__output=8` 同构,下游一行都不用改
     val data = result.data as JsonObject
     assertEquals(20, data.getValue("__R").jsonObject.size)
     assertEquals("测试测试zsbd", firstFloorContent(data))
@@ -226,7 +204,6 @@ class WebFallbackTest {
 
   @Test
   fun `only·真反解器解不出来时,错误被改写成不可重试`() = runTest {
-    // 网页版也被封:拿回来的是一坨 HTML,反解不出任何楼层 → kind:parse(本来可重试)
     val transport = RecordingTransport { request ->
       if (isWebRequest(request)) blocked() else ok(okJson)
     }
@@ -243,15 +220,12 @@ class WebFallbackTest {
 
     assertEquals(NgaErrorKind.PARSE, error.kind)
     assertEquals("web-fallback", error.via)
-    // 这一条是本用例的正主:`only` 说好了不碰原生接口,所以这一档失败就是终点
     assertEquals(false, error.retryable, "only 档的失败必须是不可重试的,链才会当场收手")
     assertEquals(listOf(true), transport.requests.map(::isWebRequest), "原生接口一次都没打")
   }
 
   @Test
   fun `only·本来就不可重试的服务端错误原样上交,不重新包一层`() = runTest {
-    // msgcode 错误页 → kind:server、retryable=false,已经是终点,不该走改写那条路——
-    // 改写会丢掉 `code`(错误页要拿它显示「2048 找不到主题」)
     val transport = RecordingTransport { htmlPage(webGolden("not-found")) }
     val client = testClient(
       transport,

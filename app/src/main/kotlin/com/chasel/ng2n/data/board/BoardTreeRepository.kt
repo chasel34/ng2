@@ -20,15 +20,6 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * 首页的版块分类树。
- *
- * 冷启动先用 DataStore 里的缓存渲染,再由 [loadBoardTree] 按 24 小时节流决定要不要
- * 联网静默更新;断网且有缓存时不报错,结果里带 [BoardTreeUiState.staleError] 供 UI 提示。
- *
- * **不做同步读**(修 P2-04):DataStore 只有 suspend/Flow,首屏那一帧是 loading,
- * 缓存回来立刻替换。RN 版是在模块初始化里同步 parse 100KB JSON。
- */
 @Singleton
 class BoardTreeRepository @Inject constructor(
   private val client: NgaClient,
@@ -39,9 +30,7 @@ class BoardTreeRepository @Inject constructor(
   data class BoardTreeUiState(
     val loading: Boolean = true,
     val tree: BoardTree? = null,
-    /** 一个都没拿到时的失败(首页整屏走错误态) */
     val error: Throwable? = null,
-    /** 拿到的是缓存、而这次联网更新失败了 */
     val staleError: Throwable? = null,
     val refreshing: Boolean = false,
   )
@@ -68,14 +57,12 @@ class BoardTreeRepository @Inject constructor(
     }
   }
 
-  /** 首页进来时调。**幂等**:重进首页(返回、切 tab)不该再打一次接口。 */
   fun ensureLoaded() {
     if (started) return
     started = true
     load(force = false)
   }
 
-  /** 用户主动重试 / 下拉刷新:跳过 TTL。 */
   fun refresh() {
     load(force = true)
   }
@@ -113,7 +100,6 @@ class BoardTreeRepository @Inject constructor(
     }
   }
 
-  /** 已关掉的公告 id。 */
   val dismissedAnnouncements: Flow<List<String>> get() = settings.dismissedAnnouncements
 
   fun dismissAnnouncement(id: String) {
@@ -121,7 +107,6 @@ class BoardTreeRepository @Inject constructor(
   }
 
   private companion object {
-    /** 缓存载荷是我们自己写自己读的,但仍当外部输入:老版本 app 写下的树可能少字段。 */
     val JSON = Json {
       ignoreUnknownKeys = true
       explicitNulls = false

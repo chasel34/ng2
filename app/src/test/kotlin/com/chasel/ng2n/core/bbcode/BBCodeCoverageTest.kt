@@ -8,16 +8,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * 渲染器覆盖清单:29 种节点每种一段样例 BBCode。手工移植自 `src/ui/bbcode/coverage.test.ts`
- * 里**不属于渲染器**的那一半(行内/块级归属归票 11,那边有自己的清单)。
- *
- * 金样本 `coverage-*` 逐条锁的是「这段样例解析成什么」,这里锁的是清单本身的完整性:
- * 29 个 `type` 一个不少、一个不多。新增节点类型时这里会先红。
- */
 class BBCodeCoverageTest {
 
-  /** `type` → 样例。key 就是序列化后的类鉴别器取值,与 TS 的 `BBCodeNode['type']` 同名同值。 */
   private val samples: Map<String, String> = linkedMapOf(
     "text" to "一段字",
     "linebreak" to "上<br/>下",
@@ -50,7 +42,6 @@ class BBCodeCoverageTest {
     "album" to "[album=相册][img]./a.jpg[/img][img]./b.jpg[/img][/album]",
   )
 
-  /** 深度优先收集出现过的节点类型(读序列化后的 `type` 字段,顺带证明鉴别器没漂)。 */
   private fun typesIn(nodes: List<BBCodeNode>, found: MutableSet<String> = linkedSetOf()): Set<String> {
     for (node in nodes) {
       found += discriminatorOf(node)
@@ -88,7 +79,6 @@ class BBCodeCoverageTest {
 
   @Test
   fun `不支持的标签一律降级成纯文本`() {
-    // 功能文档 §2.9 的「不支持」清单。防剧透在 NGA 上实际靠 [color=white],不走 spoiler。
     for (tag in listOf("pre", "hide", "spoiler", "randomblock", "email")) {
       val nodes = parseBBCode("[$tag]内容[/$tag]")
       assertEquals(

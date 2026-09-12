@@ -17,13 +17,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
-/**
- * `dice` domain 全量对拍(23 条)。
- *
- * 金样本的 `input.text` 是楼层正文原文,README 要求「先 `parseBBCode(text)` 再
- * `resolveDice(ast, seed)`」。票 13 把票 10 留的接缝接上了:正式解析器 +
- * `ui/bbcode/BBCodeShapeAdapter.kt` 的 [diceScopeOf](AST → [DiceScope])。
- */
 class DiceGoldenTest {
 
   @Test
@@ -31,8 +24,6 @@ class DiceGoldenTest {
     fn("resolveDice") { case -> outcomesJson(case.text(), case.seed()) }
     fn("formatDiceTerms") { case -> formatDiceTerms(case.terms()) }
   }
-
-  // --- 手工移植:`dice.test.ts` 里不落在金样本里的关系型断言 ---------------------
 
   @Test
   fun `一个楼层里的多颗骰子共用一条数列,不各自从头开始`() {
@@ -44,11 +35,9 @@ class DiceGoldenTest {
 
   @Test
   fun `折叠块里的骰子换一条数列——外层投过就接着外层的种子走`() {
-    // 官方帮助原话:「将[dice]代码移入或移出折叠块……随机数结果会发生改变」
     val inside = rolls("[collapse=提要][dice]d100[/dice][/collapse]")
     val outside = rolls("[dice]d100[/dice]")
     assertNotEquals(outside, inside)
-    // 外层先投一颗时,折叠块从外层推进后的种子接着走
     val second = rolls("[dice]d100[/dice][collapse][dice]d100[/dice][/collapse]")[1]
     assertEquals(rolls("[dice]d100[/dice][dice]d100[/dice]")[1], second)
   }
@@ -71,7 +60,6 @@ class DiceGoldenTest {
 
   @Test
   fun `折叠块作用域的展开顺序与结果顺序一致`() {
-    // 票 11/13 靠这条把结果贴回 AST 节点:flatten() 与 resolveDice() 必须同序
     val scope = diceScopeOf(
       parseBBCode("[dice]2d6[/dice][collapse][dice]d100[/dice][/collapse][dice]d8[/dice]"),
     )
@@ -82,7 +70,6 @@ class DiceGoldenTest {
   private companion object {
     val SEED = DiceSeed(authorId = 41417929, tid = 45150945, pid = 800000000)
 
-    /** 一串骰子的点数,按文档顺序(TS 测试里的 `values()`)。 */
     fun rolls(source: String, seed: DiceSeed = SEED): List<Long> =
       resolveDice(diceScopeOf(parseBBCode(source)), seed)
         .flatMap { outcome -> outcome.terms.filterIsInstance<DiceTerm.Roll>().map { it.value } }
@@ -101,7 +88,6 @@ private fun outcomesJson(text: String, seed: DiceSeed): JsonElement {
       buildJsonObject {
         put("expression", outcome.expression)
         put("terms", JsonArray(outcome.terms.map { it.toJson() }))
-        // OUT OF LIMIT 时 TS 侧整个 `sum` 键都不写(README 规范 2)
         outcome.sum?.let { put("sum", it) }
       }
     },

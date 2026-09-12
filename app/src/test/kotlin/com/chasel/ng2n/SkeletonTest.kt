@@ -4,10 +4,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * 骨架冒烟:证明 JVM 单测这条路(JUnit4 + kotlin-test + coroutines-test)是通的。
- * 后续票的真单测放在同一源集,金样本放 `src/test/resources/goldens/<domain>/`。
- */
 class SkeletonTest {
 
   @Test

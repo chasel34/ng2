@@ -60,24 +60,6 @@ import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 
-/**
- * 「新增屏蔽规则」对话框 —— 直译 RN 侧 `src/ui/filter-rule-dialog.tsx`(设计稿 `DLG.addFilter`)。
- *
- * 设计稿画的是通用的单输入框对话框,提示语写「支持 用户 / 关键词 / 分类,可用正则」——
- * 那是让用户自己在一行里表达类型。RN 版改成了显式的类型分段 + 正则开关(票面要求
- * 「类型选择 + 输入」,而且非法正则要就地提示,靠猜输入格式做不到),这里照抄那一版。
- *
- * 外壳(遮罩 `omfade .18s` + 面板 `ompop .2s`、标题 / 下划线输入 / 一行 hint /
- * 取消·保存)与 `ui/common/Dialogs.kt` 的 `InputDialog` 保持一致 —— 那边的
- * `DialogShell` 是 private,而这里多了类型分段与勾选框,所以壳子在本文件里重搭一遍
- * (动效参数取的是同一组 [Motion] 常量,不会跑偏)。
- *
- * **校验走 `core/local` 的 `validateFilterRule`** —— 只有它带 P3-05 的资源上限
- * (规则文本长度上限、正则 pattern 长度上限、嵌套量词粗检)。RN 版只有「能不能编译」
- * 这一档,`(a+)+$` 这种能存进去,然后在长正文上把 UI 线程跑到天荒地老。
- */
-
-/** 三类规则的顺序照设计稿对话框提示语「支持 用户 / 关键词 / 分类」。 */
 private val KINDS = listOf(FilterRuleKind.USER, FilterRuleKind.KEYWORD, FilterRuleKind.CATEGORY)
 
 private fun placeholderOf(kind: FilterRuleKind): String = when (kind) {
@@ -102,11 +84,9 @@ fun FilterRuleDialog(
   val colors = LocalNg2nColors.current
   BackHandler(enabled = true, onBack = onCancel)
 
-  // 每次打开都是一张空白表单:条件渲染 ⇒ 关掉时整块被摘掉,state 跟着没
   var kind by remember { mutableStateOf(FilterRuleKind.KEYWORD) }
   var value by remember { mutableStateOf("") }
   var regex by remember { mutableStateOf(false) }
-  // 提交过一次才显示错误:一进来就红着说「请输入关键词」太凶
   var submitted by remember { mutableStateOf(false) }
 
   var started by remember { mutableStateOf(false) }
@@ -122,7 +102,6 @@ fun FilterRuleDialog(
     label = "filter-dialog-pop",
   )
 
-  // 正则只对关键词有意义(用户名与分类是精确比对),换类型时开关一并收起来
   val regexOn = regex && kind == FilterRuleKind.KEYWORD
   val error = validateFilterRule(FilterRuleInput(kind = kind, value = value, regex = regexOn))
 
@@ -176,7 +155,6 @@ fun FilterRuleDialog(
         ),
       )
 
-      // 类型分段:照子版块横条那套 tag 样式(圆角 sm + 分隔线描边),选中填主题色
       Row(
         modifier = Modifier.padding(top = Spacing.lg),
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
@@ -227,7 +205,6 @@ fun FilterRuleDialog(
               .fillMaxWidth()
               .focusRequester(focus)
               .drawBehind {
-                // 设计稿:输入行下面一条 2px 主题色底线
                 val y = size.height + 7.dp.toPx()
                 drawLine(colors.primary, Offset(0f, y), Offset(size.width, y), 2.dp.toPx())
               }
@@ -258,7 +235,6 @@ fun FilterRuleDialog(
         ),
       )
 
-      // 正则开关只在关键词下出现:用户名与分类走精确比对,给了开关反而误导
       if (kind == FilterRuleKind.KEYWORD) {
         Row(
           modifier = Modifier

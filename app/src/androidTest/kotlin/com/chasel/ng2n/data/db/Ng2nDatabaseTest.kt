@@ -12,13 +12,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * DAO 的薄层验证 —— **在设备上跑一次**(`:app:connectedDebugAndroidTest`)。
- *
- * 上限/驱逐/节流的语义已经由 `src/test` 里的纯 Kotlin 单测钉死了(不引 Robolectric),
- * 这里只回答「Room 这一层真的按预期读写吗」:主键冲突走 REPLACE、整主题删、
- * used_at 更新、按 uid 分桶、事务里一次改一条 + 删被淘汰的。
- */
 @RunWith(AndroidJUnit4::class)
 class Ng2nDatabaseTest {
 
@@ -34,8 +27,6 @@ class Ng2nDatabaseTest {
 
   @After
   fun tearDown() = db.close()
-
-  // ------------------------------------------------------------ browse_history
 
   private fun history(tid: Long, updatedAt: Long, lastFloor: Int = 0) = BrowseHistoryEntity(
     tid = tid,
@@ -78,8 +69,6 @@ class Ng2nDatabaseTest {
     assertEquals(listOf(3L, 2L), dao.loadAll(200).map { it.tid })
     assertNull(dao.find(1))
   }
-
-  // ------------------------------------------------------------ topic_cache
 
   private fun cache(tid: Long, page: Int, usedAt: Long, payload: String = "{}") = TopicCacheEntity(
     tid = tid,
@@ -141,8 +130,6 @@ class Ng2nDatabaseTest {
 
     assertEquals(setOf(8L, 9L), dao.loadMeta().map { it.tid }.toSet())
   }
-
-  // ------------------------------------------------------------ notification_read
 
   @Test
   fun 已读按_uid_分桶_切号后互不污染() = runTest {

@@ -38,33 +38,21 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/** 预览卡片里那位「楼主」的头像底色,取占位色板的第一档(设计稿 `#3E6B7E`)。 */
 private val PREVIEW_AVATAR_COLOR = Color(0xFF3E6B7E)
 
 private const val PREVIEW_TEXT =
   "体感消费不一直这样吗?楼主 22 年大学毕业直接进厂了,没怎么在社会上摸爬滚打。从哪个时间段开始的?"
 
-/**
- * 字号屏的静态 key。滑杆那一段的 key 来自 `APPEARANCE_SLIDERS`,
- * 在 [com.chasel.ng2n.ui.common.SCREEN_LAZY_KEYS] 里一并查重(票 28)。
- */
 internal object FontSizeKeys {
   const val PREVIEW_TITLE = "preview-title"
   const val PREVIEW_CARD = "preview-card"
 
-  /** 这一屏 LazyColumn 会用到的静态 key,顺序即屏上顺序。 */
   val all: List<String> =
     listOf(PREVIEW_TITLE, PREVIEW_CARD) +
       APPEARANCE_SLIDERS.map { it.key } +
       SETTINGS_TAIL_KEY
 }
 
-/**
- * 字体和头像大小(设计稿 `isFontSize` 屏)—— `src/app/settings/font-size.tsx` 的移植。
- *
- * 五根滑杆改的都是同一份 `appearance`,改完立刻落 DataStore —— 所以上面那张预览卡片
- * 和详情页的真楼层看到的是同一份值,不需要「保存」这一步。
- */
 @Composable
 fun FontSizeScreen(onBack: () -> Unit) {
   val deps = rememberAppDeps()
@@ -98,7 +86,6 @@ fun FontSizeScreen(onBack: () -> Unit) {
     },
   ) {
     item(FontSizeKeys.PREVIEW_TITLE) {
-      // 设计稿这屏的分组标题不带字间距
       Text(
         text = "实时预览",
         modifier = Modifier.padding(
@@ -127,7 +114,6 @@ fun FontSizeScreen(onBack: () -> Unit) {
           .padding(Spacing.row),
       ) {
         Row(horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-          // 设计稿这张预览卡的头像是 14 圆角的方块,不是楼层里那种正圆
           Box(
             Modifier
               .size(avatar)

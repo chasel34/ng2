@@ -11,17 +11,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/**
- * 票 35 的死锁那一半:**取系统 WebView UA 不许在非主线程上等主线程**。
- *
- * 现场是 `WebSettings.getDefaultUserAgent()` 在后台线程里 `CountDownLatch.await()` 等主线程,
- * 而它又被包在 `SynchronizedLazyImpl` 里 —— 求值期间锁被攥着,主线程随后来求同一把锁,
- * 两边互等 → ANR(完整线程栈在票 35)。这里用一个**永远不会被放行的闩**复刻那半边:
- * 真实实现在这种情况下会把调用线程挂死,[SystemUserAgent] 必须立刻返回兜底 UA。
- *
- * `android.webkit` / `Looper` 都进不了 JVM 单测,所以「在不在主线程」「怎么把活儿丢给主线程」
- * 都是构造参数,这里换成假的(生产装配见 `di/NetworkModule.kt`)。
- */
 class SystemUserAgentTest {
 
   private val fallback = USER_AGENT_PROFILES.getValue(UserAgentProfile.WEBVIEW)
@@ -30,7 +19,6 @@ class SystemUserAgentTest {
     "Mozilla/5.0 (Linux; Android 16; Pixel 8 Build/BP31.250610.004) AppleWebKit/537.36 " +
       "(KHTML, like Gecko) Version/4.0 Chrome/141.0.7390.60 Mobile Safari/537.36"
 
-  /** 攒下「丢给主线程」的活儿,由测试自己决定什么时候跑 —— 相当于主线程的 looper。 */
   private class FakeMainLooper {
     val tasks = mutableListOf<() -> Unit>()
 
@@ -53,7 +41,6 @@ class SystemUserAgentTest {
     val agent = SystemUserAgent(
       onMainThread = { false },
       readSystemUserAgent = {
-        // WebView provider 没起来时 getDefaultUserAgent 就是这么等主线程的
         stuck.await()
         deviceUserAgent
       },
@@ -68,10 +55,8 @@ class SystemUserAgentTest {
     }
     worker.start()
 
-    // 旧实现(lazy 内调用)会在这里超时 —— 那正是登录态冷启动 ANR 的那一半
     assertTrue(done.await(5, TimeUnit.SECONDS), "get() 在非主线程上被挡住了")
     assertEquals(fallback, value)
-    // 而且它把求值排给了主线程,下一发就能用上真值
     assertEquals(1, looper.size)
     stuck.countDown()
     worker.join(5_000)
@@ -103,7 +88,7 @@ class SystemUserAgentTest {
       postToMainThread = looper::post,
     )
 
-    agent.prewarm() // Application.onCreate,主线程
+    agent.prewarm()
     mainThread = false
 
     assertEquals(deviceUserAgent, agent.get())
@@ -120,7 +105,7 @@ class SystemUserAgentTest {
     )
 
     assertEquals(fallback, agent.get())
-    looper.drain() // 主线程把 provider 拉起来了
+    looper.drain()
     assertEquals(deviceUserAgent, agent.get())
   }
 
@@ -217,9 +202,9 @@ class SystemUserAgentTest {
     )
 
     assertEquals(fallback, agent.get())
-    looper.drain() // 第一次求值失败
+    looper.drain()
     assertEquals(fallback, agent.get())
-    looper.drain() // 第二次成功
+    looper.drain()
     assertEquals(deviceUserAgent, agent.get())
     assertEquals(2, attempts)
   }

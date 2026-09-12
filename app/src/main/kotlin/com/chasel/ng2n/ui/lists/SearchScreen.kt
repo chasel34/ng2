@@ -99,20 +99,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 搜索页 —— 直译 RN 侧 `src/app/search.tsx`(设计稿 `isSearch` 屏 1:1;
- * 三种结果列表是设计稿缺失页面,按现有设计语言延伸)。
- *
- * 从列表页进来带 `boardId`/`kind`/`boardName`,搜索选项里才有「当前板块」;
- * 首页进来只有「全部板块」。三个 tab 各自独立的搜索历史(带范围,持久化在
- * `SettingsStore` 的 `search/history`,与 RN 版同键同结构)。
- *
- * ## 与 RN 版的一处有意偏离:游客不给搜版块
- *
- * `forum.php?key=…` 对游客回的是「你必须先登录论坛」,RN 版没挡,于是游客点「搜板块」
- * 拿到的是一句看不懂的服务端错误。这一版按票 17a 的要求先自己挡住并把登录页递到手边
- * (与版块收藏、收藏夹那些入口同一套 [showLoginPrompt] 话术)。
- */
 @Composable
 fun SearchScreen(key: SearchKey, nav: Navigator, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
@@ -125,7 +111,6 @@ fun SearchScreen(key: SearchKey, nav: Navigator, modifier: Modifier = Modifier) 
   )
   val signedIn = currentAccountOf(accountsState) != null
 
-  /** 从列表页带过来的「当前板块」;首页进来是 null。 */
   val currentBoard = remember(key) {
     key.boardId?.let {
       SearchBoardScope(
@@ -138,9 +123,7 @@ fun SearchScreen(key: SearchKey, nav: Navigator, modifier: Modifier = Modifier) 
 
   var tab by remember { mutableStateOf(SearchTab.TOPICS) }
   var text by remember { mutableStateOf("") }
-  /** 已提交的关键词;空串 = 还没搜,显示选项 + 历史 */
   var submitted by remember { mutableStateOf("") }
-  // 从列表页进来默认搜当前板块(设计稿的「当前板块」默认选中);null = 全部板块
   var boardScope by remember { mutableStateOf(currentBoard) }
   var content by remember { mutableStateOf(false) }
 
@@ -189,7 +172,6 @@ fun SearchScreen(key: SearchKey, nav: Navigator, modifier: Modifier = Modifier) 
     TabRow(
       current = tab,
       onSelect = { next ->
-        // 游客不给搜版块:接口一律回「你必须先登录论坛」,先自己挡住
         if (next == SearchTab.BOARDS && !signedIn) {
           showLoginPrompt(nav, "登录后才能搜版块")
           return@TabRow
@@ -239,7 +221,6 @@ fun SearchScreen(key: SearchKey, nav: Navigator, modifier: Modifier = Modifier) 
   }
 }
 
-/** 设计稿 isSearch 屏:tab 48 高;输入框 40 高、圆角 6。 */
 private val TAB_HEIGHT = 48.dp
 private val INPUT_HEIGHT = 40.dp
 private val INPUT_RADIUS = 6.dp
@@ -250,14 +231,12 @@ private val PLACEHOLDERS: Map<SearchTab, String> = mapOf(
   SearchTab.USERS to "输入 UID 或用户名",
 )
 
-/** 「搜板块」沿用设计稿原字(CONTEXT.md「版块」:UI 文案可沿用设计稿)。 */
 private val TAB_LABELS: List<Pair<SearchTab, String>> = listOf(
   SearchTab.TOPICS to "搜主题",
   SearchTab.BOARDS to "搜板块",
   SearchTab.USERS to "搜用户",
 )
 
-/** 顶栏里那条 40 高、圆角 6、surface 底的输入框(设计稿 isSearch)。 */
 @Composable
 private fun RowScope.SearchField(
   value: String,
@@ -320,7 +299,6 @@ private fun RowScope.SearchField(
   }
 }
 
-/** 设计稿:tab 行在正文区(bg 底),选中项 fg 色 + 底部 3px 指示条。 */
 @Composable
 private fun TabRow(current: SearchTab, onSelect: (SearchTab) -> Unit, boardsEnabled: Boolean) {
   val colors = LocalNg2nColors.current
@@ -332,7 +310,6 @@ private fun TabRow(current: SearchTab, onSelect: (SearchTab) -> Unit, boardsEnab
   ) {
     TAB_LABELS.forEach { (value, label) ->
       val selected = value == current
-      // 游客态的「搜板块」画成灰的(点了给登录提示,不是死的)
       val dimmed = value == SearchTab.BOARDS && !boardsEnabled
       Box(
         modifier = Modifier
@@ -363,7 +340,6 @@ private fun TabRow(current: SearchTab, onSelect: (SearchTab) -> Unit, boardsEnab
   }
 }
 
-/** 选项 + 各 tab 独立的搜索历史(还没提交关键词时的正文)。 */
 @Composable
 private fun SearchHome(
   tab: SearchTab,
@@ -445,7 +421,6 @@ private fun SearchHome(
   }
 }
 
-/** 历史条目右侧的范围标注(设计稿 h.scope 那一格)。 */
 internal fun historyScopeLabel(tab: SearchTab, entry: SearchHistoryEntry): String = when (tab) {
   SearchTab.BOARDS -> "版块"
   SearchTab.USERS -> "用户"
@@ -472,7 +447,6 @@ private fun SectionTitle(text: String, bottomPadding: androidx.compose.ui.unit.D
   )
 }
 
-/** 搜索选项的一枚:单选二枚 + 勾选一枚(设计稿 searchOpts)。只对搜主题生效。 */
 @Composable
 private fun OptionChip(label: String, on: Boolean, radio: Boolean, onClick: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -502,7 +476,6 @@ private fun OptionChip(label: String, on: Boolean, radio: Boolean, onClick: () -
   }
 }
 
-/** 一条搜索历史(设计稿:13 内距、gap 13、下分隔线;行尾一枚删除叉)。 */
 @Composable
 private fun HistoryRow(
   entry: SearchHistoryEntry,
@@ -554,7 +527,6 @@ private fun HistoryRow(
   }
 }
 
-/** 主题结果:`thread.php` 无限滚动,复用主题列表行(设计稿 isList 的两行布局)。 */
 @Composable
 private fun TopicResults(
   query: String,
@@ -580,8 +552,6 @@ private fun TopicResults(
 
   LaunchedEffect(searchKey) { deps.search.ensureTopicPage(searchKey) }
 
-  // 搜索结果也是主题列表(票 29 的「顺带」:RN 版这一屏没接,这一版接上 —— 屏蔽规则
-  // 页承诺的是「命中的主题在列表里隐藏」,没说除了搜索)
   val filterRules = rememberFilterRules()
   val rows = remember(state.topics, filterRules, colors, titleColors) {
     buildTopicRows(filterTopics(filterRules, state.topics), colors, titleColors)
@@ -590,7 +560,6 @@ private fun TopicResults(
   val openTopic: (Topic) -> Unit = { topic ->
     val shortcut = topic.shortcut
     when {
-      // 合集 / 版块镜像行点开的是另一个版块的列表(API 文档 §2 解析要点 3)
       shortcut != null ->
         nav.push(BoardKey(id = shortcut.id, name = topic.subject, kind = shortcut.kind))
       topic.jumpUrl != null -> nav.push(WebKey(url = topic.jumpUrl!!, title = topic.subject))
@@ -603,7 +572,6 @@ private fun TopicResults(
     return
   }
   if (rows.isEmpty()) {
-    // 搜到了、被自己的屏蔽规则挡光了:别说成「没搜到」
     val allFiltered = state.topics.isNotEmpty()
     SearchOutcome(
       error = state.error,
@@ -619,7 +587,6 @@ private fun TopicResults(
   }
 
   val listState = rememberLazyListState()
-  // 票 57:按距离而不是按项数拉下一页
   val shouldLoadMore by rememberShouldLoadNextPage(listState, rows.size)
   LaunchedEffect(listState, state.hasNextPage, state.loadingNextPage) {
     snapshotFlow { shouldLoadMore }.collect {
@@ -629,11 +596,9 @@ private fun TopicResults(
   val flingBehavior = rememberPagedFlingBehavior(listState) {
     state.hasNextPage || state.loadingNextPage
   }
-  // 下一页在路上时,尾部铺几屏能滚的骨架行(票 57 三轮)
   val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
   Column(Modifier.fillMaxSize()) {
-    // 结果统计条:设计稿缺失页面,按二级列表的副标题条(listSub)延伸
     ListSubtitle(
       buildString {
         append(boardScope?.name ?: "全部板块")
@@ -681,7 +646,6 @@ private fun FooterText(text: String) {
   )
 }
 
-/** 版块结果:可进入、可收藏(设计稿缺失页面,行样式按首页宫格图标 + 列表行延伸)。 */
 @Composable
 private fun BoardResults(query: String, nav: Navigator) {
   val deps = rememberAppDeps()
@@ -776,7 +740,6 @@ private fun BoardResultRow(item: BoardSearchItem, nav: Navigator) {
         )
       }
     }
-    // 与列表页顶栏星标同一套话术:点了立刻变,失败按服务端的话说
     Box(
       modifier = Modifier
         .size(40.dp)
@@ -812,7 +775,6 @@ private fun BoardResultRow(item: BoardSearchItem, nav: Navigator) {
   }
 }
 
-/** 用户结果:一条资料卡,点击进资料页(设计稿缺失页面,按通知条目的头像行延伸)。 */
 @Composable
 private fun UserResult(query: String, nav: Navigator) {
   val colors = LocalNg2nColors.current
@@ -858,7 +820,6 @@ private fun UserResult(query: String, nav: Navigator) {
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(Spacing.md),
   ) {
-    // 远程头像归票 12 的图片管线;这里先用与楼层同款的纯色圆底占位
     InitialAvatar(
       name = profile.name,
       colorKey = profile.uid.toString(),
@@ -892,7 +853,6 @@ private fun UserResult(query: String, nav: Navigator) {
   Spacer(Modifier.height(LIST_TAIL_HEIGHT))
 }
 
-/** 空结果与拉取失败分开说(与主题列表页同一套话术)。 */
 @Composable
 private fun SearchOutcome(
   error: Throwable?,

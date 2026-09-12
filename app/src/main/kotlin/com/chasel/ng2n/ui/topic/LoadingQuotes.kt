@@ -1,6 +1,5 @@
 package com.chasel.ng2n.ui.topic
 
-/** 署名来自对应帖子的采集记录；不把年度精选的整理者当作作者。 */
 internal data class LoadingQuote(
   val text: String,
   val year: Int,
@@ -9,7 +8,6 @@ internal data class LoadingQuote(
   val authorSource: String? = null,
 )
 
-/** 2018～2025 年各年度前十，原仓库缺失两条，共 78 条。详见 docs/loading-quotes-sources.md。 */
 internal val loadingQuotes = listOf(
   LoadingQuote(
     text = "“太好了还有气！”王警官看着尸体手里的可乐高兴道。",
@@ -447,7 +445,6 @@ internal val loadingQuotes = listOf(
   ),
 )
 
-/** 保持近期优先，同时让所有已收录年份都有机会展示。 */
 internal fun pickLoadingQuote(random: kotlin.random.Random = kotlin.random.Random.Default): LoadingQuote {
   val year = when (random.nextInt(100)) {
     in 0..49 -> 2025

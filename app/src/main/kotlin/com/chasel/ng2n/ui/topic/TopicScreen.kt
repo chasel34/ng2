@@ -85,41 +85,12 @@ import kotlin.math.abs
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
-/** 楼层流与横滑翻页请求的刷新率(Hz)。120Hz 屏上把这两面钉在满帧档。 */
 private const val PAGER_FRAME_RATE = 120f
 
-/**
- * 详情页顶栏标题的截断宽度。设计稿给二级页标了两档(列表 150、详情 190),
- * RN 侧 `topic/[tid].tsx:871` 用的就是 190 —— 两边的截断点必须一样(票 39)。
- */
 private val TOPIC_TITLE_MAX_WIDTH = 190.dp
 
-/** 未实现功能的统一提示文案(RN 侧 `NOT_AVAILABLE_MESSAGE`)。 */
 const val NOT_AVAILABLE_MESSAGE: String = "本版本未开放"
 
-/**
- * 主题详情屏(CONTEXT.md:主题里的楼层流)。
- *
- * 翻页有三个入口 —— 顶部页码条、跳页对话框、左右滑动 —— 它们都只改
- * [TopicViewModel.page],所以三者天然一致;每页的渲染成品按页码常驻在 ViewModel,
- * 翻回去不会再打一次 `read.php`。
- *
- * ## 与 RN 版的结构差别(都是**拆补丁**,不是加功能)
- *
- * RN 版为了压住 JS 单线程的首帧成本挂了三层分帧补丁,这里**全部拆掉**
- * (票 11 Comments 票外 1 的决策):
- *
- * - `CONTENT_MOUNT_DELAY_MS`(转场期只画顶栏 + loading,列表壳等横推停稳再挂)——
- *   拆。Compose 的首帧成本在 UI 线程上,不与网络/解析抢同一根线程,而建模整个在
- *   `Dispatchers.Default`;转场期本来就没有重活可挂。
- * - `chromeReady`(页码条 / FAB / 浮条等第 2 帧)—— 拆。同上。
- * - `progressive.tsx` 的段级/楼级分帧(单张楼层卡 ~5.5ms、整页一帧 40ms+)—— 拆。
- *   `LazyColumn` 本来就只组合视口内的项,一帧不会挂 20 张卡。
- *
- * **挂钩**:票 19 真机若量到「起手冻结 > 1 丢帧」或「快甩有断续」,再按需加回
- * ——加的顺序是先看 `LazyColumn` 的 item 是否过重(把长楼层按段切成多个 item),
- * 而不是把 RN 那套 rAF 分帧照搬过来(Compose 没有那个问题的成因)。
- */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TopicScreen(key: TopicKey, nav: Navigator) {
@@ -131,7 +102,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
   val deps = rememberAppDeps()
   val settings = vm.settings
 
-  // 建模要的样式:配色与字号在 composition 里才知道,灌给 ViewModel;变了整页在后台重建
   LaunchedEffect(colors, textScale, settings.showSignature) {
     vm.applyStyle(
       TopicRenderStyle(
@@ -143,7 +113,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
     )
   }
 
-  // 退到后台也要把攒着的阅读进度落盘(RN 侧 AppState change 那一条)
   LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.flushReadFloor() }
   DisposableEffect(Unit) { onDispose { vm.flushReadFloor() } }
 
@@ -161,22 +130,11 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
   var menuOpen by remember { mutableStateOf(false) }
   var floorMenu by remember { mutableStateOf<FloorRenderItem?>(null) }
 
-  // 「收藏本帖」/ 楼层菜单「收藏」→「收藏到…」多选夹对话框(票 33)。
-  // 顶栏与楼层菜单打的是同一件事(把**这一帖**收进夹里,楼层菜单那条也不例外 ——
-  // NGA 的 `topic_favor_v2` 只收 tid,没有「收藏某一楼」),所以只有这一个状态位。
   var favorOpen by remember { mutableStateOf(false) }
-  /*
-   * 登录态是**三态**:还没从磁盘读到 / 游客 / 某个 uid(与 `ui/filters/FiltersScreen.kt`
-   * 同一条理由 —— 账号表是 DataStore,第一次发射必然晚于首帧)。少了「还没读到」这一档,
-   * 已登录用户在进屏头几帧点「收藏本帖」会吃到一句冤枉的「登录后才能收藏」。
-   */
   val accountsState: AccountsState? by deps.accounts.accounts
     .collectAsStateWithLifecycle(initialValue = null)
   val signedIn = accountsState?.let { currentAccountOf(it) != null }
-  // 游客态走与抽屉、版块收藏一致的「登录后才能收藏」+「去登录」提示条:
-  // 收藏接口对游客一律回「你必须先登录论坛」,这里先自己挡住并把登录页递到手边
   val openFavor = {
-    // 还没读到就先开:对话框自己等 uid,比闪一句错话强
     if (signedIn == false) showLoginPrompt(nav, "登录后才能收藏") else favorOpen = true
   }
 
@@ -189,8 +147,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
     FloorActions(
       onOpenImage = { floor, url ->
         val index = floor.images.indexOfFirst { it.url == url }
-        // 签名档里的图不算「本楼图片」,反查不到就单开一张,
-        // 别让查看器里冒出计数对不上的翻页
         val viewer = if (index >= 0) {
           ImageViewerKey(
             urls = floor.images.map { it.url },
@@ -207,7 +163,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
       },
       onOpenMenu = { floorMenu = it },
       onOpenProfile = { floor ->
-        // 资料屏归票 17,这里先 push 一个占位 key
         floor.profileUid?.let { nav.push(UserKey(uid = it, name = floor.displayName)) }
       },
       onOpenChain = { floor ->
@@ -221,7 +176,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
         tid.toLongOrNull()?.let { nav.push(TopicKey(tid = it)) }
       },
       onOpenFloorRef = { args ->
-        // `[pid=pid,tid,page]`:有 tid 就开那个主题的那一页,没有就在本帖定位
         val parts = args.split(",")
         val pid = parts.getOrNull(0)?.trim()?.toLongOrNull() ?: return@FloorActions
         val tid = parts.getOrNull(1)?.trim()?.toLongOrNull() ?: vm.tid
@@ -244,8 +198,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
     TopicTopBar(
       below = {
         PageBar(
-          // 高亮认横滑松手那一刻就先切过去的目标页(对齐原生 pager 的 onPageSelected 时机);
-          // 真正的数据/窗口挪动等停稳后的 onChange
           page = vm.pageInFlight ?: vm.page,
           totalPages = vm.totalPages,
           onPick = vm::goToPage,
@@ -256,18 +208,11 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
       TopBarButton(onClick = nav::pop, label = "返回", box = 46.dp) {
         BackArrowIcon(tint = colors.onTopbar)
       }
-      // 截断宽度 190 是设计稿给详情页标的那档(RN 侧 `topic/[tid].tsx` 的
-      // `maxWidth={190}`)—— 不用 weight(1f) 铺满剩余空间:两边的截断点得一样,
-      // 否则同一个帖子在两边显示成不同的标题(票 39)
       TopBarTitle(
         text = key.title ?: vm.currentModel?.subject ?: "主题 ${key.tid}",
         maxWidth = TOPIC_TITLE_MAX_WIDTH,
       )
-      // RN 侧「地球」那枚带 `topBarSpacer`(margin-left:auto),把右侧两枚推到底
       Spacer(Modifier.weight(1f))
-      // 「用网页版打开」= **站内**网页兜底屏(反封锁链链外第 6 步,票 22),
-      // 与版块页同一条路(`ui/board/BoardScreen.kt`)。跳系统浏览器等于把这一屏的
-      // cookie / UA 交给 Chrome 的 cookie 罐,登录态与反封锁的那套请求头全丢
       TopBarButton(
         onClick = { nav.push(webKey) },
         label = "用网页版打开",
@@ -279,8 +224,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
       }
     }
 
-    // 这一页不是原生接口直出的:要么是 Web 反解,要么是本机缓存还原 —— 都是反封锁链的
-    // 兜底档(ADR-0002)。钉在页码条下面而不是跟着列表滚:它说的是「整页数据的来源」
     val source = vm.source
     if (source != null && source != TopicSource.NATIVE && !vm.sourceNoticeDismissed) {
       SourceNoticeBar(source = source, onRetry = vm::retryNative, onDismiss = vm::dismissSourceNotice)
@@ -293,8 +236,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
     Box(Modifier.weight(1f)) {
       TopicPager(vm = vm, actions = actions, nav = nav)
 
-      // 「上次读到第 N 楼」浮层压在列表上方,不占布局。
-      // 只看某一楼/只看此人期间楼号是过滤后的口径,跳过去会落错地方,一律不放
       val resumeFloor = vm.resumeFloor
       if (resumeFloor != null && vm.onlyPid == null) {
         LastReadBanner(
@@ -334,7 +275,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
     onClose = { menuOpen = false },
   )
 
-  // 楼层菜单:弹出位置照设计稿 menuTop 的 300
   floorMenu?.let { floor ->
     OverflowMenu(
       open = true,
@@ -353,8 +293,6 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
 
   SignatureDialog(state = vm.signatureDialog, onClose = vm::closeSignature)
 
-  // 顶栏「收藏本帖」与楼层菜单「收藏」共用这一个(票 33)。只在开着时挂载,
-  // 所以进详情页不会白打一发 `list_folder`
   FavoriteFolderDialog(open = favorOpen, tid = vm.tid, onClose = { favorOpen = false })
 
   InputDialog(
@@ -371,36 +309,14 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
   )
 }
 
-/**
- * 横滑翻页。
- *
- * `HorizontalPager` + `beyondViewportPageCount = 1` 就是 RN 侧那套「相邻页预渲染」
- * 的原生对应物,而**速度连续的松手接管是免费的**(`research/inventory.md` §8:
- * RN 的收尾弹簧 stiffness 500 / damping 48 本来就是对拍原生 ViewPager 逐帧调出来的)。
- *
- * 两条纪律:
- *
- * 1. **翻页回调里不挂重渲染**:`targetPage`(松手定向那一刻就变)只喂页码条高亮,
- *    真正换数据等 `settledPage`;
- * 2. **子面板必须落在容器布局边界内**(`docs/perf-playbook.md` P1):这里全靠 Pager
- *    自己布局,没有「布局在外面再 transform 拉回来」的写法。
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TopicPager(vm: TopicViewModel, actions: FloorActions, nav: Navigator) {
-  // pageCount 必须装得下当前页,否则 `PagerState` 会把 `currentPage` 钳回 0,
-  // 紧接着 settledPage 把这一下回写成「用户翻到第 1 页」(票 20,见 [pagerPageCount])
   val pagerState = rememberPagerState(
     initialPage = (vm.page - 1).coerceAtLeast(0),
     pageCount = { pagerPageCount(vm.totalPages, vm.page) },
   )
 
-  // 外部换页(页码条 / 跳页 / 自动翻页)→ 把 pager 挪过去。
-  // **相邻页走动画**(票 57 二轮/三轮,见 [pageTurnFor]);跨页跳转仍是瞬时的。
-  //
-  // 三轮把「相不相邻」的依据从 `pagerState.currentPage` 换成**上一次呈现的 vm 页码**:
-  // 自动翻页/页码条永远只走 ±1,而 `currentPage` 是 pager 的内部量(横滑收尾、
-  // pageCount 变化都会动它),拿它当判据等于让「要不要动画」依赖一个我们不控制的值。
   var shownPage by remember { mutableIntStateOf(vm.page) }
   LaunchedEffect(vm.page) {
     val target = (vm.page - 1).coerceIn(0, pagerPageCount(vm.totalPages, vm.page) - 1)
@@ -412,8 +328,6 @@ private fun TopicPager(vm: TopicViewModel, actions: FloorActions, nav: Navigator
     shownPage = target + 1
     when (move) {
       PageTurn.NONE -> Unit
-      // withContext(FullMotion):见 [FullMotion] —— 这段动画是**内容连续性**,
-      // 不是装饰,不能被系统的「动画时长缩放」抹成一帧
       PageTurn.ANIMATE -> withContext(FullMotion) {
         pagerState.animateScrollToPage(
           page = target,
@@ -423,45 +337,31 @@ private fun TopicPager(vm: TopicViewModel, actions: FloorActions, nav: Navigator
       PageTurn.JUMP -> pagerState.scrollToPage(target)
     }
   }
-  // 横滑松手 → 停稳后才换数据
   LaunchedEffect(pagerState) {
     snapshotFlow { pagerState.settledPage }.collect { settled ->
       vm.goToPage(settled + 1)
     }
   }
-  // 松手定向的那一刻页码条先切过去(对齐原生 pager 的 onPageSelected 时机)
   LaunchedEffect(pagerState) {
     snapshotFlow { pagerState.targetPage }.collect { target ->
       vm.setPageInFlight(target + 1)
-      // 横滑松手就定向了,「上次读到」浮条不等 commit,当场淡出
       if (target + 1 != vm.page) vm.dismissResume()
     }
   }
 
   HorizontalPager(
     state = pagerState,
-    // 相邻页预渲染 —— 方案 A 的「无缝」靠它们真的画得出来
     beyondViewportPageCount = 1,
     snapPosition = SnapPosition.Start,
-    // 滚动面投 120Hz(stack-2026-08 §12 ⑤:`Modifier.preferredFrameRate`,
-    // Compose UI 1.12 起是正式 API)。窗口级还有 MainActivity 的 preferHighestRefreshRate 兜底
     modifier = Modifier.fillMaxSize().preferredFrameRate(PAGER_FRAME_RATE),
     key = { it },
   ) { index ->
     val page = index + 1
-    // 相邻页在屏外也要把数据备好(RN 侧「下一页顺手预取、上一页只读缓存」)
     LaunchedEffect(page) { if (page == vm.page) vm.ensureLoaded(page) }
     TopicPageView(vm = vm, page = page, live = page == vm.page, actions = actions, nav = nav)
   }
 }
 
-/**
- * 一块翻页面板。
- *
- * `live` 为真就是屏幕正中那一页(完整接线);否则是相邻页的预览:只画楼层 ——
- * 提示条、热门回复、下拉刷新、自动翻页说的都是「你正在看的这一页」,
- * 跟着预览一起滑出来是错的。预览也不给滚:纵向滚动只属于主动页。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopicPageView(
@@ -477,8 +377,6 @@ private fun TopicPageView(
     return
   }
   if (state is PageState.Failed) {
-    // 三个出路都要真的通:失败面板的兜底文案(`core/net/FetchDiagnostic.kt`)
-    // 就在往「用网页版打开」和「重新登录账号」上引导,点不动等于教人点死钮(票 21)
     LoadFailed(
       error = state.error,
       onRetry = { vm.refresh(page) },
@@ -496,37 +394,16 @@ private fun TopicPageView(
   val listState = rememberLazyListState()
 
   if (live) {
-    // 阅读进度:哪些楼在屏上由列表报,记「看到过的最高楼层」(只前进)
     ReadingProgressReporter(vm = vm, listState = listState, model = model)
-    // 「自动加载下一页」的到底判据
     EndReachedReporter(vm = vm, listState = listState, count = model.floors.size)
-    // 待兑现的跳楼目标(带楼号进场 / 「回到那里」)
-    //
-    // **key 里绝不能有 `vm.scrollTarget`**(票 34):`consumeScrollTarget()` 改的就是
-    // 这个 key,下一帧重组时旧协程被取消、新协程以 `scrollTarget == null` 立刻返回 ——
-    // 滚动挂起函数活不过一帧,于是四条带楼号的入口页码全对、楼层一个都不到。
-    // 收进 `snapshotFlow` 之后,消费与滚动都不再动这条协程的生死。
     LaunchedEffect(listState, page) {
       snapshotFlow { vm.scrollTarget }.collect { target ->
         if (target == null || target.page != page) return@collect
-        // 数据到位只是一半:列表这一帧还没量出来时滚了是空转(`layoutInfo` 是空的),
-        // 等目标那一格真的 compose 出来再滚
         snapshotFlow { listState.layoutInfo.totalItemsCount }.first { it > target.listIndex }
         vm.consumeScrollTarget()
-        // 瞬时 `scrollToItem` 而不是 `animateScrollToItem`:动画型滚动要占着
-        // `MutatePriority.Default` 好几百毫秒,期间被下拉刷新 / pager 收尾 / 手指
-        // 抢走就停在半路,而这条路径的验收判据是「目标楼落到视口顶部」。
-        // RN 侧用 `scrollToIndex` + 700ms 补一脚是因为 LegendList 按估高滚会短滚,
-        // Compose 的 snap 本身就是精确的,不需要那一脚。
         listState.scrollToItem(target.listIndex)
       }
     }
-    // 手指一拖就把「上次读到」浮层淡掉:它盖在楼层上,用户开始读了就该让路。
-    //
-    // 接的是**拖拽交互**而不是 `isScrollInProgress`(票 34 顺带一处):后者连
-    // 程序化滚动一起认,跳楼落到页尾那一下会顺手把 `userScrolled` 点亮,
-    // 而 [TopicViewModel.onReachedEnd] 明写着「程序化滚动不算」—— 跳楼刚定位好的楼
-    // 会被自动翻页直接翻走。RN 侧接的就是 `onScrollBeginDrag`。
     LaunchedEffect(listState) {
       listState.interactionSource.interactions.collect { interaction ->
         if (interaction is DragInteraction.Start) {
@@ -548,7 +425,6 @@ private fun TopicPageView(
   }
 
   if (live) {
-    // 翻页时不该亮下拉转圈 —— 只有真正在刷新当前这一页时才亮
     var refreshing by remember { mutableStateOf(false) }
     LaunchedEffect(state) { refreshing = false }
     ListPullToRefreshBox(
@@ -584,7 +460,6 @@ private fun FloorList(
       item(key = ListKeys.HEADER, contentType = "header") {
         Column {
           vm.onlyUser?.let { OnlyUserBar(name = it.name, onExit = vm::exitOnlyUser) }
-          // 热门回复是服务端在主楼里标的,只有第 1 页拿得到
           if (model.hotReplies.isNotEmpty()) {
             HotRepliesSection(count = model.hotReplies.size) {
               model.hotReplies.forEach { floor ->
@@ -606,7 +481,6 @@ private fun FloorList(
     items(
       items = model.floors,
       key = { it.pid },
-      // 折叠行只有一行高、楼层卡动辄大半屏,混进同一个回收池会让列表反复重量
       contentType = { if (vm.blockedRuleOf(it) == null) "floor" else "blocked" },
     ) { floor ->
       val rule = vm.blockedRuleOf(floor)
@@ -624,19 +498,12 @@ private fun FloorList(
       }
     }
 
-    // 设计稿在列表末尾留 90 给 FAB 让路
     item(key = ListKeys.FOOTER, contentType = "footer") {
       Box(Modifier.height(90.dp + bottomInset))
     }
   }
 }
 
-/**
- * 阅读进度上报。RN 侧是 `onViewableItemsChanged` + `itemVisiblePercentThreshold: 20`;
- * Compose 这边同一个口径:可见高度 ≥ 20% 的项才算「看到了」。
- *
- * 只前进的判断与 1s 节流批刷都在票 14 的 `ReadFloorThrottle` 里,这里只报数。
- */
 @Composable
 private fun ReadingProgressReporter(
   vm: TopicViewModel,
@@ -662,10 +529,8 @@ private fun ReadingProgressReporter(
   }
 }
 
-/** RN 侧 `viewabilityConfig.itemVisiblePercentThreshold: 20`。 */
 private const val VIEWABLE_THRESHOLD = 0.20f
 
-/** 「自动加载下一页」的到底判据(RN 侧 `onEndReachedThreshold: 0.4`)。 */
 @Composable
 private fun EndReachedReporter(vm: TopicViewModel, listState: LazyListState, count: Int) {
   val reached by remember(listState, count) {
@@ -682,104 +547,29 @@ private fun EndReachedReporter(vm: TopicViewModel, listState: LazyListState, cou
   LaunchedEffect(reached) { if (reached) vm.onReachedEnd() }
 }
 
-/**
- * 到底了、可以翻下一页了吗。
- *
- * 「末尾那一项(footer)进视口」是到底判据;**[scrolling] 这一条是票 57 加的**:
- * `vm.onReachedEnd()` 走的是 [TopicViewModel.goToPage] → `pagerState.scrollToPage()`,
- * 那是一次**瞬时**换页 —— 新的一页是另一棵子树、另一个 `LazyListState`,偏移从 0 开始。
- * footer 只要露头就翻的话,快甩时这一发落在 fling 中段:纵向动量当场丢光,视口跳到
- * 新页顶部,再叠上新页楼层的组合与图片解码,真机上就是「滚着滚着停 0.4~0.5s」
- * (票 57 楼层流 fixed-2:2.60s 页码条还在 4,2.90s 已经是 5,中间约 0.43s 静止)。
- *
- * 等这一把滚停了再翻,fling 能完整跑到本页页尾,换页发生在静止态 —— 内容一样自动来,
- * 但不会从中间掐断速度。手指还按着(`isScrollInProgress` 也为真)时同理:抬手落定再翻。
- */
 fun shouldTurnPageAtEnd(lastVisibleIndex: Int, totalItemsCount: Int, scrolling: Boolean): Boolean =
   !scrolling && totalItemsCount > 0 && lastVisibleIndex >= totalItemsCount - 1
 
-/**
- * 这一次换页要不要走动画。
- *
- * **票 57 二轮**:一轮把「到底翻页」挪到静止态之后,富 trace(`t57-rich-floor.pb`)
- * 显示 page 3→4 只剩**一个 18.921ms 的组合帧**,之后 UI 与 RenderThread 双双睡到
- * 下一次 ACTION_DOWN —— app surface 整整 353.979ms 没有新帧,录屏侧记为 265.9ms
- * 「无新内容帧」,正是验收 C1 的第二条闸。`scrollToPage` 是瞬时换页:它自己不产帧,
- * 新的一页又是静止画面,于是「翻页」在时间轴上是一个点而不是一段。
- *
- * 相邻页改走 `animateScrollToPage`(220ms,与设计稿横滑回弹同一档
- * [Motion.DURATION_PANEL] / [Motion.easeDecelerate]),那 220ms 里 pager 每帧都在推进
- * 横向偏移 —— 空洞被真实运动填掉,而且这是 `MutatePriority.Default` 的动画,
- * 手指一按就被 `UserInput` 抢走,不会和横滑打架。
- *
- * **跨页跳转不能动画**:页码条/跳页从第 3 页跳到第 30 页,动画会把中间 27 页一路扫过去
- * (每一页都是一棵要组合的子树),那才是真的卡。所以只有 ±1 走动画。
- */
 fun shouldAnimatePageTurn(fromPage: Int, toPage: Int): Boolean = abs(toPage - fromPage) == 1
 
-/** 这一次换页要怎么落到 pager 上。 */
 enum class PageTurn {
-  /** pager 已经停在目标页(横滑自己走完的那一类):别再滚一次。 */
   NONE,
 
-  /** 相邻页:220ms 横向动画,把翻页从「一个点」摊成「一段」。 */
   ANIMATE,
 
-  /** 跨页跳转:瞬时,不能让动画把中间几十棵子树一路扫过去。 */
   JUMP,
 }
 
-/**
- * 换页动作的判据,票 57 三轮从接线里抠出来的纯函数。
- *
- * 二轮把 `shouldAnimatePageTurn(pagerState.currentPage, target)` 直接写在
- * `LaunchedEffect` 里,复验(`acceptance/perf/t57-floor-r2-phase.csv`)的结果是:
- * 2.522s 纵向 fling 撞到本页页尾、2.555s 新页已经整页出现、**接着 184.0ms 一帧没有** ——
- * 从撞墙到换完只用了 33ms(约 4 帧),说明那条 `!scrolling → onReachedEnd → goToPage →
- * LaunchedEffect` 的链子跑得很快,唯独**那 220ms 的动画一帧都没画**。
- *
- * 换页只可能走两条路:`animateScrollToPage` 被当场跑完(时长被缩成 0),
- * 或者判据取到的 `from` 不是 `target - 1` 因而落进了 `scrollToPage`。三轮把两条一起堵上:
- *
- * - `from` 改用**上一次呈现给用户的页码**(自动翻页/页码条恒定 ±1),不再依赖 pager 内部量;
- * - 动画那一支套 [FullMotion],不吃系统动画时长缩放(见那里的注释)。
- *
- * @param fromPage 上一次呈现给用户的页(1 基)
- * @param toPage 这次要去的页(1 基)
- * @param pagerPage pager 这一刻停在的页(1 基)
- */
 fun pageTurnFor(fromPage: Int, toPage: Int, pagerPage: Int): PageTurn = when {
   pagerPage == toPage -> PageTurn.NONE
   shouldAnimatePageTurn(fromPage, toPage) -> PageTurn.ANIMATE
   else -> PageTurn.JUMP
 }
 
-/**
- * 让一段动画**不吃**系统的「动画时长缩放」(开发者选项 / 省电模式 / 无障碍「移除动画」)。
- *
- * Compose 的每一个 `tween`/`spring` 都会读协程上下文里的 `MotionDurationScale`;
- * 平台把 `animator_duration_scale` 调到 0 时 `scaleFactor` 就是 0,动画**当场跑完**——
- * 观感上等价于 `scrollToPage`,而票 57 楼层流那 184ms 空洞正是这个形状
- * (撞墙 → 33ms → 新页整页出现 → 一帧不画)。
- *
- * 这里只给**翻页滚动**开这个口子,理由与平台自己的口径一致:
- * `RecyclerView.smoothScrollToPosition` / `ViewPager2.setCurrentItem(true)` 走的是
- * `Scroller` 而不是 `ValueAnimator`,本来就不吃这个缩放 —— 它们是内容连续性,不是装饰。
- * 弹窗、FAB、抽屉那些装饰动画一律照旧尊重系统设置。
- *
- * 可证伪:真机上 `adb shell settings get global animator_duration_scale` 若为 0,
- * 二轮那版翻页动画必然一帧不画;此改动之后无论该值是多少都应有约 220ms 的横向运动帧。
- */
 private object FullMotion : MotionDurationScale {
   override val scaleFactor: Float get() = 1f
 }
 
-/**
- * FAB 及其展开菜单(设计稿 isArticle 256 / 261 行:动作列走 omup `.18s`,
- * FAB 自己的 `add` 转 45° 变成 `×`,`.2s`)。
- *
- * 左手模式下 FAB 与动作列整体镜像到左下角。
- */
 @Composable
 private fun TopicFab(leftHanded: Boolean, onRefresh: () -> Unit, onReply: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -807,7 +597,6 @@ private fun TopicFab(leftHanded: Boolean, onRefresh: () -> Unit, onReply: () -> 
         horizontalAlignment = if (leftHanded) Alignment.Start else Alignment.End,
         verticalArrangement = Arrangement.spacedBy(10.dp),
       ) {
-        // 回帖是 v1 排除项(spec §一.2),入口保留
         FabItem(label = "回复") {
           open = false
           onReply()
@@ -829,7 +618,6 @@ private fun TopicFab(leftHanded: Boolean, onRefresh: () -> Unit, onReply: () -> 
         .semantics { contentDescription = if (open) "收起操作" else "展开操作" },
       contentAlignment = Alignment.Center,
     ) {
-      // 设计稿是同一枚 add 转 45° 变成 ×,不是换字形
       Box(Modifier.graphicsLayer { rotationZ = spin.value * 45f }) {
         PlusIcon(tint = colors.onFab)
       }
@@ -855,10 +643,6 @@ private fun FabItem(label: String, onClick: () -> Unit) {
   }
 }
 
-/**
- * 顶栏「更多」菜单,条目与顺序照设计稿 `MENUS.article`。
- * 「缓存整帖」是设计稿没画的一条(票面要求),挨着「缓存本页」放。
- */
 private fun topicMenuItems(
   vm: TopicViewModel,
   onClose: () -> Unit,
@@ -867,7 +651,6 @@ private fun topicMenuItems(
   notAvailable: () -> Unit,
   nav: Navigator,
 ): List<MenuItem> {
-  // 点哪一条都先收起菜单,免得动作做完了菜单还盖在上面
   fun pick(run: () -> Unit): () -> Unit = {
     onClose()
     run()
@@ -883,12 +666,6 @@ private fun topicMenuItems(
   )
 }
 
-/**
- * 楼层菜单,条目与顺序照设计稿 `MENUS.floor`(分组线在「只看此人」前)。
- *
- * 设计稿里还有「支持/反对」两条,这里不放:同一张卡片上方就是 👍/👎 两个钮,
- * 打的是同一个动作 —— 菜单只留卡片上没有的入口。
- */
 private fun floorMenuItems(
   vm: TopicViewModel,
   floor: FloorRenderItem,
@@ -904,27 +681,17 @@ private fun floorMenuItems(
     MenuItem("note", "贴条", onClick = pick(notAvailable)),
     MenuItem("report", "举报", onClick = pick(notAvailable)),
     MenuItem("sign", "查看签名", onClick = pick { vm.openSignature(floor) }),
-    // 楼层菜单的「收藏」收的也是**整帖**:`topic_favor_v2` 只收 tid,没有「收藏某一楼」
     MenuItem("favor", "收藏", onClick = pick(onFavor)),
     MenuItem("only-user", "只看此人", gapBefore = true, onClick = pick { vm.enterOnlyUser(floor) }),
     MenuItem("block", "屏蔽此人", onClick = pick { vm.blockAuthor(floor) }),
   )
 }
 
-/** 「用网页版打开」的网页地址。域名走设置里选的那个 —— 原生被封往往是整个域名被封。 */
 internal fun webUrlOf(tid: Long, page: Int, favCode: String?, host: String): String {
   val fav = if (favCode == null) "" else "&fav=$favCode"
   return "$host/read.php?tid=$tid&page=$page$fav"
 }
 
-/**
- * 「用网页版打开」落到的**站内**兜底屏(票 21 / 票 22)。
- *
- * 顶栏那颗地球钮与失败面板上的同名按钮说的是同一件事,所以只有这一处在造键:
- * 两边各写一遍,迟早会像票 22 那样一边进站内、一边跳系统浏览器。
- *
- * 标题优先用键上带的(列表页点进来时就有),没有再退到这一帖真正的标题。
- */
 internal fun topicWebKey(key: TopicKey, page: Int, host: String, subject: String? = null): WebKey =
   WebKey(
     url = webUrlOf(key.tid, page, key.fav, host),

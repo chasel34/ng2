@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Perfetto FrameTimeline 的 C8 单峰/双峰分析（票 56）。
+"""按 display_frame_token 关联应用帧与显示帧，检测相差一个 vsync 的延迟簇。
 
-Android 16 的 ``actual_frame_timeline_slice`` 不直接暴露 SurfaceFrame 的
-``lastLatchTime``。本脚本把 app surface frame 通过 ``display_frame_token`` 配到
-actual display frame，使用 display slice 的 ``dur``（SurfaceFlinger actual frame
-start → present）判断是否存在相差一个 vsync 的两簇。它不是 app surface slice 的
-``dur``，后者只到 buffer ready/acquire fence，不能冒充 latch2present。
-"""
+使用显示帧从开始到呈现的时长；应用 surface 帧仅计到 buffer ready，不能替代。"""
 
 import argparse
 from collections import Counter
@@ -16,16 +11,13 @@ import sys
 
 try:
     from perfetto.trace_processor import TraceProcessor
-except ImportError:  # pragma: no cover - 环境提示
+except ImportError:
     TraceProcessor = None
-
 
 def sql_quote(value):
     return "'" + value.replace("'", "''") + "'"
 
-
 def classify(durations_ms, vsync_ms, min_secondary=0.05):
-    """按相差一档 vsync 的低/高延迟簇裁为 single/double。"""
     split = 1.6 * vsync_ms
     ceiling = 2.7 * vsync_ms
     low = [v for v in durations_ms if 0.5 * vsync_ms <= v < split]
@@ -42,17 +34,14 @@ def classify(durations_ms, vsync_ms, min_secondary=0.05):
         verdict = "indeterminate"
     return verdict, low, high, other, split, ceiling
 
-
 def infer_vsync_ms(presents_ns):
     deltas = [(b - a) / 1e6 for a, b in zip(presents_ns, presents_ns[1:])]
     plausible = [v for v in deltas if 3.0 <= v <= 25.0]
     if not plausible:
         raise ValueError("没有可用的相邻 present 时间，使用 --vsync-ms 显式指定")
-    # app 静止/跳帧会产生 16/24ms 倍频；下半部中位数稳定落在物理 vsync。
     plausible.sort()
     lower = plausible[: max(3, (len(plausible) + 1) // 2)]
     return float(median(lower))
-
 
 def selftest():
     assert classify([9.8] * 95 + [18.1] * 5, 8.33)[0] == "double"
@@ -60,7 +49,6 @@ def selftest():
     assert classify([18.1] * 99 + [22.0], 8.33)[0] == "single-high"
     assert abs(infer_vsync_ms([0, 8_330_000, 16_660_000, 33_320_000]) - 8.33) < 0.01
     print("selftest: ok")
-
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
@@ -166,7 +154,6 @@ def main():
         "indeterminate": "无法裁决：样本未形成稳定单峰或一档 vsync 双峰",
     }
     print(f"  裁决: {labels[verdict]}")
-
 
 if __name__ == "__main__":
     main()

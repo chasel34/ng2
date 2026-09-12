@@ -69,18 +69,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
-/**
- * 查看器的进场参数(RN 侧走模块级暂存 `stageImageViewer`,原生这边直接进 Nav3 的 key)。
- *
- * @param urls 本楼的全部**原图**地址,按正文 → 附件宫格的出现顺序
- * @param index 点开的那张在列表里的下标
- * @param thumbnailUrls 与 [urls] 一一对应的缩略图地址;站外图床没有这套约定时给空串。
- *   整体为空表示这批图都没有缩略图变体。
- *
- * RN 侧不敢把几十条 URL 塞进路由参数(expo-router 会把它们序列化进导航状态还得转义),
- * 所以绕了个模块级暂存。Nav3 的 back stack 本来就是一串 `@Serializable` 的 key,
- * 没有这个顾虑 —— 顺带把「深链直开拿不到暂存」那条兜底路径也消掉了。
- */
 @Serializable
 data class ImageViewerKey(
   val urls: List<String>,
@@ -91,26 +79,6 @@ data class ImageViewerKey(
     thumbnailUrls.getOrNull(position)?.takeIf { it.isNotEmpty() && it != urls.getOrNull(position) }
 }
 
-/**
- * 大图查看器。
- *
- * 顶栏照 RN 版:返回箭头、「2 / 3」计数、保存、分享、菜单;菜单五条
- * (保存到相册 / 复制图片地址 / 查看原图 / 在浏览器中打开 /(隔一档)下载全部)。
- *
- * 手势见 [detectViewerTransform] 与 [ZoomState]:双指缩放、双击 2.5×、
- * 同一 Pan 按缩放拆「拖页 / 拖图」两路、边界回弹。
- *
- * **对 RN 版的有意偏离**:翻页交给 `HorizontalPager`,不再自己算位移阈值/速度阈值与
- * 页边回弹。`research/inventory.md` §8 就是这么记的 ——「RN 的收尾弹簧
- * stiffness 500/damping 48 是对拍原生 ViewPager 逐帧调出来的,Kotlin 用 Pager 免费获得」。
- * 图自己的边界回弹(阻尼 0.55 / 220ms)仍是手写,那一条 Pager 给不了。
- *
- * **配色(票 44)**:页面底 `bg`、顶栏 `topbar` + `onTopbar`,跟主题风格与夜间档走。
- * 这一屏一度是「纯黑看图态」,但 RN 侧 HEAD 从来不是那样
- * (`src/app/image-viewer.tsx` 的 `root.backgroundColor: theme.colors.bg`),
- * 纯黑是偏离不是设计。顶栏也从这屏自己那份换成全 app 那套 [TopBar]:
- * 高度 54(原来 52)、安全区与底色都由它统一撑。
- */
 @Composable
 fun ImageViewerScreen(
   key: ImageViewerKey,
@@ -153,14 +121,11 @@ fun ImageViewerScreen(
   val settings by pipeline.settings.collectAsStateWithLifecycle()
   val metered by pipeline.metered.collectAsStateWithLifecycle()
 
-  // 「查看原图」点过的页(省流量档时查看器默认也只拉缩略图)
   val forcedOriginal = remember { mutableListOf<Int>().toMutableStateList() }
   var menuOpen by remember { mutableStateOf(false) }
-  // 批量下载一次只跑一趟;跑着的时候再点只提示
   var batchRunning by remember { mutableStateOf(false) }
 
   val zoom = remember { ZoomState() }
-  // 换页兜底重置缩放(翻页只能在原始大小下发生,这是防御而不是路径)
   LaunchedEffect(pagerState) {
     snapshotFlow { pagerState.settledPage }.collect { zoom.reset(animated = false) }
   }
@@ -228,12 +193,8 @@ fun ImageViewerScreen(
     )
     HorizontalPager(
       state = pagerState,
-      // 只挂当前页与两侧邻页,几十张的楼不至于一进来全拉原图(RN 侧 ±1 判断同)
       beyondViewportPageCount = 1,
-      // 放大之后单指拖的是图不是页:这条与手势里的分流是同一件事的两半
       userScrollEnabled = !zoomed,
-      // 顶栏在流里(RN 侧同),图占的是顶栏**下面**那块 —— Column 里给非加权子项的
-      // 竖向约束是无界的,这里必须 weight 而不是 fillMaxSize,否则量不出高度
       modifier = Modifier.weight(1f).fillMaxWidth(),
     ) { page ->
       val plan = ImagePolicy.resolveViewer(
@@ -253,7 +214,6 @@ fun ImageViewerScreen(
   }
 }
 
-/** 顶栏保存钮与菜单「保存到相册」共用(RN 侧 `doDownload` 的 toast 文案)。 */
 private suspend fun saveCurrent(context: Context, saver: ImageSaver, url: String) {
   toast(context, "正在保存…")
   runCatching { saver.saveToAlbum(url) }
@@ -267,7 +227,6 @@ private suspend fun saveCurrent(context: Context, saver: ImageSaver, url: String
     .onFailure { toast(context, failureMessage(it)) }
 }
 
-/** 系统分享分享图片文件本体;失败(下载不动)退回复制地址,总不能什么都不给。 */
 private suspend fun shareCurrent(context: Context, saver: ImageSaver, url: String) {
   runCatching { context.startActivity(saver.shareIntent(url)) }
     .onFailure {
@@ -294,12 +253,6 @@ private fun toast(context: Context, text: String) {
   Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
 }
 
-/**
- * 一页。
- *
- * `zoom == null` 表示这是邻页:不挂变换、也不吃手势 —— 与 RN 侧
- * `zoomStyle={i === index ? zoomStyle : undefined}` 同。
- */
 @Composable
 private fun ViewerPage(
   url: String,
@@ -352,7 +305,6 @@ private fun ViewerPage(
         ?: panBounds(viewport.width.toFloat(), viewport.height.toFloat(), imageAspect, 1f).y
     }
 
-    // 原图在路上时先糊着看缩略图(通常已有磁盘/内存缓存)
     if (placeholderUrl != null && loading) {
       AsyncImage(
         model = placeholderUrl,
@@ -372,27 +324,11 @@ private fun ViewerPage(
     AsyncImage(
       model = ImageRequest.Builder(context)
         .data(url)
-        // 解码也按视口宽度取样，避免把长图先缩成细条再放大导致文字模糊。
         .apply {
           if (viewport.width > 0) {
             size(coil3.size.Dimension(viewport.width), coil3.size.Dimension.Undefined)
           }
         }
-        /*
-         * 这里**故意关掉内存缓存**,和正文图/头像那几处不一样。
-         *
-         * 查看器按屏宽解码，长图可能高于一屏。Coil 的内存缓存是整个 ImageLoader 共用的一个池,
-         * 放进去几张就能把它挤空 —— 被挤掉的正是头像和缩略图,也就是我们刚决定
-         * 要留在内存里的东西(RN 侧同一处决定,`image-gallery.tsx:294-313`,
-         * 那边写的是 Glide 的 LruResourceCache,机理一样)。
-         *
-         * 换来的好处又很小:同时只挂当前页与两侧邻页,活着的三张本来就被视图持有;
-         * 真正靠内存缓存省的只有「翻出 ±1 窗口再翻回来」那一次,而那一次已经有
-         * 缩略图占位先糊着看,底下只是一次本地磁盘读。
-         *
-         * 再加上走查 P2 记的「看完 20 帖 PSS 174→289MB 不回落」,更不该往这个池子里
-         * 塞整屏位图。
-         */
         .memoryCachePolicy(CachePolicy.DISABLED)
         .diskCachePolicy(CachePolicy.ENABLED)
         .crossfade(ImageModule.CROSSFADE_MS)
@@ -411,7 +347,6 @@ private fun ViewerPage(
     )
 
     if (loading && placeholderUrl == null) {
-      // RN 侧 `image-gallery.tsx` 给的 spinnerColor 就是 primary,不是白
       CircularProgressIndicator(color = LocalNg2nColors.current.primary)
     }
   }
@@ -423,16 +358,8 @@ data class ViewerMenuItem(
   val onClick: () -> Unit,
 )
 
-/** 设计稿给这一屏的顶栏内距(RN 侧 `paddingHorizontal={4}`)。 */
 private val VIEWER_BAR_PADDING = 4.dp
 
-/**
- * 这一屏的根:主题底 + 竖排(顶栏在流里,图占下面那块)。
- *
- * RN 侧 `image-viewer.tsx` 的 `root` 就是这样 —— 顶栏不是浮在图上的遮罩,
- * 它把可视区往下压一截。原生这边原来是「整屏黑 + 顶栏 align TopCenter 浮着」,
- * 底色与可视区两处都跟基准对不上(票 44)。
- */
 @Composable
 private fun ViewerRoot(
   colors: Ng2nColors,
@@ -447,10 +374,6 @@ private fun ViewerRoot(
   )
 }
 
-/**
- * 查看器顶栏。壳走全 app 那套 [TopBar](底色 `topbar`、高 54、自己撑安全区),
- * 里头的图标仍是本屏手画的那四枚(字形归票 40)。
- */
 @Composable
 private fun ViewerTopBar(
   colors: Ng2nColors,
@@ -466,7 +389,6 @@ private fun ViewerTopBar(
     IconSlot(size = 46.dp, onClick = onBack, description = "返回") {
       BackIcon(colors.onTopbar, 24.dp)
     }
-    // 设计稿:计数 18/500、左距 8、字距 .5,顶栏前景色
     Text(
       text = counter,
       color = colors.onTopbar,
@@ -504,10 +426,6 @@ private fun ViewerTopBar(
   }
 }
 
-/**
- * 顶栏的一个点按区。`contentDescription` 不只是无障碍:模拟器手验靠 uiautomator
- * 按 content-desc 找钮(票 12 验收①),没有它就只能盲点坐标。
- */
 @Composable
 private fun IconSlot(
   size: Dp,

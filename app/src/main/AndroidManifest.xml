@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 权限对齐 RN 版:先不带 SYSTEM_ALERT_WINDOW,观察是否真的需要。 -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!--
-      票 12:计费网络判定(「仅 Wi-Fi 下加载图片」/「图片加载策略」的 smart 档)要读
-      ConnectivityManager。少了它 `getActiveNetwork()` 直接抛 SecurityException —— 骨架期
-      没人碰网络所以一直没暴露,票 12 首次装包就崩在 Application 里(2026-08-22 模拟器实测)。
-      RN 版由 expo-network 自动合并进 manifest,原生这边要自己写。
-    -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
@@ -24,12 +17,6 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.NG2N">
 
-        <!--
-          release 包默认不吐 atrace 标记,Perfetto 里只能看到系统侧时间线;加上它之后
-          `adb shell perfetto` 能拿到应用内切片(RenderThread 的 queueBuffer、Compose 的
-          recompose 等),120Hz 队列振荡这类问题全靠这些定位(2026-08-15 帧流水线排查)。
-          只对 shell(即 adb)开放。性能纪律优先于审计 P3-01 的收紧建议 —— 票 19 要用。
-        -->
         <profileable android:shell="true" />
 
         <activity
@@ -53,13 +40,6 @@
                 <data android:scheme="ng2n" />
             </intent-filter>
 
-            <!--
-              NGA 域名接管(2026-09-01,RN 版退役后并行期结束)。域名与路径面照抄
-              RN 侧 app.json 的 intentFilters:帖子(read.php)与版块(thread.php)。
-              不开 autoVerify:NGA 不会给第三方客户端挂 assetlinks.json,
-              这里只求出现在「用应用打开」的候选里。链接 → 导航键的映射在
-              `ui/nav/DeepLinkKeys.kt`(与抽屉「由 URL 读取」同一张表)。
-            -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -76,10 +56,6 @@
             </intent-filter>
         </activity>
 
-        <!--
-          票 12:系统分享要 content:// URI 才肯收文件。只暴露图片下载中转目录
-          (res/xml/file_paths.xml),不开整个 cacheDir。
-        -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

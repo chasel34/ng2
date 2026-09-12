@@ -29,25 +29,12 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * [TopicViewModel] 的行为。全套依赖走内存假件(见 [FakeTopicDeps]),纯 JVM。
- *
- * `viewModelScope` 挂在 `Dispatchers.Main` 上,所以要 `Dispatchers.setMain`
- * 把它换成测试调度器 —— 不换的话 Android 的 Main looper 在 JVM 上不存在。
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TopicViewModelTest {
 
   private val dispatcher = StandardTestDispatcher()
   private val store = ViewModelStore()
 
-  /**
-   * 「全 app 一个的 IO scope」的替身。
-   *
-   * 不用 `runTest` 的 `backgroundScope`:那个 scope 里的协程不保证被
-   * `advanceUntilIdle()` 推到底(实测阅读进度的落盘协程一直不跑),
-   * 自己建一个挂在测试调度器上的最稳。
-   */
   private lateinit var appScope: CoroutineScope
 
   @Before
@@ -58,14 +45,11 @@ class TopicViewModelTest {
 
   @After
   fun tearDown() {
-    // 先 clear 再 resetMain:viewModelScope 里那条 settings.collect 永不结束,
-    // 不清掉的话它会在下一个用例里被已经关掉的 Main 调度器唤醒,抛出去污染那一条
     store.clear()
     appScope.cancel()
     Dispatchers.resetMain()
   }
 
-  /** 建一个由 [store] 托管的 ViewModel(单测里唯一造 VM 的口子)。 */
   private fun viewModel(key: TopicKey, fakes: FakeTopicDeps): TopicViewModel {
     val factory = object : ViewModelProvider.Factory {
       @Suppress("UNCHECKED_CAST")
@@ -97,7 +81,6 @@ class TopicViewModelTest {
     assertEquals(3, vm.totalPages)
     assertNotNull(vm.currentModel)
     assertEquals(3, vm.currentModel!!.floors.size)
-    // 第 1 页 + 预取的第 2 页,一共两发;**没有**第 0 页
     val pages = transport.requests.map { it.url.substringAfter("page=").substringBefore("&") }
     assertEquals(listOf("1", "2"), pages)
   }
@@ -112,13 +95,11 @@ class TopicViewModelTest {
 
     vm.goToPage(2)
     assertEquals(2, vm.page)
-    // 页码条/横滑一律夹逼
     vm.goToPage(99)
     assertEquals(3, vm.page)
     vm.goToPage(0)
     assertEquals(1, vm.page)
 
-    // 跳页超范围不动页码,只给一句提示
     vm.jumpTo("999")
     assertEquals(1, vm.page)
     assertEquals("请输入 1 – 3 之间的页码", vm.toast.value?.text)
@@ -158,7 +139,6 @@ class TopicViewModelTest {
     advanceUntilIdle()
     assertEquals(5, fakes.historyDao.find(45150945)?.lastFloor)
 
-    // 往回翻不该把进度拉回去
     vm.reportVisibleFloor(2)
     vm.flushReadFloor()
     advanceUntilIdle()
@@ -169,7 +149,6 @@ class TopicViewModelTest {
     advanceUntilIdle()
     assertEquals(9, fakes.historyDao.find(45150945)?.lastFloor)
 
-    // 只看此人期间楼号是过滤后的口径,写进去会串档
     vm.enterOnlyUser(vm.currentModel!!.floors[1])
     advanceUntilIdle()
     assertTrue(vm.progressPaused)
@@ -223,7 +202,6 @@ class TopicViewModelTest {
   fun `屏蔽规则在数据层一次算完 楼层卡只查表 点开就不再折`() = runTest(dispatcher) {
     val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
     val fakes = FakeTopicDeps(client, appScope, dispatcher)
-    // 先落一条关键词规则,再开屏
     fakes.settingsStore.updateFilterRules {
       listOf(
         createFilterRule(FilterRuleInput(FilterRuleKind.KEYWORD, "关键词"), 0).toStoredRule(),
@@ -266,7 +244,6 @@ class TopicViewModelTest {
     snack.action!!.invoke()
     advanceUntilIdle()
     assertNull(vm.blockedRuleOf(target), "撤销之后不再折")
-    // 票 25:现场是「提示条消失了、规则还在盘上」,所以这里必须查盘而不是只查折叠状态
     assertEquals(
       emptyList(),
       fakes.settingsStore.localFilterRules.first(),
@@ -287,8 +264,6 @@ class TopicViewModelTest {
     val snack = assertNotNull(vm.snackbar.value)
     assertEquals(1, fakes.settingsStore.localFilterRules.first().size)
 
-    // 提示条本来就设计成「发起它的页面退场之后还活着」:退场之后点撤销仍要生效。
-    // 挂 viewModelScope 时这里是一句 no-op —— 往已取消的 scope 上 launch 不抛也不跑
     store.clear()
     snack.action!!.invoke()
     advanceUntilIdle()
@@ -348,7 +323,6 @@ class TopicViewModelTest {
     }
     val fakes = FakeTopicDeps(client, appScope, dispatcher)
     val vm = viewModel(TopicKey(tid = 45150945, floor = 21), fakes)
-    // 21 楼 / 每页 20 → 第 2 页
     assertEquals(2, vm.page)
 
     vm.applyStyle(TopicFixtures.STYLE)
@@ -371,7 +345,6 @@ class TopicViewModelTest {
     advanceUntilIdle()
     assertNull(first.resumeFloor, "主楼都没读过就不打扰")
 
-    // 攒一条阅读进度,再开一次同一个主题
     first.reportVisibleFloor(7)
     first.flushReadFloor()
     advanceUntilIdle()
@@ -384,7 +357,6 @@ class TopicViewModelTest {
 
     second.dismissResume()
     assertTrue(!second.resumeVisible)
-    // 「消失」= 「我知道了」,翻回来也不该再冒出来
     second.goToPage(2)
     advanceUntilIdle()
     second.goToPage(1)
@@ -446,7 +418,6 @@ class TopicViewModelTest {
     advanceUntilIdle()
     val before = transport.requests.size
 
-    // 浏览时的自动缓存(延后 320ms)已经把第 1 页存下了
     advanceUntilIdle()
     fakes.topicCache.savePage(fakes.snapshotSink.saved.first().toCachedSnapshot())
     advanceUntilIdle()
@@ -470,20 +441,16 @@ class TopicViewModelTest {
     assertEquals("这一页还没加载出来", vm.toast.value?.text)
   }
 
-  // --------------------------------------------------------------- 票 20 / 票 11
-
   @Test
   fun `带页码进场 —— 总页数先兜到进场页,首帧那一下夹逼吃不掉页码`() = runTest(dispatcher) {
     val (client, transport) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
     val fakes = FakeTopicDeps(client, appScope, dispatcher)
     val vm = viewModel(TopicKey(tid = 45150945, page = 3), fakes)
 
-    // 数据一个字节都还没回来。totalPages 若是 1,下面这两条都会把第 3 页碾成第 1 页
     assertEquals(3, vm.page)
     assertEquals(3, vm.totalPages, "总页数没回来之前先兜到进场页")
     assertEquals(3, clampPage(vm.page, vm.totalPages), "goToPage 的夹逼不许动它")
 
-    // pager 首帧:currentPage 被钳进 [0, pageCount-1],settledPage 再回写给 VM
     val settled = (vm.page - 1).coerceIn(0, pagerPageCount(vm.totalPages, vm.page) - 1)
     vm.goToPage(settled + 1)
     assertEquals(3, vm.page, "首帧的回写不该把页码打回第 1 页")
@@ -491,7 +458,6 @@ class TopicViewModelTest {
     vm.applyStyle(TopicFixtures.STYLE)
     advanceUntilIdle()
 
-    // 第一发请求就是第 3 页(不是第 1 页),真实页数回来后覆盖掉兜底值
     assertEquals(listOf(3), transport.requests.mapNotNull { pageParamOf(it) }.take(1))
     assertEquals(3, vm.page)
     assertEquals(3, vm.totalPages)
@@ -510,11 +476,9 @@ class TopicViewModelTest {
       )
     }
     val fakes = FakeTopicDeps(client, appScope, dispatcher)
-    // 回复链「在原帖中查看」给的就是这种键:只有楼号,页码由每页 20 楼估
     val vm = viewModel(TopicKey(tid = 45150945, floor = 40), fakes)
     assertEquals(3, vm.page, "40 楼 / 每页 20 → 第 3 页")
 
-    // 首帧的 pager 回写
     val settled = (vm.page - 1).coerceIn(0, pagerPageCount(vm.totalPages, vm.page) - 1)
     vm.goToPage(settled + 1)
 
@@ -530,8 +494,6 @@ class TopicViewModelTest {
   @Test
   fun `跳楼给的是列表 index —— 目标楼离页顶远也算得准,热门回复区不多占一格`() =
     runTest(dispatcher) {
-      // 票 34 的判据:目标楼必须离该页页顶 ≥ 5 楼。页顶那几楼「只落到页顶」与
-      // 「真滚到了」长得一模一样,老代码就是这么被误读成「修好了」的
       val (client, _) = TopicFixtures.client { page, _ ->
         okJson(
           pageEnvelope(
@@ -540,7 +502,6 @@ class TopicViewModelTest {
               FloorSpec(pid = 800000000L + it, lou = it.toLong(), authorId = 1)
             },
             rows = 400,
-            // 热门回复只在主楼里标,所以只有第 1 页有
             hotReplies = if (page == 1) {
               listOf(FloorSpec(pid = 900000003, lou = 3, authorId = 1))
             } else {
@@ -551,7 +512,6 @@ class TopicViewModelTest {
       }
       val fakes = FakeTopicDeps(client, appScope, dispatcher)
 
-      // 74 楼 → 第 4 页(60–79)的第 15 条,列表下标 14 + header 一格
       val far = viewModel(TopicKey(tid = 45150945, floor = 74), fakes)
       assertEquals(4, far.page)
       far.applyStyle(TopicFixtures.STYLE)
@@ -560,7 +520,6 @@ class TopicViewModelTest {
       assertEquals(4, farTarget.page)
       assertEquals(15, farTarget.listIndex, "74 楼是第 4 页第 15 条,前面只有 header 一格")
 
-      // 第 1 页有热门回复区,但它整段折在同一个 header item 里,不多占一行
       val hot = viewModel(TopicKey(tid = 45150945, floor = 7), fakes)
       assertEquals(1, hot.page)
       hot.applyStyle(TopicFixtures.STYLE)
@@ -586,7 +545,6 @@ class TopicViewModelTest {
       }
       val fakes = FakeTopicDeps(client, appScope, dispatcher)
 
-      // 攒一条「读到 74 楼」的进度
       val first = viewModel(TopicKey(tid = 45150945), fakes)
       first.applyStyle(TopicFixtures.STYLE)
       advanceUntilIdle()
@@ -594,9 +552,6 @@ class TopicViewModelTest {
       first.flushReadFloor()
       advanceUntilIdle()
 
-      // 再进来:浮条报 74 楼,点「回到那里」
-      // (key 显式带 page=1 只是为了拿一个新的 ViewModel 实例 —— 上面那个 key 一样的
-      //  会被 ViewModelStore 复用,进场时机就对不上了)
       val vm = viewModel(TopicKey(tid = 45150945, page = 1), fakes)
       vm.applyStyle(TopicFixtures.STYLE)
       advanceUntilIdle()
@@ -605,7 +560,6 @@ class TopicViewModelTest {
 
       vm.jumpToResume()
       assertEquals(4, vm.page, "74 楼 / 每页 20 → 第 4 页")
-      // 第 4 页还没回来,这时候不许给滚动目标(给了就是拿旧页的楼号错滚)
       assertNull(vm.scrollTarget, "目标页数据没到位之前不给滚动目标")
 
       advanceUntilIdle()
@@ -619,7 +573,6 @@ class TopicViewModelTest {
     val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
     val fakes = FakeTopicDeps(client, appScope, dispatcher)
 
-    // 攒一条「读到 7 楼」的进度
     val first = viewModel(TopicKey(tid = 45150945), fakes)
     first.applyStyle(TopicFixtures.STYLE)
     advanceUntilIdle()
@@ -627,13 +580,11 @@ class TopicViewModelTest {
     first.flushReadFloor()
     advanceUntilIdle()
 
-    // 历史页点条目:键上带着同一个楼号,人已经被送到那一楼,浮条就是自问自答
     val resumed = viewModel(TopicKey(tid = 45150945, floor = 7), fakes)
     resumed.applyStyle(TopicFixtures.STYLE)
     advanceUntilIdle()
     assertNull(resumed.resumeFloor, "已经带着进度楼层进场了,不再弹浮条")
 
-    // 别的楼号进场(回复链的「在原帖中查看」)照旧提示「上次读到第 7 楼」
     val elsewhere = viewModel(TopicKey(tid = 45150945, floor = 3), fakes)
     elsewhere.applyStyle(TopicFixtures.STYLE)
     advanceUntilIdle()
@@ -641,11 +592,9 @@ class TopicViewModelTest {
   }
 }
 
-/** `read.php` 请求上的 `page` 参数(断言「第一发就是第 3 页」用)。 */
 private fun pageParamOf(request: com.chasel.ng2n.core.net.HttpRequest): Int? =
   Regex("[?&]page=(\\d+)").find(request.url)?.groupValues?.get(1)?.toIntOrNull()
 
-/** 快照 core → 存储层(生产里由 `TopicCachePayloadReader` 搬,单测手工搬一次)。 */
 private fun com.chasel.ng2n.core.api.TopicPageSnapshot.toCachedSnapshot() =
   com.chasel.ng2n.data.cache.CachedPageSnapshot(
     tid = tid,

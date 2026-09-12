@@ -35,21 +35,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * 回复链屏(CONTEXT.md「回复链」;设计稿 isChain)。直译 `src/app/chain.tsx`。
- *
- * 从详情页某楼的引用块进来:`tid` + `pid`(展开起点)+ 可选 `fav`。
- * 已加载楼层直接从 [TopicRepository] 的进程级缓存搬(详情页翻过的页都在);
- * 链上引用了还没加载的楼时,按引用标记里的页码把那一页懒加载回来 ——
- * 加载失败或定位不到的节点降级成占位卡,**不阻塞整条链**。
- */
 class ChainViewModel(
   val key: ChainKey,
   private val deps: TopicDeps,
   private val compute: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
-  /** 已加载页。进场时从仓库缓存搬一份,懒加载的页往里补。 */
   private val pages: SnapshotStateMap<Int, TopicDetail> = mutableStateMapOf()
   private val failedPages = mutableStateListOf<Int>()
 
@@ -59,7 +50,6 @@ class ChainViewModel(
   var chain by mutableStateOf<List<ChainNode>>(emptyList())
     private set
 
-  /** pid → 这一楼在链上要画的东西;缺席就是「没加载出来」,画降级占位卡。 */
   var entries by mutableStateOf<Map<Long, ChainEntry>>(emptyMap())
     private set
 
@@ -83,7 +73,6 @@ class ChainViewModel(
     }
   }
 
-  /** 链上第一个「未加载但带页码」的节点 —— 页到位 → 索引重建 → 链自己长长。 */
   private fun wantedPage(): Int? = chain.firstOrNull { node ->
     !node.loaded &&
       node.ref?.page != null &&
@@ -108,8 +97,6 @@ class ChainViewModel(
     viewModelScope.launch {
       try {
         val detail = deps.repository.loadDetail(TopicPageParams(key.tid, page, key.fav))
-        // 按**请求的**页码登记而不是响应的 `__PAGE`:超范围的页码服务端会钳到末页,
-        // 按响应登记的话这个页码永远补不上,懒加载会原地打转
         pages[page] = detail
       } catch (cause: CancellationException) {
         throw cause
@@ -122,7 +109,6 @@ class ChainViewModel(
     }
   }
 
-  /** 「重试」:把那一页从失败集合里拿掉,懒加载会再试一次。 */
   fun retryPage(page: Int) {
     failedPages.remove(page)
     maybeLoadNext()
@@ -133,7 +119,6 @@ class ChainViewModel(
 
   fun isPageLoaded(page: Int?): Boolean = page != null && pages.containsKey(page)
 
-  /** 「在原帖中查看」:回详情页那一页并定位那一楼。 */
   fun openInTopicKey(node: ChainNode): TopicKey? {
     val entry = entries[node.pid]
     return when {
@@ -148,12 +133,9 @@ class ChainViewModel(
     }
   }
 
-  /** 顶栏那句「从第 N 楼展开」。起点楼还没加载出来时不显示。 */
   val startLou: Long? get() = entries[key.pid]?.lou
 
   private fun buildChain(details: List<TopicDetail>, style: TopicRenderStyle): BuiltChain {
-    // 全部已加载楼层(含热门回复)合成一张表,quote 索引按它建。
-    // 匿名用户的 key 带请求级前缀(API 文档 §3),跨页合并用户表不会串号
     val byPid = LinkedHashMap<Long, ChainSource>()
     for (detail in details) {
       for (floor in detail.floors + detail.hotReplies) {
@@ -185,7 +167,6 @@ class ChainViewModel(
     val floor = source.floor
     val detail = source.detail
     val user = detail.users[floor.authorKey]
-    // 正文剥掉引用容器 —— 上一层就画在这张卡上面,不必重复
     val nodes = stripQuoteMarkup(parseBBCode(floor.content), BBCodeNodeShape)
     val dice = resolveFloorDice(nodes, DiceSeed(floor.authorId, key.tid, floor.pid))
     val model = RenderModelBuilder.build(
@@ -195,7 +176,6 @@ class ChainViewModel(
         postedAt = floor.postedAt,
         dice = dice.toImmutableList(),
         colors = style.colors,
-        // 链卡正文比楼层正文小一档(设计稿 chainBody)
         bodyFontSize = Typo.quoteBody.size.value,
         bodyLineHeight = Typo.quoteBody.lineHeight.value / Typo.quoteBody.size.value,
         attachmentUrls = deps.attachmentUrls,
@@ -221,12 +201,10 @@ class ChainViewModel(
   private class BuiltChain(val chain: List<ChainNode>, val entries: Map<Long, ChainEntry>)
 }
 
-/** 链上一张已加载的卡要画的东西(全部后台建好)。 */
 @Immutable
 data class ChainEntry(
   val pid: Long,
   val lou: Long,
-  /** 「在原帖中查看」要按它换算页码 */
   val rowsPerPage: Int,
   val name: String,
   val avatarUrl: String?,

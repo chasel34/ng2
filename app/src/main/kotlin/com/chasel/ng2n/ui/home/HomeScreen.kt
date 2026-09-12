@@ -91,7 +91,6 @@ import com.chasel.ng2n.ui.nav.CachesKey
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
 import com.chasel.ng2n.ui.nav.Navigator
-// 票 17c:「由 URL 读取」与系统深链共用同一份映射,真相源在 ui/nav/DeepLinkKeys.kt
 import com.chasel.ng2n.ui.nav.toNavKey
 import com.chasel.ng2n.ui.nav.NotificationsKey
 import com.chasel.ng2n.ui.nav.SearchKey
@@ -110,27 +109,13 @@ import com.chasel.ng2n.ui.theme.Typo
 import kotlin.math.floor
 import kotlinx.coroutines.launch
 
-/** 设计稿:tab 44 高、版块宫格三列。 */
 private val TAB_BAR_HEIGHT = 44.dp
 private const val GRID_COLUMNS = 3
 
-/** 横滑换分类时把选中的那格滚进视野,左边留出这么多,免得它永远贴在最左边。 */
 private val TAB_SCROLL_LEAD = 56.dp
 
-/**
- * tab 条内容的左右留白(RN 侧 `tabBar.paddingHorizontal: 6`,跟着内容一起滚)。
- *
- * 下划线是画在 tab 条**外层** Box 上的,而每格量到的 x 是它在 Row **内容**里的位置
- * (不含这一档 padding),所以画的时候要补回来。
- */
 private val TAB_BAR_PADDING = 6.dp
 
-/**
- * 首页 —— 直译 RN 侧 `src/app/index.tsx`。
- *
- * 分类 tab 横滑 pager + 版块宫格 + 版头公告 + 抽屉宿主。
- * 版块树走 24h SWR(票 14 的存储壳 + 票 16 的 `loadBoardTree`)。
- */
 @Composable
 fun HomeScreen(
   nav: Navigator,
@@ -160,7 +145,6 @@ fun HomeScreen(
 
   LaunchedEffect(Unit) { deps.boardTree.ensureLoaded() }
   LaunchedEffect(uid) { deps.boardFavorites.ensureLoaded(uid) }
-  // 通知只在前台轮(RN 版同);离开首页就停,票 17 的通知屏自己再 start 一次
   androidx.compose.runtime.DisposableEffect(Unit) {
     deps.notifications.start()
     onDispose { deps.notifications.stop() }
@@ -170,12 +154,10 @@ fun HomeScreen(
   var addBoardOpen by remember { mutableStateOf(false) }
   var clearOpen by remember { mutableStateOf(false) }
   var urlOpen by remember { mutableStateOf(false) }
-  // 「由 URL 读取」解不开时框里那行红字;null = 还没错过
   var urlError by remember { mutableStateOf<String?>(null) }
 
   val tree = treeState.tree
   val categories = remember(tree) {
-    // 分类树没回来就不插合成 tab:否则 categories 永远非空,下面的错误分支再也走不到
     if (tree == null) {
       emptyList()
     } else {
@@ -184,7 +166,6 @@ fun HomeScreen(
   }
 
   val announcement = remember(tree, dismissed) {
-    // 先滤掉关过的再挑生效中的那条:否则关掉第一条之后,后面几条永远轮不到
     val available = (tree?.announcements ?: emptyList()).filter { it.id !in dismissed }
     pickActiveAnnouncement(available, System.currentTimeMillis())
       ?: BUILTIN_ANNOUNCEMENT.takeIf { it.id !in dismissed }
@@ -207,7 +188,6 @@ fun HomeScreen(
     nav.push(BoardKey(id = board.id, name = board.name, kind = board.kind))
   }
 
-  /** 空收藏时那条说明:游客给登录出口,拉失败给统一错误块,其余就是「还没收藏」。 */
   val placeholder: HomeRow = remember(signedIn, favorites) {
     when {
       !signedIn -> HomeRow.Notice(
@@ -226,10 +206,6 @@ fun HomeScreen(
     }
   }
 
-  /**
-   * 行数组按分类 id 缓存。只有内容真变了(分类树、公告、收藏)才整个换掉;
-   * 仍然按需建:最大的分类(手机游戏)摊开三百多格,面板没轮到它就不白烧。
-   */
   val rowsCache = remember(categories, announcement, favoriteBoards, placeholder) {
     HashMap<String, List<HomeRow>>()
   }
@@ -243,13 +219,8 @@ fun HomeScreen(
     }
   }
 
-  // 默认停在「我的收藏」(设计稿的 tab 0);游客那一栏只有登录引导,
-  // 拿它当首屏等于把整个首页开成空的,所以游客直接落到第一个服务端分类
   val defaultIndex = if (signedIn) 0 else if (categories.size > 1) 1 else 0
   val pagerState = rememberPagerState(initialPage = defaultIndex) { categories.size }
-  // 分类树是异步来的:等它到位再把游客的起始页挪到第 1 个服务端分类
-  // 与 Pager 一起保存；回退恢复时不能用默认页覆盖用户离开前的标签。
-  // null 表示账号尚未读完，不能在这一帧按游客初始化。
   var initialised by rememberSaveable { mutableStateOf(false) }
   LaunchedEffect(categories.size, accountsState) {
     if (!initialised && accountsState != null && categories.isNotEmpty()) {
@@ -262,7 +233,6 @@ fun HomeScreen(
     state = drawer,
     drawerContent = {
       AppDrawerContent(
-        // 票 15 的账号头:游客态显登录、已登录显头像昵称、左右滑循环切号
         accountHeader = {
           AccountHeader(
             viewModel = accounts,
@@ -339,8 +309,6 @@ fun HomeScreen(
         )
         TopBarTitle(text = "NG2")
         androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
-        // 原先右边还有个「更多」kebab,条目全部并进了左侧抽屉(它在每一屏都拉得出来,
-        // 不必先退回首页),顶栏只留搜索
         TopBarButton(
           icon = Ng2nIcon.SEARCH,
           size = 23.dp,
@@ -370,7 +338,6 @@ fun HomeScreen(
             onDismiss = { deps.boardTree.dismissAnnouncement(it) },
             onNoticeAction = { nav.push(Login) },
             onRetryFavorites = { scope.launch { deps.boardFavorites.reload(uid) } },
-            // 首帧内容可用的锚点:第一页(可见那页)带上就够
             tagged = page == pagerState.currentPage,
           )
         }
@@ -378,7 +345,6 @@ fun HomeScreen(
     }
   }
 
-  // 抽屉的三个对话框归宿主页面(设计稿:关抽屉 → 弹框)
   InputDialog(
     open = addBoardOpen,
     title = "添加版面 ID",
@@ -392,7 +358,6 @@ fun HomeScreen(
       if (boardId == null) {
         Snackbars.show("版面 ID 只能是整数,例如 459 或 -7")
       } else if (uid != null) {
-        // 先按「普通版块」乐观显示;是不是合集、真名叫什么,以重拉回来的列表为准
         val provisional = Board(
           id = boardId,
           kind = BoardKind.BOARD,
@@ -402,8 +367,6 @@ fun HomeScreen(
         scope.launch {
           runCatching { deps.boardFavorites.addById(uid, boardId, provisional) }.fold(
             onSuccess = { board ->
-              // 设计稿的文案是「已添加版面到我的收藏」;这里带上服务端给的名字,
-              // 手输 id 时才看得出到底收到了哪个版块(尤其 stid 解析成合集的时候)
               Snackbars.show(
                 "已添加「${board.name}」到我的收藏",
                 SnackbarAction("打开") { openBoard(board) },
@@ -423,12 +386,9 @@ fun HomeScreen(
     error = urlError,
     confirmLabel = "打开",
     keyboardType = androidx.compose.ui.text.input.KeyboardType.Uri,
-    // 改了链接就把上一次的红字撤了,别让它挂到下一次点「打开」
     onValueChange = { urlError = null },
     onCancel = { urlOpen = false },
     onConfirm = { text ->
-      // 粘进来的链接就地解析:解得开才跳,解不开留在框里说明哪儿不对——
-      // 关掉框再弹 toast 的话,想改那一行还得重新粘一次
       when (val result = parseNgaLink(text)) {
         is NgaLinkResult.Failed -> urlError = result.reason.message
         is NgaLinkResult.Ok -> {
@@ -455,7 +415,6 @@ fun HomeScreen(
             onSuccess = { removed ->
               Snackbars.show(
                 "已清空我的收藏",
-                // 撤销 = 逐个收回来,再失败就只能说一声了
                 SnackbarAction("撤销") {
                   scope.launch {
                     runCatching { deps.boardFavorites.restore(uid, removed) }
@@ -473,17 +432,12 @@ fun HomeScreen(
 }
 
 private fun checkInMessage(outcome: CheckInOutcome): String? = when (outcome) {
-  // 本地记录已是今天、或上一次还在途,都不该再打接口(重复点击就落在这两支)
   CheckInOutcome.InFlight -> null
   CheckInOutcome.AlreadyToday -> "今天已经签到过了"
   is CheckInOutcome.CheckedIn ->
     if (outcome.result.alreadyCheckedIn) "今天已经签到过了" else outcome.result.message ?: "签到成功"
 }
 
-/**
- * 抽屉条目的落点。**要弹对话框的条目由宿主页面接管**(设计稿:先关抽屉再弹框);
- * 签到不关抽屉 —— 签完那行就地变成「今天已签到」,关掉再弹提示反而看不见结果。
- */
 private fun handleDrawerEntry(
   key: DrawerEntryKey,
   nav: Navigator,
@@ -529,7 +483,6 @@ private fun handleDrawerEntry(
     }
     DrawerEntryKey.MY_TOPICS, DrawerEntryKey.MY_REPLIES -> {
       closeDrawer()
-      // 「我的主题/我的回复」查的是当前账号,游客态没有 uid 可查
       val numeric = uid?.toLongOrNull()
       if (numeric == null) {
         showLoginPrompt(nav, "登录后才能看自己的主题与回复")
@@ -550,7 +503,6 @@ private fun handleDrawerEntry(
       closeDrawer()
       nav.push(CachesKey)
     }
-    // 短消息整块不在 v1(spec §1),入口保留走「本版本未开放」
     DrawerEntryKey.MESSAGES -> Snackbars.show(NOT_AVAILABLE_MESSAGE)
     DrawerEntryKey.NOTIFICATIONS -> {
       closeDrawer()
@@ -567,11 +519,6 @@ private fun handleDrawerEntry(
   }
 }
 
-/**
- * 分类 tab 条。下划线钉在两格 tab 几何量的插值上,**进度走到哪儿画到哪儿** ——
- * 与内容同帧,不等重组落地(RN 侧那份注释里栽过的坑:9 个 onLayout 各自读改写
- * 同一个共享值会互相覆盖,所以几何先攒进一个数组再整体赋值)。
- */
 @Composable
 private fun CategoryTabs(
   categories: List<BoardCategory>,
@@ -585,7 +532,6 @@ private fun CategoryTabs(
   val raw = remember(categories) { arrayOfNulls<TabLayout>(categories.size) }
   val lead = with(density) { TAB_SCROLL_LEAD.roundToPx() }
 
-  // 横滑换了分类之后,选中的那一格可能在 tab 条视野外
   LaunchedEffect(pagerState, layouts.value) {
     snapshotFlow { pagerState.currentPage }.collect { index ->
       val x = layouts.value.getOrNull(index)?.x ?: return@collect
@@ -599,9 +545,6 @@ private fun CategoryTabs(
         val selected = pagerState.currentPage == index
         Box(
           modifier = Modifier
-            // 票 41:几何要量**整格**(含 paddingHorizontal),下划线是整格宽不是文字宽。
-            // onGloballyPositioned 报的是它右边那截修饰符链的坐标 —— 挂在 padding
-            // 后面量到的是内容框(RN 那份是 tab 容器的 onLayout,含内距),所以放最前。
             .onGloballyPositioned { coordinates ->
               raw[index] = TabLayout(
                 x = coordinates.positionInParent().x.toInt(),
@@ -626,8 +569,6 @@ private fun CategoryTabs(
         }
       }
     }
-    // 设计稿用的是 inset box-shadow,不占布局;所以下划线单画一条,位置与宽度由
-    // pager 的**连续页位**驱动(跟手,不等重组落地)
     Canvas(
       Modifier
         .align(Alignment.BottomStart)
@@ -636,7 +577,6 @@ private fun CategoryTabs(
     ) {
       val tabs = layouts.value
       if (tabs.isEmpty()) return@Canvas
-      // 头尾越界(边缘阻尼拖出去的那点)夹回来
       val position = (pagerState.currentPage + pagerState.currentPageOffsetFraction)
         .coerceIn(0f, (tabs.size - 1).toFloat())
       val index = floor(position).toInt()
@@ -667,7 +607,6 @@ private fun CategoryPage(
     state = gridState,
     modifier = Modifier
       .fillMaxSize()
-      // macrobenchmark 的首帧锚点(票 19):可见那一页带上就够
       .then(
         if (tagged) Modifier.semantics { contentDescription = SKELETON_READY_TAG } else Modifier,
       ),
@@ -778,7 +717,6 @@ private fun BoardCell(board: Board, onOpen: (Board) -> Unit) {
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     BoardIcon(board, Modifier.padding(bottom = Spacing.sm))
-    // 版块名长了要么折行要么打省略号,不能在半路被裁掉(「网事杂谈」→「网事杂」)
     Text(
       text = board.name,
       maxLines = 2,

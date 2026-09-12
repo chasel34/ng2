@@ -70,21 +70,12 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 某人的主题 / 回复列表(抽屉的「我的主题」「我的回复」两个入口,同一个屏)——
- * 直译 RN 侧 `src/app/user/posts.tsx`。
- *
- * 两个入口只差一个 `kind`:响应形状一样,只有回复多带一条 `__P`。
- */
-
 internal fun titleOf(kind: UserPostKind): String =
   if (kind == UserPostKind.TOPICS) "我的主题" else "我的回复"
 
-/** 一条都没有时的文案。 */
 internal fun emptyTextOf(kind: UserPostKind): String =
   if (kind == UserPostKind.TOPICS) "还没有发过主题" else "还没有回过帖"
 
-/** 过期占位条目的 `__P.postdate` 是 0,照 [dateText] 走会显示成 1970-01-01。 */
 internal fun replyTimeText(topic: Topic): String {
   val postedAt = topic.reply?.postedAt ?: 0L
   return if (postedAt == 0L) "—" else dateText(postedAt)
@@ -106,7 +97,6 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
 
   val openTopic: (Topic) -> Unit = { topic ->
     if (topic.denied) {
-      // 服务端已经明说了不给看,点进去只会是一个空帖子
       Snackbars.show(topic.subject)
     } else {
       nav.push(
@@ -114,15 +104,12 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
           tid = topic.tid,
           title = topic.subject,
           fav = topic.favCode,
-          // 回复条目直接落到那一楼:NGA 不提供 pid → 页码 的换算,只提供「只看某一楼」
-          // (API 文档 §3 的 pid 参数),详情页会带一条返回全帖的提示
           pid = topic.reply?.pid,
         ),
       )
     }
   }
 
-  // 主题那一档复用版块列表的行(simple 档);回复那一档是自己的形状,见 [ReplyRow]
   val topicRows = remember(state.topics, colors, titleColors, kind) {
     if (kind == UserPostKind.REPLIES) {
       emptyList()
@@ -132,7 +119,6 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
   }
 
   val listState = rememberLazyListState()
-  // 票 57:按距离而不是按项数拉下一页
   val shouldLoadMore by rememberShouldLoadNextPage(listState, state.topics.size)
   LaunchedEffect(listState, state.hasNextPage, state.loadingNextPage) {
     snapshotFlow { shouldLoadMore }.collect { if (it) deps.userPosts.loadNextPage(postsKey) }
@@ -140,7 +126,6 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
   val flingBehavior = rememberPagedFlingBehavior(listState) {
     state.hasNextPage || state.loadingNextPage
   }
-  // 下一页在路上时,尾部铺几屏能滚的骨架行(票 57 三轮)
   val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
   Column(modifier.fillMaxSize().background(colors.bg)) {
@@ -162,7 +147,6 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
       )
     }
 
-    // 设计稿 listSub:12px meta 色副标题条
     Text(
       text = if (key.name == null) "UID ${key.uid}" else "${key.name}(${key.uid})",
       modifier = Modifier
@@ -207,7 +191,6 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
         ) {
           items(
             count = state.topics.size,
-            // 回复列表里同一个 tid 会出现很多次,key 必须落在 pid 上
             key = { index ->
               val topic = state.topics[index]
               topic.reply?.let { "p${it.pid}" } ?: "t${topic.tid}"
@@ -221,7 +204,6 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
                 onClick = openTopic,
               )
             } else {
-              // 建模是按 state.topics 一次做完的,两个下标同源
               TopicRow(topicRows[index], onClick = openTopic)
             }
           }
@@ -263,17 +245,9 @@ fun UserPostsScreen(key: UserPostsKey, nav: Navigator, modifier: Modifier = Modi
   }
 }
 
-/**
- * 「我的回复」的一行(设计稿 simple-list 的两行布局,信息行换成回复摘要)——
- * 直译 RN 侧 `src/ui/reply-row.tsx`。
- *
- * 和 [TopicRow] 分开而不是加个开关:这里的主角是**回复**,标题只是它落在哪个帖子里,
- * 两者的视觉层级正好反过来。搜索票(17a)搜正文时也是这个形状。
- */
 @Composable
 fun ReplyRow(topic: Topic, time: String, onClick: (Topic) -> Unit, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
-  // 服务端拒给内容的占位行(帖子过期/无权限):subject 就是拒绝理由,点进去也是空的
   val denied = topic.denied
   val excerpt = remember(topic) {
     val text = topic.reply?.content?.let(::plainTextOf).orEmpty()

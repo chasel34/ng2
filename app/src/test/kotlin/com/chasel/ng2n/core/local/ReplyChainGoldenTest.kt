@@ -16,17 +16,6 @@ import kotlinx.serialization.json.long
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * `reply-chain` domain 全量对拍(52 条)。
- *
- * `input` 里的 `text` / `floors[].content` 是楼层正文 BBCode 原文,README 要求
- * 先 `parseBBCode` 再喂给被测函数。票 13 接上了正式解析器与
- * `ui/bbcode/BBCodeShapeAdapter.kt` 的 [BBCodeNodeShape] 适配器 ——
- * **`core/local` 的函数本身一个字没动**(票 10 的设计意图)。
- *
- * `buildQuoteIndex` 的期望值把 Map/Set 拍平成 `{ quotes, quotedBy, loaded }`,键按升序
- * (JSON 装不下 Map);TS 侧返回的是插入序的 Map,升序是导出器的规范化,所以排序在这里做。
- */
 class ReplyChainGoldenTest {
 
   @Test
@@ -34,7 +23,6 @@ class ReplyChainGoldenTest {
     fn("extractQuoteRefs") { case ->
       extractQuoteRefs(parseBBCode(case.stringField("text")), BBCodeNodeShape).map { it.toGoldenMap() }
     }
-    // 这三个收的是 parseBBCode(text)[0] —— 整段正文的第一个节点
     fn("quoteRefOf") { case -> quoteRefOf(case.firstNode(), BBCodeNodeShape)?.toGoldenMap() }
     fn("isReplyHeaderNode") { case -> isReplyHeaderNode(case.firstNode(), BBCodeNodeShape) }
     fn("replyHeaderRefOf") { case -> replyHeaderRefOf(case.firstNode(), BBCodeNodeShape)?.toGoldenMap() }
@@ -47,8 +35,6 @@ class ReplyChainGoldenTest {
     }
     fn("chainDepthOf") { case -> chainDepthOf(case.quoteIndex(), case.longField("startPid")) }
   }
-
-  // --- 手工移植:`reply-chain.test.ts` 里金样本没单列的判据 ---------------------
 
   @Test
   fun `正文里随手贴的 pid 链接不算引用——那是提及,不是回复关系`() {
@@ -87,10 +73,6 @@ class ReplyChainGoldenTest {
   )
 }
 
-// ---------------------------------------------------------------------------
-// 金样本 JSON ↔ 领域类型
-// ---------------------------------------------------------------------------
-
 private fun QuoteRef.toGoldenMap(): Map<String, Any?> = buildMap {
   page?.let { put("page", it) }
   put("pid", pid)
@@ -104,7 +86,6 @@ private fun ChainNode.toGoldenMap(): Map<String, Any?> = buildMap {
   put("role", role.wire)
 }
 
-/** README:Map/Set 拍平成表,键按升序。 */
 private fun QuoteIndex.toGoldenMap(): Map<String, Any?> = mapOf(
   "loaded" to loaded.sorted(),
   "quotedBy" to quotedBy.keys.sorted().map { pid -> listOf(pid, quotedBy.getValue(pid)) },
@@ -112,7 +93,6 @@ private fun QuoteIndex.toGoldenMap(): Map<String, Any?> = mapOf(
     .map { pid -> listOf(pid, quotes.getValue(pid).map { it.toGoldenMap() }) },
 )
 
-/** `quoteRefOf` / `isReplyHeaderNode` / `replyHeaderRefOf` 收的是整段正文的第一个节点。 */
 private fun GoldenCase.firstNode(): BBCodeNode = parseBBCode(stringField("text")).first()
 
 private fun GoldenCase.quoteIndex(): QuoteIndex {

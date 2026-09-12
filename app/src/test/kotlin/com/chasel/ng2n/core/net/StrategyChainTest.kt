@@ -6,10 +6,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * 逐条移植自 `src/core/net/fetcher.test.ts` 的
- * `runStrategyChain · 反封锁链框架(ADR-0002)`(7 条,全部移植)。
- */
 class StrategyChainTest {
 
   private fun context(transport: Transport = RecordingTransport { ok() }): FetchContext =
@@ -121,8 +117,6 @@ class StrategyChainTest {
     assertEquals("direct", result.via)
   }
 
-  // ── 引擎的两条附加性质(ADR-0002 第 5 条:可观测性是链的一部分) ────────────
-
   @Test
   fun `整条链失败时把 attempts 诊断挂到错误上`() = runTest {
     val transport = RecordingTransport { blocked() }
@@ -159,7 +153,6 @@ class StrategyChainTest {
 
   @Test
   fun `__output=11 的 __T 是真数组,条数照样数得出(ADR-0002 第 10 条)`() = runTest {
-    // 不认数组的后果是整页主题静默变成 0 条,比抛错难查得多
     val transport = RecordingTransport {
       ok("""{"data":{"__T":[{"tid":1},{"tid":2},{"tid":3}]},"time":1}""")
     }
@@ -172,7 +165,6 @@ class StrategyChainTest {
 
   @Test
   fun `unavailable 不盖掉更实质的错误`() = runTest {
-    // 用户该看到的是「这一页被封了」,不是「没有可换的账号」
     val chain = listOf(
       StubStrategy("format-rotation", NgaError(NgaErrorKind.PARSE, "响应解析失败")),
       StubStrategy("switch-account", NgaError(NgaErrorKind.UNAVAILABLE, "只有一个已登录账号")),

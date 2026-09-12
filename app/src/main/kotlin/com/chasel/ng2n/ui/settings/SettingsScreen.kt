@@ -26,13 +26,8 @@ import com.chasel.ng2n.ui.common.rememberToaster
 import com.chasel.ng2n.ui.rememberAppDeps
 import kotlinx.coroutines.launch
 
-/** uiautomator / 票 18 找设置屏的锚点。 */
 const val SETTINGS_SCREEN_TAG: String = "ng2n-settings-screen"
 
-/**
- * 「主题风格」对话框的三档(设计稿 `dialog:'theme'`)。第三档不是配色,是夜间模式本身
- * —— 它的副标题原文就写着「跟随夜间模式开关」。
- */
 private enum class ThemeChoice { INK, PLAIN, NIGHT }
 
 private val THEME_OPTIONS = listOf(
@@ -49,13 +44,6 @@ private val QUALITY_OPTIONS = listOf(
   SettingsOption(ImageQuality.THUMBNAIL, ImageQuality.THUMBNAIL.label, "省流量,点开大图才拉原图"),
 )
 
-/**
- * 设置屏那一个 `LazyColumn` 的静态 key(分组标题也是一项)。
- *
- * 摊成常量是为了让 [com.chasel.ng2n.ui.common.SCREEN_LAZY_KEYS] 的单测把重复 key
- * 挡在真机之外 —— 重复 key 会让 Compose 在首次布局就抛,整屏一帧都画不出来(票 28)。
- * [SETTINGS_TAIL_KEY] 是 `SettingsShell` 自己补在末尾的那一项,一并算进来。
- */
 internal object SettingsKeys {
   const val S_GENERAL = "s-general"
   const val HOST = "host"
@@ -83,7 +71,6 @@ internal object SettingsKeys {
   const val LAB = "lab"
   const val RESET = "reset"
 
-  /** 这一屏 LazyColumn 会用到的静态 key,顺序即屏上顺序。 */
   val all: List<String> = listOf(
     S_GENERAL, HOST, ACCOUNTS, NIGHT, NIGHT_SYSTEM, THEME_STYLE, LEFT_HANDED, SOLID_BG,
     S_READING, AUTO_NEXT, WIFI_ONLY, IMAGE_QUALITY, SIGNATURE, KEEP_SCREEN_ON, FONT_SIZE,
@@ -94,16 +81,6 @@ internal object SettingsKeys {
   )
 }
 
-/**
- * 设置根屏(设计稿 `settings` 屏)—— `src/app/settings/index.tsx` 的移植。
- *
- * 五组:通用 / 阅读 / 通知 / 内容与存储 / 高级。分组的边界按「用户什么时候会想起它」划,
- * 不按数据存在哪:「手势返回」「阅读时常亮」跟反封锁没有关系,就是普通阅读偏好,归阅读组。
- *
- * **每一项改完立刻生效**:写 DataStore → `SettingsStore.settings` 这条 Flow 变 →
- * [Ng2nAppTheme] 与各屏读到的 [LocalAppSettings] 一起重组;域名与 Web 反解档位则由
- * 反封锁链**下一个请求现读**。没有「保存」按钮,也不重启 Activity。
- */
 @Composable
 fun SettingsScreen(
   onBack: () -> Unit,
@@ -123,7 +100,6 @@ fun SettingsScreen(
   val history by deps.history.entries.collectAsStateWithLifecycle()
   val topics by deps.topicCache.topics.collectAsStateWithLifecycle()
 
-  // 历史与缓存的两张表是懒加载的(P2-04:冷启动不同步读盘),进这一屏时把计数暖起来
   LaunchedEffect(Unit) {
     deps.history.warmUp()
     deps.topicCache.warmUp()
@@ -180,7 +156,6 @@ fun SettingsScreen(
             setMode(ThemeMode.DARK)
           } else {
             update { it.copy(themeStyle = if (choice == ThemeChoice.INK) ThemeStyle.INK else ThemeStyle.PLAIN) }
-            // 在夜间模式下选了一档浅色风格,那就是要退出夜间模式
             if (dark) setMode(ThemeMode.LIGHT)
           }
         },
@@ -199,7 +174,6 @@ fun SettingsScreen(
         },
       )
 
-      // 阅读进度与浏览历史是同一张表,清进度就是清历史,得说清楚
       ConfirmDialog(
         open = clearHistoryOpen,
         title = "清空阅读进度记录",
@@ -263,8 +237,6 @@ fun SettingsScreen(
         onClick = onOpenAccounts,
       )
     }
-    // 夜间模式与「跟随系统」是同一个档位的两面:开关记的是最终深浅,
-    // 跟随系统打开时那个开关只是在显示系统现在是深还是浅
     item(SettingsKeys.NIGHT) {
       SettingsSwitchRow(
         label = "夜间模式",
@@ -334,8 +306,6 @@ fun SettingsScreen(
         onChange = { next -> update { it.copy(showSignature = next) } },
       )
     }
-    // 「手势返回」这一行不移植:原生的左边缘返回是系统手势(预测性返回),app 关不掉;
-    // 所有者 2026-08-22 裁决「保留系统语义」。`Settings.gestureBack` 字段留着不读。
     item(SettingsKeys.KEEP_SCREEN_ON) {
       SettingsSwitchRow(
         label = "阅读时常亮",

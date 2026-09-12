@@ -35,11 +35,6 @@ import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Typo
 
-/**
- * 顶栏色块。直译 RN 侧 `src/ui/top-bar.tsx`:一行 54 高;状态栏是透明的
- * (edge-to-edge),所以顶栏自己撑开安全区高度。[below] 是行下面那一块
- * (首页的分类 tab 条、二级页的副标题条)。
- */
 private val BAR_HEIGHT = 54.dp
 
 @Composable
@@ -64,10 +59,6 @@ fun TopBar(
   }
 }
 
-/**
- * 顶栏图标钮。[box] 是触控盒边长 —— 设计稿里最左边那枚(菜单/返回)是 46,
- * 右侧的动作钮是 44;[size] 是图标本身的字号(设计稿逐个标了)。
- */
 @Composable
 fun TopBarButton(
   icon: Ng2nIcon,
@@ -93,10 +84,6 @@ fun TopBarButton(
 
 enum class TopBarTitleVariant { MAIN, SUB }
 
-/**
- * 顶栏标题。设计稿按屏分档:首页 18/600,二级页 17/600。
- * [maxWidth] 是设计稿给二级页标的截断宽度(主题列表 150),右边三枚图标才排得开。
- */
 @Composable
 fun TopBarTitle(
   text: String,

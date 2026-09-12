@@ -5,12 +5,6 @@ import com.chasel.ng2n.golden.runGoldenDomain
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * `money` domain 全量对拍(24 条)。纯显示换算(API 文档 §11.1)。
- *
- * `splitMoney(NaN)` 没进金样本(README 规范 4:金样本里不允许非有限数字),
- * 那一档由下面的手写单测锁。
- */
 class MoneyGoldenTest {
 
   @Test
@@ -20,8 +14,6 @@ class MoneyGoldenTest {
     fn("toReputation") { case -> toReputation(case.doubleField("raw")) }
     fn("formatReputation") { case -> formatReputation(case.doubleField("reputation")) }
   }
-
-  // --- 手工移植:`money.test.ts` 里进不了金样本的那一条 -------------------------
 
   @Test
   fun `非有限值先规整成 0 铜币`() {
@@ -35,7 +27,6 @@ class MoneyGoldenTest {
   @Test
   fun `小数先截断成整数铜币,负数按绝对值拆再标符号`() {
     assertEquals(Money(0, 1, 50, false), splitMoney(150.9))
-    // 直接对负数取模会拆出 -1/-23/-45 这种读不出来的东西
     assertEquals(Money(1, 23, 45, true), splitMoney(-12345.0))
   }
 }

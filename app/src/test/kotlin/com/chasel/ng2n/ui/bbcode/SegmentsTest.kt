@@ -5,7 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/** 手工移植自 `src/ui/bbcode/segments.test.ts`。 */
 class SegmentsTest {
 
   private fun kinds(source: String): List<String> =
@@ -32,10 +31,6 @@ class SegmentsTest {
     assertEquals(listOf("block"), kinds("======"))
   }
 
-  /**
-   * 回归锁:回复头(NGA「回复」按钮的产物,没有 quote 容器)要跟引用块一样单独成块,
-   * 不然它会被当成普通 `[b]` 塞进正文那一段,画不成引用卡片。
-   */
   @Test
   fun `Reply to 回复头单独成块 后面的正文另起一段`() {
     val source = "[b]Reply to [pid=879039681,47406116,1]Reply[/pid] Post by " +
@@ -56,10 +51,6 @@ class SegmentsTest {
     )
   }
 
-  /**
-   * 这一组是回归锁。只按「节点自己是不是块级」切段的话,下面这些写法里的图片
-   * 会被塞进文字流,而它们在 NGA 上极常见。
-   */
   @Test
   fun `裹在行内标签里的块级内容升格成块 不会被吞掉`() {
     val cases = mapOf(
@@ -83,10 +74,6 @@ class SegmentsTest {
     }
   }
 
-  /**
-   * 这些标签哪怕里面只有一行字也得占一块:对齐要作用在容器上、折叠块要有开关、
-   * 表格要能横向滚、骰子和媒体是卡片——留在文字流里这些都做不到。
-   */
   @Test
   fun `自带框或需要交互的进阶标签单独占一块`() {
     val cases = mapOf(

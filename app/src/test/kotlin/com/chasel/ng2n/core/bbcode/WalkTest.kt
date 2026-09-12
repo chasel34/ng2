@@ -3,13 +3,6 @@ package com.chasel.ng2n.core.bbcode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * `childNodeLists` 的遍历语义。手工移植自 `src/core/bbcode/walk.test.ts`。
- *
- * 金样本只锁得住 `parseBBCode` 的输出(`walk-*` 那 5 条),锁不住「遍历时上哪儿找子节点」
- * —— 而票 11(渲染切段)、票 10/13(骰子复算、引用索引)全靠这一个函数,漏掉一种容器
- * 就是「表格里的字整段不见」。所以这一组用例必须手工在这边留一份。
- */
 class WalkTest {
 
   private fun only(source: String): BBCodeNode {
@@ -18,7 +11,6 @@ class WalkTest {
     return nodes[0]
   }
 
-  /** 走一遍整棵树,把文字接起来——遍历漏了哪种容器,这里就会少一段。 */
   private fun flatten(nodes: List<BBCodeNode>): String = nodes.joinToString("") { node ->
     if (node is TextNode) node.value else flatten(childNodeLists(node).flatten())
   }

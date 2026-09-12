@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
-"""从 RN 侧同一份图标字体导出 24x24 视口的填充路径,生成 IconPaths.generated.kt。
+"""从 Material Icons Outlined 字体导出 24×24 路径，图标名取自 tools/icon-names.txt。
 
-从 tools/icon-names.txt 读取图标名，将 Material Icons Outlined 字形轮廓
-导出为路径常量，由 ui/icons/AppIcons.kt 绘制。
-
-跑法(需要 fontTools):
-    uv run --with fonttools python tools/gen_icon_paths.py
-"""
+用法：uv run --with fonttools python tools/gen_icon_paths.py"""
 from __future__ import annotations
 
 import sys
@@ -23,15 +18,12 @@ OUT = ROOT / "app/src/main/kotlin/com/chasel/ng2n/ui/icons/IconPaths.generated.k
 
 VIEWPORT = 24.0
 
-
 def icon_names() -> list[str]:
     return ICON_NAMES.read_text(encoding="utf-8").splitlines()
-
 
 def fmt(v: float) -> str:
     s = f"{v:.2f}".rstrip("0").rstrip(".")
     return "0" if s in ("-0", "") else s
-
 
 def main() -> int:
     font = TTFont(FONT)
@@ -51,7 +43,6 @@ def main() -> int:
             print(f"字体里没有字形:{name}", file=sys.stderr)
             return 1
         pen = SVGPathPen(glyphs, ntos=fmt)
-        # 字体坐标 y 向上、基线在 0;图标框正好是 em 框 [0, upem],翻成 y 向下的 24 视口
         glyphs[name].draw(TransformPen(pen, (scale, 0, 0, -scale, 0, VIEWPORT)))
         d = pen.getCommands()
         if not d:
@@ -85,7 +76,6 @@ def main() -> int:
     OUT.write_text("\n".join(lines), encoding="utf-8")
     print(f"{len(rows)} 颗字形 → {OUT.relative_to(ROOT)}  ({OUT.stat().st_size // 1024} KB)")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

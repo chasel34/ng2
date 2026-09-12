@@ -5,7 +5,6 @@ import com.chasel.ng2n.core.api.DefaultAttachmentUrls
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** 手工移植自 `src/ui/bbcode/album.test.ts`。取法照 NGA 官方 `js_bbscode_core.js` 的 `[album]` 分支。 */
 class AlbumTest {
 
   private val base = "https://img.nga.cn/attachments"

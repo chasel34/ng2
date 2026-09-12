@@ -71,17 +71,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 屏蔽规则页(设计稿 isFilters,`research/inventory.md` 第 13 屏)——
- * 直译 RN 侧 `src/app/filters.tsx`。
- *
- * 三个 tab 对应两种数据源:本地规则在 DataStore(**游客也能用**),另外两个 tab 是
- * 同一张云端表(API 文档 §11.5 的 `get/set_block_word`)的两半,写回去也是**整表覆盖**。
- *
- * 入口在设置页(票 17c 的设置树最后一行「屏蔽规则」)与楼层菜单「屏蔽此人」。
- */
-
-/** 设计稿 isFilters 屏:tab 高 42、未选中透明度 .6、指示条 3px。 */
 private val TAB_HEIGHT = 42.dp
 
 private enum class FilterTab(val label: String, val hint: String) {
@@ -96,10 +85,6 @@ private enum class FilterTab(val label: String, val hint: String) {
   ),
 }
 
-/**
- * 设计稿标的是 `person_off` / `text_fields` / `tag`。前两个在图标集里有对应造型,
- * 分类那个取同一套里最接近的 [Ng2nIcon.BOOKMARK](RN 版同样的取舍)。
- */
 private fun iconOf(kind: FilterRuleKind): Ng2nIcon = when (kind) {
   FilterRuleKind.USER -> Ng2nIcon.PERSON
   FilterRuleKind.KEYWORD -> Ng2nIcon.TEXT_FIELDS
@@ -124,15 +109,8 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
     initialValue = DEFAULT_SETTINGS,
   )
 
-  /*
-   * 登录态是**三态**:还没从磁盘读到 / 游客 / 某个 uid。
-   * 少了「还没读到」这一档,进屏第一帧就会拿游客态渲染 —— 已登录用户会先看到
-   * 一闪的「登录后才能读写官方屏蔽词」。账号表是 DataStore(suspend,修 P2-04),
-   * 第一次发射必然晚于首帧。
-   */
   var uid by remember { mutableStateOf<String?>(null) }
   var uidKnown by remember { mutableStateOf(false) }
-  // 切号也要重来一遍:云端表是账号级数据
   LaunchedEffect(Unit) {
     deps.filters.currentUid.collect { current ->
       uid = current
@@ -142,12 +120,10 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
   }
   val signedIn = uid != null
 
-  /** 云端写操作统一的失败话术:接口是整表覆盖,失败时表还是原来那张。 */
   val cloudFailed: (Throwable) -> Unit = { error ->
     Snackbars.show(if (error is IllegalStateException) error.message ?: FALLBACK else failureText(error))
   }
 
-  /** 云端删除:成功后给一手「撤销」——把改动前那张表原样写回去。 */
   fun undoable(message: String, run: suspend () -> Unit) {
     val before = cloud.list
     scope.launch {
@@ -181,9 +157,6 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
               modifier = Modifier
                 .height(TAB_HEIGHT)
                 .clickable(onClickLabel = item.label) { tab = item }
-                // 票 41:指示条画**整格**宽(含左右 15 内距)。drawBehind 量的是它
-                // 右边那截链子的尺寸,挂在 padding 后面就只有文字宽了 ——
-                // RN 那份是 `position:absolute; left:0; right:0` 的独立 View,铺满整格。
                 .then(
                   if (!on) Modifier else Modifier.drawBehind {
                     val h = 3.dp.toPx()
@@ -202,7 +175,6 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
                 style = TextStyle(
                   fontSize = 14.sp,
                   fontWeight = FontWeight.SemiBold,
-                  // 设计稿:未选中透明度 .6
                   color = if (on) colors.onTopbar else colors.onTopbar.copy(alpha = 0.6f),
                 ),
               )
@@ -222,8 +194,6 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
     }
 
     Box(Modifier.weight(1f)) {
-      // 官方那两个 tab 是云端数据,而且用户可能刚在网页版改过——留一个下拉重读的口子。
-      // 本地规则没有「刷新」这回事,改了立刻就在屏上
       val pullable = tab != FilterTab.LOCAL && signedIn
       ListPullToRefreshBox(
         isRefreshing = pullable && cloud.refreshing,
@@ -284,7 +254,6 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
         }
       }
 
-      // 官方用户屏蔽只做「读 + 解除」(票面):加人要 uid,输入框拿不到,所以那个 tab 不给 FAB
       if (tab != FilterTab.OFFICIAL_USERS) {
         AddRuleFab(
           leftHanded = appSettings.leftHanded,
@@ -321,7 +290,6 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
     },
   )
 
-  // 官方关键词只有「一个词」要填,用通用输入框即可;空格是云端表的分隔符,拦在这里
   InputDialog(
     open = addWordOpen,
     title = "新增官方关键词",
@@ -348,7 +316,6 @@ fun FiltersScreen(nav: Navigator, modifier: Modifier = Modifier) {
   )
 }
 
-/** 云端两个 tab 共用一份取数状态:游客、加载中、失败、空表各有各的话。 */
 private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
   tab: FilterTab,
   signedIn: Boolean,
@@ -359,7 +326,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
   onRemoveWord: (String) -> Unit,
 ) {
   if (!uidKnown) {
-    // 账号表还没从磁盘读回来:先转圈,别拿游客态措辞
     item(key = FiltersKeys.UNKNOWN, contentType = "state") { LoadingState(variant = StateVariant.INLINE) }
     return
   }
@@ -427,13 +393,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.officialBody(
   }
 }
 
-/**
- * 屏蔽规则屏那一个 `LazyColumn` 的 key。
- *
- * 状态行(空表 / 游客 / 云端加载)是字面量,规则行是**数据里来的**:本地规则的 id、
- * 云端的关键词原文与用户名。数据里来的那半一律带前缀 —— 用户把「hint」加成屏蔽词时,
- * 裸 key 会和 [HINT] 撞成同一个 key,Compose 当场抛(票 28 同一类崩溃)。
- */
 internal object FiltersKeys {
   const val HINT = "hint"
   const val EMPTY_LOCAL = "empty"
@@ -443,7 +402,6 @@ internal object FiltersKeys {
   const val EMPTY_USERS = "empty-users"
   const val EMPTY_WORDS = "empty-words"
 
-  /** 静态那半;数据行的 key 由下面三个函数带前缀生成,与它们不可能相等。 */
   val all: List<String> =
     listOf(HINT, EMPTY_LOCAL, UNKNOWN, GUEST, CLOUD_STATE, EMPTY_USERS, EMPTY_WORDS)
 
@@ -454,18 +412,11 @@ internal object FiltersKeys {
   fun user(user: BlockedUser): String = "user/${user.uid?.toString() ?: user.name}"
 }
 
-/**
- * 云端那张表是**空格分隔的一行文本**(`core/api/BlockWord.kt`),同一个词加两遍在
- * 网页版那边是合法的,读回来就是两个一模一样的条目 —— 直接铺进 `LazyColumn` 会撞 key。
- * 显示前按 key 去重(留第一条),写回云端的仍是仓库里那张原表。
- */
 internal fun distinctBlockWords(words: List<String>): List<String> = words.distinct()
 
-/** 同 [distinctBlockWords]:有 uid 的按 uid 去重,没 uid 的按名字。 */
 internal fun distinctBlockUsers(users: List<BlockedUser>): List<BlockedUser> =
   users.distinctBy { it.uid?.toString() ?: it.name }
 
-/** 本地规则行的第二行灰字。设计稿在这行放添加时间与生效范围。 */
 internal fun localRuleSub(rule: FilterRule): String {
   val added = rule.createdAt?.let { "${dateText(it)} 添加" }
   val scope = when (rule.kind) {
@@ -476,7 +427,6 @@ internal fun localRuleSub(rule: FilterRule): String {
   return if (added == null) scope else "$added · $scope"
 }
 
-/** 设计稿 isFilters 的一行:图标 + 两行文字 + 右侧红色 close。 */
 @Composable
 private fun FilterRow(icon: Ng2nIcon, text: String, sub: String, onDelete: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -522,7 +472,6 @@ private fun FilterRow(icon: Ng2nIcon, text: String, sub: String, onDelete: () ->
   }
 }
 
-/** 设计稿:每个 tab 顶上一条 surface-2 底的说明条。 */
 @Composable
 private fun HintBar(text: String) {
   val colors = LocalNg2nColors.current
@@ -544,7 +493,6 @@ private fun HintBar(text: String) {
   )
 }
 
-/** 设计稿:扩展 FAB,高 50、左右 20、圆角 16、距右 20 距底 24。左手模式镜像到左下角。 */
 @Composable
 private fun AddRuleFab(leftHanded: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current
@@ -569,5 +517,4 @@ private fun AddRuleFab(leftHanded: Boolean, onClick: () -> Unit, modifier: Modif
   }
 }
 
-/** 云端写操作失败时最后的兜底话术(RN 侧同一句)。 */
 private const val FALLBACK = "官方屏蔽词没能同步到云端"

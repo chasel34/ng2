@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 
-/** 首屏与未缓存的翻页共用；一次加载只选一句，不随转圈动画或重组更换。 */
 @Composable
 internal fun TopicLoadingScreen(page: Int, modifier: Modifier = Modifier) {
   val colors = LocalNg2nColors.current

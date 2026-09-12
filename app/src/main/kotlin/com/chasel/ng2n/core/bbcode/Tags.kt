@@ -1,17 +1,5 @@
 package com.chasel.ng2n.core.bbcode
 
-/**
- * 标签清单 = 功能文档 §2.9 的两边并集。直译 `src/core/bbcode/tags.ts`。
- * 加一个新标签只需要动这个文件:内容要当正文解析的进 [CONTAINER_BUILDERS],
- * 内容是原文的进 [RAW_BUILDERS]。
- *
- * **不支持**(整段降级成纯文本,靠解析器的「未知标签原样透传」兜底):
- * `pre` / `hide` / `spoiler` / `randomblock` / `email`。站上的防剧透实际是
- * `[color=white]`,不走 `spoiler`。投票也不在这里 —— `Floor.vote` 字段是
- * `~` 分隔的 kv,独立解析、兄弟节点渲染(票 10)。
- */
-
-/** 把 frame 的内容折成一个 AST 节点(或只在解析期存在的中间节点)。 */
 internal typealias ContainerBuilder = (OpenTag, List<ParseNode>) -> ParseNode
 
 internal val CONTAINER_BUILDERS: Map<String, ContainerBuilder> = buildMap {
@@ -25,7 +13,6 @@ internal val CONTAINER_BUILDERS: Map<String, ContainerBuilder> = buildMap {
 
   put("quote") { _, children -> QuoteNode(normalize(children)) }
   put("collapse") { open, children ->
-    // 无参 `[collapse]` 与空参 `[collapse=]` 都算「没标题」——title 字段整个缺席
     CollapseNode(normalize(children), open.value?.takeIf { it.isNotEmpty() })
   }
 
@@ -65,7 +52,6 @@ internal val CONTAINER_BUILDERS: Map<String, ContainerBuilder> = buildMap {
   }
   put("@") { _, children -> MentionNode(plainText(normalize(children))) }
 
-  // 官方把处罚种类写在标签名末尾那一位数字上,`[lessernuke]` 与 `[lessernuke1]` 等价
   put("lessernuke", nukeBox(Punishment.POST))
   put("lessernuke1", nukeBox(Punishment.POST))
   put("lessernuke2", nukeBox(Punishment.TOPIC))
@@ -77,7 +63,6 @@ internal val CONTAINER_BUILDERS: Map<String, ContainerBuilder> = buildMap {
   }
 }
 
-/** 把标签内的原文折成节点。用于内容不解析标签的那些标签。 */
 internal typealias RawBuilder = (OpenTag, String) -> BBCodeNode
 
 internal val RAW_BUILDERS: Map<String, RawBuilder> = buildMap {
@@ -96,10 +81,6 @@ internal val RAW_BUILDERS: Map<String, RawBuilder> = buildMap {
   put("pid") { _, value -> FloorRefNode(value.jsTrim(), listOf(value.jsTrim()), emptyList()) }
 }
 
-/**
- * 不带 `=` 参数时内容才是原文:`[url]地址[/url]` 的内容是地址,而 `[url=地址]文字[/url]`
- * 的文字要当正文解析。其余 [RAW_BUILDERS] 里的标签内容永远是原文。
- */
 private val RAW_WHEN_BARE_TAGS = setOf("url", "uid", "tid", "pid")
 
 internal fun isRawTag(open: OpenTag): Boolean {
@@ -107,10 +88,6 @@ internal fun isRawTag(open: OpenTag): Boolean {
   return open.name !in RAW_WHEN_BARE_TAGS || open.value == null
 }
 
-/**
- * 收尾时可以安全自闭合的结构性标签——它们只在父标签里有意义,缺闭标签属于 NGA 常态,
- * 不该像普通标签那样降级成文本。
- */
 internal val SELF_CLOSING_TAGS = setOf("*", "tr", "td")
 
 private fun nukeBox(punishment: Punishment): ContainerBuilder =
@@ -122,10 +99,8 @@ private fun toAlign(value: String?): Align = when (value) {
   else -> Align.LEFT
 }
 
-/** 带协议或以 `//` 开头的才是绝对地址;其余(含裸文件名)都要拼附件域名。 */
 private val ABSOLUTE_URL = Regex("""^(?:[a-zA-Z][a-zA-Z0-9+.\-]*:|//)""")
 
-/** → `(src, needsAttachBase)`。 */
 private fun toAttachmentRef(value: String): Pair<String, Boolean> {
   val trimmed = value.jsTrim()
   if (ABSOLUTE_URL.containsMatchIn(trimmed)) return trimmed to false
@@ -155,7 +130,6 @@ private fun toTableRow(row: TableRowFrame): TableRow = TableRow(
   },
 )
 
-/** 丢掉首尾游离的换行与纯空白文本——NGA 的结构标签之间到处是这种缩进。 */
 private fun trimEdges(nodes: List<ParseNode>): List<ParseNode> {
   var start = 0
   var end = nodes.size

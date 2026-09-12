@@ -8,10 +8,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 逐条移植自 `src/core/net/strategies/format-rotation.test.ts`
- * (`格式参数 × 域名的组合枚举` 11 条 + `服务端说「未登录」` 5 条 = 16 条,全部移植)。
- */
 class FormatRotationTest {
 
   private val hosts = listOf("https://bbs.nga.cn", "https://ngabbs.com")
@@ -163,7 +159,6 @@ class FormatRotationTest {
 
     client.execute(readRequest("thread.php"))
 
-    // 建 context 时一次 + 第 2/3/4 次尝试各重建一次
     assertEquals(4, factory.built)
   }
 
@@ -179,8 +174,6 @@ class FormatRotationTest {
 
   @Test
   fun `取消请求不当被封,一次就停`() = runTest {
-    // TS 版是「network / retryable=false」;Kotlin 走协程取消,原样抛
-    // (见 NgaClientResponseTest 同名用例的注释)。「一次就停」这一半不变。
     var attempts = 0
     val transport = Transport {
       attempts += 1
@@ -199,7 +192,6 @@ class FormatRotationTest {
 
   @Test
   fun `缓存里那个组合当场失手就先摘掉(自愈)`() = runTest {
-    // ADR-0002 第 2 条:组合半通不通时缓存要有出口,不能只靠「全组合都失败」
     val cache = InMemoryComboCache()
     cache.remember("thread.php", FetchCombo(ResponseFormat.JSON_LITE, "https://ngabbs.com"))
     val transport = onlyWorking("__output=8@https://bbs.nga.cn")
@@ -212,13 +204,6 @@ class FormatRotationTest {
     )
     assertEquals("lite=js@https://ngabbs.com", transport.combos().first())
   }
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // 服务端说「未登录」:它长得像服务端语义错误,实际是这一发请求没带上身份。
-  // 真机取证(2026-08-13,小米 25113PN0EC):冷启动后第一个版块约 1/6 概率直接报
-  // 「1:未登录」,手点重试(= 忘掉组合重来)立刻就好 —— 因为 cookie jar 按域名存,
-  // 换个域名我们自己拼的 Cookie 头就不会被顶掉。
-  // ────────────────────────────────────────────────────────────────────────────
 
   private val unauthed = """{"error":{"code":1,"0":"未登录"},"time":1}"""
 
@@ -275,11 +260,6 @@ class FormatRotationTest {
     assertEquals(listOf("__output=8@https://bbs.nga.cn"), transport.combos())
   }
 
-  /**
-   * 但「不换组合」不等于「掐死整条链」。真机取证(2026-08-13):游客态打开帖子,
-   * 直连报未登录,而点「用网页版打开」正文完整渲染 —— 网页兜底本来就能拿到这一页,
-   * 只是以前错误被判成不可重试,`runStrategyChain` 在轮到它之前就抛了。
-   */
   @Test
   fun `游客态的未登录仍然可重试,好让链上后面的网页兜底接手`() = runTest {
     val transport = onlyAuthed("(没有能用的组合)")
@@ -293,7 +273,6 @@ class FormatRotationTest {
     val result = client.execute(readRequest("read.php", queryOf("tid" to 1)))
 
     assertEquals("web-fallback", result.via)
-    // 只发了一次直连就让位给兜底,没有白跑一整轮组合
     assertEquals(listOf("__output=8@https://bbs.nga.cn"), transport.combos())
   }
 

@@ -31,17 +31,10 @@ import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toOkioPath
 
-/** 与进程同寿的协程作用域(记忆表的防抖落盘、Application 里的预热都挂它)。 */
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class AppScope
 
-/**
- * 图片管线装配(票 12)。
- *
- * Coil 3 挂的是 [NetworkModule] 提供的**同一个** [OkHttpClient] —— 帖内图会自动带上
- * Cookie/UA,附件域名要登录态的场景才不豆腐(票面第一句)。
- */
 @Module
 @InstallIn(SingletonComponent::class)
 object ImageModule {
@@ -51,7 +44,6 @@ object ImageModule {
   @AppScope
   fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-  /** TODO(票 10):换成票 10 与 44 条金样本对拍过的实现。 */
   @Provides
   @Singleton
   fun provideAttachmentUrls(): AttachmentUrls = DefaultAttachmentUrls
@@ -63,16 +55,6 @@ object ImageModule {
     store: ImageSizeStore,
   ): ImageSizeCache = ImageSizeCache(scope = scope, store = store)
 
-  /**
-   * 缓存策略照抄 RN 版(`research/inventory.md` §6):
-   *
-   * - **内存 + 磁盘两级都开**。RN 侧正文图/头像走 `memory-disk` 而不是 `disk`,理由记在
-   *   `content-image.tsx:135`:只用磁盘的话列表回收后同一张图重新上屏要再读一次盘、
-   *   再解一次码,来回滚就是反复付解码钱。**查看器**那一档单独把内存缓存关掉,
-   *   见 `ui/image/ImageViewerScreen.kt` 里的长注释(整屏原图会把共用池挤空)。
-   * - 内存池取「应用可用堆」的 25%:Coil 的默认口径,和 anzong 的 `memoryClass/3` 同量级。
-   * - 磁盘缓存放 cacheDir,256MB —— app 层不管 TTL,与 RN 侧一致(系统清缓存即可)。
-   */
   @Provides
   @Singleton
   fun provideImageLoader(
@@ -84,9 +66,6 @@ object ImageModule {
     return ImageLoader.Builder(context)
       .components {
         add(OkHttpNetworkFetcherFactory(callFactory = { client }))
-        // 票 11:随包表情 265 张里有 27 张 GIF(默认套整套都是)。Coil 核心只解静态图,
-        // 不挂这个 decoder 那 27 个表情在正文里就是一帧不动的静态图。
-        // API 28 起 ImageDecoder 原生支持动图,minSdk 31 一律走这条。
         add(AnimatedImageDecoder.Factory())
       }
       .memoryCache {
@@ -108,7 +87,6 @@ object ImageModule {
   private const val DISK_CACHE_DIR = "coil3_image_cache"
   private const val DISK_CACHE_BYTES = 256L * 1024L * 1024L
 
-  /** 与 RN 侧 `transition={120}` 同值。 */
   const val CROSSFADE_MS = 120
 }
 
@@ -119,7 +97,6 @@ abstract class ImageBindingsModule {
   @Binds
   abstract fun bindImageSizeStore(impl: FileImageSizeStore): ImageSizeStore
 
-  /** 票 17c:接 DataStore(设置页一改,图片管线下一帧就按新档位取址)。 */
   @Binds
   abstract fun bindImageSettingsSource(impl: StoredImageSettingsSource): ImageSettingsSource
 

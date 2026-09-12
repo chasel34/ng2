@@ -20,19 +20,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * [TopicRepository] 的页转换与「缓存整帖」。
- *
- * 假的只有传输层(见 [TopicFixtures]),所以「一页字节 → 渲染成品」这条链是端到端的:
- * 票 04 的清洗与信封 → 票 07 的 `parseTopicDetail` → 本票的 [TopicPageBuilder]。
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TopicRepositoryTest {
 
-  /**
-   * 「全 app 一个的 IO scope」的替身 —— 不用 `backgroundScope`,理由同
-   * [TopicViewModelTest]:那里面的协程不保证被 `advanceUntilIdle()` 推到底。
-   */
   private fun TestScope.appScope(): CoroutineScope =
     CoroutineScope(coroutineContext.job + StandardTestDispatcher(testScheduler))
 
@@ -59,19 +49,15 @@ class TopicRepositoryTest {
     assertEquals("测试主题", model.subject)
     assertEquals("网事杂谈", model.boardName)
     assertEquals(47, model.totalRows)
-    // 47 楼 / 每页 20 = 3 页
     assertEquals(3, model.totalPages)
     assertEquals(3, model.floors.size)
     assertEquals(listOf(0L, 1L, 2L), model.floors.map { it.lou })
-    // 主楼的赞踩 pid 必须是 0(API 文档 §6)
     assertEquals(0L, model.floors[0].recommendPid)
     assertEquals(800000001L, model.floors[1].recommendPid)
     assertTrue(model.floors[0].isStarter)
     assertEquals("楼主", model.floors[0].displayName)
-    // 正文已经建成成品(不是 BBCode 原文)
     assertTrue(model.floors[0].body.segments.isNotEmpty())
     assertEquals("https://img.nga.cn/attachments", model.attachBase)
-    // 只发了一次 read.php
     assertEquals(1, transport.requests.size)
     assertTrue(transport.requests.single().url.contains("read.php"))
   }
@@ -108,7 +94,6 @@ class TopicRepositoryTest {
     repository.loadDetail(TopicPageParams(tid = 45150945, page = 2))
     repository.loadDetail(TopicPageParams(tid = 45150945, page = 1, authorId = 60423359))
     repository.loadDetail(TopicPageParams(tid = 45150945, page = 1, pid = 800000002))
-    // fav 码不同也是另一份数据
     repository.loadDetail(TopicPageParams(tid = 45150945, page = 1, favCode = "abc"))
 
     val loaded = repository.loadedPages(tid = 45150945, favCode = null)
@@ -165,9 +150,7 @@ class TopicRepositoryTest {
     assertEquals(3, transport.requests.size)
     assertEquals(3, sink.saved.size, "每页都要交出快照给票 14 存")
     assertEquals(listOf(1, 2, 3), sink.saved.map { it.page })
-    // 进度是一页一页往前走的(在每一发请求进来的那一刻读):第 1 页时 0、第 2 页时 1……
     assertEquals(listOf(0, 1, 2), progressAtRequest)
-    // 跑完必须回到空闲,不然进度条一直挂在那儿
     assertNull(repository.cacheDownload.value.tid)
   }
 
@@ -196,7 +179,6 @@ class TopicRepositoryTest {
     val repository = testRepository(client, appScope())
 
     val job = appScope().launchCache(repository, listOf(1, 2, 3, 4, 5))
-    // 第一页立刻发(「缓存本页」按下去就该有反应),之后每页之间隔一会儿
     advanceUntilIdle()
     repository.cancelCacheDownload()
     advanceUntilIdle()
@@ -218,7 +200,6 @@ class TopicRepositoryTest {
     val repository = testRepository(client, appScope())
 
     val first = appScope().launchCache(repository, listOf(1, 2, 3), intervalMs = 1_000)
-    // 让第一趟真正跑起来(拿到锁),再开第二趟
     runCurrent()
     val second = repository.cacheTopicPages(45150945, listOf(1, 2), intervalMs = 10)
     assertEquals(CacheDownloadOutcome.Busy, second)

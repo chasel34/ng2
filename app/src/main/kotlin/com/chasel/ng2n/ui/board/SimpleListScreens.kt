@@ -63,9 +63,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 设计稿 `isSimpleList` 那一档的副标题条:12px meta 色、surface-2 底、下面一条分隔线。
- */
 @Composable
 private fun SubtitleBar(parts: List<String>) {
   val colors = LocalNg2nColors.current
@@ -87,12 +84,6 @@ private fun SubtitleBar(parts: List<String>) {
   )
 }
 
-/**
- * 24 小时热帖(CONTEXT.md「热帖」)—— 直译 RN 侧 `src/app/board/hot.tsx`。
- *
- * 并发拉版块前几页、**本地聚合**的榜单,不是服务端 API。UI 按设计稿 simple-list 屏:
- * 顶栏带刷新钮,行复用 [TopicRow] 的 simple 档(标题 16、右侧是相对时间)。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
@@ -106,7 +97,6 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   val state = all[hotKey] ?: HotTopicsRepository.State()
   LaunchedEffect(hotKey) { deps.hotTopics.ensureLoaded(hotKey) }
 
-  // 榜单也是主题列表,一样过屏蔽规则(票 29):命中的整行不画
   val filterRules = rememberFilterRules()
   val rows = remember(state.topics, filterRules, colors, titleColors, state.fetchedAt) {
     buildTopicRows(filterTopics(filterRules, state.topics), colors, titleColors, simple = true) { topic ->
@@ -114,7 +104,6 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
     }
   }
 
-  // 副标题条(设计稿 listSub):来源版块 + 排序口径;部分页失败时把话说在这儿
   val subtitle = buildList {
     key.name?.let { add(it) }
     add("近 $HOT_WINDOW_HOURS 小时 · 按回复数排序")
@@ -152,7 +141,6 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
           variant = StateVariant.SCREEN,
         )
       }
-      // 榜单有货、过完屏蔽规则空了,得说清是被自己的规则挡的,别当成「没有新主题」
       rows.isEmpty() -> EmptyState(
         icon = if (state.topics.isEmpty()) Ng2nIcon.LOCAL_FIRE_DEPARTMENT else Ng2nIcon.FILTER_ALT,
         text = if (state.topics.isEmpty()) {
@@ -176,7 +164,6 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
             key = { index -> rows[index].topic.tid },
             contentType = { "topic" },
           ) { index ->
-            // 榜单在聚合时已剔掉合集/镜像/外链行,进来的都是普通讨论串
             TopicRow(rows[index], onClick = { topic: Topic ->
               nav.push(TopicKey(tid = topic.tid, title = topic.subject, fav = topic.favCode))
             })
@@ -187,12 +174,6 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   }
 }
 
-/**
- * 精华区(功能文档 §2.2)—— 直译 RN 侧 `src/app/board/recommend.tsx`。
- *
- * `recommend=1` 的主题列表,服务端固定按发帖时间排。UI 按设计稿 simple-list 屏,
- * 行复用 [TopicRow] 的 simple 档(标题 16、右侧是发帖日期)。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
@@ -204,7 +185,6 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   val listKey = TopicListRepository.Key(
     boardId = key.id,
     kind = key.kind,
-    // 精华区固定 postdatedesc,sort 不参与请求
     sort = TopicSort.POST_DATE,
     recommend = true,
   )
@@ -212,7 +192,6 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   val state = all[listKey] ?: TopicListRepository.State()
   LoadTopicListOnEntry(deps.topicLists, listKey)
 
-  // 精华区也是主题列表,不该漏网(票 29)
   val filterRules = rememberFilterRules()
   val rows = remember(state.topics, filterRules, colors, titleColors) {
     buildTopicRows(filterTopics(filterRules, state.topics), colors, titleColors, simple = true) {
@@ -220,7 +199,6 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
     }
   }
 
-  // 副标题条(设计稿 listSub:「版面推荐 · 共 148 篇」,「版面」沿用设计稿原字)
   val totalRows = state.pages.firstOrNull()?.totalRows
   val subtitle = buildList {
     key.name?.let { add(it) }
@@ -229,7 +207,6 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   }
 
   val listState = rememberLazyListState()
-  // 票 57:按距离而不是按项数拉下一页,fling 才不会跑到已加载内容的末尾
   val shouldLoadMore by rememberShouldLoadNextPage(listState, rows.size)
   LaunchedEffect(listState, state.hasNextPage, state.loadingNextPage) {
     snapshotFlow { shouldLoadMore }.collect { if (it) deps.topicLists.loadNextPage(listKey) }
@@ -237,7 +214,6 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   val flingBehavior = rememberPagedFlingBehavior(listState) {
     state.hasNextPage || state.loadingNextPage
   }
-  // 下一页在路上时,尾部铺几屏能滚的骨架行(票 57 三轮)
   val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
   Column(modifier.fillMaxSize().background(colors.bg)) {
@@ -251,7 +227,6 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       )
       TopBarTitle(text = "精华区", variant = TopBarTitleVariant.SUB)
       Spacer(Modifier.weight(1f))
-      // 设计稿的「按版块筛选」是 toast 桩(research/inventory.md §2),入口保留
       TopBarButton(
         icon = Ng2nIcon.FILTER_ALT,
         size = 22.dp,
@@ -296,7 +271,6 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
             contentType = { "topic" },
           ) { index ->
             TopicRow(rows[index], onClick = { topic: Topic ->
-              // 与主题列表页同一套规则:快捷方式行开版块、活动行走站内网页兜底
               val shortcut = topic.shortcut
               val jumpUrl = topic.jumpUrl
               when {

@@ -22,15 +22,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * 渲染模型构建器的对照表:**29 种节点每种至少一条断言**(票 11 验收项 ①)。
- *
- * 样例 BBCode 与 `core/bbcode/BBCodeCoverageTest` 的那张清单逐条相同(也就是金样本
- * `bbcode/coverage-*` 的 input),所以「解析成什么」那一半已经被金样本锁死了,
- * 这里只锁**渲染语义**:切成哪种段、annotation 钉在哪个区间、表情占了几个位。
- *
- * 断言口径照 RN 侧 `src/ui/bbcode/render.tsx` 的分支逐条核对(功能对照,非像素级)。
- */
 class RenderModelBuilderTest {
 
   private val base = "https://img.nga.cn/attachments"
@@ -59,13 +50,8 @@ class RenderModelBuilderTest {
     return segment
   }
 
-  /** 一段里所有 span 的并集,用来问「有没有加粗过」这类问题。 */
   private fun AnnotatedString.spanAt(index: Int) =
     spanStyles.filter { index >= it.start && index < it.end }.map { it.item }
-
-  // ---------------------------------------------------------------------------
-  // 行内 16 种
-  // ---------------------------------------------------------------------------
 
   @Test
   fun `text 一段字进文字段`() {
@@ -117,7 +103,6 @@ class RenderModelBuilderTest {
 
   @Test
   fun `size 按正文字号乘倍数 而不是按当前上下文`() {
-    // 15.5 × 1.2 = 18.6
     val spans = text("[size=120%]大[/size]").text.spanAt(0)
     assertTrue(spans.any { it.fontSize.value in 18.5f..18.7f }, "实际 $spans")
   }
@@ -208,16 +193,11 @@ class RenderModelBuilderTest {
     assertEquals(0, segment.smilies.size)
   }
 
-  // ---------------------------------------------------------------------------
-  // 块级 13 种
-  // ---------------------------------------------------------------------------
-
   @Test
   fun `quote 切成引用卡`() {
     val segment = single("[quote]引用[/quote]")
     assertTrue(segment is QuoteSegment)
     assertEquals("引用", (segment.body.segments.single() as TextSegment).text.text)
-    // 手打的引用没有 [pid],追不了链
     assertNull(segment.chain)
   }
 
@@ -256,7 +236,6 @@ class RenderModelBuilderTest {
 
   @Test
   fun `noimg 缺日期目录时按发帖时间补 UTC 加八`() {
-    // 2026-08-07 12:00 (UTC+8)
     val segment = single("[noimg]./-7Qd36d-x.jpg[/noimg]", options(postedAt = 1786075200L))
     assertEquals("$base/mon_202608/07/-7Qd36d-x.jpg", (segment as ImageSegment).url)
   }
@@ -390,15 +369,10 @@ class RenderModelBuilderTest {
     )
   }
 
-  // ---------------------------------------------------------------------------
-  // 跨类型的几条(RN 侧 render.tsx 的分支)
-  // ---------------------------------------------------------------------------
-
   @Test
   fun `行内标签裹着块级内容时 升格成容器 且样式往下带`() {
     val segment = single("[b][color=red][img]./a.jpg[/img][/color][/b]")
     assertTrue(segment is GroupSegment)
-    // 两层容器,最里面才是图
     val inner = segment.body.segments.single()
     assertTrue(inner is GroupSegment)
     assertTrue(inner.body.segments.single() is ImageSegment)
@@ -466,7 +440,6 @@ class RenderModelBuilderTest {
   fun `29 种样例拼成一段长正文 一次建模不抛不吞`() {
     val joined = COVERAGE_SAMPLES.values.joinToString("<br/>")
     val built = model(joined)
-    // 行内的会被合并成几段、块级各占一段;只要每种块都出现过就算没吞
     val kinds = built.segments.map { it::class.simpleName }.toSet()
     for (expected in listOf(
       "QuoteSegment", "ImageSegment", "HeadingSegment", "AlignSegment", "CollapseSegment",
@@ -480,11 +453,6 @@ class RenderModelBuilderTest {
   }
 
   private companion object {
-    /**
-     * 与 `core/bbcode/BBCodeCoverageTest` 那张清单逐条相同(也就是金样本
-     * `bbcode/coverage-*` 的 input)。两处各存一份是有意的:那边锁「解析出什么」,
-     * 这边锁「渲染成什么」,谁改了清单谁那边先红。
-     */
     val COVERAGE_SAMPLES: Map<String, String> = linkedMapOf(
       "text" to "一段字",
       "linebreak" to "上<br/>下",

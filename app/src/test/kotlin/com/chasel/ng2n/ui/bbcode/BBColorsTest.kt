@@ -6,7 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** 手工移植自 `src/ui/bbcode/colors.test.ts`。 */
 class BBColorsTest {
 
   @Test
@@ -24,9 +23,7 @@ class BBColorsTest {
   @Test
   fun `认十六进制色值`() {
     assertEquals(Color(0xFFFF0000), resolveBBColor("#FF0000"))
-    // #rgb 每位翻倍
     assertEquals(Color(0xFFFF0000), resolveBBColor("#f00"))
-    // CSS 的 #rrggbbaa 是颜色在前 alpha 在后,与 Compose 的 ARGB 相反
     assertEquals(Color(0x80FF0000), resolveBBColor("#ff000080"))
   }
 
@@ -41,7 +38,6 @@ class BBColorsTest {
   fun `防剧透只认色名 white 不认等价的十六进制`() {
     assertTrue(isSpoilerColor("white"))
     assertTrue(isSpoilerColor(" White "))
-    // 与 RN 版同口径:那边的判据也是色名,`#ffffff` 只当普通白色
     assertTrue(!isSpoilerColor("#ffffff"))
     assertTrue(!isSpoilerColor("red"))
   }

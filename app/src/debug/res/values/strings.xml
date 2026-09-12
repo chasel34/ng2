@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 开发包与正式包并装时,桌面上得分得清谁是谁。 -->
     <string name="app_name">NG2 Dev</string>
 </resources>

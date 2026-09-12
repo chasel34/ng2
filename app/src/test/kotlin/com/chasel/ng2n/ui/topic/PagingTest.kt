@@ -8,7 +8,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** 手工移植自 `src/ui/paging.test.ts`(`swipe*` 一族不移植,理由见 `Paging.kt` 文件头)。 */
 class PagingTest {
 
   @Test
@@ -75,14 +74,10 @@ class PagingTest {
     }
   }
 
-  // --------------------------------------------------------- pagerPageCount(票 20)
-
   @Test
   fun `pagerPageCount 至少装得下当前页 —— 总页数还没回来也不许把页码钳掉`() {
-    // 首帧:数据没回来,totalPages 还是进场页兜的底
     assertEquals(3, pagerPageCount(1, 3))
     assertEquals(3, pagerPageCount(3, 3))
-    // 真实页数回来后由 totalPages 说了算
     assertEquals(47, pagerPageCount(47, 3))
   }
 
@@ -95,53 +90,37 @@ class PagingTest {
 
   @Test
   fun `pagerPageCount 与 clampPage 合起来 首帧不会把带页码进场的页码打回第 1 页`() {
-    // 票 20 的现场:pager 把 currentPage 钳进 [0, pageCount-1],
-    // 再由 settledPage 回写给 ViewModel。pageCount 装得下,这一圈就是恒等
     val page = 3
-    val totalPages = 3 // TopicViewModel 的初值 = 进场页
+    val totalPages = 3
     val settled = (page - 1).coerceIn(0, pagerPageCount(totalPages, page) - 1)
     assertEquals(page, clampPage(settled + 1, totalPages))
   }
 
-  // --------------------------------------------------- floorScrollIndex(票 34)
-
-  /** 一页 20 楼、页码 p 的楼层号(0-based 楼号,第 1 页是 0–19)。 */
   private fun louOfPage(page: Int, rowsPerPage: Int = 20): List<Long> =
     ((page - 1) * rowsPerPage until page * rowsPerPage).map { it.toLong() }
 
   @Test
   fun `floorScrollIndex 目标楼在页中部 —— 楼层下标再加 header 那一格`() {
-    // 票 34 的三个现场楼号都离页顶 ≥ 5 楼,近页顶的楼分不出「滚了」和「没滚」
-    // 74 楼:第 4 页(60–79)的第 15 条 → 列表第 15 + 1 格
     assertEquals(15, floorScrollIndex(louOfPage(4), targetFloor = 74, page = 4, rowsPerPage = 20))
-    // 26 楼:第 2 页(20–39)的第 7 条
     assertEquals(7, floorScrollIndex(louOfPage(2), targetFloor = 26, page = 2, rowsPerPage = 20))
-    // 7 楼:第 1 页的第 8 条
     assertEquals(8, floorScrollIndex(louOfPage(1), targetFloor = 7, page = 1, rowsPerPage = 20))
   }
 
   @Test
   fun `floorScrollIndex 页顶那一楼落在 header 后面第一格 —— 不是第 0 格`() {
-    // 第 0 格是 header;老代码在没有热门回复的页上把它算成 0,整页差一楼
     assertEquals(1, floorScrollIndex(louOfPage(3), targetFloor = 40, page = 3, rowsPerPage = 20))
     assertEquals(1, floorScrollIndex(louOfPage(1), targetFloor = 0, page = 1, rowsPerPage = 20))
   }
 
   @Test
   fun `floorScrollIndex 目标楼不在本页 —— 给 null,翻页途中不许拿旧页错滚`() {
-    // 屏上还是第 2 页,目标是 74 楼(第 4 页):等真正那一页回来再兑现
     assertNull(floorScrollIndex(louOfPage(2), targetFloor = 74, page = 2, rowsPerPage = 20))
-    // 反向也一样:旧页的楼号落到新页上
     assertNull(floorScrollIndex(louOfPage(4), targetFloor = 7, page = 4, rowsPerPage = 20))
-    // 服务端把超范围的请求页钳到末页时,`page` 用的是回来的 __PAGE,于是也不匹配
     assertNull(floorScrollIndex(louOfPage(3), targetFloor = 200, page = 3, rowsPerPage = 20))
   }
 
   @Test
   fun `floorScrollIndex 有热门回复区也只占 header 那一格`() {
-    // 热门回复区与「只看此人」条塞在**同一个** header item 里,它在不在场都不改格数。
-    // 老代码按 `hotReplies.isNotEmpty()` 现算 offset,两种页刚好各错一半:
-    // 有热门回复的页(只有第 1 页)对,其余每一页都少一格。
     val hot = pageModel(page = 1, lous = louOfPage(1), hotReplyLous = listOf(3L, 11L))
     val plain = pageModel(page = 1, lous = louOfPage(1))
     assertTrue(hot.hotReplies.isNotEmpty())
@@ -164,7 +143,6 @@ class PagingTest {
     assertEquals(1, TOPIC_LIST_HEADER_ROWS)
   }
 
-  /** 一页真模型(过一遍 [TopicPageBuilder]),热门回复区按 [hotReplyLous] 挂上去。 */
   private fun pageModel(
     page: Int,
     lous: List<Long>,
@@ -204,10 +182,9 @@ class PagingTest {
 
   @Test
   fun `floorScrollIndex 楼层被删有空洞 —— 落到它后面最近的一楼`() {
-    // 62、63 楼被删
     val floors = louOfPage(4).filterNot { it == 62L || it == 63L }
     assertEquals(
-      3, // 60,61,64 → 64 楼是第 3 条(下标 2)+ header
+      3,
       floorScrollIndex(floors, targetFloor = 62, page = 4, rowsPerPage = 20),
     )
   }
@@ -216,7 +193,7 @@ class PagingTest {
   fun `floorScrollIndex 尾巴整段被删光 —— 落到本页最后一楼`() {
     val floors = louOfPage(4).filter { it <= 65L }
     assertEquals(
-      6, // 60..65 共 6 条,最后一条下标 5 + header
+      6,
       floorScrollIndex(floors, targetFloor = 74, page = 4, rowsPerPage = 20),
     )
   }
@@ -229,7 +206,6 @@ class PagingTest {
 
   @Test
   fun `floorScrollIndex 每页楼数不是 20 时按服务端口径算`() {
-    // 每页 30 楼:74 楼落第 3 页(60–89)的第 15 条
     val floors = (60L..89L).toList()
     assertEquals(15, floorScrollIndex(floors, targetFloor = 74, page = 3, rowsPerPage = 30))
     assertNull(floorScrollIndex(floors, targetFloor = 74, page = 3, rowsPerPage = 20))

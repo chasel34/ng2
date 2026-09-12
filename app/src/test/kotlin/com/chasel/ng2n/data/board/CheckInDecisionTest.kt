@@ -5,13 +5,8 @@ import com.chasel.ng2n.data.settings.withCheckedIn
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * 签到去重(CONTEXT.md「签到」)。判据顺序照抄 RN 侧 `store/check-in.ts`:
- * 先看本地记账,再看在途。
- */
 class CheckInDecisionTest {
 
-  /** 2026-08-22 12:00 UTC+8。 */
   private val noon = 1_787_371_200_000L
 
   @Test
@@ -55,7 +50,6 @@ class CheckInDecisionTest {
       CheckInDecision.IN_FLIGHT,
       decideCheckIn(emptyMap(), uid = "1", nowMs = noon, pendingUid = "1"),
     )
-    // RN 版原行为:判的是「有没有任何一次在途」,不是「本账号在途」
     assertEquals(
       CheckInDecision.IN_FLIGHT,
       decideCheckIn(emptyMap(), uid = "1", nowMs = noon, pendingUid = "99"),
@@ -73,7 +67,6 @@ class CheckInDecisionTest {
 
   @Test
   fun 日界线按UTC加8而不是设备时区() {
-    // 2026-08-22 00:30 UTC+8 = 2026-08-21 16:30 UTC —— 按 UTC 算会落到前一天
     val justAfterMidnightBeijing = 1_787_329_800_000L
     assertEquals("2026-08-22", beijingDayKey(justAfterMidnightBeijing))
     val days = withCheckedIn(emptyMap(), "1", justAfterMidnightBeijing)

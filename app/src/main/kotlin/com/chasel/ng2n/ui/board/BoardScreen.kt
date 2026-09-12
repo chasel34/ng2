@@ -96,14 +96,6 @@ import com.chasel.ng2n.ui.theme.Spacing
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.coroutines.launch
 
-/**
- * 版块 / 合集的主题列表 —— 直译 RN 侧 `src/app/board/[id].tsx`。
- *
- * 键上的 `id` 是「合集传 stid、普通版块传 fid」的那一个数(**fid/stid 互斥且
- * stid 优先**,CONTEXT.md「合集」);`name` 是为了进页面立刻能画出顶栏标题,
- * 不用等 `thread.php` 回来 —— 服务端的版块名回来后**不覆盖**它(两者一致,
- * 覆盖只会让标题闪一下)。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
@@ -115,8 +107,6 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
   var sort by rememberSaveable { mutableStateOf(TopicSort.LAST_POST) }
   var menuOpen by remember { mutableStateOf(false) }
 
-  // 24 小时热帖与精华区是同一个键的另外两档,由 `homeEntries` 分派到别的屏,
-  // 走不到这里(见 `BoardFace`)
   val listKey = TopicListRepository.Key(boardId = key.id, kind = key.kind, sort = sort)
   val allStates by deps.topicLists.states.collectAsStateWithLifecycle()
   val state = allStates[listKey] ?: TopicListRepository.State()
@@ -133,15 +123,11 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
 
   val firstPage = state.pages.firstOrNull()
   val boardTitle = key.name ?: firstPage?.board?.name ?: "版块 ${key.id}"
-  // 版头(CONTEXT.md):`__F.topped_topic` 带 tid 时在列表顶上给一条置顶入口
   val headTid = firstPage?.board?.head
   val subBoards = firstPage?.subBoards.orEmpty()
 
-  // 屏蔽规则(票 29):命中的主题**整行不画**(楼层是折叠,列表是隐藏 —— 屏蔽规则页
-  // 顶上那句说明写的就是这个)。判定与楼层流共用 `matchFilterRules`
   val filterRules = rememberFilterRules()
 
-  // 彩色标题 → AnnotatedString:**一次构建**,滚动路径上零计算(anzong 四原则第一条)
   val rows = remember(state.topics, filterRules, colors, titleColors) {
     buildTopicRows(filterTopics(filterRules, state.topics), colors, titleColors)
   }
@@ -152,10 +138,8 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
   val openTopic: (Topic) -> Unit = { topic ->
     val shortcut = topic.shortcut
     when {
-      // 合集 / 版块镜像行不是讨论串,点开是另一个版块的主题列表(API 文档 §2 解析要点 3)
       shortcut != null ->
         openBoard(Board(id = shortcut.id, kind = shortcut.kind, name = topic.subject))
-      // 活动主题指向站内活动页,不是 read.php —— 交给站内网页兜底屏(票 17)
       topic.jumpUrl != null -> nav.push(WebKey(url = topic.jumpUrl!!, title = topic.subject))
       else -> nav.push(TopicKey(tid = topic.tid, title = topic.subject, fav = topic.favCode))
     }
@@ -170,10 +154,8 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
         contentDescription = "返回",
         onClick = nav::pop,
       )
-      // 设计稿 isList 给标题标了 150 的截断宽度,右边三枚图标才排得开
       TopBarTitle(text = boardTitle, variant = TopBarTitleVariant.SUB, maxWidth = 150.dp)
       Spacer(Modifier.weight(1f))
-      // 已收藏用 accent 点亮
       TopBarButton(
         icon = Ng2nIcon.STAR,
         size = 23.dp,
@@ -199,7 +181,6 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
           }
         },
       )
-      // 从列表页进搜索:带上当前版块,搜索选项里才有「当前板块」
       TopBarButton(
         icon = Ng2nIcon.SEARCH,
         size = 22.dp,
@@ -227,8 +208,6 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
         onRetry = { scope.launch { deps.topicLists.retry(listKey) } },
         onLoadNext = { scope.launch { deps.topicLists.loadNextPage(listKey) } },
         onOpenWeb = {
-          // 「用网页版打开」:站内网页兜底屏(票 17),不开系统浏览器。
-          // 域名走设置里选的那个 —— 原生被封往往是整个域名被封
           val param = if (key.kind == BoardKind.COLLECTION) "stid" else "fid"
           scope.launch {
             val host = deps.settings.currentSettings().host
@@ -238,7 +217,6 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
         onRelogin = { nav.push(com.chasel.ng2n.ui.Login) },
       )
 
-      // 发新帖不在 v1 范围内(spec §1),入口保留
       Box(
         modifier = Modifier
           .align(Alignment.BottomEnd)
@@ -276,7 +254,6 @@ private fun toggleFavorite(
   favor: Boolean,
 ) {
   scope.launch {
-    // 撤销就是反着做一次,失败一律回到「服务端怎么说就怎么显示」的话术
     runCatching {
       if (favor) deps.boardFavorites.add(uid, board) else deps.boardFavorites.remove(uid, board)
     }.fold(
@@ -291,10 +268,6 @@ private fun toggleFavorite(
   }
 }
 
-/**
- * 版块页的 kebab 菜单。顺序照设计稿 `MENUS.list`:24 小时热帖 → 浏览历史 →
- * 精华区 → 子版块 → 收藏夹,之后是一组互斥的排序选项。
- */
 private fun boardMenu(
   key: BoardKey,
   sort: TopicSort,
@@ -329,7 +302,6 @@ private fun boardMenu(
       },
     )
   }
-  // 设计稿的列表菜单没画排序(它在 MNGA 里是设置项),按现有菜单样式延伸一组互斥选项
   val sorts = listOf(
     TopicSort.LAST_POST to "按最后回复排序",
     TopicSort.POST_DATE to "按发帖时间排序",
@@ -348,10 +320,6 @@ private fun boardMenu(
   return entries + sorts
 }
 
-/**
- * 列表正文。三种「没内容」是三回事,说成同一句话时用户会以为版块是空的
- * (2026-08-13:被限流时全站版块都显示「这个版块还没有主题」,连我们自己都查了半天)。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopicListBody(
@@ -377,7 +345,6 @@ private fun TopicListBody(
 
   val error = state.error
   if (rows.isEmpty() && error != null) {
-    // 解析不了 / 没有兜底可用 = 多半是被拦了,给足三个出路(重试 / 网页版 / 重登)
     val blocked = error is NgaError &&
       (error.kind == NgaErrorKind.PARSE || error.kind == NgaErrorKind.UNAVAILABLE)
     Column(
@@ -396,7 +363,6 @@ private fun TopicListBody(
 
   if (rows.isEmpty()) {
     val listStructure = state.pages.firstOrNull()?.listStructure
-    // 拉回来了、被自己的屏蔽规则挡光了:得说清是规则挡的,别当成「这个版块没帖子」
     val allFiltered = state.topics.isNotEmpty()
     if (allFiltered) {
       EmptyState(
@@ -406,8 +372,6 @@ private fun TopicListBody(
       )
       return
     }
-    // 服务端连「主题列表」这个结构都没给:这不是空版块。正常情况下 core/api 已经把它
-    // 变成错误了,这里是最后一道防线——别再让「没拿到」和「没帖子」共用一句话
     if (listStructure == false) {
       EmptyState(
         icon = Ng2nIcon.CLOUD_OFF,
@@ -425,23 +389,16 @@ private fun TopicListBody(
   }
 
   val listState = rememberLazyListState()
-  // 无限滚动:剩不到 PREFETCH_SCREENS 屏就拉下一页(RN 侧 `onEndReachedThreshold={0.6}`
-  // 的对应物)。**按距离而不是按项数**是票 57 二轮改的:旧口径「还剩 6 项」在 13k px/s
-  // 下只有约 155ms 余量,而请求往返实测 124–224ms —— fling 会跑到已加载内容的末尾,
-  // 余速被灌进 EdgeEffect,列表当场停死约 430ms(见 [rememberShouldLoadNextPage])
   val shouldLoadMore by rememberShouldLoadNextPage(listState, rows.size)
   LaunchedEffect(listState, state.hasNextPage, state.loadingNextPage) {
     snapshotFlow { shouldLoadMore }.collect { if (it) onLoadNext() }
   }
-  // 万一还是跑干了:余速扣住等下一页,不许中段出 overscroll(票 57)
   val flingBehavior = rememberPagedFlingBehavior(listState) {
     state.hasNextPage || state.loadingNextPage
   }
-  // 下一页在路上时,尾部铺几屏能滚的骨架行:fling 有像素可推进,就不会撞墙(票 57 三轮)
   val placeholders = rememberTailPlaceholders(listState, state.loadingNextPage)
 
   ListPullToRefreshBox(
-    // 翻下一页时不要亮:不然底部转圈会连带把顶部也拽出来
     isRefreshing = state.refreshing && !state.loadingNextPage,
     onRefresh = onRefresh,
     modifier = Modifier.fillMaxSize(),
@@ -462,7 +419,6 @@ private fun TopicListBody(
       }
       items(
         count = rows.size,
-        // key/contentType:回收池按类型分,行不会复用到形状完全不同的项上
         key = { index -> rows[index].topic.tid },
         contentType = { "topic" },
       ) { index ->
@@ -509,7 +465,6 @@ private fun WideButton(label: String, onClick: () -> Unit) {
   }
 }
 
-/** 版头置顶入口。设计稿没画这屏,按公告条的设计语言延伸(surface-2 底 + 分隔线)。 */
 @Composable
 private fun HeadRow(onClick: () -> Unit) {
   val colors = LocalNg2nColors.current
@@ -540,7 +495,6 @@ private fun HeadRow(onClick: () -> Unit) {
   }
 }
 
-/** 子版块横条(设计稿:列表顶部一排可横滚的 tag)。 */
 @Composable
 private fun SubBoardBar(boards: List<SubBoard>, onClick: (Board) -> Unit) {
   val colors = LocalNg2nColors.current
@@ -555,7 +509,6 @@ private fun SubBoardBar(boards: List<SubBoard>, onClick: (Board) -> Unit) {
       .padding(vertical = Spacing.md, horizontal = Spacing.row),
     horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
   ) {
-    // key 用 kind+id:合集与版块各自编号(stid vs fid),只用 id 有撞车的可能
     boards.forEach { subBoard ->
       Box(
         modifier = Modifier

@@ -5,14 +5,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 
-/**
- * `src/core/local/topic-favor-index.test.ts` 的手工移植(票 14 验收项①)。
- */
 class TopicFavorIndexTest {
 
   private fun json(raw: String) = Json.parseToJsonElement(raw)
-
-  // ------------------------------------------------------------ applyFavoriteChange
 
   @Test
   fun `收藏到多个夹后两个夹都记着`() {
@@ -63,8 +58,6 @@ class TopicFavorIndexTest {
     )
   }
 
-  // ------------------------------------------------------------ seedFolderTopics
-
   @Test
   fun `把一页列表里的 tid 都记进这个夹`() {
     val index = seedFolderTopics(EMPTY_TOPIC_FAVOR_INDEX, 7, listOf(11, 22, 22))
@@ -87,7 +80,6 @@ class TopicFavorIndexTest {
     index = applyFavoriteChange(index, FavoriteChange(99, 3, true))
     index = seedFolderTopics(index, 7, listOf(11), complete = true)
 
-    // 7 号夹的全集里没有 99,所以只摘掉 7;99 在 3 号夹里的归属不受影响
     assertEquals(listOf(3), foldersOfTopic(index, 99))
     assertEquals(listOf(7), foldersOfTopic(index, 11))
   }
@@ -100,8 +92,6 @@ class TopicFavorIndexTest {
     assertEquals(emptyMap(), index)
   }
 
-  // ------------------------------------------------------------ pruneFolders
-
   @Test
   fun `删掉的夹留下的归属一并清掉`() {
     var index = seedFolderTopics(EMPTY_TOPIC_FAVOR_INDEX, 7, listOf(1, 2))
@@ -109,7 +99,6 @@ class TopicFavorIndexTest {
     index = pruneFolders(index, listOf(3))
 
     assertEquals(listOf(3), foldersOfTopic(index, 1))
-    // 2 只在被删的 7 号夹里,整条记录就没了
     assertEquals(mapOf(1L to listOf(3)), index)
   }
 
@@ -118,8 +107,6 @@ class TopicFavorIndexTest {
     val index = seedFolderTopics(EMPTY_TOPIC_FAVOR_INDEX, 7, listOf(1))
     assertSame(index, pruneFolders(index, listOf(3, 7)))
   }
-
-  // ------------------------------------------------------------ diffFolderSelection
 
   @Test
   fun `只算改动过的夹 没动的不发请求`() {
@@ -152,8 +139,6 @@ class TopicFavorIndexTest {
       diffFolderSelection(listOf(3, 7), emptyList()),
     )
   }
-
-  // ------------------------------------------------------------ parseTopicFavorIndex
 
   @Test
   fun `读回落盘的索引`() {

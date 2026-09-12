@@ -7,18 +7,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * 「点了这颗钮会去哪一屏」的纯算术(票 20 / 21 / 22 + 功能走查 checklist #11)。
- *
- * 这三处原来都是**接线错**而不是算错:按钮画得好好的,回调是空 lambda、
- * 或者把站内兜底屏接到了系统浏览器上。接线本身编译期看不出来,所以把「造哪个键」
- * 收敛成可单测的函数,再让屏幕只负责 `nav.push(它)`。
- */
 class TopicNavKeysTest {
 
   private val host = "https://bbs.nga.cn"
-
-  // ---------------------------------------------------------- 票 21 / 22:用网页版打开
 
   @Test
   fun `用网页版打开 —— 站内兜底屏的键带着当前页码与 fav 码`() {
@@ -46,8 +37,6 @@ class TopicNavKeysTest {
     val web = topicWebKey(TopicKey(tid = 1), page = 1, host = "https://ngabbs.com")
     assertEquals("https://ngabbs.com/read.php?tid=1&page=1", web.url)
   }
-
-  // ---------------------------------------------- checklist #11:历史条目带进度楼层
 
   @Test
   fun `历史条目重新打开 —— 带上进度楼层,别让「读到 96 楼」点进去落在第 1 页顶部`() {

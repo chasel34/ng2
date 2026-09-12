@@ -15,9 +15,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/**
- * 版块树 24h SWR 的四条分支 + 增量合并 —— 直译 `core/api/board-tree-cache.ts` 的测试意图。
- */
 class BoardTreeLoadTest {
 
   private class FakeStore(var snapshot: BoardTreeSnapshot? = null) : BoardTreeStore {
@@ -132,8 +129,6 @@ class BoardTreeLoadTest {
     val result = loadBoardTree(store = store, fetchTree = { tree(board(7, "线上")) }, now = 0)
     assertEquals(BoardTreeSource.NETWORK, result.source)
   }
-
-  // ---------------------------------------------------------------- 合并
 
   @Test
   fun 合并时组成以服务端为准_下线的版块跟着消失() {

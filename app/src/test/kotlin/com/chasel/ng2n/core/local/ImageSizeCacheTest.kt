@@ -9,10 +9,6 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
-/**
- * 图片尺寸记忆表。用例逐条对着 RN 侧 `src/ui/bbcode/image-size.test.ts` 移过来
- * (那边 15 条,这里补了「快照顺序」与「防抖窗口不被推迟」两条)。
- */
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class ImageSizeCacheTest {
 
@@ -79,7 +75,6 @@ class ImageSizeCacheTest {
     cache.remember("c.jpg", ImageSize(100, 100))
     cache.remember("d.jpg", ImageSize(100, 100))
 
-    // 表满之后丢的是最早**插入**的 a,而不是最久没被写的 b —— 与 RN 的 Map 同序
     assertNull(cache.sizeOf("a.jpg"))
     assertNotNull(cache.sizeOf("b.jpg"))
     assertEquals(listOf("b.jpg", "c.jpg", "d.jpg"), cache.snapshot().map { it.first })
@@ -125,7 +120,6 @@ class ImageSizeCacheTest {
   fun `防抖是批窗口不是静默期 —— 持续写也会按时落一次`() = runTest {
     val store = FakeStore()
     val cache = ImageSizeCache(backgroundScope, store)
-    // 每 300ms 记一张,连续 1.2s。静默期防抖会一直被推迟到最后;批窗口按时落盘
     repeat(4) { index ->
       cache.remember("img-$index.jpg", ImageSize(10, 10))
       advanceTimeBy(300)
@@ -133,7 +127,6 @@ class ImageSizeCacheTest {
     }
     assertEquals(1, store.saves.size)
 
-    // 上一批落完之后再记,开新窗口
     cache.remember("later.jpg", ImageSize(30, 30))
     advanceTimeBy(IMAGE_SIZE_SAVE_DEBOUNCE_MS + 100)
     runCurrent()
@@ -156,7 +149,6 @@ class ImageSizeCacheTest {
   }
 }
 
-/** 长图判据(=「会不会被比例封顶裁掉一截」)。 */
 class LongImageTest {
 
   @Test

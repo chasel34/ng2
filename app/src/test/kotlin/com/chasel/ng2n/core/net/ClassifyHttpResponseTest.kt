@@ -8,13 +8,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
-/**
- * 手工移植 `src/core/net/fetcher.test.ts` 里「HTTP 状态 × body」那一组用例,
- * 加上 `strategies/attempt.ts` 的「未登录 ⇒ 强制可重试」与「调用方一票否决」两条分支。
- *
- * TS 侧这些断言是穿过整条 fetcher 打出来的(要造假 transport、要 await),
- * 这边被测的是抠出来的纯函数 [classifyHttpResponse],断言直接落在返回值上。
- */
 class ClassifyHttpResponseTest {
 
   private fun captureText(name: String): String =
@@ -30,7 +23,6 @@ class ClassifyHttpResponseTest {
     is HttpClassification.Failed -> fail("期望成功,实际:${result.error}")
   }
 
-  /** HTTP 非 2xx 时 body 仍可能带有效错误信息,所以先解析 body(API 文档 §0.7)。 */
   @Test
   fun `非 2xx 但 body 有错误信息就报服务端错误`() {
     val error = failed(
@@ -63,7 +55,6 @@ class ClassifyHttpResponseTest {
     assertEquals("direct", error.via)
   }
 
-  /** 「空」按 JS 的 `trim()` 算,不是 `isBlank()`——NBSP、全角空格都要算空白。 */
   @Test
   fun `非 2xx 且 body 全是空白也按状态码报错`() {
     val error = failed(classifyHttpResponse(502, "  　\n "))
@@ -71,7 +62,6 @@ class ClassifyHttpResponseTest {
     assertEquals(NgaErrorKind.HTTP, error.kind)
   }
 
-  /** 非 2xx 但 body 有内容只是解析不了 → parse(被封的信号),状态码一并带上。 */
   @Test
   fun `非 2xx 且 body 解析不了报 parse 并带上状态码`() {
     val error = failed(classifyHttpResponse(403, "<html>Forbidden</html>", via = "direct"))
@@ -90,11 +80,6 @@ class ClassifyHttpResponseTest {
     assertTrue(error.retryable)
   }
 
-  /**
-   * ADR-0002 第 6 条:服务端说「未登录」不是语义失败,是这一发请求没被认出身份。
-   * 判成不可重试的代价是三重的——链上后面的网页兜底与帖子缓存一个都轮不到、
-   * 丢身份的那个组合会被记进成功组合缓存、用户点重试也没用。
-   */
   @Test
   fun `未登录强制可重试`() {
     val error = failed(
@@ -124,10 +109,6 @@ class ClassifyHttpResponseTest {
     assertEquals(null, envelope.data)
   }
 
-  /**
-   * 调用方的一票否决(ADR-0002 第 1 条):形状不对的响应等同于解析失败,
-   * 于是它既不会被当成结果交出去,也不会被 format-rotation 记成「好组合」。
-   */
   @Test
   fun `一票否决把能解析的响应也判成 parse`() {
     val error = failed(
@@ -155,7 +136,6 @@ class ClassifyHttpResponseTest {
     assertEquals(envelope, seen)
   }
 
-  /** bare 接口的顶层就是数据,不该被「既没有 data 也没有 error」挡掉。 */
   @Test
   fun `信封形状透传给 parseNgaJson`() {
     val envelope = ok(
@@ -165,7 +145,6 @@ class ClassifyHttpResponseTest {
     assertEquals("0", envelope.data!!.jsonObject.getValue("code").jsonPrimitive.content)
   }
 
-  /** 解析器可替换是给票 06 的接缝(网页反解会换一个解析器进来)。 */
   @Test
   fun `解析器可替换`() {
     val stub = NgaEnvelope(root = kotlinx.serialization.json.JsonObject(emptyMap()), data = null)
@@ -173,7 +152,6 @@ class ClassifyHttpResponseTest {
     assertEquals(stub, ok(classifyHttpResponse(200, "随便什么", parse = { stub })))
   }
 
-  /** 解析器抛的不是 NgaError 时,错误信息退回一句通用的,别把内部异常文案漏给用户。 */
   @Test
   fun `非 NgaError 的异常归为 parse`() {
     val error = failed(

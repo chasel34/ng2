@@ -4,10 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-/**
- * 1s 节流批刷的语义 —— `src/store/history.ts` 的 `recordReadFloor` / `flushReadFloor`
- * 那套状态机(RN 版没有单测,这几条是照着实现逐分支写的,票 14 验收项①)。
- */
 class ReadFloorThrottleTest {
 
   private val throttle = ReadFloorThrottle()
@@ -52,14 +48,13 @@ class ReadFloorThrottleTest {
     throttle.record(tid = 7, lou = 3, nowMs = 10_000)
     throttle.record(tid = 7, lou = 9, nowMs = 10_400)
     assertEquals(PendingFloor(7, 9), throttle.flush(11_000))
-    // 已经落过了,再 flush 是 no-op
     assertNull(throttle.flush(11_100))
   }
 
   @Test
   fun `换主题先把上一条落定 新的这条挂尾巴`() {
     throttle.record(tid = 7, lou = 3, nowMs = 10_000)
-    throttle.record(tid = 7, lou = 9, nowMs = 10_200)   // 攒着没落
+    throttle.record(tid = 7, lou = 9, nowMs = 10_200)
     val switched = throttle.record(tid = 8, lou = 1, nowMs = 10_400)
     assertEquals(PendingFloor(7, 9), switched.flush)
     assertEquals(1000, switched.scheduleInMs)
@@ -78,7 +73,6 @@ class ReadFloorThrottleTest {
     throttle.record(tid = 7, lou = 9, nowMs = 10_000)
     throttle.dropPending()
     val again = throttle.record(tid = 7, lou = 9, nowMs = 10_100)
-    // 水位线被丢掉了,所以「只前进」不会把这次拦掉
     assertNull(again.flush)
     assertEquals(900, again.scheduleInMs)
   }

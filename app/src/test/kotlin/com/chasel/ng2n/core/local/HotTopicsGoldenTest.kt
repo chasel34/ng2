@@ -11,13 +11,6 @@ import kotlinx.serialization.json.long
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * `hot-topics` domain 全量对拍(11 条)。
- *
- * 本地聚合,**不是服务端 API**:`options.now` 由调用方传进来,函数里不看表。
- * 泛型保真——金样本的期望值就是**原样传出去的那几个主题对象**,所以这里把
- * 每条 JSON 包一层 [Candidate],出榜后再把 `raw` 摆回去。
- */
 class HotTopicsGoldenTest {
 
   @Test
@@ -32,8 +25,6 @@ class HotTopicsGoldenTest {
       JsonArray(aggregateHotTopics(pages, now, windowHours).map { it.raw })
     }
   }
-
-  // --- 手工移植:`hot-topics.test.ts` 里被金样本覆盖之外的判据 -------------------
 
   @Test
   fun `窗口边界是闭区间的下沿——正好 24h 前发的还算,再早一秒不算`() {
@@ -54,14 +45,12 @@ class HotTopicsGoldenTest {
   }
 }
 
-/** 把一条金样本主题包成 [HotTopicCandidate],出榜时原样把 `raw` 摆回去。 */
 private class Candidate(val raw: JsonObject) : HotTopicCandidate {
   override val tid = raw.getValue("tid").jsonPrimitive.long
   override val replies = raw.getValue("replies").jsonPrimitive.long
   override val postedAt = raw.getValue("postedAt").jsonPrimitive.long
   override val lastPostAt = raw.getValue("lastPostAt").jsonPrimitive.long
 
-  // TS 侧判的是 `!== undefined`:金样本里「没有这个字段」就是缺键
   override val shortcut: Any? = raw["shortcut"]?.takeIf { it !is JsonNull }
   override val jumpUrl: String? = raw["jumpUrl"]?.takeIf { it !is JsonNull }?.jsonPrimitive?.content
 }

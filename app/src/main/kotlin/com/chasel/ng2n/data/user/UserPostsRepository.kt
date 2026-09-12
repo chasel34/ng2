@@ -18,18 +18,6 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * 某人的主题 / 某人的回复,往下翻页 —— 直译 RN 侧 `src/store/user-topics.ts`。
- *
- * 与 `TopicListRepository` 分开而不是加个开关,因为两处判据都不一样:
- *
- * - **翻到底看 [hasMoreUserPosts]**(这一页是不是一条都没有),不是 `totalPages` ——
- *   回复列表的 `__ROWS` 是空串,总页数根本算不出来;
- * - **去重按 `reply.pid`**([mergeUserPostPages]),不是 tid —— 一个帖子里回了 10 层
- *   就是正当的 10 条。
- *
- * 两条的出处都在 `core/api/UserTopics.kt` 的 KDoc 里。
- */
 @Singleton
 class UserPostsRepository @Inject constructor(
   private val client: NgaClient,
@@ -40,7 +28,6 @@ class UserPostsRepository @Inject constructor(
   data class State(
     val loading: Boolean = true,
     val pages: List<TopicList> = emptyList(),
-    /** 已按 pid(没有 reply 的退回 tid)去重的拼页结果 */
     val topics: List<Topic> = emptyList(),
     val error: Throwable? = null,
     val loadingNextPage: Boolean = false,
@@ -73,7 +60,6 @@ class UserPostsRepository @Inject constructor(
     entries.value = next
   }
 
-  /** 进屏时调。**幂等**:已经有第一页就什么都不做(返回时不该重打接口)。 */
   suspend fun ensureFirstPage(key: Key) {
     if (key.uid <= 0) return
     if (entries.value[key]?.pages?.isNotEmpty() == true) {
@@ -87,24 +73,12 @@ class UserPostsRepository @Inject constructor(
     }
   }
 
-  /**
-   * 下拉刷新:**先把已翻的页砍到只剩第一页,再重取**(与主题列表同一口径)——
-   * 全量重取会把每一页都重打一遍,正好撞在 NGA 封第三方客户端的枪口上(ADR-0002)。
-   */
   suspend fun refresh(key: Key) = lockOf(key).withLock {
     put(key) { it.copy(refreshing = true, error = null) }
     fetchInto(key, page = 1, replace = true)
     put(key) { it.copy(refreshing = false) }
   }
 
-  /**
-   * 「重试」:除了重取,还要**忘掉 `thread.php` 上次试通的格式 × 域名组合**。
-   * 用户按这个按钮的时候,恰恰是「拿回来的东西不对」的时候,而反封锁链会优先复用
-   * 上次成功的组合 —— 不清掉的话按一百次也还是从同一个坏组合开局。
-   *
-   * ⚠️ `thread.php` 这一条是版块列表 / 搜索 / 收藏夹 / 热帖 / 精华区 / 某人的主题
-   * **共用**的一槽,清它等于让这半个 app 一起重新试探。RN 版就是这个口径。
-   */
   suspend fun retry(key: Key) = lockOf(key).withLock {
     client.forgetSuccessfulCombo("thread.php")
     put(key) { State(loading = true) }

@@ -19,12 +19,6 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * okhttp 内部才看得见的那几件事,用 `mockwebserver3` 起一个真服务端来钉。
- *
- * 假 Transport 证明不了它们:`Cookie` 头是 `BridgeInterceptor` 在拦截器链里装的,
- * 连接复用发生在 `ConnectionPool` 里,超时是 `Call` 的属性 —— 都在我们的代码之下。
- */
 class OkHttpTransportTest {
 
   private lateinit var server: MockWebServer
@@ -73,8 +67,6 @@ class OkHttpTransportTest {
     credential = credential,
   )
 
-  // ── 自管 CookieJar(修 P1-03) ─────────────────────────────────────────────
-
   @Test
   fun `凭证由自管 jar 装成 Cookie 头,两枚 passport cookie 都在`() = runTest {
     enqueueOk()
@@ -85,7 +77,6 @@ class OkHttpTransportTest {
       "ngaPassportUid=10000001; ngaPassportCid=cid-a",
       recorded.headers["Cookie"],
     )
-    // 其余三个头照旧由链拼(BridgeInterceptor 对 UA 有「已有就不覆盖」的守卫)
     assertEquals("SystemWebView-1.0", recorded.headers["User-Agent"])
     assertEquals("Nga_Official", recorded.headers["X-User-Agent"])
   }
@@ -100,8 +91,6 @@ class OkHttpTransportTest {
 
   @Test
   fun `服务端下发的 Set-Cookie 不会被保存,下一发只带我们自己的两枚`() = runTest {
-    // ADR-0002 第 4 条那个 P0 的根:jar 一旦存了服务端的 cookie,
-    // BridgeInterceptor 就会用它顶掉我们的身份
     server.enqueue(
       MockResponse.Builder()
         .code(200)
@@ -136,8 +125,6 @@ class OkHttpTransportTest {
     assertTrue(server.takeRequest().headers["Cookie"]!!.contains("ngaPassportUid=10000002"))
   }
 
-  // ── renewTransport 真的换了连接(ADR-0002 第 3 条) ────────────────────────
-
   @Test
   fun `同一个 transport 连发两次复用同一条连接`() = runTest {
     enqueueOk(2)
@@ -146,7 +133,6 @@ class OkHttpTransportTest {
     transport.execute(request())
     transport.execute(request())
 
-    // connectionIndex 是**服务端视角**第几条 TCP 连接,不是我们自己数的
     assertEquals(server.takeRequest().connectionIndex, server.takeRequest().connectionIndex)
   }
 
@@ -167,8 +153,6 @@ class OkHttpTransportTest {
     assertNotEquals(first, second, "renew() 必须换掉连接池,否则这一档等于没做")
     assertNotEquals(second, third, "连续两次 renew 也要各自是新连接")
   }
-
-  // ── 出站编码(与票 03 的纯函数对拍之外,再钉一次真发出去的字节) ────────────
 
   @Test
   fun `GBK 表单的 Content-Type 原样发出去,okhttp 不会追加 charset=utf-8`() = runTest {
@@ -203,8 +187,6 @@ class OkHttpTransportTest {
     assertEquals("text/html", response.contentType)
   }
 
-  // ── 统一超时预算(修 P2-06) ───────────────────────────────────────────────
-
   @Test
   fun `基础 client 四档超时都设了,且反封锁链自己重试(okhttp 不再偷偷重试)`() {
     val configured = ngaHttpClientBuilder().build()
@@ -219,7 +201,6 @@ class OkHttpTransportTest {
   @Test
   fun `renew 出来的 client 继承同一份超时预算`() {
     val renewed = OkHttpTransportFactory(client).renew()
-    // 拿不到内部 client,就用一次真实调用证明它照常工作(超时值由上一条钉)
     assertTrue(renewed is OkHttpTransport)
   }
 }

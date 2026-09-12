@@ -7,12 +7,10 @@ import com.chasel.ng2n.core.bbcode.parseBBCode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** 手工移植自 `src/ui/bbcode/floor-images.test.ts`。 */
 class FloorImagesTest {
 
   private val base = "https://img.nga.cn/attachments"
 
-  /** 2026-08-07 12:00 (UTC+8),补 `[noimg]` 日期目录用。 */
   private val postedAt = 1786075200L
 
   private fun collect(
