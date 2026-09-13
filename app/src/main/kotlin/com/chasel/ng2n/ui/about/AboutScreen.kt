@@ -192,7 +192,7 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit, updater: UpdateViewMo
             )
           }
           Text(
-            text = "NG2N",
+            text = "NG2",
             modifier = Modifier.padding(top = Spacing.row),
             style = TextStyle(
               fontSize = Typo.dialogTitle.size,
