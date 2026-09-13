@@ -6,6 +6,7 @@ import com.chasel.ng2n.ui.updates.UpdateDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -62,6 +63,7 @@ internal object AboutKeys {
   const val HEADER = "header"
   const val SOURCE = "source"
   const val UPDATE = "update"
+  const val GITHUB = "github"
   const val LINKS = "links"
   const val DIAGNOSTIC = "diagnostic"
   const val LICENSES = "licenses"
@@ -69,7 +71,7 @@ internal object AboutKeys {
 
   const val FOOTER = "disclaimer-footer"
 
-  val rows: List<String> = listOf(SOURCE, UPDATE, LINKS, DIAGNOSTIC, LICENSES, DISCLAIMER)
+  val rows: List<String> = listOf(SOURCE, UPDATE, GITHUB, LINKS, DIAGNOSTIC, LICENSES, DISCLAIMER)
 
   val all: List<String> = listOf(HEADER) + rows + FOOTER
 }
@@ -119,6 +121,19 @@ fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit, updater: UpdateViewMo
         label = "检查更新",
         sub = "从 GitHub Release 获取新版本",
         onClick = { updater.open() },
+      ),
+      AboutRow(
+        key = AboutKeys.GITHUB,
+        icon = Ng2nIcon.CODE,
+        label = "GitHub",
+        sub = "chasel34/ng2 · 源码与版本发布",
+        onClick = {
+          runCatching {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/chasel34/ng2")))
+          }.onFailure {
+            Toast.makeText(context, "无法打开 GitHub 链接", Toast.LENGTH_SHORT).show()
+          }
+        },
       ),
       AboutRow(
         key = AboutKeys.LINKS,
