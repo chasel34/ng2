@@ -37,7 +37,7 @@ class ScreenListKeysTest {
   fun `关于屏页脚的免责声明与行表里那一行不是同一个 key`() {
     assertTrue(AboutKeys.DISCLAIMER != AboutKeys.FOOTER)
     assertContentEquals(
-      listOf("header", "source", "links", "diagnostic", "licenses", "disclaimer", "disclaimer-footer"),
+      listOf("header", "source", "update", "links", "diagnostic", "licenses", "disclaimer", "disclaimer-footer"),
       AboutKeys.all,
     )
   }

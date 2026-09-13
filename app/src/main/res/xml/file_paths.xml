@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path name="ng2n-images" path="ng2n-images/" />
+    <external-files-path name="ng2n-updates" path="updates/" />
 </paths>

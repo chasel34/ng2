@@ -29,7 +29,7 @@ PR 和 `main` 推送运行离线单元测试及 release 构建；`v*` tag 在相
 5. 在 Actions 确认 `build`、`publish` 都成功，检查 Release 的 APK、SHA-256 校验文件和说明。Release 仅在产物完整后创建。
 6. 使用已有正式包验证覆盖安装，检查账号、设置和书签保留。CI 成功不代表已验证设备升级。
 
-产物为 `ng2-vX.Y.Z.apk` 和对应 `.sha256` 文件。测试报告与混淆映射保存在 Actions 的 `build-reports` artifact，映射应在 artifact 过期前归档用于崩溃排查。
+产物为 `ng2-vX.Y.Z.apk` 、对应 `.sha256` 文件和 `update.json` 更新清单。测试报告与混淆映射保存在 Actions 的 `build-reports` artifact，映射应在 artifact 过期前归档用于崩溃排查。
 
 构建失败且 Release 尚未创建时，可以修复外部环境并重新运行失败任务。代码修复应提交新版本，不移动已经对外发布的 tag。当前流程不覆盖既有 Release。
 
@@ -52,4 +52,10 @@ python3 scripts/prepare-release.py v0.2.0
 
 ## App 内更新
 
-当前版本只提供 GitHub Release 分发，尚未实现 App 内检查、下载和安装。计划通过最新 Release 获取更新信息，App 内下载后调用系统安装器；这部分单独实现和验证。
+从 `0.2.1` 起，在“关于 → 检查更新”手动查询最新正式 Release。独立 OkHttp 客户端不携带 NGA Cookie；未找到 Release 时显示暂无新版本，超时、限流和缺失更新清单显示失败并允许重试。
+
+CI 根据 APK 元数据生成 `update.json`，包含 `versionName`、`versionCode`、`applicationId`、`apkName`、`sha256`、`size`。客户端按 versionCode 判断升级，校验清单与 Release tag、附件的一致性；预发布和草稿不参与更新。
+
+下载由系统 DownloadManager 执行，存入应用外部私有目录 `updates/`，支持后台下载、取消、失败重试和重启应用后恢复状态。安装前校验 SHA-256、大小、APK 包名、版本和签名兼容性。用户首次需允许安装未知应用，返回后点击“安装更新”调用系统安装器，不进行静默安装。开发包禁用正式包更新。
+
+验证更新需先安装带更新能力的旧版，再发布更高 versionCode 的版本；从旧版界面检查、下载、安装后核对版本与账号、设置、书签。`0.2.0` 不含更新入口，只能先手动覆盖安装到 `0.2.1`。

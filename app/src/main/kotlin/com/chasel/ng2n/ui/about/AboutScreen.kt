@@ -1,5 +1,8 @@
 package com.chasel.ng2n.ui.about
 
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.chasel.ng2n.ui.updates.UpdateViewModel
+import com.chasel.ng2n.ui.updates.UpdateDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -58,6 +61,7 @@ const val ABOUT_SCREEN_TAG: String = "ng2n-about-screen"
 internal object AboutKeys {
   const val HEADER = "header"
   const val SOURCE = "source"
+  const val UPDATE = "update"
   const val LINKS = "links"
   const val DIAGNOSTIC = "diagnostic"
   const val LICENSES = "licenses"
@@ -65,7 +69,7 @@ internal object AboutKeys {
 
   const val FOOTER = "disclaimer-footer"
 
-  val rows: List<String> = listOf(SOURCE, LINKS, DIAGNOSTIC, LICENSES, DISCLAIMER)
+  val rows: List<String> = listOf(SOURCE, UPDATE, LINKS, DIAGNOSTIC, LICENSES, DISCLAIMER)
 
   val all: List<String> = listOf(HEADER) + rows + FOOTER
 }
@@ -99,15 +103,23 @@ private data class AboutRow(
 )
 
 @Composable
-fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onOpenLab: () -> Unit, updater: UpdateViewModel = hiltViewModel()) {
+  UpdateDialog(updater)
   val colors = LocalNg2nColors.current
   val context = LocalContext.current
   var expanded by remember { mutableStateOf<String?>(null) }
   val version = remember(context) { versionOf(context) }
 
-  val rows = remember(version) {
+  val rows = remember(version, context, updater, onOpenLab) {
     listOf(
       AboutRow(AboutKeys.SOURCE, Ng2nIcon.CODE, "数据来源", "直接读 NGA 官方接口", detail = DATA_SOURCE),
+      AboutRow(
+        key = AboutKeys.UPDATE,
+        icon = Ng2nIcon.UPDATE,
+        label = "检查更新",
+        sub = "从 GitHub Release 获取新版本",
+        onClick = { updater.open() },
+      ),
       AboutRow(
         key = AboutKeys.LINKS,
         icon = Ng2nIcon.UPDATE,
