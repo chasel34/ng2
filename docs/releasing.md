@@ -13,7 +13,7 @@
 
 ## CI 与发版
 
-PR 和 `main` 推送运行离线单元测试及 release 构建；`v*` tag 在相同检查成功后自动发布 GitHub Release。CI 使用已提交的 Baseline Profile，显式关闭构建时设备采集；真机性能验证按[性能手册](perf-playbook.md)单独执行。
+仅推送 `v*` tag 时触发 GitHub Actions，运行离线单元测试及 release 构建，检查成功后自动发布 GitHub Release。普通分支推送和 PR 不触发构建。CI 使用已提交的 Baseline Profile，显式关闭构建时设备采集；真机性能验证按[性能手册](perf-playbook.md)单独执行。
 
 1. 完成代码和相关验证，更新版本号及 code。
 2. 编写 `docs/releases/vX.Y.Z.md`：查看上一版本以来的提交，整理面向用户的功能与修复，不堆砌内部构建记录。
