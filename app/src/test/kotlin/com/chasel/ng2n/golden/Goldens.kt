@@ -48,7 +48,7 @@ object Goldens {
     val stream = loader.getResourceAsStream(path)
       ?: throw AssertionError(
         "classpath 上找不到 $path —— 金样本没进测试资源?" +
-          "它们在 native/app/src/test/resources/,由 RN 侧 `pnpm goldens:export` 生成。",
+          "请检查 app/src/test/resources/goldens/ 及其中的 index.json。",
       )
     return stream.use { it.readBytes().toString(Charsets.UTF_8) }
   }

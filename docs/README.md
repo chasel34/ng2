@@ -8,6 +8,7 @@
 |---|---|
 | [术语表](../CONTEXT.md) | 版块、主题、楼层、账号与容错概念的统一命名 |
 | [API 文档](API文档.md) | NGA 协议参考与本项目当前实现的差异 |
+| [测试说明](testing.md) | 离线测试、联网冒烟与设备验证的适用范围 |
 | [本地存储](storage.md) | Room、DataStore、凭证与缓存的持久化边界 |
 | [性能手册](perf-playbook.md) | 性能判据、采样限制与历史基线 |
 | [性能脚本](../scripts/perf/README.md) | 采样和分析命令 |
@@ -24,6 +25,8 @@
 - [ADR-0004：Compose 与裸 OkHttp](adr/0004-native-stack-compose-bare-okhttp.md)
 
 ## 历史资料
+
+[性能历史参考](perf-history-reference.md)汇总旧基线、设备状态与 RN 触摸模式。
 
 [2026-08-15 RN 真机诊断](performance-diagnosis-2026-08-15.md)保留为性能判据与重写决策的证据，不是当前故障清单。`.scratch/` 保存各阶段 spec、Issue 和验收记录；文中的旧路径、旧包名和测量数值属于对应时间点。
 

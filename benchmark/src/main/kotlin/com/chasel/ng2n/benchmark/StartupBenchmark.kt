@@ -21,8 +21,13 @@ class StartupBenchmark {
     iterations = 5,
     startupMode = StartupMode.COLD,
     compilationMode = CompilationMode.Partial(),
+    setupBlock = {
+      pressHome()
+      killProcess()
+      // 首页可能联网，冷却放在计时外以避免连续启动触发 NGA 限流。
+      Thread.sleep(60_000)
+    },
   ) {
-    pressHome()
     startActivityAndWait()
   }
 }

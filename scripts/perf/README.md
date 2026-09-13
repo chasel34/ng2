@@ -2,8 +2,35 @@
 
 判据编号(C\*/X\*/T\*/P\*)一律以 [性能手册](../../docs/perf-playbook.md) 为准。
 当前正式包名为 `com.chasel.ng2`，开发包名为 `com.chasel.ng2.dev`。
-**模拟器与 debug 包的数据永远不能用于性能裁决**(T7/T8);下述三个通用分析脚本都要求 `--source`,
+**模拟器与 debug 包的数据永远不能用于性能裁决**(T7/T8);下述三个通用分析脚本接受 `--source`（默认 `unknown`），
 非 `device` 时在输出首段打「本次数据不可用于性能裁决」。
+
+## 统一采样入口
+
+`capture.py` 使用 Python 标准库与 `adb`，采集 framestats，或同时采集 FrameTimeline。先在设备上打开目标页面，再执行；脚本不会安装、启动 app 或注入手势。
+
+```bash
+adb devices
+python3 scripts/perf/capture.py --serial <设备序列号> \
+  --package com.chasel.ng2 --kind frametimeline --seconds 15 \
+  --scene '主题详情持续滚动，记录实际运动起止' \
+  --build-note '本地 assembleRelease，补充提交号和 APK 来源' \
+  --output .scratch/perf-samples/topic-scroll-01
+```
+
+`--kind framestats`（默认）只采帧统计；`frametimeline` 使用同目录 `frametimeline.cfg`，按 `--seconds` 调整时长（1–60 秒）。输出目录必须不存在，避免覆盖旧证据。使用 `--adb <路径>` 可指定 SDK 中的 adb。
+
+输出包含 `metadata.json`、设备属性、安装包信息、采样前/中/后的 window 与 display 原始快照、`framestats.txt`；FrameTimeline 模式另保存实际配置、`perfetto.log` 与 `trace.pb`。采集成功后删除本次设备端 trace；失败或中断时保留 `incomplete` 元数据与错误，设备端路径见 `remote_trace`，远端采集最长运行到配置时限。
+
+元数据记录 UTC 时间、场景、版本、debuggable、焦点和显示状态证据。`source_hint` 仅依据设备报告的 qemu 属性；`build_note` 是调用者说明。非 debuggable 不足以证明 APK 来自本仓库 release 构建，所以 `release_build_verified` 保持未知。多显示器刷新率不能从全局数字直接归属目标 app，`target_refresh_hz` 也保持未知，分析时按目标 UID、显示器和运动窗口核实。
+
+快照是离散证据，不能证明整个采样窗口始终保持焦点与刷新率。采样中执行 dumpsys 会带来额外负载；核对快照时间是否落在运动段，并在 A/B 中保持相同采样方式，必要时用独立采样评估干扰。`captured` 只表示采集流程完成，`performance_verdict` 始终为 `unassessed`；无法核实的条件不能用于宣布通过。
+
+核实来源与实际刷新周期后，将本目录的原始文件传给下述分析脚本；`--source device` 不会自动验证元数据。验证采样工具本身无需连接设备：
+
+```bash
+python3 -m unittest discover -s scripts/perf -p 'test_*.py' -v
+```
 
 ## 环境再生
 
@@ -38,7 +65,7 @@ python3 scripts/perf/analyze_framestats.py fs.txt --source device
 
 列一律按表头名定位——新版 framestats 在 `Flags` 后插了 `FrameTimelineVsyncId`,按下标取列会整体错位(T3)。
 
-### Flags 怎么过滤(票 52)
+### Flags 怎么过滤
 
 hwui `FrameInfoFlags` 只有低 4 位是稳定语义:`WindowLayoutChanged=1`、`RTAnimation=2`、
 `SurfaceCanvas=4`、`SkippedFrame=8`。**bit4 及以上是新版本追加的常态位,不代表帧无效**:
@@ -67,10 +94,10 @@ scripts/perf/.venv/bin/python scripts/perf/analyze_rec.py rec.mp4 --source devic
 
 `screenrecord` 是 VFR,基准帧间隔取 dt 中位数,不要当成固定 fps。
 
-## analyze_frametimeline.py — C8 / 票 56
+## analyze_frametimeline.py — C8
 
-这台小米的 `SurfaceFlinger --timestats` 已卡死，禁止再跑 enable/clear。替代流程见
-playbook T2：以 `android.surfaceflinger.frametimeline` 采 15 秒 trace，拉回后执行：
+遇到 `SurfaceFlinger --timestats` 持续无 layer 输出时，按 playbook T2 停止反复 enable/clear。
+可直接使用 FrameTimeline 流程：以 `android.surfaceflinger.frametimeline` 采 15 秒 trace，拉回后执行：
 
 ```bash
 adb shell perfetto -c - --txt -o /data/misc/perfetto-traces/s9.pb \
