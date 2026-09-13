@@ -117,7 +117,7 @@ fun FilterRuleDialog(
     }
   }
 
-  Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
     Box(
       Modifier
         .matchParentSize()
@@ -133,6 +133,7 @@ fun FilterRuleDialog(
     Column(
       Modifier
         .fillMaxWidth()
+        .padding(24.dp)
         .scale(Motion.POP_SCALE + (1f - Motion.POP_SCALE) * pop)
         .alpha(pop)
         .shadow(Elevation.level2, RoundedCornerShape(Radius.dialog))

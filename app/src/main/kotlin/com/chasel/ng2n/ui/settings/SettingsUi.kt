@@ -372,7 +372,7 @@ private fun SettingsDialogShell(onDismiss: () -> Unit, content: @Composable () -
     label = "settings-dialog-pop",
   )
 
-  Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
     Box(
       Modifier
         .matchParentSize()
@@ -383,6 +383,7 @@ private fun SettingsDialogShell(onDismiss: () -> Unit, content: @Composable () -
     Box(
       Modifier
         .fillMaxWidth()
+        .padding(24.dp)
         .graphicsLayer {
           val scale = Motion.POP_SCALE + (1f - Motion.POP_SCALE) * pop
           scaleX = scale

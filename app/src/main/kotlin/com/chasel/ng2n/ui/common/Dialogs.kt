@@ -78,7 +78,7 @@ internal fun DialogShell(
   )
 
   Box(
-    modifier = Modifier.fillMaxSize().padding(24.dp),
+    modifier = Modifier.fillMaxSize(),
     contentAlignment = Alignment.Center,
   ) {
     Box(
@@ -96,6 +96,7 @@ internal fun DialogShell(
     Box(
       Modifier
         .fillMaxWidth()
+        .padding(24.dp)
         .scale(Motion.POP_SCALE + (1f - Motion.POP_SCALE) * pop)
         .alpha(pop)
         .shadow(Elevation.level2, RoundedCornerShape(Radius.dialog))
