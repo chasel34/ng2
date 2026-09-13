@@ -5,6 +5,7 @@ Kotlin / Jetpack Compose 原生 Android 项目，工程位于仓库根目录。
 ## 项目入口
 
 - 构建、包名与分层：[README.md](README.md)。
+- CI、版本规则、签名与 GitHub Release 发布：[发布说明](docs/releasing.md)。
 - 文档导航：[docs/README.md](docs/README.md)。领域命名遵循 [CONTEXT.md](CONTEXT.md)，修改架构前阅读相关 [ADR](docs/adr/)。
 - 本地需求与 Issue 放在 `.scratch/<feature>/`，约定见 [issue-tracker.md](docs/agents/issue-tracker.md)。旧票和诊断记录用于追溯；当前实现以 Kotlin 源码与构建配置为准。
 
