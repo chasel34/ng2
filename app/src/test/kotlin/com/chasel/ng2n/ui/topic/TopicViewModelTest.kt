@@ -1,6 +1,8 @@
 package com.chasel.ng2n.ui.topic
 
 import com.chasel.ng2n.ui.nav.TopicKey
+import com.chasel.ng2n.ui.bbcode.QuoteSegment
+import com.chasel.ng2n.ui.bbcode.TextSegment
 import com.chasel.ng2n.core.local.FilterRuleInput
 import com.chasel.ng2n.core.local.FilterRuleKind
 import com.chasel.ng2n.core.local.createFilterRule
@@ -67,6 +69,25 @@ class TopicViewModelTest {
 
   private fun envelope(page: Int, rows: Long = 47) =
     pageEnvelope(page = page, floors = floors, rows = rows)
+
+  @Test
+  fun `直接进入第二页也会补齐上一页原文预览`() = runTest(dispatcher) {
+    val original = FloorSpec(1, 14, 1, content = "上一页原文")
+    val reply = FloorSpec(2, 35, 2, content = "[b]Reply to [pid=1,45150945,1]Reply[/pid][/b]回复正文")
+    val (client, transport) = TopicFixtures.client { page, _ ->
+      okJson(pageEnvelope(page = page, floors = listOf(if (page == 1) original else reply), rows = 40))
+    }
+    val vm = viewModel(TopicKey(tid = 45150945, page = 2), FakeTopicDeps(client, appScope, dispatcher))
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+
+    val model = assertNotNull(vm.currentModel)
+    val header = model.floors.single().body.segments.first() as QuoteSegment
+    val preview = assertNotNull(header.preview)
+    assertEquals("上一页原文", (preview.segments.single() as TextSegment).text.text)
+    assertEquals(listOf("2", "1"), transport.requests.map { it.url.substringAfter("page=").substringBefore("&") })
+    assertEquals(2, vm.page)
+  }
 
   @Test
   fun `进场拉第一页 并顺手预取下一页(上一页不预取)`() = runTest(dispatcher) {

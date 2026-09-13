@@ -9,6 +9,7 @@ import com.chasel.ng2n.core.api.FloorUser
 import com.chasel.ng2n.core.api.TopicDetail
 import com.chasel.ng2n.core.bbcode.parseBBCode
 import com.chasel.ng2n.core.local.DiceSeed
+import com.chasel.ng2n.core.local.QuoteRef
 import com.chasel.ng2n.core.local.decodeAnonymousName
 import com.chasel.ng2n.core.local.extractQuoteRefs
 import com.chasel.ng2n.core.local.formatReputation
@@ -17,12 +18,14 @@ import com.chasel.ng2n.ui.bbcode.ATTACHMENT_IMAGE_KIND
 import com.chasel.ng2n.ui.bbcode.BBCodeNodeShape
 import com.chasel.ng2n.ui.bbcode.BBCodeRenderOptions
 import com.chasel.ng2n.ui.bbcode.CommentEntry
+import com.chasel.ng2n.ui.bbcode.FloorRenderModel
 import com.chasel.ng2n.ui.bbcode.RenderModelBuilder
 import com.chasel.ng2n.ui.bbcode.collectFloorImages
 import com.chasel.ng2n.ui.bbcode.plainTextOf
 import com.chasel.ng2n.ui.bbcode.resolveFloorDice
 import com.chasel.ng2n.ui.bbcode.signatureRenderOptions
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 
 object TopicPageBuilder {
 
@@ -31,8 +34,10 @@ object TopicPageBuilder {
     tid: Long,
     style: TopicRenderStyle,
     urls: AttachmentUrls = DefaultAttachmentUrls,
+    replySources: List<TopicDetail> = emptyList(),
   ): PageRenderModel {
     val starter = detail.floors.firstOrNull { it.isStarter }
+    val previews = buildReplyPreviews(detail, replySources, style, urls)
     return PageRenderModel(
       page = detail.page,
       subject = detail.subject,
@@ -42,8 +47,8 @@ object TopicPageBuilder {
       totalPages = detail.totalPages,
       attachBase = detail.attachBase,
       source = detail.source,
-      floors = detail.floors.map { buildFloor(it, detail, tid, style, urls) }.toImmutableList(),
-      hotReplies = detail.hotReplies.map { buildFloor(it, detail, tid, style, urls) }
+      floors = detail.floors.map { buildFloor(it, detail, tid, style, urls, previews) }.toImmutableList(),
+      hotReplies = detail.hotReplies.map { buildFloor(it, detail, tid, style, urls, previews) }
         .toImmutableList(),
       starterName = starter?.let { detail.users[it.authorKey]?.name },
     )
@@ -55,6 +60,7 @@ object TopicPageBuilder {
     tid: Long,
     style: TopicRenderStyle,
     urls: AttachmentUrls,
+    previews: ImmutableMap<QuoteRef, FloorRenderModel>,
   ): FloorRenderItem {
     val user = detail.users[floor.authorKey]
     val nodes = parseBBCode(floor.content)
@@ -105,7 +111,7 @@ object TopicPageBuilder {
       score = floor.score,
       subject = floor.subject?.takeIf { floor.lou > 0L },
       content = floor.content,
-      body = RenderModelBuilder.build(nodes, options),
+      body = RenderModelBuilder.build(nodes, options.copy(replyPreviews = previews)),
       signature = signature,
       comments = floor.notes.map { note -> commentEntryOf(note, detail.users) }.toImmutableList(),
       vote = floor.vote?.let { parseVote(it, tid) },

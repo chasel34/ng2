@@ -8,6 +8,8 @@ import com.chasel.ng2n.core.bbcode.parseBBCode
 import com.chasel.ng2n.core.local.DiceSeed
 import com.chasel.ng2n.core.local.resolveDice
 import com.chasel.ng2n.ui.bbcode.QuoteSegment
+import com.chasel.ng2n.ui.bbcode.TextSegment
+import com.chasel.ng2n.ui.bbcode.ImageSegment
 import com.chasel.ng2n.ui.bbcode.diceScopeOf
 import com.chasel.ng2n.ui.bbcode.resolveFloorDice
 import kotlin.test.Test
@@ -86,6 +88,51 @@ class TopicPageBuilderTest {
       TopicFixtures.STYLE.copy(showSignature = showSignature),
       TopicFixtures.URLS,
     )
+
+  @Test
+  fun `仅回复头补入同页原文 保留回复正文 完整引用不重复补入`() {
+    val source = detail(
+      floors = listOf(
+        floor(1, 1, "1", "[quote]更早的引用[/quote]目标[b]正文[/b]"),
+        floor(2, 2, "1", "[b]Reply to [pid=1,$tid,1]Reply[/pid][/b]<br/>我的回复"),
+        floor(3, 3, "1", "[quote][pid=1,$tid,1]Reply[/pid] 已有摘录[/quote]另一条回复"),
+        floor(4, 4, "1", "[quote][b]Reply to [pid=1,$tid,1]Reply[/pid][/b]已有嵌套摘录[/quote]回复"),
+      ),
+      users = emptyMap(),
+    )
+    val model = build(source)
+    val header = model.floors[1].body.segments.filterIsInstance<QuoteSegment>().single()
+    assertTrue(header.replyHeader)
+    val preview = assertNotNull(header.preview)
+    assertEquals("目标正文", preview.segments.filterIsInstance<TextSegment>().single().text.text)
+    assertTrue(preview.segments.none { it is QuoteSegment })
+    assertTrue(model.floors[1].body.segments.filterIsInstance<TextSegment>().single().text.text.contains("我的回复"))
+    val quote = model.floors[2].body.segments.filterIsInstance<QuoteSegment>().single()
+    assertTrue(!quote.replyHeader)
+    assertNull(quote.preview)
+    val nested = (model.floors[3].body.segments.first() as QuoteSegment).body.segments.first() as QuoteSegment
+    assertTrue(!nested.replyHeader)
+    assertNull(nested.preview)
+  }
+
+  @Test
+  fun `跨页预览使用原楼层附件上下文 跨帖引用不串用当前帖子`() {
+    val source = detail(
+      floors = listOf(floor(1, 1, "1", "[img]./mon_202608/07/a.jpg[/img]")),
+      users = emptyMap(),
+    ).copy(attachBase = "https://example.test/attachments")
+    val current = detail(
+      floors = listOf(
+        floor(2, 21, "1", "[b]Reply to [pid=1,$tid,1]Reply[/pid][/b]回复"),
+        floor(3, 22, "1", "[b]Reply to [pid=1,999,1]Reply[/pid][/b]跨帖回复"),
+      ),
+      users = emptyMap(),
+    ).copy(page = 2)
+    val model = TopicPageBuilder.build(current, tid, TopicFixtures.STYLE, replySources = listOf(source))
+    val preview = assertNotNull((model.floors[0].body.segments.first() as QuoteSegment).preview)
+    assertEquals("https://example.test/attachments/mon_202608/07/a.jpg", (preview.segments.single() as ImageSegment).url)
+    assertNull((model.floors[1].body.segments.first() as QuoteSegment).preview)
+  }
 
   @Test
   fun `主楼不画自带标题,回复楼画`() {

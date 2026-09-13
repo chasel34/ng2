@@ -204,22 +204,40 @@ class TopicViewModel(
     if (target in loading) return
     loading.add(target)
     if (pages[target] !is PageState.Loaded) pages[target] = PageState.Loading
+    val params = paramsFor(target)
     viewModelScope.launch {
       try {
         val model = deps.repository.loadPage(
-          params = paramsFor(target),
+          params = params,
           style = style,
           urls = deps.attachmentUrls,
           refresh = refresh,
         )
         pages[target] = PageState.Loaded(model)
         onPageLoaded(target, model)
+        hydrateReplyPreviews(target, model, params, style)
       } catch (cause: CancellationException) {
         throw cause
       } catch (cause: Exception) {
         pages[target] = PageState.Failed(cause)
       } finally {
         loading.remove(target)
+      }
+    }
+  }
+
+  private fun hydrateReplyPreviews(
+    target: Int,
+    model: PageRenderModel,
+    params: TopicPageParams,
+    style: TopicRenderStyle,
+  ) {
+    viewModelScope.launch {
+      val withPreviews = deps.repository.loadReplyPreviews(params, style, deps.attachmentUrls)
+      if (withPreviews != null && (pages[target] as? PageState.Loaded)?.model === model &&
+        paramsFor(target) == params && this@TopicViewModel.style == style
+      ) {
+        pages[target] = PageState.Loaded(withPreviews)
       }
     }
   }
@@ -251,12 +269,17 @@ class TopicViewModel(
   private fun prefetchFromCache(target: Int) {
     val style = style ?: return
     if (pages[target] is PageState.Loaded || target in loading) return
+    val params = paramsFor(target)
     viewModelScope.launch {
-      val cached = deps.repository.cachedDetail(paramsFor(target)) ?: return@launch
+      val cached = deps.repository.cachedDetail(params) ?: return@launch
+      val sources = deps.repository.loadedPages(tid, key.fav)
       val model = withContext(compute) {
-        TopicPageBuilder.build(cached, tid, style, deps.attachmentUrls)
+        TopicPageBuilder.build(cached, tid, style, deps.attachmentUrls, sources)
       }
-      if (pages[target] !is PageState.Loaded) pages[target] = PageState.Loaded(model)
+      if (pages[target] !is PageState.Loaded && paramsFor(target) == params && this@TopicViewModel.style == style) {
+        pages[target] = PageState.Loaded(model)
+        hydrateReplyPreviews(target, model, params, style)
+      }
     }
   }
 

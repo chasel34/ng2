@@ -50,6 +50,7 @@ import com.chasel.ng2n.core.bbcode.TopicRefNode
 import com.chasel.ng2n.core.bbcode.UnderlineNode
 import com.chasel.ng2n.core.bbcode.UserRefNode
 import com.chasel.ng2n.core.local.DiceOutcome
+import com.chasel.ng2n.core.local.QuoteRef
 import com.chasel.ng2n.ui.theme.DEFAULT_BODY_FONT_SIZE
 import com.chasel.ng2n.ui.theme.DEFAULT_BODY_LINE_HEIGHT
 import com.chasel.ng2n.ui.theme.LightColors
@@ -57,6 +58,8 @@ import com.chasel.ng2n.ui.theme.MonoFontFamily
 import com.chasel.ng2n.ui.theme.Ng2nColors
 import com.chasel.ng2n.ui.theme.Typo
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 
@@ -69,6 +72,7 @@ data class BBCodeRenderOptions(
   val bodyFontSize: Float = DEFAULT_BODY_FONT_SIZE,
   val bodyLineHeight: Float = DEFAULT_BODY_LINE_HEIGHT,
   val attachmentUrls: AttachmentUrls = DefaultAttachmentUrls,
+  val replyPreviews: ImmutableMap<QuoteRef, FloorRenderModel> = persistentMapOf(),
 ) {
   internal val attachOptions: AttachmentUrlOptions
     get() = AttachmentUrlOptions(base = attachBase, postedAt = postedAt)
@@ -78,6 +82,9 @@ object RenderModelBuilder {
 
   fun build(ast: List<BBCodeNode>, options: BBCodeRenderOptions): FloorRenderModel =
     Session(options).build(ast, Session.rootStyle(options))
+
+  fun buildQuotePreview(ast: List<BBCodeNode>, options: BBCodeRenderOptions): FloorRenderModel =
+    Session(options).build(ast, Session.rootStyle(options).asQuote(options.colors))
 
   private class Session(private val options: BBCodeRenderOptions) {
 
@@ -270,6 +277,8 @@ object RenderModelBuilder {
         return QuoteSegment(
           body = build(node.children, style.asQuote(colors)),
           chain = replyHeaderRefOf(node),
+          replyHeader = !style.inQuote,
+          preview = options.replyPreviews[replyHeaderRefOf(node)]?.takeUnless { style.inQuote },
         )
       }
 
@@ -381,11 +390,13 @@ internal data class BodyStyle(
   val color: Color,
   val textAlign: TextAlign? = null,
   val inherited: SpanStyle? = null,
+  val inQuote: Boolean = false,
 ) {
   fun asQuote(colors: Ng2nColors): BodyStyle = copy(
     fontSize = Typo.quoteBody.size,
     lineHeight = Typo.quoteBody.lineHeight,
     color = colors.fg2,
+    inQuote = true,
   )
 
   fun asTableCell(colors: Ng2nColors): BodyStyle = copy(

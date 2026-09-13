@@ -1,6 +1,8 @@
 package com.chasel.ng2n.ui.topic
 
 import com.chasel.ng2n.core.net.blocked
+import com.chasel.ng2n.ui.bbcode.QuoteSegment
+import com.chasel.ng2n.ui.bbcode.TextSegment
 import com.chasel.ng2n.ui.topic.TopicFixtures.FloorSpec
 import com.chasel.ng2n.ui.topic.TopicFixtures.okJson
 import com.chasel.ng2n.ui.topic.TopicFixtures.pageEnvelope
@@ -31,6 +33,47 @@ class TopicRepositoryTest {
     FloorSpec(pid = 800000001, lou = 1, authorId = 60423359, content = "一楼"),
     FloorSpec(pid = 800000002, lou = 2, authorId = 66807492, content = "二楼"),
   )
+
+  @Test
+  fun `原文预览在主页面之后加载 同页引用合并请求 不递归加载上游`() = runTest {
+    val replies = listOf(21L, 22L).map {
+      FloorSpec(it, it, 1, content = "[b]Reply to [pid=1,45150945,1]Reply[/pid][/b]回复$it")
+    }
+    val original = FloorSpec(1, 1, 1, content = "[b]Reply to [pid=99,45150945,9]Reply[/pid][/b]原文")
+    val (client, transport) = TopicFixtures.client { page, _ ->
+      okJson(pageEnvelope(page = page, floors = if (page == 2) replies else listOf(original)))
+    }
+    val repository = testRepository(client, appScope())
+    val params = TopicPageParams(45150945, 2)
+    val initial = repository.loadPage(params, TopicFixtures.STYLE, TopicFixtures.URLS)
+    assertEquals(1, transport.requests.size)
+    assertNull((initial.floors.first().body.segments.first() as QuoteSegment).preview)
+
+    val hydrated = assertNotNull(repository.loadReplyPreviews(params, TopicFixtures.STYLE, TopicFixtures.URLS))
+    assertEquals(2, transport.requests.size)
+    for (floor in hydrated.floors) {
+      val preview = assertNotNull((floor.body.segments.first() as QuoteSegment).preview)
+      assertEquals("原文", (preview.segments.single() as TextSegment).text.text)
+    }
+    repository.loadReplyPreviews(params, TopicFixtures.STYLE, TopicFixtures.URLS)
+    assertEquals(2, transport.requests.size, "后续预览复用已加载页")
+  }
+
+  @Test
+  fun `原文加载失败保留回复和楼层链接`() = runTest {
+    val reply = FloorSpec(21, 21, 1, content = "[b]Reply to [pid=1,45150945,1]Reply[/pid][/b]回复正文")
+    val (client, _) = TopicFixtures.client { page, _ ->
+      if (page == 2) okJson(pageEnvelope(page = page, floors = listOf(reply))) else blocked()
+    }
+    val repository = testRepository(client, appScope())
+    val params = TopicPageParams(45150945, 2)
+    repository.loadPage(params, TopicFixtures.STYLE, TopicFixtures.URLS)
+    val model = assertNotNull(repository.loadReplyPreviews(params, TopicFixtures.STYLE, TopicFixtures.URLS))
+    val header = model.floors.single().body.segments.first() as QuoteSegment
+    assertEquals(1L, header.chain?.pid)
+    assertNull(header.preview)
+    assertEquals("回复正文", (model.floors.single().body.segments.last() as TextSegment).text.text)
+  }
 
   @Test
   fun `页转换 —— 字节到渲染成品`() = runTest {

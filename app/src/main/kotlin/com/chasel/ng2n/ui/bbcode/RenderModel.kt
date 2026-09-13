@@ -37,6 +37,8 @@ data class SmileyPlacement(val id: String, val url: String, val aspect: Float)
 data class QuoteSegment(
   val body: FloorRenderModel,
   val chain: QuoteRef? = null,
+  val replyHeader: Boolean = false,
+  val preview: FloorRenderModel? = null,
 ) : RenderSegment
 
 @Immutable

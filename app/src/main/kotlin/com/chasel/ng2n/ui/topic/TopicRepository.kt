@@ -81,8 +81,42 @@ class TopicRepository @Inject constructor(
     nowMs: Long = System.currentTimeMillis(),
   ): PageRenderModel {
     val detail = loadDetail(params, refresh, nowMs)
+    val sources = loadedPages(params.tid, params.favCode)
     return withContext(compute) {
-      TopicPageBuilder.build(detail, params.tid, style, urls)
+      TopicPageBuilder.build(detail, params.tid, style, urls, sources)
+    }
+  }
+
+  suspend fun loadReplyPreviews(
+    params: TopicPageParams,
+    style: TopicRenderStyle,
+    urls: AttachmentUrls,
+  ): PageRenderModel? {
+    val detail = cachedDetail(params) ?: return null
+    val refs = withContext(compute) { replyHeaderRefs(detail) }
+      .filter { it.tid == null || it.tid == params.tid }
+    if (refs.isEmpty()) return null
+    val sources = (loadedPages(params.tid, params.favCode) + detail).toMutableList()
+    val attempted = HashSet<TopicPageParams>()
+    for (ref in refs) {
+      if (sources.any { source -> (source.floors + source.hotReplies).any { it.pid == ref.pid } }) continue
+      val request = TopicPageParams(
+        tid = params.tid,
+        page = ref.page?.takeIf { it in 1..Int.MAX_VALUE.toLong() }?.toInt() ?: 1,
+        favCode = params.favCode,
+        pid = if (ref.page == null) ref.pid else null,
+      )
+      if (!attempted.add(request)) continue
+      try {
+        sources.add(loadDetail(request))
+      } catch (cause: CancellationException) {
+        throw cause
+      } catch (_: Exception) {
+        // 原文预览失败不影响当前页正文及楼层链接。
+      }
+    }
+    return withContext(compute) {
+      TopicPageBuilder.build(detail, params.tid, style, urls, sources)
     }
   }
 

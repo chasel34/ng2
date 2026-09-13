@@ -71,6 +71,15 @@ internal fun QuoteCard(segment: QuoteSegment, callbacks: BBCodeCallbacks) {
   ) {
     BBCodeContent(model = segment.body, callbacks = callbacks)
 
+    if (segment.replyHeader) {
+      val preview = segment.preview
+      if (preview != null && !preview.isEmpty) {
+        BBCodeContent(model = preview, callbacks = callbacks.copy(onOpenChain = null))
+      } else if (chain != null) {
+        Text("点击 Reply 查看原文", fontSize = Typo.listMeta.size, color = colors.meta)
+      }
+    }
+
     if (chain != null && onOpenChain != null && callbacks.chainDepth >= MIN_CHAIN_DEPTH) {
       Row(
         modifier = Modifier
