@@ -33,3 +33,12 @@ APK 输出位于 `app/build/outputs/apk/`。正式包名为 `com.chasel.ng2`，�
 - [测试说明](docs/testing.md)
 - [文档索引](docs/README.md)
 - [设计参考](design/README.md)
+
+## 致谢
+
+- 样式参考 [Justwen/NGA-CLIENT-VER-OPEN-SOURCE](https://github.com/Justwen/NGA-CLIENT-VER-OPEN-SOURCE)。
+- 反封锁逻辑参考 [BugenZhao/MNGA](https://github.com/BugenZhao/MNGA)。
+
+## 许可证
+
+本项目采用 [MIT License](LICENSE)。
