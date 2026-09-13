@@ -35,6 +35,9 @@ fun DownloadIcon(tint: Color, size: Dp = 19.dp) = AppIcon(Ng2nIcon.DOWNLOAD, tin
 fun BookmarkIcon(tint: Color, size: Dp = 19.dp) = AppIcon(Ng2nIcon.BOOKMARK, tint, size)
 
 @Composable
+fun BookmarkAddedIcon(tint: Color, size: Dp = 18.dp) = AppIcon(Ng2nIcon.BOOKMARK_ADDED, tint, size)
+
+@Composable
 fun ThumbUpIcon(tint: Color, size: Dp = 19.dp) = AppIcon(Ng2nIcon.THUMB_UP, tint, size)
 
 @Composable

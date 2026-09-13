@@ -88,7 +88,7 @@ fun HistoryScreen(nav: Navigator, modifier: Modifier = Modifier) {
 
     LazyColumn(Modifier.fillMaxSize()) {
       item(key = ListKeys.SUB, contentType = "sub") {
-        ListSubtitle("本机记录 · 保留最近 $HISTORY_LIMIT 条")
+        ListSubtitle("本机记录 · 保留最近 $HISTORY_LIMIT 条，有书签的主题不计入")
       }
       items(
         count = entries.size,

@@ -32,12 +32,16 @@ import com.chasel.ng2n.core.local.createFilterRule
 import com.chasel.ng2n.core.local.matchFilterRules
 import com.chasel.ng2n.core.local.removeFilterRule
 import com.chasel.ng2n.core.local.upsertFilterRule
+import com.chasel.ng2n.data.bookmarks.Bookmark
+import com.chasel.ng2n.data.bookmarks.BookmarkDraft
+import com.chasel.ng2n.data.bookmarks.bookmarkSummary
 import com.chasel.ng2n.data.history.TopicVisit
 import com.chasel.ng2n.data.history.pageOfFloor
 import com.chasel.ng2n.data.settings.DEFAULT_SETTINGS
 import com.chasel.ng2n.ui.bbcode.BBCodeRenderOptions
 import com.chasel.ng2n.ui.bbcode.FloorRenderModel
 import com.chasel.ng2n.ui.bbcode.RenderModelBuilder
+import com.chasel.ng2n.ui.bbcode.ownTextOf
 import com.chasel.ng2n.ui.bbcode.signatureRenderOptions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -105,6 +109,14 @@ class TopicViewModel(
   var signatureDialog by mutableStateOf<SignatureDialogState?>(null)
     private set
 
+  var bookmarks by mutableStateOf<Map<Long, Bookmark>>(emptyMap())
+    private set
+
+  val bookmarkedPids: Set<Long> get() = bookmarks.keys
+
+  var bookmarkDialog by mutableStateOf<BookmarkDialogState?>(null)
+    private set
+
   var userScrolled by mutableStateOf(false)
 
   private val snackbarState = MutableStateFlow<SnackbarMessage?>(null)
@@ -124,6 +136,9 @@ class TopicViewModel(
   private var chainJob: Job? = null
 
   private var pendingFloor: Long? = key.floor?.takeIf { it >= 0 }
+
+  /** 书签跳转兑现后要报告落点，进场锚点则不报。 */
+  private var announceLanding = false
 
   private var pageBeforeFilter = 1
 
@@ -153,10 +168,16 @@ class TopicViewModel(
     }
     viewModelScope.launch {
       deps.history.warmUp()
+      if (key.fromBookmark) return@launch
       val entry = deps.history.peek(tid)
       if (entry == null || entry.lastFloor < 1) return@launch
       if (key.floor == entry.lastFloor.toLong()) return@launch
       resumeFloor = entry.lastFloor.toLong()
+    }
+    viewModelScope.launch {
+      deps.bookmarks.observeTopic(tid).collect { list ->
+        bookmarks = list.associateBy { it.pid }
+      }
     }
   }
 
@@ -247,8 +268,15 @@ class TopicViewModel(
     recomputeBlocked()
     rebuildChainIndex()
     recordVisit(model)
+    refreshBookmarkMeta(model)
     redeemPendingFloor()
     if (target == page && target < model.totalPages) ensureLoaded(target + 1)
+  }
+
+  private fun refreshBookmarkMeta(model: PageRenderModel) {
+    viewModelScope.launch {
+      deps.bookmarks.refreshTopicMeta(tid, model.subject, model.boardName, key.fav)
+    }
   }
 
   fun setPageInFlight(target: Int) {
@@ -328,6 +356,104 @@ class TopicViewModel(
     page = target
     userScrolled = false
     ensureLoaded(target)
+  }
+
+  /** 退出只看模式并直接落到目标页：总页数先兜到目标页，否则翻页夹逼会把它打回第 1 页。 */
+  private fun resetPagesForJump(target: Int) {
+    onlyPid = null
+    onlyUser = null
+    pages.clear()
+    loading.clear()
+    totalPages = maxOf(1, target)
+    page = target
+    pageInFlight = null
+    userScrolled = false
+    ensureLoaded(target)
+  }
+
+  val jumpTargets: List<JumpTarget>
+    get() = buildList {
+      deps.history.peek(tid)?.lastFloor?.takeIf { it >= 1 }?.let { lou ->
+        add(JumpTarget(lou = lou.toLong(), title = "上次读到", detail = "第 $lou 楼", resume = true))
+      }
+      for (bookmark in bookmarks.values.sortedBy { it.lou }) {
+        add(
+          JumpTarget(
+            lou = bookmark.lou,
+            title = "第 ${bookmark.lou} 楼",
+            detail = bookmark.note ?: bookmark.summary,
+            resume = false,
+          ),
+        )
+      }
+    }
+
+  fun jumpToFloor(lou: Long) {
+    if (lou < 0) return
+    val rowsPerPage = currentModel?.rowsPerPage ?: DEFAULT_ROWS_PER_PAGE
+    val target = pageOfFloor(lou.toInt(), rowsPerPage)
+    dismissResume()
+    pendingFloor = lou
+    announceLanding = true
+    if (progressPaused) {
+      resetPagesForJump(target)
+      return
+    }
+    if (target > totalPages) totalPages = target
+    if (target == page) redeemPendingFloor() else goToPage(target)
+  }
+
+  fun bookmarkMarkOf(floor: FloorRenderItem): FloorBookmarkMark? =
+    bookmarks[floor.pid]?.let { FloorBookmarkMark(note = it.note) }
+
+  fun openBookmarkDialog(floor: FloorRenderItem) {
+    val existing = bookmarks[floor.pid]
+    bookmarkDialog = BookmarkDialogState(
+      editing = existing != null,
+      pid = floor.pid,
+      lou = floor.lou,
+      author = floor.displayName,
+      summary = existing?.summary ?: bookmarkSummary(
+        ownTextOf(floor.content),
+        hasImages = floor.images.isNotEmpty() || floor.attachmentImages.isNotEmpty(),
+      ),
+      note = existing?.note.orEmpty(),
+    )
+  }
+
+  fun closeBookmarkDialog() {
+    bookmarkDialog = null
+  }
+
+  fun saveBookmark(note: String) {
+    val state = bookmarkDialog ?: return
+    bookmarkDialog = null
+    val draft = BookmarkDraft(
+      tid = tid,
+      pid = state.pid,
+      lou = state.lou,
+      author = state.author,
+      summary = state.summary,
+      note = note,
+      subject = currentModel?.subject ?: key.title.orEmpty(),
+      boardName = currentModel?.boardName,
+      favCode = key.fav,
+    )
+    deps.scope.launch {
+      deps.bookmarks.save(draft, System.currentTimeMillis() / 1000)
+      toast(if (state.editing) "已更新备注" else "已加书签")
+    }
+  }
+
+  fun removeBookmark(floor: FloorRenderItem) {
+    deps.scope.launch {
+      val removed = deps.bookmarks.remove(tid, floor.pid) ?: return@launch
+      snackbarState.value = SnackbarMessage(
+        text = "已移除第 ${removed.lou} 楼的书签",
+        actionLabel = "撤销",
+        action = { deps.scope.launch { deps.bookmarks.restore(removed) } },
+      )
+    }
   }
 
   val progressPaused: Boolean get() = onlyPid != null || onlyUser != null
@@ -470,6 +596,11 @@ class TopicViewModel(
     ) ?: return
     pendingFloor = null
     scrollTarget = ScrollTarget(page = page, listIndex = index)
+    if (announceLanding) {
+      announceLanding = false
+      val landed = model.floors[index - TOPIC_LIST_HEADER_ROWS].lou
+      toast(if (landed == floor) "已跳转到第 $floor 楼" else "第 $floor 楼已不存在,已跳到第 $landed 楼")
+    }
   }
 
   fun consumeScrollTarget() {
@@ -636,6 +767,19 @@ data class ScrollTarget(val page: Int, val listIndex: Int)
 
 @Immutable
 data class SignatureDialogState(val user: FloorUser, val model: FloorRenderModel?)
+
+@Immutable
+data class BookmarkDialogState(
+  val editing: Boolean,
+  val pid: Long,
+  val lou: Long,
+  val author: String,
+  val summary: String,
+  val note: String,
+)
+
+@Immutable
+data class JumpTarget(val lou: Long, val title: String, val detail: String, val resume: Boolean)
 
 @Immutable
 data class SnackbarMessage(val text: String, val actionLabel: String?, val action: (() -> Unit)?)

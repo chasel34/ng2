@@ -3,6 +3,7 @@ package com.chasel.ng2n.data.db
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -143,6 +144,38 @@ class Ng2nDatabaseTest {
     dao.clearForUid("1")
     assertEquals(emptyList<String>(), dao.readIds("1"))
     assertEquals(1, dao.readIds("2").size)
+  }
+
+  @Test
+  fun 书签按_tid_与_pid_联合主键去重_主楼_pid_为_0_也成立() = runTest {
+    val dao = db.bookmarkDao()
+    dao.upsert(bookmark(tid = 7, pid = 0, lou = 0, note = "旧"))
+    dao.upsert(bookmark(tid = 7, pid = 0, lou = 0, note = "新"))
+    dao.upsert(bookmark(tid = 8, pid = 0, lou = 0))
+
+    assertEquals("新", dao.find(7, 0)?.note)
+    assertEquals(2, dao.count())
+    assertEquals(listOf(7L, 8L), dao.protectedTids().sorted())
+  }
+
+  @Test
+  fun 书签按_tid_查询与删除_全表按_tid_再按楼号排() = runTest {
+    val dao = db.bookmarkDao()
+    dao.upsert(bookmark(tid = 7, pid = 30, lou = 30))
+    dao.upsert(bookmark(tid = 7, pid = 5, lou = 5))
+    dao.upsert(bookmark(tid = 8, pid = 1, lou = 1))
+
+    assertEquals(listOf(5L, 30L), dao.byTid(7).map { it.lou })
+    assertEquals(listOf(7L to 5L, 7L to 30L, 8L to 1L), dao.observeAll().first().map { it.tid to it.lou })
+
+    dao.delete(7, 5)
+    assertEquals(listOf(30L), dao.byTid(7).map { it.lou })
+    dao.deleteByTid(7)
+    assertEquals(emptyList<Long>(), dao.byTid(7).map { it.lou })
+    assertEquals(1, dao.count())
+
+    dao.updateTopicMeta(8, subject = "新标题", boardName = "版块", favCode = "fav")
+    assertEquals("新标题", dao.find(8, 1)?.subject)
   }
 
   @Test

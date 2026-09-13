@@ -16,12 +16,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -75,7 +77,11 @@ data class FloorActions(
   val onOpenTopic: (String) -> Unit,
   val onOpenFloorRef: (String) -> Unit,
   val onNotAvailable: () -> Unit,
+  val onEditBookmark: (FloorRenderItem) -> Unit,
 )
+
+@Immutable
+data class FloorBookmarkMark(val note: String?)
 
 @Composable
 fun FloorCard(
@@ -86,6 +92,7 @@ fun FloorCard(
   showSignature: Boolean,
   imagesUnlocked: Boolean,
   modifier: Modifier = Modifier,
+  bookmark: FloorBookmarkMark? = null,
 ) {
   val colors = LocalNg2nColors.current
 
@@ -145,7 +152,7 @@ fun FloorCard(
       )
     }
 
-    FloorActionRow(floor = floor, mark = mark, actions = actions)
+    FloorActionRow(floor = floor, mark = mark, actions = actions, bookmark = bookmark)
 
     if (floor.comments.isNotEmpty()) CommentStrip(comments = floor.comments)
   }
@@ -261,6 +268,7 @@ private fun FloorActionRow(
   floor: FloorRenderItem,
   mark: RecommendMark?,
   actions: FloorActions,
+  bookmark: FloorBookmarkMark?,
 ) {
   val colors = LocalNg2nColors.current
   val liked = mark?.state == RecommendState.LIKED
@@ -272,6 +280,31 @@ private fun FloorActionRow(
     horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.End),
     verticalAlignment = Alignment.CenterVertically,
   ) {
+    if (bookmark != null) {
+      Row(
+        modifier = Modifier
+          .height(28.dp)
+          .widthIn(max = BOOKMARK_CHIP_MAX_WIDTH)
+          .clip(RoundedCornerShape(Radius.xs))
+          .background(colors.primaryContainer)
+          .clickable { actions.onEditBookmark(floor) }
+          .semantics { contentDescription = "编辑书签" }
+          .padding(start = Spacing.sm, end = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+      ) {
+        BookmarkAddedIcon(tint = colors.primary, size = 14.dp)
+        Text(
+          text = bookmark.note ?: "书签",
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          fontSize = Typo.listMeta.size,
+          fontWeight = FontWeight.SemiBold,
+          color = colors.primary,
+        )
+      }
+      Spacer(Modifier.weight(1f))
+    }
     Row(
       modifier = Modifier
         .height(40.dp)
@@ -435,6 +468,7 @@ private val ATTACH_EXIT: ExitTransition =
 
 private const val ATTACH_COLUMNS = 3
 private val ATTACH_GAP = 6.dp
+private val BOOKMARK_CHIP_MAX_WIDTH = 200.dp
 
 private fun formatSize(sizeKb: Long): String =
   if (sizeKb >= 1024) "%.1f MB".format(sizeKb / 1024.0) else "$sizeKb KB"
@@ -447,6 +481,7 @@ fun HotReplyCard(
   actions: FloorActions,
   showSignature: Boolean,
   imagesUnlocked: Boolean,
+  bookmark: FloorBookmarkMark? = null,
 ) {
   Box(Modifier.background(Color.Transparent)) {
     FloorCard(
@@ -456,6 +491,7 @@ fun HotReplyCard(
       actions = actions,
       showSignature = showSignature,
       imagesUnlocked = imagesUnlocked,
+      bookmark = bookmark,
     )
   }
 }

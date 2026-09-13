@@ -187,6 +187,7 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
         }
       },
       onNotAvailable = notAvailable,
+      onEditBookmark = vm::openBookmarkDialog,
     )
   }
 
@@ -293,6 +294,8 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
 
   SignatureDialog(state = vm.signatureDialog, onClose = vm::closeSignature)
 
+  BookmarkDialog(state = vm.bookmarkDialog, onCancel = vm::closeBookmarkDialog, onSave = vm::saveBookmark)
+
   FavoriteFolderDialog(open = favorOpen, tid = vm.tid, onClose = { favorOpen = false })
 
   InputDialog(
@@ -305,6 +308,11 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
     onConfirm = {
       jumpOpen = false
       vm.jumpTo(it)
+    },
+    targets = if (jumpOpen) vm.jumpTargets else emptyList(),
+    onPickTarget = {
+      jumpOpen = false
+      vm.jumpToFloor(it.lou)
     },
   )
 }
@@ -470,6 +478,7 @@ private fun FloorList(
                   actions = actions,
                   showSignature = settings.showSignature,
                   imagesUnlocked = true,
+                  bookmark = vm.bookmarkMarkOf(floor),
                 )
               }
             }
@@ -494,6 +503,7 @@ private fun FloorList(
           actions = actions,
           showSignature = settings.showSignature,
           imagesUnlocked = true,
+          bookmark = vm.bookmarkMarkOf(floor),
         )
       }
     }
@@ -677,11 +687,20 @@ private fun floorMenuItems(
     onClose()
     run()
   }
+  val bookmarkItems = if (floor.pid in vm.bookmarkedPids) {
+    listOf(
+      MenuItem("bookmark-edit", "编辑书签", onClick = pick { vm.openBookmarkDialog(floor) }),
+      MenuItem("bookmark-remove", "移除书签", onClick = pick { vm.removeBookmark(floor) }),
+    )
+  } else {
+    listOf(MenuItem("bookmark-add", "加书签", onClick = pick { vm.openBookmarkDialog(floor) }))
+  }
   return listOf(
     MenuItem("note", "贴条", onClick = pick(notAvailable)),
     MenuItem("report", "举报", onClick = pick(notAvailable)),
     MenuItem("sign", "查看签名", onClick = pick { vm.openSignature(floor) }),
     MenuItem("favor", "收藏", onClick = pick(onFavor)),
+  ) + bookmarkItems + listOf(
     MenuItem("only-user", "只看此人", gapBefore = true, onClick = pick { vm.enterOnlyUser(floor) }),
     MenuItem("block", "屏蔽此人", onClick = pick { vm.blockAuthor(floor) }),
   )

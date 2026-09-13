@@ -87,6 +87,7 @@ import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.AboutKey
 import com.chasel.ng2n.ui.nav.BoardKey
+import com.chasel.ng2n.ui.nav.BookmarksKey
 import com.chasel.ng2n.ui.nav.CachesKey
 import com.chasel.ng2n.ui.nav.FavoriteFoldersKey
 import com.chasel.ng2n.ui.nav.FavoritesKey
@@ -502,6 +503,10 @@ private fun handleDrawerEntry(
     DrawerEntryKey.CACHES -> {
       closeDrawer()
       nav.push(CachesKey)
+    }
+    DrawerEntryKey.BOOKMARKS -> {
+      closeDrawer()
+      nav.push(BookmarksKey)
     }
     DrawerEntryKey.MESSAGES -> Snackbars.show(NOT_AVAILABLE_MESSAGE)
     DrawerEntryKey.NOTIFICATIONS -> {

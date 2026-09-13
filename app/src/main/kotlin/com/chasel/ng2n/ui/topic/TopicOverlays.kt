@@ -43,12 +43,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.chasel.ng2n.data.bookmarks.BOOKMARK_NOTE_MAX
 import com.chasel.ng2n.ui.common.MENU_ITEM_HEIGHT
 import com.chasel.ng2n.ui.common.MENU_ITEM_PADDING
 import com.chasel.ng2n.ui.common.MENU_MAX_HEIGHT
@@ -144,6 +148,8 @@ fun InputDialog(
   initialValue: String,
   onCancel: () -> Unit,
   onConfirm: (String) -> Unit,
+  targets: List<JumpTarget> = emptyList(),
+  onPickTarget: (JumpTarget) -> Unit = {},
 ) {
   if (!open) return
   val colors = LocalNg2nColors.current
@@ -176,11 +182,137 @@ fun InputDialog(
       color = colors.meta,
       modifier = Modifier.padding(top = 6.dp),
     )
+    if (targets.isNotEmpty()) {
+      Box(
+        Modifier
+          .padding(top = Spacing.row, bottom = 6.dp)
+          .fillMaxWidth()
+          .height(1.dp)
+          .background(colors.divider),
+      )
+      Column(
+        Modifier
+          .fillMaxWidth()
+          .heightIn(max = JUMP_TARGETS_MAX_HEIGHT)
+          .verticalScroll(rememberScrollState()),
+      ) {
+        targets.forEach { target -> JumpTargetRow(target = target, onClick = { onPickTarget(target) }) }
+      }
+    }
     DialogActions(
       cancelLabel = "取消",
       confirmLabel = confirmLabel,
       onCancel = onCancel,
       onConfirm = { onConfirm(value.text) },
+    )
+  }
+}
+
+@Composable
+private fun JumpTargetRow(target: JumpTarget, onClick: () -> Unit) {
+  val colors = LocalNg2nColors.current
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(44.dp)
+      .clip(RoundedCornerShape(Radius.xs))
+      .clickable(onClick = onClick)
+      .padding(horizontal = Spacing.xs),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(10.dp),
+  ) {
+    if (target.resume) BookmarkIcon(tint = colors.link, size = 18.dp) else BookmarkAddedIcon(tint = colors.primary)
+    Text(target.title, fontSize = Typo.dialogListItem.size, color = colors.link)
+    Text(
+      text = target.detail,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+      fontSize = Typo.dialogListItem.size,
+      color = colors.fg2,
+      modifier = Modifier.weight(1f),
+    )
+  }
+}
+
+private val JUMP_TARGETS_MAX_HEIGHT = 264.dp
+
+@Composable
+fun BookmarkDialog(state: BookmarkDialogState?, onCancel: () -> Unit, onSave: (String) -> Unit) {
+  if (state == null) return
+  val colors = LocalNg2nColors.current
+  var value by remember(state.pid, state.editing) {
+    mutableStateOf(TextFieldValue(state.note, TextRange(state.note.length)))
+  }
+  val focus = remember { FocusRequester() }
+  LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+
+  DialogScaffold(onDismiss = onCancel) {
+    Text(
+      if (state.editing) "编辑书签" else "加书签",
+      fontSize = Typo.section.size,
+      fontWeight = FontWeight.SemiBold,
+      color = colors.fg,
+    )
+    Text(
+      text = "第 ${state.lou} 楼 · ${state.author}",
+      fontSize = Typo.listMeta.size,
+      color = colors.meta,
+      modifier = Modifier.padding(top = Spacing.xs),
+    )
+    Text(
+      text = state.summary,
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+      fontSize = Typo.notice.size,
+      lineHeight = Typo.notice.lineHeight,
+      color = colors.fg2,
+      modifier = Modifier
+        .padding(top = 9.dp)
+        .fillMaxWidth()
+        .background(colors.surface2, RoundedCornerShape(Radius.xs))
+        .padding(horizontal = Spacing.md, vertical = 10.dp),
+    )
+    Box(
+      modifier = Modifier
+        .padding(top = 9.dp)
+        .fillMaxWidth()
+        .background(colors.surface2, RoundedCornerShape(Radius.xs))
+        .padding(horizontal = Spacing.md, vertical = 10.dp),
+    ) {
+      BasicTextField(
+        value = value,
+        onValueChange = { next ->
+          value = if (next.text.length <= BOOKMARK_NOTE_MAX) {
+            next
+          } else {
+            val cut = next.text.take(BOOKMARK_NOTE_MAX)
+            TextFieldValue(cut, TextRange(cut.length))
+          }
+        },
+        maxLines = 3,
+        textStyle = TextStyle(fontSize = Typo.notice.size, color = colors.fg),
+        cursorBrush = SolidColor(colors.primary),
+        modifier = Modifier.fillMaxWidth().focusRequester(focus),
+        decorationBox = { inner ->
+          if (value.text.isEmpty()) {
+            Text("备注（可选）", fontSize = Typo.notice.size, color = colors.meta)
+          }
+          inner()
+        },
+      )
+    }
+    Text(
+      text = "${value.text.length} / $BOOKMARK_NOTE_MAX",
+      fontSize = Typo.listMeta.size,
+      color = colors.meta,
+      textAlign = TextAlign.End,
+      modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+    )
+    DialogActions(
+      cancelLabel = "取消",
+      confirmLabel = "保存",
+      onCancel = onCancel,
+      onConfirm = { onSave(value.text) },
     )
   }
 }

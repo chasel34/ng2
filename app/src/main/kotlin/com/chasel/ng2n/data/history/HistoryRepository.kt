@@ -1,12 +1,12 @@
 package com.chasel.ng2n.data.history
 
+import com.chasel.ng2n.data.db.BookmarkDao
 import com.chasel.ng2n.data.db.BrowseHistoryDao
 import com.chasel.ng2n.data.db.BrowseHistoryEntity
 import com.chasel.ng2n.di.IoScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +19,7 @@ import javax.inject.Singleton
 @Singleton
 class HistoryRepository @Inject constructor(
   private val dao: BrowseHistoryDao,
+  private val bookmarks: BookmarkDao,
   @IoScope private val scope: CoroutineScope,
 ) {
 
@@ -35,14 +36,17 @@ class HistoryRepository @Inject constructor(
     mutex.withLock {
       if (warmed) return
       warmed = true
-      state.value = dao.loadAll(HISTORY_LIMIT).map { it.toEntry() }
+      state.value = dao.loadAll().map { it.toEntry() }
     }
   }
 
   fun peek(tid: Long): HistoryEntry? = state.value.firstOrNull { it.tid == tid }
 
   suspend fun recordVisit(visit: TopicVisit, nowSeconds: Long) {
-    mutex.withLock { apply(upsertHistory(state.value, visit, nowSeconds)) }
+    mutex.withLock {
+      val protected = bookmarks.protectedTids().toSet()
+      apply(upsertHistory(state.value, visit, nowSeconds, protected))
+    }
   }
 
   fun recordReadFloor(tid: Long, lou: Int, nowMs: Long = System.currentTimeMillis()) {
@@ -91,8 +95,6 @@ class HistoryRepository @Inject constructor(
     val changed = update.entries.firstOrNull() ?: return
     dao.applyChange(changed.toEntity(), update.evictedTids)
   }
-
-  fun observeFromDb(): Flow<List<BrowseHistoryEntity>> = dao.observe(HISTORY_LIMIT)
 
   private fun nowSeconds(): Long = System.currentTimeMillis() / 1000
 }

@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.emptyPreferences
 import com.chasel.ng2n.core.net.Credential
 import com.chasel.ng2n.core.net.CredentialSource
 import com.chasel.ng2n.core.net.NgaClient
+import com.chasel.ng2n.data.bookmarks.BookmarkRepository
+import com.chasel.ng2n.data.bookmarks.FakeBookmarkDao
 import com.chasel.ng2n.data.cache.TopicCacheRepository
 import com.chasel.ng2n.data.db.BrowseHistoryDao
 import com.chasel.ng2n.data.db.BrowseHistoryEntity
@@ -32,6 +34,9 @@ class FakeBrowseHistoryDao : BrowseHistoryDao {
 
   override suspend fun loadAll(limit: Int): List<BrowseHistoryEntity> =
     rows.values.sortedByDescending { it.updatedAt }.take(limit)
+
+  override suspend fun loadAll(): List<BrowseHistoryEntity> =
+    rows.values.sortedByDescending { it.updatedAt }
 
   override suspend fun find(tid: Long): BrowseHistoryEntity? = rows[tid]
 
@@ -121,6 +126,7 @@ class FakeTopicDeps(
   scope: CoroutineScope,
   compute: CoroutineDispatcher = Dispatchers.Unconfined,
   val historyDao: FakeBrowseHistoryDao = FakeBrowseHistoryDao(),
+  val bookmarkDao: FakeBookmarkDao = FakeBookmarkDao(),
   val cacheDao: FakeTopicCacheDao = FakeTopicCacheDao(),
   val credentials: FakeCredentials = FakeCredentials(),
   val snapshotSink: FakeSnapshotSink = FakeSnapshotSink(),
@@ -133,13 +139,15 @@ class FakeTopicDeps(
     compute = compute,
     io = scope.testDispatcher(),
   )
-  val history = HistoryRepository(dao = historyDao, scope = scope)
+  val history = HistoryRepository(dao = historyDao, bookmarks = bookmarkDao, scope = scope)
+  val bookmarks = BookmarkRepository(bookmarkDao)
   val topicCache = TopicCacheRepository(dao = cacheDao)
 
   val deps = TopicDeps(
     client = client,
     repository = repository,
     history = history,
+    bookmarks = bookmarks,
     topicCache = topicCache,
     settings = settingsStore,
     credentials = credentials,

@@ -37,10 +37,12 @@ data class HistoryUpdate(
 
 private fun unchanged(entries: List<HistoryEntry>) = HistoryUpdate(entries, changed = false)
 
+/** 受保护的 tid（有书签的主题）不计入上限，也不会被淘汰。 */
 fun upsertHistory(
   entries: List<HistoryEntry>,
   visit: TopicVisit,
   now: Long,
+  protectedTids: Set<Long> = emptySet(),
 ): HistoryUpdate {
   val existing = entries.firstOrNull { it.tid == visit.tid }
 
@@ -55,13 +57,20 @@ fun upsertHistory(
     favCode = visit.favCode ?: existing?.favCode,
   )
 
-  val kept = entries.filter { it.tid != visit.tid }
-  val capped = listOf(next) + kept
-  val evicted = capped.drop(HISTORY_LIMIT)
+  val ordered = listOf(next) + entries.filter { it.tid != visit.tid }
+  var unprotectedSeen = 0
+  val evicted = ArrayList<Long>()
+  val capped = ordered.filter { entry ->
+    if (entry.tid in protectedTids) return@filter true
+    unprotectedSeen += 1
+    val keep = unprotectedSeen <= HISTORY_LIMIT
+    if (!keep) evicted += entry.tid
+    keep
+  }
   return HistoryUpdate(
-    entries = capped.take(HISTORY_LIMIT),
+    entries = capped,
     changed = true,
-    evictedTids = evicted.map { it.tid },
+    evictedTids = evicted,
   )
 }
 

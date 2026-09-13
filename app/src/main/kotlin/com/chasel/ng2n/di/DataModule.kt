@@ -16,6 +16,7 @@ import com.chasel.ng2n.data.account.AndroidAccountStoreLog
 import com.chasel.ng2n.data.account.AndroidWebCookieVault
 import com.chasel.ng2n.data.account.KeystoreCrypto
 import com.chasel.ng2n.data.account.WebCookieVault
+import com.chasel.ng2n.data.db.BookmarkDao
 import com.chasel.ng2n.data.db.BrowseHistoryDao
 import com.chasel.ng2n.data.db.Ng2nDatabase
 import com.chasel.ng2n.data.db.NotificationReadDao
@@ -46,12 +47,14 @@ object DataModule {
   @Singleton
   fun provideDatabase(@ApplicationContext context: Context): Ng2nDatabase =
     Room.databaseBuilder(context, Ng2nDatabase::class.java, Ng2nDatabase.NAME)
-      .fallbackToDestructiveMigration(dropAllTables = true)
       .setQueryCoroutineContext(Dispatchers.IO)
       .build()
 
   @Provides
   fun provideBrowseHistoryDao(db: Ng2nDatabase): BrowseHistoryDao = db.browseHistoryDao()
+
+  @Provides
+  fun provideBookmarkDao(db: Ng2nDatabase): BookmarkDao = db.bookmarkDao()
 
   @Provides
   fun provideTopicCacheDao(db: Ng2nDatabase): TopicCacheDao = db.topicCacheDao()

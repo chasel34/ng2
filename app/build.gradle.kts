@@ -52,6 +52,7 @@ android {
 
   buildFeatures {
     compose = true
+    buildConfig = true
   }
 
   packaging {
@@ -59,6 +60,8 @@ android {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
   }
+
+  sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
 }
 
 kotlin {
@@ -120,6 +123,7 @@ dependencies {
   androidTestImplementation(libs.androidx.test.runner)
   androidTestImplementation(libs.espresso.core)
   androidTestImplementation(libs.kotlinx.coroutines.test)
+  androidTestImplementation(libs.room.testing)
 
   baselineProfile(project(":benchmark"))
 }

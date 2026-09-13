@@ -7,6 +7,7 @@ import com.chasel.ng2n.ui.bbcode.TextSegment
 import com.chasel.ng2n.core.local.FilterRuleInput
 import com.chasel.ng2n.core.local.FilterRuleKind
 import com.chasel.ng2n.core.local.createFilterRule
+import com.chasel.ng2n.data.bookmarks.BookmarkDraft
 import com.chasel.ng2n.ui.topic.TopicFixtures.FloorSpec
 import com.chasel.ng2n.ui.topic.TopicFixtures.okJson
 import com.chasel.ng2n.ui.topic.TopicFixtures.pageEnvelope
@@ -637,6 +638,284 @@ class TopicViewModelTest {
     elsewhere.applyStyle(TopicFixtures.STYLE)
     advanceUntilIdle()
     assertEquals(7L, elsewhere.resumeFloor)
+  }
+
+  private val imageFloor = FloorSpec(
+    pid = 800000003,
+    lou = 3,
+    authorId = 77,
+    authorName = "丙",
+    content = "[img]https://img.nga.178.com/attachments/mon_202608/07/a.jpg[/img]",
+  )
+
+  private fun bookmarkDraft(pid: Long, lou: Long, note: String? = null, subject: String = "旧标题") =
+    BookmarkDraft(
+      tid = 45150945,
+      pid = pid,
+      lou = lou,
+      author = "作者",
+      summary = "摘要 $lou",
+      note = note,
+      subject = subject,
+      boardName = "旧版块",
+      favCode = null,
+    )
+
+  @Test
+  fun `加书签 —— 带备注 留空 100 字截断 纯图片楼层摘要记图片`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ ->
+      okJson(pageEnvelope(page = page, floors = floors + imageFloor, rows = 4))
+    }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    val vm = viewModel(TopicKey(tid = 45150945), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    val model = vm.currentModel!!
+
+    vm.openBookmarkDialog(model.floors[1])
+    val dialog = assertNotNull(vm.bookmarkDialog)
+    assertTrue(!dialog.editing)
+    assertEquals(1L, dialog.lou)
+    assertEquals("甲", dialog.author)
+    assertEquals("一楼", dialog.summary)
+    vm.saveBookmark("  记一下  ")
+    advanceUntilIdle()
+    assertNull(vm.bookmarkDialog)
+    assertEquals("已加书签", vm.toast.value?.text)
+    val saved = assertNotNull(fakes.bookmarkDao.find(45150945, 800000001))
+    assertEquals("记一下", saved.note)
+    assertEquals("一楼", saved.summary)
+    assertEquals("测试主题", saved.subject)
+    assertEquals("网事杂谈", saved.boardName)
+    assertTrue(800000001L in vm.bookmarkedPids)
+
+    vm.openBookmarkDialog(model.floors[2])
+    vm.saveBookmark("   ")
+    advanceUntilIdle()
+    assertNull(fakes.bookmarkDao.find(45150945, 800000002)?.note)
+
+    vm.openBookmarkDialog(model.floors[0])
+    vm.saveBookmark("字".repeat(120))
+    advanceUntilIdle()
+    assertEquals(100, fakes.bookmarkDao.find(45150945, 0)?.note?.length)
+
+    vm.openBookmarkDialog(model.floors[3])
+    assertEquals("[图片]", vm.bookmarkDialog?.summary)
+    vm.closeBookmarkDialog()
+    assertNull(vm.bookmarkDialog)
+  }
+
+  @Test
+  fun `编辑书签 —— 弹框预填原备注 保存后创建时间保留 摘要不回写`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    fakes.bookmarks.save(bookmarkDraft(pid = 800000001, lou = 1, note = "旧备注"), nowSeconds = 100)
+    val vm = viewModel(TopicKey(tid = 45150945), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+
+    vm.openBookmarkDialog(vm.currentModel!!.floors[1])
+    val dialog = assertNotNull(vm.bookmarkDialog)
+    assertTrue(dialog.editing)
+    assertEquals("旧备注", dialog.note)
+    assertEquals("摘要 1", dialog.summary)
+
+    vm.saveBookmark("新备注")
+    advanceUntilIdle()
+    assertEquals("已更新备注", vm.toast.value?.text)
+    val saved = assertNotNull(fakes.bookmarkDao.find(45150945, 800000001))
+    assertEquals("新备注", saved.note)
+    assertEquals(100L, saved.createdAt)
+    assertEquals("摘要 1", saved.summary)
+    assertEquals(1, fakes.bookmarks.observeTopic(45150945).first().size)
+  }
+
+  @Test
+  fun `移除书签 —— 提示条带撤销 撤销原样恢复 ViewModel 清掉后撤销照样生效`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    fakes.bookmarks.save(bookmarkDraft(pid = 800000001, lou = 1, note = "备注"), nowSeconds = 100)
+    val vm = viewModel(TopicKey(tid = 45150945), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    assertTrue(800000001L in vm.bookmarkedPids)
+    val original = assertNotNull(fakes.bookmarks.find(45150945, 800000001))
+    assertEquals(100L, original.createdAt)
+
+    vm.removeBookmark(vm.currentModel!!.floors[1])
+    advanceUntilIdle()
+    assertNull(fakes.bookmarkDao.find(45150945, 800000001))
+    assertTrue(vm.bookmarkedPids.isEmpty())
+    val snack = assertNotNull(vm.snackbar.value)
+    assertEquals("已移除第 1 楼的书签", snack.text)
+    assertEquals("撤销", snack.actionLabel)
+
+    store.clear()
+    snack.action!!.invoke()
+    advanceUntilIdle()
+    val restored = assertNotNull(fakes.bookmarks.find(45150945, 800000001))
+    assertEquals(original, restored)
+  }
+
+  @Test
+  fun `热门回复与正文流共享同一份书签状态`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ ->
+      okJson(pageEnvelope(page = page, floors = floors, rows = 3, hotReplies = listOf(floors[2])))
+    }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    val vm = viewModel(TopicKey(tid = 45150945), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    val model = vm.currentModel!!
+    val hot = model.hotReplies.single()
+    val inStream = model.floors.single { it.pid == hot.pid }
+
+    vm.openBookmarkDialog(hot)
+    vm.saveBookmark("从热门回复加的")
+    advanceUntilIdle()
+    assertEquals("从热门回复加的", vm.bookmarkMarkOf(inStream)?.note)
+    assertEquals("从热门回复加的", vm.bookmarkMarkOf(hot)?.note)
+    vm.openBookmarkDialog(inStream)
+    assertTrue(vm.bookmarkDialog!!.editing)
+  }
+
+  @Test
+  fun `跳页弹层 —— 列出「上次读到」和按楼号排序的书签`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    val first = viewModel(TopicKey(tid = 45150945), fakes)
+    first.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    first.reportVisibleFloor(7)
+    first.flushReadFloor()
+    advanceUntilIdle()
+    fakes.bookmarks.save(bookmarkDraft(pid = 800000002, lou = 2), nowSeconds = 100)
+    fakes.bookmarks.save(bookmarkDraft(pid = 800000001, lou = 1, note = "先看这楼"), nowSeconds = 200)
+
+    val vm = viewModel(TopicKey(tid = 45150945, page = 1), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+
+    val targets = vm.jumpTargets
+    assertEquals(listOf(7L, 1L, 2L), targets.map { it.lou })
+    assertTrue(targets[0].resume)
+    assertEquals("上次读到", targets[0].title)
+    assertEquals("第 7 楼", targets[0].detail)
+    assertEquals("第 1 楼", targets[1].title)
+    assertEquals("先看这楼", targets[1].detail, "有备注用备注")
+    assertEquals("摘要 2", targets[2].detail, "没备注用摘要")
+  }
+
+  private fun twentyPerPage(page: Int, missing: Long? = null): String = pageEnvelope(
+    page = page,
+    floors = ((page - 1) * 20 until page * 20)
+      .map { it.toLong() }
+      .filter { it != missing }
+      .map { FloorSpec(pid = 800000000L + it, lou = it, authorId = 1) },
+    rows = 400,
+  )
+
+  @Test
+  fun `书签跳楼 —— 同页直接给滚动目标 跨页等目标页回来 目标楼缺失落到邻楼并提示`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(twentyPerPage(page, missing = 25)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    val vm = viewModel(TopicKey(tid = 45150945), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+
+    vm.jumpToFloor(7)
+    val same = assertNotNull(vm.scrollTarget)
+    assertEquals(1, same.page)
+    assertEquals(8, same.listIndex)
+    assertEquals("已跳转到第 7 楼", vm.toast.value?.text)
+    vm.consumeScrollTarget()
+    vm.consumeToast()
+
+    vm.jumpToFloor(74)
+    assertEquals(4, vm.page)
+    assertNull(vm.scrollTarget, "目标页数据没到位之前不给滚动目标")
+    advanceUntilIdle()
+    val far = assertNotNull(vm.scrollTarget)
+    assertEquals(4, far.page)
+    assertEquals(15, far.listIndex)
+    assertEquals("已跳转到第 74 楼", vm.toast.value?.text)
+    vm.consumeScrollTarget()
+    vm.consumeToast()
+
+    vm.jumpToFloor(25)
+    advanceUntilIdle()
+    val near = assertNotNull(vm.scrollTarget)
+    assertEquals(2, near.page)
+    assertEquals(6, near.listIndex, "25 楼没了,落到 26 楼:20..24 五条之后,header 占一格")
+    assertEquals("第 25 楼已不存在,已跳到第 26 楼", vm.toast.value?.text)
+  }
+
+  @Test
+  fun `只看此人模式下跳书签 —— 清掉只看状态并一次落到目标页 不经过第 1 页或进入前那页`() =
+    runTest(dispatcher) {
+      val (client, transport) = TopicFixtures.client { page, _ -> okJson(twentyPerPage(page)) }
+      val fakes = FakeTopicDeps(client, appScope, dispatcher)
+      val vm = viewModel(TopicKey(tid = 45150945, page = 3), fakes)
+      vm.applyStyle(TopicFixtures.STYLE)
+      advanceUntilIdle()
+
+      vm.enterOnlyUser(vm.currentModel!!.floors[1])
+      advanceUntilIdle()
+      assertEquals(1, vm.page)
+      assertNotNull(vm.onlyUser)
+      val before = transport.requests.size
+
+      vm.jumpToFloor(74)
+      assertNull(vm.onlyUser)
+      assertEquals(4, vm.page, "退出只看直接落到目标页")
+      assertEquals(4, vm.totalPages, "总页数先兜到目标页,夹逼吃不掉它")
+      advanceUntilIdle()
+
+      val after = transport.requests.drop(before)
+      assertTrue(after.isNotEmpty())
+      assertTrue(after.none { it.url.contains("authorid=") }, "退出只看后的请求不再带作者过滤")
+      assertTrue(after.mapNotNull { pageParamOf(it) }.all { it >= 4 }, "没有先回第 1 页或第 3 页")
+      val target = assertNotNull(vm.scrollTarget)
+      assertEquals(4, target.page)
+      assertEquals(15, target.listIndex)
+      assertEquals(20, vm.totalPages)
+    }
+
+  @Test
+  fun `从书签进入 —— 不弹「上次读到」浮条`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    val first = viewModel(TopicKey(tid = 45150945), fakes)
+    first.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    first.reportVisibleFloor(7)
+    first.flushReadFloor()
+    advanceUntilIdle()
+
+    val fromBookmark = viewModel(TopicKey(tid = 45150945, floor = 2, fromBookmark = true), fakes)
+    fromBookmark.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    assertNull(fromBookmark.resumeFloor)
+    assertEquals(listOf(7L), fromBookmark.jumpTargets.map { it.lou }, "跳页弹层里仍然列出上次读到")
+
+    val plain = viewModel(TopicKey(tid = 45150945, floor = 2), fakes)
+    plain.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    assertEquals(7L, plain.resumeFloor)
+  }
+
+  @Test
+  fun `分页加载时刷新书签里的主题标题和版块`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(envelope(page)) }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    fakes.bookmarks.save(bookmarkDraft(pid = 800000001, lou = 1, subject = "旧标题"), nowSeconds = 100)
+    val vm = viewModel(TopicKey(tid = 45150945), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+
+    val saved = assertNotNull(fakes.bookmarkDao.find(45150945, 800000001))
+    assertEquals("测试主题", saved.subject)
+    assertEquals("网事杂谈", saved.boardName)
   }
 }
 

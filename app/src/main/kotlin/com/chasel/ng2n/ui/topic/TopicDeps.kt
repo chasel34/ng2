@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.chasel.ng2n.core.api.AttachmentUrls
 import com.chasel.ng2n.core.net.CredentialSource
 import com.chasel.ng2n.core.net.NgaClient
+import com.chasel.ng2n.data.bookmarks.BookmarkRepository
 import com.chasel.ng2n.data.cache.TopicCacheRepository
 import com.chasel.ng2n.data.history.HistoryRepository
 import com.chasel.ng2n.data.settings.SettingsStore
@@ -25,6 +26,7 @@ class TopicDeps @Inject constructor(
   val client: NgaClient,
   val repository: TopicRepository,
   val history: HistoryRepository,
+  val bookmarks: BookmarkRepository,
   val topicCache: TopicCacheRepository,
   val settings: SettingsStore,
   val credentials: CredentialSource,

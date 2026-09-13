@@ -83,3 +83,4 @@ update
 warning
 wifi
 workspace_premium
+bookmark_added

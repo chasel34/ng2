@@ -16,6 +16,9 @@ interface BrowseHistoryDao {
   @Query("SELECT * FROM browse_history ORDER BY updated_at DESC LIMIT :limit")
   suspend fun loadAll(limit: Int): List<BrowseHistoryEntity>
 
+  @Query("SELECT * FROM browse_history ORDER BY updated_at DESC")
+  suspend fun loadAll(): List<BrowseHistoryEntity>
+
   @Query("SELECT * FROM browse_history WHERE tid = :tid")
   suspend fun find(tid: Long): BrowseHistoryEntity?
 
@@ -74,6 +77,45 @@ interface TopicCacheDao {
     upsert(entry)
     if (evictedTids.isNotEmpty()) deleteTopics(evictedTids)
   }
+}
+
+@Dao
+interface BookmarkDao {
+
+  @Query("SELECT * FROM bookmark ORDER BY tid, lou")
+  fun observeAll(): Flow<List<BookmarkEntity>>
+
+  @Query("SELECT * FROM bookmark WHERE tid = :tid ORDER BY lou")
+  fun observeByTid(tid: Long): Flow<List<BookmarkEntity>>
+
+  @Query("SELECT * FROM bookmark WHERE tid = :tid ORDER BY lou")
+  suspend fun byTid(tid: Long): List<BookmarkEntity>
+
+  @Query("SELECT * FROM bookmark WHERE tid = :tid AND pid = :pid")
+  suspend fun find(tid: Long, pid: Long): BookmarkEntity?
+
+  @Query("SELECT DISTINCT tid FROM bookmark")
+  suspend fun protectedTids(): List<Long>
+
+  @Query("SELECT COUNT(*) FROM bookmark")
+  suspend fun count(): Int
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun upsert(row: BookmarkEntity)
+
+  @Query("DELETE FROM bookmark WHERE tid = :tid AND pid = :pid")
+  suspend fun delete(tid: Long, pid: Long)
+
+  @Query("DELETE FROM bookmark WHERE tid = :tid")
+  suspend fun deleteByTid(tid: Long)
+
+  @Query("DELETE FROM bookmark")
+  suspend fun clear()
+
+  @Query(
+    "UPDATE bookmark SET subject = :subject, board_name = :boardName, fav_code = :favCode WHERE tid = :tid",
+  )
+  suspend fun updateTopicMeta(tid: Long, subject: String, boardName: String?, favCode: String?)
 }
 
 @Dao

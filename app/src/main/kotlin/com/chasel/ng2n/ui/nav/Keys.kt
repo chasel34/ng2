@@ -30,6 +30,8 @@ data class TopicKey(
   val page: Int? = null,
   val pid: Long? = null,
   val floor: Long? = null,
+  /** 从书签页进入：不弹「上次读到」横幅。 */
+  val fromBookmark: Boolean = false,
 ) : NavKey
 
 @Serializable
@@ -50,6 +52,9 @@ data object HistoryKey : NavKey
 
 @Serializable
 data object CachesKey : NavKey
+
+@Serializable
+data object BookmarksKey : NavKey
 
 @Serializable
 data object FiltersKey : NavKey

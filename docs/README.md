@@ -23,6 +23,7 @@
 - [ADR-0002：反封锁链与读写分离](adr/0002-anti-block-chain-first-class.md)
 - [ADR-0003：原生 Android 重写](adr/0003-full-native-android-rewrite.md)
 - [ADR-0004：Compose 与裸 OkHttp](adr/0004-native-stack-compose-bare-okhttp.md)
+- [ADR-0005：Room 维护正式迁移](adr/0005-room-migrations-keep-user-data.md)
 
 ## 历史资料
 

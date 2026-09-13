@@ -75,6 +75,46 @@ class HistoryPolicyTest {
     assertEquals(listOf(HISTORY_LIMIT.toLong()), result.evictedTids)
   }
 
+  private fun fullHistory(): List<HistoryEntry> = (0 until HISTORY_LIMIT).map { index ->
+    entry(tid = (index + 1).toLong(), updatedAt = 1000L + (HISTORY_LIMIT - index))
+  }
+
+  @Test
+  fun `超出上限时跳过受保护的 tid 只淘汰最老的未受保护条目`() {
+    val oldest = HISTORY_LIMIT.toLong()
+    val full = upsertHistory(fullHistory(), TopicVisit(tid = 9999, subject = "新的"), 5000, setOf(oldest))
+    assertTrue(full.evictedTids.isEmpty())
+
+    val over = upsertHistory(full.entries, TopicVisit(tid = 8888, subject = "再来"), 6000, setOf(oldest))
+    assertEquals(listOf(oldest - 1), over.evictedTids)
+    assertTrue(over.entries.any { it.tid == oldest })
+    assertEquals(HISTORY_LIMIT + 1, over.entries.size)
+  }
+
+  @Test
+  fun `受保护条目不计入上限 总数可以超过 200`() {
+    val protected = (1L..3L).toSet()
+    var entries = fullHistory()
+    protected.forEach { tid ->
+      entries = upsertHistory(entries, TopicVisit(tid = tid + 5000, subject = "受保护"), 5000, protected + (tid + 5000)).entries
+    }
+    val protectedAll = protected.map { it + 5000 }.toSet()
+    assertEquals(HISTORY_LIMIT + 3, entries.size)
+
+    val result = upsertHistory(entries, TopicVisit(tid = 9999, subject = "新的"), 6000, protectedAll)
+    assertEquals(HISTORY_LIMIT + 3, result.entries.size)
+    assertEquals(listOf(HISTORY_LIMIT.toLong()), result.evictedTids)
+  }
+
+  @Test
+  fun `书签删掉后该主题恢复为可淘汰`() {
+    val oldest = HISTORY_LIMIT.toLong()
+    val once = upsertHistory(fullHistory(), TopicVisit(tid = 9999, subject = "新的"), 5000, setOf(oldest))
+    assertEquals(HISTORY_LIMIT + 1, once.entries.size)
+    val again = upsertHistory(once.entries, TopicVisit(tid = 8888, subject = "再来"), 6000)
+    assertEquals(setOf(oldest, oldest - 1), again.evictedTids.toSet())
+  }
+
   @Test
   fun `楼层前进时更新条目`() {
     val result = advanceHistoryFloor(listOf(entry(1, lastFloor = 3)), 1, 18, 2000)

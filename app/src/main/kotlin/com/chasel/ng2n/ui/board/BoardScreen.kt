@@ -81,6 +81,7 @@ import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.nav.BoardFace
 import com.chasel.ng2n.ui.nav.BoardKey
+import com.chasel.ng2n.ui.nav.BookmarksKey
 import com.chasel.ng2n.ui.nav.HistoryKey
 import com.chasel.ng2n.ui.nav.Navigator
 import com.chasel.ng2n.ui.nav.SearchKey
@@ -283,6 +284,7 @@ private fun boardMenu(
       },
     )
     add(MenuItem("history", "浏览历史") { onClose(); nav.push(HistoryKey) })
+    add(MenuItem("bookmarks", "书签") { onClose(); nav.push(BookmarksKey) })
     add(
       MenuItem("recommend", "精华区") {
         onClose()

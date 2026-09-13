@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.chasel.ng2n.data.account.AccountStore
+import com.chasel.ng2n.data.bookmarks.BookmarkRepository
 import com.chasel.ng2n.data.board.BoardFavoriteRepository
 import com.chasel.ng2n.data.board.BoardTreeRepository
 import com.chasel.ng2n.data.board.CheckInRepository
@@ -22,10 +23,12 @@ import com.chasel.ng2n.data.notifications.NotificationPoller
 import com.chasel.ng2n.data.settings.SettingsStore
 import com.chasel.ng2n.data.user.UserPostsRepository
 import com.chasel.ng2n.data.user.UserProfileRepository
+import com.chasel.ng2n.di.IoScope
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -49,6 +52,10 @@ interface AppDepsEntryPoint {
   fun ngaClient(): NgaClient
   fun topicFavorites(): TopicFavoriteRepository
   fun search(): SearchRepository
+  fun bookmarks(): BookmarkRepository
+
+  @IoScope
+  fun ioScope(): CoroutineScope
 }
 
 class AppDeps(entryPoint: AppDepsEntryPoint) {
@@ -70,6 +77,10 @@ class AppDeps(entryPoint: AppDepsEntryPoint) {
   val ngaClient: NgaClient = entryPoint.ngaClient()
   val topicFavorites: TopicFavoriteRepository = entryPoint.topicFavorites()
   val search: SearchRepository = entryPoint.search()
+  val bookmarks: BookmarkRepository = entryPoint.bookmarks()
+
+  /** 应用级作用域：撤销这类不能随页面退场取消的工作挂在这里。 */
+  val ioScope: CoroutineScope = entryPoint.ioScope()
 }
 
 @Composable
