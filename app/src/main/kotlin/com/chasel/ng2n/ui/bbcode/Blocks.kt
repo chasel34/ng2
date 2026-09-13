@@ -1,11 +1,11 @@
 package com.chasel.ng2n.ui.bbcode
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,8 +16,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.chasel.ng2n.core.bbcode.BoxVariant
+import com.chasel.ng2n.ui.common.Motion
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Ng2nColors
 import com.chasel.ng2n.ui.theme.Radius
@@ -341,8 +342,8 @@ internal fun CollapsibleCard(
     }
     AnimatedVisibility(
       visible = open,
-      enter = expandVertically(tween(COLLAPSE_MS)) + fadeIn(tween(COLLAPSE_MS)),
-      exit = shrinkVertically(tween(COLLAPSE_MS)) + fadeOut(tween(COLLAPSE_MS)),
+      enter = expandVertically(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)) + fadeIn(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)),
+      exit = shrinkVertically(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)) + fadeOut(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)),
     ) {
       Column(
         modifier = Modifier.padding(
@@ -357,7 +358,6 @@ internal fun CollapsibleCard(
   }
 }
 
-private const val COLLAPSE_MS = 200
 
 @Stable
 interface HorizontalDragGuard {

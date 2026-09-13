@@ -30,7 +30,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Typo
@@ -78,7 +77,7 @@ fun TopBarButton(
       .semantics { this.contentDescription = contentDescription },
     contentAlignment = Alignment.Center,
   ) {
-    AppIcon(icon = icon, tint = tint ?: colors.onTopbar, size = size)
+    MotionIcon(icon = icon, tint = tint ?: colors.onTopbar, size = size)
   }
 }
 

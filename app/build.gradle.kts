@@ -86,6 +86,7 @@ dependencies {
   implementation(libs.compose.foundation)
   implementation(libs.compose.material3)
   debugImplementation(libs.compose.ui.tooling)
+  debugImplementation(libs.compose.ui.test.manifest)
 
   implementation(libs.lifecycle.runtime.compose)
   implementation(libs.lifecycle.viewmodel.compose)
@@ -122,6 +123,7 @@ dependencies {
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)
   androidTestImplementation(libs.espresso.core)
+  androidTestImplementation(libs.compose.ui.test.junit4)
   androidTestImplementation(libs.kotlinx.coroutines.test)
   androidTestImplementation(libs.room.testing)
 

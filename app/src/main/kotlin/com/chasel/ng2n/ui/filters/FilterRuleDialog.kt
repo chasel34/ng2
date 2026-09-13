@@ -1,17 +1,12 @@
 package com.chasel.ng2n.ui.filters
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,15 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -51,10 +42,9 @@ import androidx.compose.ui.unit.sp
 import com.chasel.ng2n.core.local.FilterRuleInput
 import com.chasel.ng2n.core.local.FilterRuleKind
 import com.chasel.ng2n.core.local.validateFilterRule
-import com.chasel.ng2n.ui.common.Motion
-import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.common.DialogShell
+import com.chasel.ng2n.ui.common.MotionIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
-import com.chasel.ng2n.ui.theme.Elevation
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
@@ -80,70 +70,31 @@ fun FilterRuleDialog(
   onCancel: () -> Unit,
   onConfirm: (FilterRuleInput) -> Unit,
 ) {
-  if (!open) return
-  val colors = LocalNg2nColors.current
-  BackHandler(enabled = true, onBack = onCancel)
+  DialogShell(open = open, onDismiss = onCancel) {
+    val colors = LocalNg2nColors.current
 
-  var kind by remember { mutableStateOf(FilterRuleKind.KEYWORD) }
-  var value by remember { mutableStateOf("") }
-  var regex by remember { mutableStateOf(false) }
-  var submitted by remember { mutableStateOf(false) }
+    var kind by remember { mutableStateOf(FilterRuleKind.KEYWORD) }
+    var value by remember { mutableStateOf("") }
+    var regex by remember { mutableStateOf(false) }
+    var submitted by remember { mutableStateOf(false) }
 
-  var started by remember { mutableStateOf(false) }
-  LaunchedEffect(Unit) { started = true }
-  val scrim by animateFloatAsState(
-    targetValue = if (started) 1f else 0f,
-    animationSpec = tween(Motion.DURATION_QUICK, easing = Motion.easeStandard),
-    label = "filter-dialog-scrim",
-  )
-  val pop by animateFloatAsState(
-    targetValue = if (started) 1f else 0f,
-    animationSpec = tween(Motion.DURATION_BASE, easing = Motion.easeStandard),
-    label = "filter-dialog-pop",
-  )
+    val regexOn = regex && kind == FilterRuleKind.KEYWORD
+    val error = validateFilterRule(FilterRuleInput(kind = kind, value = value, regex = regexOn))
 
-  val regexOn = regex && kind == FilterRuleKind.KEYWORD
-  val error = validateFilterRule(FilterRuleInput(kind = kind, value = value, regex = regexOn))
+    val focus = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) { focus.requestFocus() }
 
-  val focus = remember { FocusRequester() }
-  val keyboard = LocalSoftwareKeyboardController.current
-  LaunchedEffect(Unit) { focus.requestFocus() }
-
-  val confirm = {
-    submitted = true
-    if (error == null) {
-      keyboard?.hide()
-      onConfirm(FilterRuleInput(kind = kind, value = value, regex = regexOn))
+    val confirm = {
+      submitted = true
+      if (error == null) {
+        keyboard?.hide()
+        onConfirm(FilterRuleInput(kind = kind, value = value, regex = regexOn))
+      }
     }
-  }
 
-  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Box(
-      Modifier
-        .matchParentSize()
-        .drawBehind { drawRect(colors.scrim, alpha = scrim) }
-        .clickable(
-          interactionSource = remember { MutableInteractionSource() },
-          indication = null,
-          onClickLabel = "关闭对话框",
-          onClick = onCancel,
-        )
-        .semantics { contentDescription = "关闭对话框" },
-    )
     Column(
       Modifier
-        .fillMaxWidth()
-        .padding(24.dp)
-        .scale(Motion.POP_SCALE + (1f - Motion.POP_SCALE) * pop)
-        .alpha(pop)
-        .shadow(Elevation.level2, RoundedCornerShape(Radius.dialog))
-        .clip(RoundedCornerShape(Radius.dialog))
-        .background(colors.menu)
-        .clickable(
-          interactionSource = remember { MutableInteractionSource() },
-          indication = null,
-          onClick = {},
-        )
         .padding(start = 22.dp, end = 22.dp, top = 22.dp, bottom = Spacing.row),
     ) {
       Text(
@@ -246,7 +197,7 @@ fun FilterRuleDialog(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
-          AppIcon(
+          MotionIcon(
             icon = if (regexOn) Ng2nIcon.CHECK_BOX else Ng2nIcon.CHECK_BOX_OUTLINE_BLANK,
             tint = if (regexOn) colors.primary else colors.fg2,
             size = 22.dp,

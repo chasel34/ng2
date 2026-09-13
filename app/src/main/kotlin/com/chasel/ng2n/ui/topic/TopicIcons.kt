@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.chasel.ng2n.ui.common.MotionIcon
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 
@@ -81,7 +82,7 @@ fun ClientIcon(tint: Color, kind: ClientIconKind, size: Dp = 13.dp) = AppIcon(
 enum class ClientIconKind { ANDROID, IOS, OTHER }
 
 @Composable
-fun ChoiceIcon(tint: Color, multiple: Boolean, chosen: Boolean, size: Dp = 17.dp) = AppIcon(
+fun ChoiceIcon(tint: Color, multiple: Boolean, chosen: Boolean, size: Dp = 17.dp) = MotionIcon(
   when {
     multiple && chosen -> Ng2nIcon.CHECK_BOX
     multiple -> Ng2nIcon.CHECK_BOX_OUTLINE_BLANK

@@ -1,5 +1,12 @@
 package com.chasel.ng2n.ui.drawer
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +30,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.chasel.ng2n.ui.common.Motion
+import com.chasel.ng2n.ui.common.MotionTextSwap
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
@@ -148,19 +162,29 @@ fun AppDrawerContent(
         )
         if (entry.key == DrawerEntryKey.CHECK_IN && checkInStatus != null) {
           Spacer(Modifier.weight(1f))
-          Text(
-            text = checkInStatus,
-            maxLines = 1,
-            style = TextStyle(
-              fontSize = Typo.meta.size,
-              lineHeight = Typo.meta.lineHeight,
-              color = colors.meta,
-            ),
-          )
+          MotionTextSwap(checkInStatus) { status ->
+            Text(
+              text = status,
+              maxLines = 1,
+              style = TextStyle(
+                fontSize = Typo.meta.size,
+                lineHeight = Typo.meta.lineHeight,
+                color = colors.meta,
+              ),
+            )
+          }
         }
-        if (entry.key == DrawerEntryKey.NOTIFICATIONS && unread > 0) {
+        if (entry.key == DrawerEntryKey.NOTIFICATIONS) {
           Spacer(Modifier.weight(1f))
-          UnreadBadge(unread)
+          AnimatedVisibility(
+            visible = unread > 0,
+            enter = fadeIn(tween(Motion.DURATION_QUICK)) +
+              scaleIn(tween(Motion.DURATION_PANEL, easing = Motion.easeDecelerate), initialScale = 0.6f) +
+              slideInVertically(tween(Motion.DURATION_PANEL)) { -it / 3 },
+            exit = fadeOut(tween(Motion.DURATION_EXIT)) + scaleOut(tween(Motion.DURATION_EXIT), targetScale = 0.6f),
+          ) {
+            UnreadBadge(unread)
+          }
         }
       }
     }
@@ -170,6 +194,9 @@ fun AppDrawerContent(
 
 @Composable
 private fun UnreadBadge(count: Int) {
+  var retained by remember { mutableStateOf(count) }
+  SideEffect { if (count > 0) retained = count }
+  val visibleCount = if (count > 0) count else retained
   val colors = LocalNg2nColors.current
   Box(
     modifier = Modifier
@@ -180,15 +207,17 @@ private fun UnreadBadge(count: Int) {
       .padding(horizontal = 5.dp),
     contentAlignment = Alignment.Center,
   ) {
-    Text(
-      text = if (count > 99) "99+" else count.toString(),
-      style = TextStyle(
-        fontSize = Typo.unreadBadge.size,
-        lineHeight = Typo.unreadBadge.lineHeight,
-        fontWeight = FontWeight.Bold,
-        color = colors.onPrimary,
-      ),
-    )
+    MotionTextSwap(if (visibleCount > 99) "99+" else visibleCount.toString()) { text ->
+      Text(
+        text = text,
+        style = TextStyle(
+          fontSize = Typo.unreadBadge.size,
+          lineHeight = Typo.unreadBadge.lineHeight,
+          fontWeight = FontWeight.Bold,
+          color = colors.onPrimary,
+        ),
+      )
+    }
   }
 }
 

@@ -1,7 +1,9 @@
 package com.chasel.ng2n.ui.common
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,6 +41,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -60,31 +64,24 @@ internal fun DialogShell(
   onDismiss: () -> Unit,
   content: @Composable () -> Unit,
 ) {
-  if (!open) return
+  val visibility = rememberVisibilityTransition(open)
+  if (!visibility.currentState && !visibility.targetState && !visibility.isRunning) return
   val colors = LocalNg2nColors.current
-  BackHandler(enabled = true, onBack = onDismiss)
+  BackHandler(enabled = true, onBack = { if (open) onDismiss() })
 
-  var started by remember { mutableStateOf(false) }
-  LaunchedEffect(Unit) { started = true }
-  val scrim by animateFloatAsState(
-    targetValue = if (started) 1f else 0f,
-    animationSpec = tween(Motion.DURATION_QUICK, easing = Motion.easeStandard),
-    label = "dialog-scrim",
-  )
-  val pop by animateFloatAsState(
-    targetValue = if (started) 1f else 0f,
-    animationSpec = tween(Motion.DURATION_BASE, easing = Motion.easeStandard),
-    label = "dialog-pop",
-  )
+  val pop by visibility.animateFloat(
+    transitionSpec = { tween(if (targetState) Motion.DURATION_BASE else Motion.DURATION_EXIT, easing = Motion.easeStandard) },
+    label = "overlay-pop",
+  ) { if (it) 1f else 0f }
 
   Box(
-    modifier = Modifier.fillMaxSize(),
+    modifier = Modifier.fillMaxSize().guardExitingOverlay(open),
     contentAlignment = Alignment.Center,
   ) {
     Box(
       Modifier
         .matchParentSize()
-        .drawBehind { drawRect(colors.scrim, alpha = scrim) }
+        .drawBehind { drawRect(colors.scrim, alpha = pop) }
         .clickable(
           interactionSource = remember { MutableInteractionSource() },
           indication = null,
@@ -177,12 +174,29 @@ fun InputDialog(
     val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) { focus.requestFocus() }
 
+    var submitAttempt by remember { mutableStateOf(0) }
+    val shake = remember { Animatable(0f) }
+    val shakeDistance = with(LocalDensity.current) { 4.dp.toPx() }
+    LaunchedEffect(error, submitAttempt) {
+      shake.snapTo(0f)
+      if (error != null) {
+        for (offset in listOf(-1f, 1f, -0.5f, 0.5f, 0f)) {
+          shake.animateTo(offset, tween(45))
+        }
+      }
+    }
     val submit = {
+      submitAttempt += 1
       keyboard?.hide()
       onConfirm(value)
     }
 
-    Column(Modifier.padding(start = 22.dp, end = 22.dp, top = 22.dp, bottom = Spacing.row)) {
+    Column(
+      Modifier
+        .graphicsLayer { translationX = shake.value * shakeDistance }
+        .animateContentSize(tween(Motion.DURATION_BASE, easing = Motion.easeStandard))
+        .padding(start = 22.dp, end = 22.dp, top = 22.dp, bottom = Spacing.row),
+    ) {
       Text(
         text = title,
         style = TextStyle(

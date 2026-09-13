@@ -14,6 +14,7 @@
 | [性能脚本](../scripts/perf/README.md) | 采样和分析命令 |
 | [加载文案来源](loading-quotes-sources.md) | 文案清单、署名核对与来源记录 |
 | [本地 Issue 约定](agents/issue-tracker.md) | `.scratch/` 中需求与问题记录的组织方式 |
+| [界面动效](motion.md) | 动画全目录筛选、原生适配和设备验证方式 |
 | [设计参考](../design/README.md) | HTML 原型入口 |
 | [金样本](../app/src/test/resources/goldens/README.md) | 解析与纯算法的对拍数据说明 |
 

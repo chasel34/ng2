@@ -1,6 +1,6 @@
 package com.chasel.ng2n.ui.topic
 
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,18 +8,18 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,19 +30,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -53,12 +55,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.chasel.ng2n.data.bookmarks.BOOKMARK_NOTE_MAX
+import com.chasel.ng2n.ui.bbcode.BBCodeCallbacks
+import com.chasel.ng2n.ui.bbcode.BBCodeContent
+import com.chasel.ng2n.ui.common.DialogShell
 import com.chasel.ng2n.ui.common.MENU_ITEM_HEIGHT
 import com.chasel.ng2n.ui.common.MENU_ITEM_PADDING
 import com.chasel.ng2n.ui.common.MENU_MAX_HEIGHT
 import com.chasel.ng2n.ui.common.MENU_MIN_WIDTH
-import com.chasel.ng2n.ui.bbcode.BBCodeCallbacks
-import com.chasel.ng2n.ui.bbcode.BBCodeContent
+import com.chasel.ng2n.ui.common.Motion
+import com.chasel.ng2n.ui.common.guardExitingOverlay
+import com.chasel.ng2n.ui.common.rememberVisibilityTransition
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
@@ -80,12 +86,16 @@ fun OverflowMenu(
   leftHanded: Boolean,
   onClose: () -> Unit,
 ) {
-  if (!open) return
+  val visibility = rememberVisibilityTransition(open)
+  if (!visibility.currentState && !visibility.targetState && !visibility.isRunning) return
   val colors = LocalNg2nColors.current
-  val progress = remember { Animatable(0f) }
-  LaunchedEffect(Unit) { progress.animateTo(1f, tween(MENU_MS)) }
+  androidx.activity.compose.BackHandler { if (open) onClose() }
+  val progress by visibility.animateFloat(
+    transitionSpec = { tween(if (targetState) Motion.DURATION_MENU else Motion.DURATION_EXIT, easing = Motion.easeStandard) },
+    label = "topic-menu",
+  ) { if (it) 1f else 0f }
 
-  Box(Modifier.fillMaxSize()) {
+  Box(Modifier.fillMaxSize().guardExitingOverlay(open)) {
     Box(
       Modifier
         .fillMaxSize()
@@ -103,8 +113,8 @@ fun OverflowMenu(
         .width(IntrinsicSize.Max)
         .heightIn(max = MENU_MAX_HEIGHT)
         .graphicsLayer {
-          alpha = progress.value
-          scaleX = POP_SCALE + (1f - POP_SCALE) * progress.value
+          alpha = progress
+          scaleX = Motion.POP_SCALE + (1f - Motion.POP_SCALE) * progress
           scaleY = scaleX
           transformOrigin = TransformOrigin(if (leftHanded) 0f else 1f, 0f)
         }
@@ -135,10 +145,6 @@ fun OverflowMenu(
   }
 }
 
-private const val MENU_MS = 160
-private const val POP_SCALE = 0.94f
-private const val PANEL_MS = 220
-
 @Composable
 fun InputDialog(
   open: Boolean,
@@ -151,13 +157,12 @@ fun InputDialog(
   targets: List<JumpTarget> = emptyList(),
   onPickTarget: (JumpTarget) -> Unit = {},
 ) {
-  if (!open) return
-  val colors = LocalNg2nColors.current
-  var value by remember { mutableStateOf(TextFieldValue(initialValue)) }
-  val focus = remember { FocusRequester() }
-  LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+  DialogScaffold(state = if (open) Unit else null, onDismiss = onCancel) {
+    val colors = LocalNg2nColors.current
+    var value by remember { mutableStateOf(TextFieldValue(initialValue)) }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
 
-  DialogScaffold(onDismiss = onCancel) {
     Text(title, fontSize = Typo.section.size, fontWeight = FontWeight.SemiBold, color = colors.fg)
     Box(
       modifier = Modifier
@@ -238,15 +243,14 @@ private val JUMP_TARGETS_MAX_HEIGHT = 264.dp
 
 @Composable
 fun BookmarkDialog(state: BookmarkDialogState?, onCancel: () -> Unit, onSave: (String) -> Unit) {
-  if (state == null) return
-  val colors = LocalNg2nColors.current
-  var value by remember(state.pid, state.editing) {
-    mutableStateOf(TextFieldValue(state.note, TextRange(state.note.length)))
-  }
-  val focus = remember { FocusRequester() }
-  LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+  DialogScaffold(state = state, onDismiss = onCancel) { state ->
+    val colors = LocalNg2nColors.current
+    var value by remember(state.pid, state.editing) {
+      mutableStateOf(TextFieldValue(state.note, TextRange(state.note.length)))
+    }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
 
-  DialogScaffold(onDismiss = onCancel) {
     Text(
       if (state.editing) "编辑书签" else "加书签",
       fontSize = Typo.section.size,
@@ -319,9 +323,8 @@ fun BookmarkDialog(state: BookmarkDialogState?, onCancel: () -> Unit, onSave: (S
 
 @Composable
 fun SignatureDialog(state: SignatureDialogState?, onClose: () -> Unit) {
-  if (state == null) return
-  val colors = LocalNg2nColors.current
-  DialogScaffold(onDismiss = onClose) {
+  DialogScaffold(state = state, onDismiss = onClose) { state ->
+    val colors = LocalNg2nColors.current
     Text("查看签名", fontSize = Typo.section.size, fontWeight = FontWeight.SemiBold, color = colors.fg)
     Box(
       modifier = Modifier
@@ -346,41 +349,14 @@ fun SignatureDialog(state: SignatureDialogState?, onClose: () -> Unit) {
 }
 
 @Composable
-private fun DialogScaffold(onDismiss: () -> Unit, content: @Composable () -> Unit) {
-  val colors = LocalNg2nColors.current
-  val progress = remember { Animatable(0f) }
-  LaunchedEffect(Unit) { progress.animateTo(1f, tween(PANEL_MS)) }
-
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(colors.scrim)
-      .clickable(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = null,
-        onClick = onDismiss,
-      )
-      .padding(24.dp),
-    contentAlignment = Alignment.Center,
-  ) {
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .graphicsLayer {
-          alpha = progress.value
-          scaleX = POP_SCALE + (1f - POP_SCALE) * progress.value
-          scaleY = scaleX
-        }
-        .clip(RoundedCornerShape(Radius.lg))
-        .background(colors.menu)
-        .clickable(
-          interactionSource = remember { MutableInteractionSource() },
-          indication = null,
-          onClick = {},
-        )
-        .padding(start = 22.dp, end = 22.dp, top = 22.dp, bottom = Spacing.row),
-      content = { content() },
-    )
+private fun <T : Any> DialogScaffold(state: T?, onDismiss: () -> Unit, content: @Composable (T) -> Unit) {
+  var retained by remember { mutableStateOf(state) }
+  SideEffect { if (state != null) retained = state }
+  DialogShell(open = state != null, onDismiss = onDismiss) {
+    val visible = state ?: retained ?: return@DialogShell
+    Column(Modifier.padding(start = 22.dp, end = 22.dp, top = 22.dp, bottom = Spacing.row)) {
+      content(visible)
+    }
   }
 }
 
@@ -425,13 +401,22 @@ private fun DialogActions(
 
 @Composable
 fun SnackbarHost(message: SnackbarMessage?, dark: Boolean, onDismiss: () -> Unit) {
-  if (message == null) return
-  val progress = remember(message) { Animatable(0f) }
+  var retained by remember { mutableStateOf(message) }
+  SideEffect { if (message != null) retained = message }
+  val visibility = rememberVisibilityTransition(message != null)
+  val visibleMessage = message ?: retained ?: return
+  if (!visibility.currentState && !visibility.targetState && !visibility.isRunning) return
+  val progress by visibility.animateFloat(
+    transitionSpec = { tween(Motion.DURATION_PANEL, easing = Motion.easeStandard) },
+    label = "topic-snackbar",
+  ) { if (it) 1f else 0f }
   LaunchedEffect(message) {
-    progress.animateTo(1f, tween(PANEL_MS))
-    kotlinx.coroutines.delay(autoDismissMs(message.action != null))
-    onDismiss()
+    if (message != null) {
+      kotlinx.coroutines.delay(autoDismissMs(message.action != null))
+      onDismiss()
+    }
   }
+  val rise = with(LocalDensity.current) { Motion.RISE_OFFSET.dp.toPx() }
   val navBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
   Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
@@ -439,9 +424,10 @@ fun SnackbarHost(message: SnackbarMessage?, dark: Boolean, onDismiss: () -> Unit
       modifier = Modifier
         .padding(start = Spacing.lg, end = Spacing.lg, bottom = SNACK_BOTTOM + navBar)
         .fillMaxWidth()
+        .guardExitingOverlay(message != null)
         .graphicsLayer {
-          alpha = progress.value
-          translationY = (1f - progress.value) * 42f
+          alpha = progress
+          translationY = (1f - progress) * rise
         }
         .clip(RoundedCornerShape(Radius.lg))
         .background(if (dark) SNACK_BG_DARK else SNACK_BG_LIGHT)
@@ -450,14 +436,14 @@ fun SnackbarHost(message: SnackbarMessage?, dark: Boolean, onDismiss: () -> Unit
       horizontalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
       Text(
-        text = message.text,
+        text = visibleMessage.text,
         fontSize = Typo.notice.size,
         lineHeight = Typo.notice.lineHeight,
         color = SNACK_FG,
         modifier = Modifier.weight(1f),
       )
-      val label = message.actionLabel
-      val action = message.action
+      val label = visibleMessage.actionLabel
+      val action = visibleMessage.action
       if (label != null && action != null) {
         Text(
           text = label,

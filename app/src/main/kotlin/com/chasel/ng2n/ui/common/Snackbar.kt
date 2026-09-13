@@ -1,7 +1,7 @@
 package com.chasel.ng2n.ui.common
 
 import android.widget.Toast
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,12 +9,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -89,21 +89,23 @@ private val SNACK_ACTION = Color(0xFF8FD8C9)
 @Composable
 fun SnackbarHost(modifier: Modifier = Modifier) {
   val current by Snackbars.current.collectAsStateWithLifecycle()
-  val item = current ?: return
+  var retained by remember { mutableStateOf<SnackbarItem?>(null) }
+  LaunchedEffect(current) { if (current != null) retained = current }
+  val visibility = rememberVisibilityTransition(current != null)
+  val item = current ?: retained ?: return
+  if (!visibility.currentState && !visibility.targetState && !visibility.isRunning) return
   val dark = isSystemInDarkTheme()
 
-  var shown by remember(item.id) { mutableStateOf(false) }
-  LaunchedEffect(item.id) {
-    shown = true
-    delay(autoDismissMs(item.action != null))
-    Snackbars.hide()
+  LaunchedEffect(current?.id) {
+    val active = current ?: return@LaunchedEffect
+    delay(autoDismissMs(active.action != null))
+    if (Snackbars.current.value?.id == active.id) Snackbars.hide()
   }
   val navBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-  val progress by animateFloatAsState(
-    targetValue = if (shown) 1f else 0f,
-    animationSpec = tween(Motion.DURATION_PANEL, easing = Motion.easeStandard),
+  val progress by visibility.animateFloat(
+    transitionSpec = { tween(Motion.DURATION_PANEL, easing = Motion.easeStandard) },
     label = "snackbar",
-  )
+  ) { if (it) 1f else 0f }
   val rise = with(LocalDensity.current) { Motion.RISE_OFFSET.dp.toPx() }
 
   Box(modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
@@ -112,7 +114,12 @@ fun SnackbarHost(modifier: Modifier = Modifier) {
         .padding(horizontal = Spacing.lg)
         .padding(bottom = BOTTOM_OFFSET + navBar)
         .fillMaxWidth()
-        .graphicsLayer { translationY = (1f - progress) * rise }
+        .guardExitingOverlay(current != null)
+        .graphicsLayer {
+          translationY = (1f - progress) * rise
+          scaleX = Motion.POP_SCALE + (1f - Motion.POP_SCALE) * progress
+          scaleY = scaleX
+        }
         .alpha(progress)
         .shadow(Elevation.level2, RoundedCornerShape(Radius.lg))
         .clip(RoundedCornerShape(Radius.lg))
@@ -121,11 +128,12 @@ fun SnackbarHost(modifier: Modifier = Modifier) {
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
-      Text(
-        text = item.text,
-        modifier = Modifier.weight(1f),
-        style = TextStyle(fontSize = Typo.notice.size, lineHeight = 18.9.sp, color = SNACK_FG),
-      )
+      MotionTextSwap(item.text, Modifier.weight(1f)) { text ->
+        Text(
+          text = text,
+          style = TextStyle(fontSize = Typo.notice.size, lineHeight = 18.9.sp, color = SNACK_FG),
+        )
+      }
       val action = item.action
       if (action != null) {
         Text(

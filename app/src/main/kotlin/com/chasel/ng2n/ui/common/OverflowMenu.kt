@@ -1,18 +1,18 @@
 package com.chasel.ng2n.ui.common
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -24,16 +24,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
@@ -66,21 +61,19 @@ fun OverflowMenu(
   items: List<MenuItem>,
   modifier: Modifier = Modifier,
 ) {
-  if (!open) return
+  val visibility = rememberVisibilityTransition(open)
+  if (!visibility.currentState && !visibility.targetState && !visibility.isRunning) return
   val colors = LocalNg2nColors.current
-  BackHandler(enabled = true, onBack = onDismiss)
+  BackHandler(enabled = true, onBack = { if (open) onDismiss() })
 
-  var started by remember { mutableStateOf(false) }
-  LaunchedEffect(Unit) { started = true }
-  val pop by animateFloatAsState(
-    targetValue = if (started) 1f else 0f,
-    animationSpec = tween(Motion.DURATION_MENU, easing = Motion.easeStandard),
-    label = "menu-pop",
-  )
+  val pop by visibility.animateFloat(
+    transitionSpec = { tween(if (targetState) Motion.DURATION_MENU else Motion.DURATION_EXIT, easing = Motion.easeStandard) },
+    label = "overlay-pop",
+  ) { if (it) 1f else 0f }
 
   val statusBar = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
-  Box(modifier.fillMaxSize()) {
+  Box(modifier.fillMaxSize().guardExitingOverlay(open)) {
     Box(
       Modifier
         .matchParentSize()
@@ -102,10 +95,17 @@ fun OverflowMenu(
           scaleX = scale
           scaleY = scale
           transformOrigin = TransformOrigin(1f, 0f)
+          shape = RoundedCornerShape(Radius.lg)
+          shadowElevation = Elevation.level2.toPx()
+          // 投影留在内容透明度层之外，避免离屏合成裁掉圆角外的阴影。
+          ambientShadowColor = Color.Black.copy(alpha = pop)
+          spotShadowColor = Color.Black.copy(alpha = pop)
         }
-        .alpha(pop)
-        .shadow(Elevation.level2, RoundedCornerShape(Radius.lg))
-        .clip(RoundedCornerShape(Radius.lg))
+        .graphicsLayer {
+          alpha = pop
+          shape = RoundedCornerShape(Radius.lg)
+          clip = true
+        }
         .background(colors.menu)
         .heightIn(max = MENU_MAX_HEIGHT)
         .verticalScroll(rememberScrollState()),

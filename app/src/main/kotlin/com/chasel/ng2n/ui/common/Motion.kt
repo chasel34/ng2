@@ -9,6 +9,10 @@ object Motion {
 
   val easeDecelerate: Easing = CubicBezierEasing(0.2f, 0.8f, 0.3f, 1f)
 
+  const val DURATION_PAGE = 260
+
+  const val DURATION_EXIT = 140
+
   const val DURATION_MENU = 160
 
   const val DURATION_QUICK = 180

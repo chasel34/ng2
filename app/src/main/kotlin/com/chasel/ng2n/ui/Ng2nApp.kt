@@ -4,6 +4,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -11,33 +12,35 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
-import com.chasel.ng2n.ui.bbcode.BBCodeDemoKey
-import com.chasel.ng2n.ui.bbcode.BBCodeDemoScreen
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import com.chasel.ng2n.ui.accounts.AccountsScreen
 import com.chasel.ng2n.ui.accounts.AccountsViewModel
-import com.chasel.ng2n.ui.login.LoginScreen
+import com.chasel.ng2n.ui.bbcode.BBCodeDemoKey
+import com.chasel.ng2n.ui.bbcode.BBCodeDemoScreen
 import com.chasel.ng2n.ui.common.SnackbarHost
+import com.chasel.ng2n.ui.common.pageTransition
 import com.chasel.ng2n.ui.dev.DevMenuEntry
 import com.chasel.ng2n.ui.dev.DevMenuKey
 import com.chasel.ng2n.ui.dev.DevMenuScreen
 import com.chasel.ng2n.ui.filters.filtersAndUserEntries
 import com.chasel.ng2n.ui.home.homeEntries
 import com.chasel.ng2n.ui.image.ImageViewerKey
-import com.chasel.ng2n.ui.lists.listEntries
 import com.chasel.ng2n.ui.image.ImageViewerScreen
+import com.chasel.ng2n.ui.lists.listEntries
+import com.chasel.ng2n.ui.login.LoginScreen
 import com.chasel.ng2n.ui.nav.DeepLinkInbox
 import com.chasel.ng2n.ui.nav.Navigator
 import com.chasel.ng2n.ui.nav.TopicKey
-import com.chasel.ng2n.ui.topic.topicEntries
 import com.chasel.ng2n.ui.settings.settingsEntries
+import com.chasel.ng2n.ui.theme.LocalNg2nColors
+import com.chasel.ng2n.ui.topic.topicEntries
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -72,18 +75,15 @@ fun Ng2nApp() {
     if (backStack.lastOrNull() != key) backStack.add(key)
   }
 
-  Box(Modifier.fillMaxSize()) {
+  Box(Modifier.fillMaxSize().background(LocalNg2nColors.current.bg)) {
     NavDisplay(
       backStack = backStack,
       onBack = { backStack.removeLastOrNull() },
       transitionSpec = {
-        fadeIn(tween(PAGE_FADE_MS)) togetherWith fadeOut(tween(PAGE_FADE_MS))
+        pageTransition()
       },
       popTransitionSpec = {
-        fadeIn(tween(PAGE_FADE_MS)) togetherWith fadeOut(tween(PAGE_FADE_MS))
-      },
-      predictivePopTransitionSpec = {
-        fadeIn(tween(PAGE_FADE_MS)) togetherWith fadeOut(tween(PAGE_FADE_MS))
+        pageTransition(back = true)
       },
       entryDecorators = listOf(
         rememberSaveableStateHolderNavEntryDecorator(),
@@ -147,8 +147,6 @@ fun Ng2nApp() {
             fadeIn(tween(VIEWER_FADE_MS)) togetherWith fadeOut(tween(VIEWER_FADE_MS))
           } + NavDisplay.popTransitionSpec {
             fadeIn(tween(VIEWER_FADE_MS)) togetherWith fadeOut(tween(VIEWER_FADE_MS))
-          } + NavDisplay.predictivePopTransitionSpec {
-            fadeIn(tween(VIEWER_FADE_MS)) togetherWith fadeOut(tween(VIEWER_FADE_MS))
           },
         ) { key ->
           ImageViewerScreen(key = key, onBack = { backStack.removeLastOrNull() })
@@ -161,7 +159,6 @@ fun Ng2nApp() {
 }
 
 private const val VIEWER_FADE_MS = 220
-private const val PAGE_FADE_MS = 160
 
 private val DEMO_IMAGES = listOf(
   "https://picsum.photos/seed/ng2n-a/1200/800",

@@ -1,6 +1,9 @@
 package com.chasel.ng2n.ui.favorites
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,8 +45,11 @@ import com.chasel.ng2n.data.settings.foldersOfTopic
 import com.chasel.ng2n.ui.common.DialogActions
 import com.chasel.ng2n.ui.common.DialogShell
 import com.chasel.ng2n.ui.common.InputDialog
+import com.chasel.ng2n.ui.common.Motion
+import com.chasel.ng2n.ui.common.MotionIcon
 import com.chasel.ng2n.ui.common.Snackbars
 import com.chasel.ng2n.ui.common.failureText
+import com.chasel.ng2n.ui.common.guardExitingOverlay
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.rememberAppDeps
@@ -54,8 +60,14 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun FavoriteFolderDialog(open: Boolean, tid: Long, onClose: () -> Unit) {
-  if (!open) return
-  FolderPicker(tid = tid, onClose = onClose)
+  AnimatedVisibility(
+    visible = open,
+    enter = EnterTransition.None,
+    exit = fadeOut(tween(Motion.DURATION_EXIT)),
+    modifier = Modifier.guardExitingOverlay(open),
+  ) {
+    FolderPicker(tid = tid, onClose = onClose)
+  }
 }
 
 @Composable
@@ -281,7 +293,7 @@ private fun FolderCheckRow(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(13.dp),
   ) {
-    AppIcon(
+    MotionIcon(
       icon = if (checked) Ng2nIcon.CHECK_BOX else Ng2nIcon.CHECK_BOX_OUTLINE_BLANK,
       tint = if (checked) colors.primary else colors.meta,
       size = 21.dp,

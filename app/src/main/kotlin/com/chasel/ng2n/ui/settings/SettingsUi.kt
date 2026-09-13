@@ -1,5 +1,8 @@
 package com.chasel.ng2n.ui.settings
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -31,9 +34,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,13 +51,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.chasel.ng2n.ui.common.DialogShell
 import com.chasel.ng2n.ui.common.Motion
 import com.chasel.ng2n.ui.common.TopBar
 import com.chasel.ng2n.ui.common.TopBarButton
 import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
-import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.theme.Elevation
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Radius
@@ -256,11 +257,12 @@ fun <T> SettingsOptionDialog(
   hint: String? = null,
   confirmLabel: String = "应用",
 ) {
-  if (!open) return
   val colors = LocalNg2nColors.current
   var picked by remember(value) { mutableStateOf(value) }
 
-  SettingsDialogShell(onDismiss = onCancel) {
+  LaunchedEffect(open, value) { if (open) picked = value }
+
+  DialogShell(open = open, onDismiss = onCancel) {
     Column(Modifier.padding(top = 22.dp, bottom = Spacing.row)) {
       Text(
         text = title,
@@ -352,50 +354,6 @@ private fun RadioMark(selected: Boolean) {
         if (selected) drawCircle(tint, radius * 0.48f)
       },
   )
-}
-
-@Composable
-private fun SettingsDialogShell(onDismiss: () -> Unit, content: @Composable () -> Unit) {
-  val colors = LocalNg2nColors.current
-  androidx.activity.compose.BackHandler(enabled = true, onBack = onDismiss)
-
-  var started by remember { mutableStateOf(false) }
-  LaunchedEffect(Unit) { started = true }
-  val scrim by animateFloatAsState(
-    targetValue = if (started) 1f else 0f,
-    animationSpec = tween(Motion.DURATION_QUICK, easing = Motion.easeStandard),
-    label = "settings-dialog-scrim",
-  )
-  val pop by animateFloatAsState(
-    targetValue = if (started) 1f else 0f,
-    animationSpec = tween(Motion.DURATION_BASE, easing = Motion.easeStandard),
-    label = "settings-dialog-pop",
-  )
-
-  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Box(
-      Modifier
-        .matchParentSize()
-        .drawBehind { drawRect(colors.scrim, alpha = scrim) }
-        .pointerInput(Unit) { detectTapGestures { onDismiss() } }
-        .semantics { contentDescription = "关闭对话框" },
-    )
-    Box(
-      Modifier
-        .fillMaxWidth()
-        .padding(24.dp)
-        .graphicsLayer {
-          val scale = Motion.POP_SCALE + (1f - Motion.POP_SCALE) * pop
-          scaleX = scale
-          scaleY = scale
-          alpha = pop
-        }
-        .shadow(Elevation.level2, RoundedCornerShape(Radius.dialog))
-        .clip(RoundedCornerShape(Radius.dialog))
-        .background(colors.menu)
-        .pointerInput(Unit) { detectTapGestures { } },
-    ) { content() }
-  }
 }
 
 @Composable

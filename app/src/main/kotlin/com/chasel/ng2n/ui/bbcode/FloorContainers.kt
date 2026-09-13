@@ -31,6 +31,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.chasel.ng2n.ui.common.Motion
 import com.chasel.ng2n.ui.theme.LocalNg2nColors
 import com.chasel.ng2n.ui.theme.Radius
 import com.chasel.ng2n.ui.theme.Spacing
@@ -141,8 +142,8 @@ fun HotRepliesSection(
     }
     AnimatedVisibility(
       visible = open,
-      enter = expandVertically(tween(HOT_REPLIES_MS)) + fadeIn(tween(HOT_REPLIES_MS)),
-      exit = shrinkVertically(tween(HOT_REPLIES_MS)) + fadeOut(tween(HOT_REPLIES_MS)),
+      enter = expandVertically(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)) + fadeIn(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)),
+      exit = shrinkVertically(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)) + fadeOut(tween(Motion.DURATION_BASE, easing = Motion.easeStandard)),
     ) {
       Column(Modifier.fillMaxWidth()) { content() }
     }
@@ -154,5 +155,3 @@ fun HotRepliesSection(
       .background(colors.divider),
   )
 }
-
-private const val HOT_REPLIES_MS = 200
