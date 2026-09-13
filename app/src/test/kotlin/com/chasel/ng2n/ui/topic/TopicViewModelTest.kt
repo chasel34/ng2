@@ -1,6 +1,7 @@
 package com.chasel.ng2n.ui.topic
 
 import com.chasel.ng2n.ui.nav.TopicKey
+import com.chasel.ng2n.ui.nav.ChainKey
 import com.chasel.ng2n.ui.bbcode.QuoteSegment
 import com.chasel.ng2n.ui.bbcode.TextSegment
 import com.chasel.ng2n.core.local.FilterRuleInput
@@ -69,6 +70,32 @@ class TopicViewModelTest {
 
   private fun envelope(page: Int, rows: Long = 47) =
     pageEnvelope(page = page, floors = floors, rows = rows)
+
+  @Test
+  fun `第三页引用主楼显示两层回复链 打开链后自动读取第一页`() = runTest(dispatcher) {
+    val starter = FloorSpec(0, 0, 1, content = "主楼完整正文")
+    val reply = FloorSpec(45, 45, 2, content = "[quote][tid=45150945]Topic[/tid]主楼摘录[/quote]第45楼回复")
+    val (client, transport) = TopicFixtures.client { page, _ ->
+      okJson(pageEnvelope(page = page, floors = listOf(if (page == 1) starter else reply), rows = 46))
+    }
+    val fakes = FakeTopicDeps(client, appScope, dispatcher)
+    val vm = viewModel(TopicKey(tid = 45150945, page = 3), fakes)
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    assertEquals(2, vm.chainDepths[45])
+    assertEquals(1, transport.requests.size)
+
+    val chain = ChainViewModel(ChainKey(tid = 45150945, pid = 45), fakes.deps, dispatcher)
+    store.put("chain", chain)
+    chain.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    assertEquals(listOf(0L, 45L), chain.chain.map { it.pid })
+    assertTrue(chain.chain.all { it.loaded })
+    assertEquals("主楼完整正文", (chain.entries.getValue(0).body.segments.single() as TextSegment).text.text)
+    assertEquals("第45楼回复", (chain.entries.getValue(45).body.segments.single() as TextSegment).text.text)
+    assertEquals(TopicKey(tid = 45150945, page = 1, floor = 0), chain.openInTopicKey(chain.chain.first()))
+    assertEquals(listOf("3", "1"), transport.requests.map { it.url.substringAfter("page=").substringBefore("&") })
+  }
 
   @Test
   fun `直接进入第二页也会补齐上一页原文预览`() = runTest(dispatcher) {

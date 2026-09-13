@@ -43,6 +43,39 @@ class ReplyChainGoldenTest {
   }
 
   @Test
+  fun `Topic 引用主楼并在未加载时定位第一页`() {
+    val reply = floor(45, 45, "[quote]<br/> [tid=45150945]Topic[/tid] [b]Post by 某人[/b]原文[/quote]回复")
+    val ref = QuoteRef(pid = 0, tid = 45150945, page = 1)
+    assertEquals(listOf(ref), reply.refs)
+    val missing = buildReplyChain(buildQuoteIndex(listOf(reply), 45150945), 45)
+    assertEquals(ChainNode(0, ChainRole.UPSTREAM, false, ref), missing.first())
+    assertEquals(2, missing.size)
+    val loaded = buildReplyChain(buildQuoteIndex(listOf(floor(0, 0, "主楼"), reply), 45150945), 45)
+    assertEquals(ChainNode(0, ChainRole.UPSTREAM, true, ref), loaded.first())
+  }
+
+  @Test
+  fun `跨帖主楼引用不接入本帖回复链`() {
+    val index = buildQuoteIndex(
+      listOf(floor(0, 0, "本帖主楼"), floor(45, 45, "[quote][tid=999]Topic[/tid]其他帖子[/quote]回复")),
+      45150945,
+    )
+    assertEquals(listOf(45L), buildReplyChain(index, 45).map { it.pid })
+  }
+
+  @Test
+  fun `正文和引用正文中的话题提及不当成主楼引用`() {
+    for (text in listOf(
+      "看看[tid=45150945]Topic[/tid]",
+      "[quote]参考这个帖子[tid=45150945]Topic[/tid][/quote]",
+      "[quote][quote][tid=45150945]Topic[/tid]内层[/quote]外层[/quote]",
+      "[quote][tid=0]Topic[/tid]无效主题[/quote]",
+    )) {
+      assertEquals(emptyList(), extractQuoteRefs(parseBBCode(text), BBCodeNodeShape), text)
+    }
+  }
+
+  @Test
   fun `环引用不死循环——A 引 B、B 引 A`() {
     val index = buildQuoteIndex(
       listOf(

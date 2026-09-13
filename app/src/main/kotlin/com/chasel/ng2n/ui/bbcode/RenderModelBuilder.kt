@@ -73,6 +73,7 @@ data class BBCodeRenderOptions(
   val bodyLineHeight: Float = DEFAULT_BODY_LINE_HEIGHT,
   val attachmentUrls: AttachmentUrls = DefaultAttachmentUrls,
   val replyPreviews: ImmutableMap<QuoteRef, FloorRenderModel> = persistentMapOf(),
+  val topicId: Long? = null,
 ) {
   internal val attachOptions: AttachmentUrlOptions
     get() = AttachmentUrlOptions(base = attachBase, postedAt = postedAt)
@@ -268,6 +269,10 @@ object RenderModelBuilder {
       }
     }
 
+    private fun chainRef(ref: QuoteRef?): QuoteRef? = ref?.takeIf {
+      options.topicId == null || it.tid == null || it.tid == options.topicId
+    }
+
     private fun buildBlock(node: BBCodeNode, style: BodyStyle): RenderSegment {
       val colors = options.colors
       val urls = options.attachmentUrls
@@ -276,7 +281,7 @@ object RenderModelBuilder {
       if (isReplyHeaderNode(node) && node is BoldNode) {
         return QuoteSegment(
           body = build(node.children, style.asQuote(colors)),
-          chain = replyHeaderRefOf(node),
+          chain = chainRef(replyHeaderRefOf(node)),
           replyHeader = !style.inQuote,
           preview = options.replyPreviews[replyHeaderRefOf(node)]?.takeUnless { style.inQuote },
         )
@@ -285,7 +290,7 @@ object RenderModelBuilder {
       return when (node) {
         is QuoteNode -> QuoteSegment(
           body = build(node.children, style.asQuote(colors)),
-          chain = quoteRefOf(node),
+          chain = chainRef(quoteRefOf(node)),
         )
 
         is ImageNode -> imageSegment(urls.attachmentUrl(node, attach))

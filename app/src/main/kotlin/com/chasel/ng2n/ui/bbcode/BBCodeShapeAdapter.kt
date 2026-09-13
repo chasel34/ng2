@@ -5,6 +5,7 @@ import com.chasel.ng2n.core.bbcode.CollapseNode
 import com.chasel.ng2n.core.bbcode.DiceNode
 import com.chasel.ng2n.core.bbcode.FloorRefNode
 import com.chasel.ng2n.core.bbcode.TextNode
+import com.chasel.ng2n.core.bbcode.TopicRefNode
 import com.chasel.ng2n.core.bbcode.childNodeLists as astChildNodeLists
 import com.chasel.ng2n.core.local.BBCodeShape
 import com.chasel.ng2n.core.local.DiceOutcome
@@ -37,6 +38,8 @@ object BBCodeNodeShape : BBCodeShape<BBCodeNode> {
     (node as? FloorRefNode)?.args ?: emptyList()
 
   override fun floorRefPid(node: BBCodeNode): String? = (node as? FloorRefNode)?.pid
+
+  override fun topicRefTid(node: BBCodeNode): String? = (node as? TopicRefNode)?.tid
 }
 
 fun isReplyHeaderNode(node: BBCodeNode): Boolean = isReplyHeaderNode(node, BBCodeNodeShape)

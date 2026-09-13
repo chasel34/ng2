@@ -10,12 +10,15 @@ interface BBCodeShape<N> {
   fun floorRefArgs(node: N): List<String>
 
   fun floorRefPid(node: N): String?
+
+  fun topicRefTid(node: N): String?
 }
 
 private const val TYPE_TEXT = "text"
 private const val TYPE_QUOTE = "quote"
 private const val TYPE_BOLD = "bold"
 private const val TYPE_FLOOR_REF = "floorRef"
+private const val TYPE_TOPIC_REF = "topicRef"
 private const val TYPE_LINEBREAK = "linebreak"
 
 data class QuoteRef(
@@ -83,8 +86,19 @@ private fun <N> firstFloorRef(nodes: List<N>, shape: BBCodeShape<N>): QuoteRef? 
   return null
 }
 
-fun <N> quoteRefOf(node: N, shape: BBCodeShape<N>): QuoteRef? =
-  firstFloorRef(shape.childNodeLists(node).flatten(), shape)
+fun <N> quoteRefOf(node: N, shape: BBCodeShape<N>): QuoteRef? {
+  val children = shape.childNodeLists(node).flatten()
+  val header = children.firstOrNull {
+    shape.typeOf(it) != TYPE_LINEBREAK &&
+      !(shape.typeOf(it) == TYPE_TEXT && shape.textValue(it).orEmpty().jsTrim().isEmpty())
+  }
+  if (header != null && shape.typeOf(header) == TYPE_TOPIC_REF) {
+    val tid = parseIntArg(shape.topicRefTid(header))
+    // NGA 用 Topic 引用主楼；主楼的 pid 为 0，位于第一页。
+    if (tid != null) return QuoteRef(pid = 0, tid = tid, page = 1)
+  }
+  return firstFloorRef(children, shape)
+}
 
 private fun <N> firstText(nodes: List<N>, shape: BBCodeShape<N>): String? {
   for (child in nodes) {

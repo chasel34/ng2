@@ -76,6 +76,7 @@ object TopicPageBuilder {
       bodyFontSize = style.bodyFontSize,
       bodyLineHeight = style.bodyLineHeight,
       attachmentUrls = urls,
+      topicId = tid,
     )
 
     val signature = user?.signature

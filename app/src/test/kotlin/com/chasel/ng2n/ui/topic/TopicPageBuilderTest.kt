@@ -247,6 +247,23 @@ class TopicPageBuilderTest {
   }
 
   @Test
+  fun `同帖 Topic 引用生成主楼入口 跨帖引用保留内容但没有本帖链入口`() {
+    val model = build(detail(
+      floors = listOf(
+        floor(45, 45, "1", "[quote][tid=$tid]Topic[/tid] 主楼原文[/quote]回复"),
+        floor(46, 46, "1", "[quote][tid=999]Topic[/tid] 跨帖原文[/quote]回复"),
+      ),
+      users = emptyMap(),
+    ))
+    val quote = model.floors[0].body.segments.first() as QuoteSegment
+    assertEquals(com.chasel.ng2n.core.local.QuoteRef(0, tid, 1), quote.chain)
+    assertEquals("Topic 主楼原文", (quote.body.segments.single() as TextSegment).text.text)
+    val other = model.floors[1].body.segments.first() as QuoteSegment
+    assertNull(other.chain)
+    assertEquals("Topic 跨帖原文", (other.body.segments.single() as TextSegment).text.text)
+  }
+
+  @Test
   fun `威望与级别有兜底 —— 用户表缺席时不画 0 和空串`() {
     val model = build(
       detail(floors = listOf(floor(0, 0, "missing", "主楼")), users = emptyMap()),
