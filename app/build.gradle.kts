@@ -19,8 +19,8 @@ android {
     applicationId = "com.chasel.ng2"
     minSdk = libs.versions.minSdk.get().toInt()
     targetSdk = libs.versions.targetSdk.get().toInt()
-    versionCode = 5
-    versionName = "0.2.2"
+    versionCode = 6
+    versionName = "0.3.0"
 
     testInstrumentationRunner = if (koogReleaseSmoke) {
       "com.chasel.ng2n.ai.KoogSmokeInstrumentation"
