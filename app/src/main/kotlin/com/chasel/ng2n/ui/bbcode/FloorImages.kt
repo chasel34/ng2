@@ -3,14 +3,11 @@ package com.chasel.ng2n.ui.bbcode
 import com.chasel.ng2n.core.api.AttachmentUrlOptions
 import com.chasel.ng2n.core.api.AttachmentUrls
 import com.chasel.ng2n.core.api.FloorAttachment
-import com.chasel.ng2n.core.bbcode.AlbumNode
 import com.chasel.ng2n.core.bbcode.BBCodeNode
-import com.chasel.ng2n.core.bbcode.ImageNode
-import com.chasel.ng2n.core.bbcode.childNodeLists
 
 data class ViewerImage(val url: String, val thumbnailUrl: String? = null)
 
-const val ATTACHMENT_IMAGE_KIND: String = "img"
+const val ATTACHMENT_IMAGE_KIND: String = com.chasel.ng2n.core.ai.ATTACHMENT_IMAGE_KIND
 
 fun collectFloorImages(
   nodes: List<BBCodeNode>,
@@ -18,36 +15,11 @@ fun collectFloorImages(
   options: AttachmentUrlOptions,
   urls: AttachmentUrls,
 ): List<ViewerImage> {
-  val seen = LinkedHashSet<String>()
-  val images = ArrayList<ViewerImage>()
-
-  fun push(url: String, thumbnail: String?) {
-    if (!seen.add(url)) return
-    images.add(
-      if (thumbnail == null || thumbnail == url) ViewerImage(url) else ViewerImage(url, thumbnail),
-    )
+  // 缩略图来源随地址第一次出现的位置：正文内联图按地址推导，只在附件里出现的图用附件自带的缩略图。
+  val inline = com.chasel.ng2n.core.ai.floorImageUrls(nodes, emptyList(), options, urls).toSet()
+  val attached = attachments.filter { it.kind == ATTACHMENT_IMAGE_KIND }.associate { it.url to it.thumbnailUrl }
+  return com.chasel.ng2n.core.ai.floorImageUrls(nodes, attachments, options, urls).map { url ->
+    val thumbnail = if (url in inline) urls.thumbnailUrl(url, options.base) else attached[url]
+    if (thumbnail == null || thumbnail == url) ViewerImage(url) else ViewerImage(url, thumbnail)
   }
-
-  fun visit(list: List<BBCodeNode>) {
-    for (node in list) {
-      when (node) {
-        is ImageNode -> {
-          val url = urls.attachmentUrl(node, options)
-          push(url, urls.thumbnailUrl(url, options.base))
-        }
-        is AlbumNode -> for (url in albumImageUrls(node.value, options, urls)) {
-          push(url, urls.thumbnailUrl(url, options.base))
-        }
-        else -> for (children in childNodeLists(node)) visit(children)
-      }
-    }
-  }
-  visit(nodes)
-
-  for (attachment in attachments) {
-    if (attachment.kind != ATTACHMENT_IMAGE_KIND) continue
-    push(attachment.url, attachment.thumbnailUrl)
-  }
-
-  return images
 }

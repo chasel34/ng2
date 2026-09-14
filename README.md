@@ -21,7 +21,7 @@ APK 输出位于 `app/build/outputs/apk/`。正式包名为 `com.chasel.ng2`，�
 [应用源码](app/src/main/kotlin/com/chasel/ng2n/)按职责分层：
 
 - `core`：协议、BBCode 解析与纯 Kotlin 算法。
-- `data`：网络、存储与数据仓库。
+- `data`：网络、存储与数据仓库；`data/ai` 隔离 Koog agent 与模型客户端适配，`data/topic` 提供共享的主题原始读取与缓存入口。
 - `ui`：Compose 页面与组件。
 - `di`：依赖注入。
 
@@ -31,6 +31,7 @@ APK 输出位于 `app/build/outputs/apk/`。正式包名为 `com.chasel.ng2`，�
 
 - [开发约定](CLAUDE.md)
 - [测试说明](docs/testing.md)
+- [主题 AI 助手](docs/ai-assistant.md)
 - [文档索引](docs/README.md)
 - [设计参考](design/README.md)
 

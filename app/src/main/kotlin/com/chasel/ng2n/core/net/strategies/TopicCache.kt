@@ -25,7 +25,7 @@ fun interface TopicCacheReader {
 }
 
 fun topicCacheKeyOf(request: NgaRequest): TopicCacheKey? {
-  if (!request.path.startsWith(SUPPORTED_PATH)) return null
+  if (!request.allowTopicCache || !request.path.startsWith(SUPPORTED_PATH)) return null
   val query = request.query
   if (query["pid"] != null) return null
   if (query["authorid"] != null) return null

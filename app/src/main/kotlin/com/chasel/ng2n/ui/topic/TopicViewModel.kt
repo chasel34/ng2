@@ -1,5 +1,8 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.data.topic.CacheDownloadState
+import com.chasel.ng2n.data.topic.CacheDownloadOutcome
+import com.chasel.ng2n.data.topic.TopicPageParams
 import com.chasel.ng2n.ui.nav.TopicKey
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -228,7 +231,7 @@ class TopicViewModel(
     val params = paramsFor(target)
     viewModelScope.launch {
       try {
-        val model = deps.repository.loadPage(
+        val model = deps.pageLoader.loadPage(
           params = params,
           style = style,
           urls = deps.attachmentUrls,
@@ -254,7 +257,7 @@ class TopicViewModel(
     style: TopicRenderStyle,
   ) {
     viewModelScope.launch {
-      val withPreviews = deps.repository.loadReplyPreviews(params, style, deps.attachmentUrls)
+      val withPreviews = deps.pageLoader.loadReplyPreviews(params, style, deps.attachmentUrls)
       if (withPreviews != null && (pages[target] as? PageState.Loaded)?.model === model &&
         paramsFor(target) == params && this@TopicViewModel.style == style
       ) {
@@ -387,6 +390,18 @@ class TopicViewModel(
         )
       }
     }
+
+  var aiHighlightedFloor by mutableStateOf<Long?>(null)
+    private set
+  private var aiHighlightJob: Job? = null
+  private var pendingAiFloor: Long? = key.floor.takeIf { key.highlightSource }
+
+  fun jumpToAiSource(lou: Long) {
+    aiHighlightJob?.cancel()
+    aiHighlightedFloor = null
+    pendingAiFloor = lou
+    jumpToFloor(lou)
+  }
 
   fun jumpToFloor(lou: Long) {
     if (lou < 0) return
@@ -596,6 +611,16 @@ class TopicViewModel(
     ) ?: return
     pendingFloor = null
     scrollTarget = ScrollTarget(page = page, listIndex = index)
+    if (pendingAiFloor == floor) {
+      pendingAiFloor = null
+      if (model.floors[index - TOPIC_LIST_HEADER_ROWS].lou == floor) {
+        aiHighlightedFloor = floor
+        aiHighlightJob = viewModelScope.launch {
+          kotlinx.coroutines.delay(4000)
+          aiHighlightedFloor = null
+        }
+      }
+    }
     if (announceLanding) {
       announceLanding = false
       val landed = model.floors[index - TOPIC_LIST_HEADER_ROWS].lou

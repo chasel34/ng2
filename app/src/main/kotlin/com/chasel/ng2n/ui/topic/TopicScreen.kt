@@ -95,6 +95,15 @@ const val NOT_AVAILABLE_MESSAGE: String = "本版本未开放"
 @Composable
 fun TopicScreen(key: TopicKey, nav: Navigator) {
   val vm = rememberTopicViewModel(key)
+  val aiSessions = com.chasel.ng2n.ui.ai.rememberAiSessions()
+  var ai by remember { mutableStateOf(aiSessions.create()) }
+  val aiRecords by aiSessions.store.conversations.collectAsStateWithLifecycle(emptyList())
+  val aiState by ai.state.collectAsStateWithLifecycle()
+  val openAi: (FloorRenderItem?) -> Unit = { floor ->
+    if (ai.state.value.conversationId != null) ai = aiSessions.create()
+    ai.open(vm.paramsFor(vm.page), floor?.pid,
+      floor?.let { "单个楼层 · ${it.lou} 楼" } ?: (vm.currentModel?.subject ?: key.title ?: "主题 ${vm.tid}"))
+  }
   val colors = LocalNg2nColors.current
   val textScale = LocalTextScale.current
   val context = LocalContext.current
@@ -143,7 +152,7 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
     topicWebKey(key, vm.page, settings.host, vm.currentModel?.subject)
   }
 
-  val actions = remember(vm, nav, uriHandler, notAvailable) {
+  val actions = remember(vm, nav, uriHandler, notAvailable, vm.page, vm.onlyPid, vm.onlyUser) {
     FloorActions(
       onOpenImage = { floor, url ->
         val index = floor.images.indexOfFirst { it.url == url }
@@ -188,6 +197,7 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
       },
       onNotAvailable = notAvailable,
       onEditBookmark = vm::openBookmarkDialog,
+      onAi = { openAi(it) },
     )
   }
 
@@ -220,11 +230,18 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
       ) {
         GlobeIcon(tint = colors.onTopbar)
       }
+      TopBarButton(onClick = { openAi(null) }, label = "AI 分析主题") {
+        Text("✦", color = colors.onTopbar)
+      }
       TopBarButton(onClick = { menuOpen = true }, label = "更多") {
         OverflowIcon(tint = colors.onTopbar)
       }
     }
 
+    val aiCount = aiRecords.count { it.tid == key.tid }
+    if (aiCount > 0) androidx.compose.material3.TextButton(
+      onClick = { nav.push(com.chasel.ng2n.ui.ai.AiHistoryKey(key.tid)) }, modifier = Modifier.fillMaxWidth(),
+    ) { Text("本主题有 $aiCount 条 AI 对话", color = colors.primary) }
     val source = vm.source
     if (source != null && source != TopicSource.NATIVE && !vm.sourceNoticeDismissed) {
       SourceNoticeBar(source = source, onRetry = vm::retryNative, onDismiss = vm::dismissSourceNotice)
@@ -315,6 +332,12 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
       vm.jumpToFloor(it.lou)
     },
   )
+  com.chasel.ng2n.ui.ai.TopicAiSheet(aiState, ai,
+    onSettings = { nav.push(com.chasel.ng2n.ui.settings.AiSettingsKey) },
+    onHistory = { nav.push(com.chasel.ng2n.ui.ai.AiHistoryKey()) },
+    onAccounts = { nav.push(com.chasel.ng2n.ui.Accounts) },
+    onSource = { if (it.tid == key.tid) vm.jumpToAiSource(it.floor) else nav.push(TopicKey(it.tid, pid = it.pid.takeIf { pid -> pid > 0 }, floor = it.floor, highlightSource = true)) })
+
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -504,6 +527,7 @@ private fun FloorList(
           showSignature = settings.showSignature,
           imagesUnlocked = true,
           bookmark = vm.bookmarkMarkOf(floor),
+          modifier = if (vm.aiHighlightedFloor == floor.lou) Modifier.background(LocalNg2nColors.current.accentContainer) else Modifier,
         )
       }
     }

@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.chasel.ng2n.core.api.FloorAttachment
 import com.chasel.ng2n.core.api.FloorClient
@@ -78,6 +79,7 @@ data class FloorActions(
   val onOpenFloorRef: (String) -> Unit,
   val onNotAvailable: () -> Unit,
   val onEditBookmark: (FloorRenderItem) -> Unit,
+  val onAi: ((FloorRenderItem) -> Unit)? = null,
 )
 
 @Immutable
@@ -327,6 +329,11 @@ private fun FloorActionRow(
         Modifier.clickable { actions.onRecommend(floor, RecommendAction.DISLIKE) },
         contentAlignment = Alignment.Center,
       ) { ThumbDownIcon(tint = if (disliked) colors.primary else colors.meta) }
+    }
+    actions.onAi?.let { open ->
+      androidx.compose.material3.TextButton(onClick = { open(floor) }) {
+        Text("✦ AI", color = colors.primary, fontSize = 12.sp)
+      }
     }
     IconAction(label = "回复", width = 38.dp) {
       Box(Modifier.clickable(onClick = actions.onNotAvailable), contentAlignment = Alignment.Center) {

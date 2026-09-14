@@ -85,9 +85,11 @@ class ReadEndpointsTest {
     assertNull(topics.query()["searchpost"])
 
     val replies = ApiFixture(THREAD_OK)
-    fetchUserTopics(replies.client, uid = 41417929, kind = UserPostKind.REPLIES, page = 2)
+    fetchUserTopics(replies.client, uid = 41417929, kind = UserPostKind.REPLIES, page = 2, sortByPostDate = true)
     assertEquals("1", replies.query()["searchpost"])
     assertEquals("2", replies.query()["page"])
+    assertEquals("postdatedesc", replies.query()["order_by"])
+    assertNull(topics.query()["order_by"])
   }
 
   @Test

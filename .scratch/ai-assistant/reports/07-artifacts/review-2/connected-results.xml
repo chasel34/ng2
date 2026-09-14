@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="13" failures="0" errors="0" skipped="0" time="114.832" timestamp="2026-09-13T15:29:36" hostname="localhost">
+  <testsuite name="com.chasel.ng2n.data.db.AiPersistenceTest" tests="4" failures="0" errors="0" skipped="0" time="0.565" timestamp="2026-09-13T15:29:36" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="databaseWriteFailureIsReportedAndDoesNotCreateUsage" classname="com.chasel.ng2n.data.db.AiPersistenceTest" time="0.105" />
+    <testcase name="failedClearPreservesProgressAndAllowsSavingWithoutRevivingDeletedConversations" classname="com.chasel.ng2n.data.db.AiPersistenceTest" time="0.188" />
+    <testcase name="deleteUndoThenCascadeKeepsUsageAndPreventsLateResurrection" classname="com.chasel.ng2n.data.db.AiPersistenceTest" time="0.092" />
+    <testcase name="migrationPreservesBookmarksAndNewTablesSurviveReopen" classname="com.chasel.ng2n.data.db.AiPersistenceTest" time="0.18" />
+  </testsuite>
+  <testsuite name="com.chasel.ng2n.data.db.Ng2nMigrationTest" tests="2" failures="0" errors="0" skipped="0" time="2.521" timestamp="2026-09-13T15:29:36" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="数据库打不开时启动预热抛出异常而不是吞掉" classname="com.chasel.ng2n.data.db.Ng2nMigrationTest" time="0.797" />
+    <testcase name="从版本_1_迁到_2_原有数据保留_书签表可读写" classname="com.chasel.ng2n.data.db.Ng2nMigrationTest" time="1.724" />
+  </testsuite>
+  <testsuite name="com.chasel.ng2n.ui.ai.AiHistoryScreenTest" tests="2" failures="0" errors="0" skipped="0" time="38.873" timestamp="2026-09-13T15:29:36" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="historyOpensFullScreenWithInterruptionAndNoAutomaticRun" classname="com.chasel.ng2n.ui.ai.AiHistoryScreenTest" time="9.748" />
+    <testcase name="searchMenuDeleteUndoAndDarkTheme" classname="com.chasel.ng2n.ui.ai.AiHistoryScreenTest" time="29.125" />
+  </testsuite>
+  <testsuite name="com.chasel.ng2n.ui.ai.TopicAiSheetTest" tests="4" failures="0" errors="0" skipped="0" time="41.949" timestamp="2026-09-13T15:29:36" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="streamingFollowsAgainAfterUserReturnsToBottom" classname="com.chasel.ng2n.ui.ai.TopicAiSheetTest" time="8.532" />
+    <testcase name="unsavedCardKeepsTextAndRequiresSavingBeforeContinuing" classname="com.chasel.ng2n.ui.ai.TopicAiSheetTest" time="7.448" />
+    <testcase name="missingKeyShowsSettingsAndNoBusyControl" classname="com.chasel.ng2n.ui.ai.TopicAiSheetTest" time="8.423" />
+    <testcase name="sheetPositionsStopFollowupCitationsAndDarkTheme" classname="com.chasel.ng2n.ui.ai.TopicAiSheetTest" time="17.546" />
+  </testsuite>
+  <testsuite name="com.chasel.ng2n.ui.settings.AiSettingsScreenTest" tests="1" failures="0" errors="0" skipped="0" time="28.609" timestamp="2026-09-13T15:29:36" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="keyEditingBudgetAndDarkTheme" classname="com.chasel.ng2n.ui.settings.AiSettingsScreenTest" time="28.609" />
+  </testsuite>
+</testsuites>

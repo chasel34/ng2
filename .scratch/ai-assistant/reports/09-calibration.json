@@ -1,0 +1,40 @@
+{
+  "board": 7,
+  "model": "deepseek-flash",
+  "price_version": "deepseek-flash-2026-09-14",
+  "samples": [
+    {
+      "kind": "普通主题",
+      "tid": 47549429,
+      "status": "request_result_unknown",
+      "input_tokens": null,
+      "output_tokens": null,
+      "estimated_cost": null
+    },
+    {
+      "kind": "多图楼",
+      "tid": 47344551,
+      "status": "request_result_unknown",
+      "input_tokens": null,
+      "output_tokens": null,
+      "estimated_cost": null
+    },
+    {
+      "kind": "普通主题（受控诊断）",
+      "tid": 47552184,
+      "status": "request_result_unknown",
+      "input_tokens": null,
+      "output_tokens": null,
+      "estimated_cost": null
+    },
+    {
+      "kind": "长回复链",
+      "tid": null,
+      "status": "no_qualified_sample_before_model_validation_stopped",
+      "input_tokens": null,
+      "output_tokens": null,
+      "estimated_cost": null
+    }
+  ],
+  "defaults_calibrated": false
+}

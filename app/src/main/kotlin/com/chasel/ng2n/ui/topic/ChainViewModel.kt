@@ -1,5 +1,6 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.data.topic.TopicPageParams
 import com.chasel.ng2n.ui.nav.TopicKey
 import com.chasel.ng2n.ui.nav.ChainKey
 import androidx.compose.runtime.Immutable
@@ -132,6 +133,8 @@ class ChainViewModel(
       else -> null
     }
   }
+
+  fun aiPages(): List<TopicDetail> = pages.values.toList()
 
   val startLou: Long? get() = entries[key.pid]?.lou
 

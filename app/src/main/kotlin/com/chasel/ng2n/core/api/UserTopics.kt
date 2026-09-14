@@ -15,6 +15,7 @@ suspend fun fetchUserTopics(
   uid: Long,
   kind: UserPostKind,
   page: Int,
+  sortByPostDate: Boolean = false,
 ): TopicList {
   val result = client.execute(
     NgaRequest(
@@ -23,6 +24,7 @@ suspend fun fetchUserTopics(
       query = queryOf(
         "authorid" to uid,
         "page" to page,
+        "order_by" to if (sortByPostDate) "postdatedesc" else null,
         "searchpost" to if (kind == UserPostKind.REPLIES) 1 else null,
       ),
       validate = ::rejectNonTopicList,
@@ -39,13 +41,14 @@ suspend fun fetchUserTopics(
 
 fun hasMoreUserPosts(page: TopicList): Boolean = page.topics.isNotEmpty()
 
+fun userPostKey(topic: Topic): String = topic.reply?.pid?.takeIf { it > 0 }?.let { "p$it" } ?: "t${topic.tid}"
+
 fun mergeUserPostPages(pages: List<TopicList>): List<Topic> {
   val seen = HashSet<String>()
   val merged = ArrayList<Topic>()
   for (page in pages) {
     for (topic in page.topics) {
-      val key = topic.reply?.let { "p${it.pid}" } ?: "t${topic.tid}"
-      if (!seen.add(key)) continue
+      if (!seen.add(userPostKey(topic))) continue
       merged += topic
     }
   }

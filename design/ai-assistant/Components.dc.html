@@ -1,0 +1,1203 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root, .ng {
+      --primary: #14796B; --primary-d: #0F5D53; --primary-c: #D8EAE5; --on-primary: #FFFFFF;
+      --bg: #FCF4E1; --surface: #FFFBF0; --surface-2: #F5F0E0; --menu: #F7F4EE;
+      --fg: #1E1C19; --fg-2: #57534A; --meta: #A39D8E; --link: #3A5A7A; --tag: #B7B0A0;
+      --accent: #E09A2A; --danger: #DE3B2C; --divider: #EBE3CE; --quote: #F1EBD6;
+      --scrim: rgba(30, 26, 16, .42); --topbar: #14796B; --on-topbar: #FFFFFF; --track: #DCD4BE;
+      --green: #3F8F5B; --green-c: #E1EFE3; --danger-c: #F9E2DC; --accent-c: #F7E8C8;
+      --snack-bg: #33322C;
+      --shadow-hairline: 0 0 0 1px var(--divider);
+      --shadow-btn: 0 0 0 1px var(--track), 0 0 4px 0 rgba(70, 58, 24, .05);
+      --shadow-card: 0 0 0 1px var(--divider), 0 18px 47px rgba(70, 58, 24, .04), 0 7.5px 19px rgba(70, 58, 24, .025), 0 2.3px 5.8px rgba(70, 58, 24, .02), 0 .5px 1.3px rgba(70, 58, 24, .02);
+      --shadow-raised: 0 0 0 1px var(--divider), 0 17.5px 23.4px rgba(70, 58, 24, .07), 0 9.4px 12.5px rgba(70, 58, 24, .05), 0 5.25px 7px rgba(70, 58, 24, .03), 0 1.16px 1.5px rgba(70, 58, 24, .02);
+      --shadow-overlay: 0 0 0 1px var(--divider), 0 25px 50px rgba(70, 58, 24, .09), 0 12px 24px rgba(70, 58, 24, .06), 0 6px 12px rgba(70, 58, 24, .04), 0 1.5px 3px rgba(70, 58, 24, .03);
+      --ease-std: cubic-bezier(.25, .1, .25, 1);
+      --ease-tw: cubic-bezier(.4, 0, .2, 1);
+      --ease-out-strong: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out-strong: cubic-bezier(.77, 0, .175, 1);
+      --ease-link: cubic-bezier(.16, 1, .3, 1);
+      --font: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    }
+    .ng.dark {
+      --primary: #1E9384; --primary-d: #17766A; --primary-c: #1E3A35; --on-primary: #FFFFFF;
+      --bg: #1C1C1B; --surface: #232322; --surface-2: #292928; --menu: #2E2E2C;
+      --fg: #E9E7E2; --fg-2: #B0ACA3; --meta: #6F6C65; --link: #8AA6C8; --tag: #5F5C55;
+      --accent: #D6942E; --danger: #E2574C; --divider: #333330; --quote: #262625;
+      --scrim: rgba(0, 0, 0, .62); --topbar: #1C1C1B; --on-topbar: #F2F0EB; --track: #3A3A36;
+      --green: #5FB27C; --green-c: #213328; --danger-c: #3A2522; --accent-c: #3A3020;
+      --snack-bg: #3A3A36;
+      --shadow-btn: 0 0 0 1px rgba(255, 255, 255, .10), 0 1px 2px rgba(0, 0, 0, .3);
+      --shadow-card: 0 0 0 1px rgba(255, 255, 255, .08), 0 1px 2px rgba(0, 0, 0, .2), 0 2px 6px rgba(0, 0, 0, .2);
+      --shadow-raised: 0 0 0 1px rgba(255, 255, 255, .11), 0 2px 10px rgba(0, 0, 0, .3);
+      --shadow-overlay: 0 0 0 1px rgba(255, 255, 255, .13), 0 8px 28px rgba(0, 0, 0, .45);
+    }
+    body { margin: 0; -webkit-font-smoothing: antialiased; font-family: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif; }
+    a { color: #3A5A7A; text-decoration: none; }
+    a:hover { color: #14796B; }
+    .ng { font-family: var(--font); color: var(--fg); }
+    .ng * { box-sizing: border-box; }
+    .ic { display: block; flex: none; }
+    .sc { scrollbar-width: none; }
+    .sc::-webkit-scrollbar { display: none; }
+    .tap { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .press { transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .press:active { transform: scale(.96); }
+    .press-sm:active { transform: scale(.94); }
+    .rowpress { transition: background-color 100ms ease-out; }
+    .rowpress:active { background: var(--surface-2); }
+    .tb-btn:active { background: rgba(255, 255, 255, .22); }
+
+    @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pop-in { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+    @keyframes pop-94 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+    @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes shimmer-text { 0% { background-position: 150%; } 100% { background-position: -50%; } }
+    @keyframes pixel-on { 0%, 100% { opacity: .15; } 18%, 42% { opacity: 1; } 62% { opacity: .15; } }
+    @keyframes spin { to { transform: rotate(1turn); } }
+    @keyframes eq-bounce { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+
+    .shimmer {
+      color: transparent;
+      background-image: linear-gradient(90deg, var(--meta) 35%, var(--fg) 50%, var(--meta) 65%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      animation: shimmer-text 1.4s linear infinite;
+    }
+    .caret { display: inline-block; width: 2px; height: 12px; margin-left: 2px; border-radius: 999px; background: var(--fg); transform: translateY(2px); animation: fade-in 150ms ease-out both; }
+
+    .px { display: grid; grid-template-columns: repeat(3, 4px); gap: 1.5px; flex: none; }
+    .px i { display: block; width: 4px; height: 4px; border-radius: 1px; background: currentColor; opacity: .15; animation: pixel-on 650ms ease-in-out infinite; }
+    .px i:nth-child(1), .px i:nth-child(7), .px i:nth-child(5) { animation-delay: 90ms; }
+    .px i:nth-child(2), .px i:nth-child(8), .px i:nth-child(6) { animation-delay: 180ms; }
+    .px i:nth-child(3), .px i:nth-child(9) { animation-delay: 270ms; }
+    .px i:nth-child(4) { animation-delay: 0ms; }
+
+    .spinner { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--track); border-top-color: var(--fg-2); animation: spin 700ms linear infinite; flex: none; }
+
+    .collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 300ms var(--ease-out-strong), opacity 300ms var(--ease-out-strong); }
+    .collapse > div { min-height: 0; overflow: hidden; }
+    .collapse.open { grid-template-rows: 1fr; opacity: 1; }
+    .collapse.slow { transition-duration: 400ms; }
+    .chev { transition: transform 300ms var(--ease-tw); }
+    .chev.open { transform: rotate(180deg); }
+    .chev-r { transform: rotate(-90deg); transition: transform 200ms var(--ease-tw); }
+    .chev-r.open { transform: none; }
+
+    .src-pill { position: relative; display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 4px 0 3px; margin: 0 2px; border-radius: 5px; transform: translateY(-1px); background: var(--surface-2); box-shadow: var(--shadow-hairline); color: var(--fg-2); font-family: var(--mono); font-size: 10.5px; line-height: 18px; vertical-align: middle; white-space: nowrap; cursor: pointer; animation: pop-in 250ms var(--ease-out-strong) both; transition: background-color 150ms ease-out, color 150ms ease-out; }
+    .src-pill::after { content: ''; position: absolute; inset: -12px -3px; }
+    .src-pill:active { background: var(--primary-c); color: var(--fg); }
+    .fav { width: 12px; height: 12px; border-radius: 3px; display: grid; place-items: center; color: #fff; flex: none; box-shadow: 0 0 0 1px rgba(30, 28, 25, .1); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; font-weight: 500; white-space: nowrap; cursor: pointer; user-select: none; transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .btn:active { transform: scale(.96); }
+    .btn.disabled { opacity: .5; pointer-events: none; }
+    .btn-primary { background: var(--primary); color: var(--on-primary); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14); }
+    .btn-secondary { background: var(--surface); color: var(--fg); box-shadow: var(--shadow-btn); }
+    .btn-ghost { background: var(--surface-2); color: var(--fg); }
+    .btn-quiet { background: transparent; color: var(--fg-2); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-m { height: 40px; padding: 0 16px; font-size: 14px; }
+    .btn-s { height: 34px; padding: 0 14px; font-size: 13.5px; }
+
+    .sec { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 40px; padding: 36px 48px; border-bottom: 1px dashed var(--track); }
+    .stage { border-radius: 14px; background: var(--bg); box-shadow: var(--shadow-hairline); padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 272px; }
+    .demos { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+    .demo { width: 358px; display: flex; flex-direction: column; gap: 8px; }
+    .demo-label { font-size: 11.5px; color: var(--meta); }
+    .spec { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 7px 12px; margin-top: 16px; font-size: 12.5px; line-height: 19px; }
+    .spec dt { color: var(--meta); margin: 0; }
+    .spec dd { color: var(--fg); margin: 0; text-wrap: pretty; }
+    .src-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 7px; border-radius: 6px; background: var(--surface); box-shadow: var(--shadow-hairline); font-family: var(--mono); font-size: 11px; color: var(--fg-2); margin-top: 10px; }
+    .meter { display: flex; align-items: flex-end; gap: 2px; }
+    .meter i { display: block; width: 4px; height: 10px; border-radius: 999px; transition: background-color 300ms ease-out; }
+    .orbit { display: grid; grid-template-columns: repeat(3, 4px); gap: 1.5px; }
+    .orbit i { display: block; width: 4px; height: 4px; border-radius: 1px; background: currentColor; opacity: .15; animation: pixel-on 950ms ease-in-out infinite; }
+    .orbit i:nth-child(1) { animation-delay: 0ms; } .orbit i:nth-child(2) { animation-delay: 110ms; } .orbit i:nth-child(3) { animation-delay: 220ms; }
+    .orbit i:nth-child(6) { animation-delay: 330ms; } .orbit i:nth-child(9) { animation-delay: 440ms; } .orbit i:nth-child(8) { animation-delay: 550ms; }
+    .orbit i:nth-child(7) { animation-delay: 660ms; } .orbit i:nth-child(4) { animation-delay: 770ms; }
+    .orbit i:nth-child(5) { animation: none; opacity: .07; }
+    textarea::placeholder, input::placeholder { color: var(--meta); }
+    .shell:focus-within { border-color: var(--track) !important; }
+  </style>
+</helmet>
+<div class="ng {{ themeClass }}" style="width: 1280px; background: var(--surface-2);">
+
+  <div style="padding: 44px 48px 32px; border-bottom: 1px dashed var(--track);">
+    <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">NG2 · AI 助手</div>
+    <div style="font-size: 28px; line-height: 36px; font-weight: 600; margin-top: 6px;">组件参考</div>
+    <div style="max-width: 760px; margin-top: 8px; font-size: 14px; line-height: 22px; color: var(--fg-2); text-wrap: pretty;">交互、时序和结构参照 Beautiful UI（beautifului.dev），视觉沿用 NG2 墨绿与奶油色 token。尺寸单位按 dp / sp 理解。桌面端的悬停反馈统一改为按下反馈，点击区域不小于 44dp，小尺寸控件在视觉外扩大点击范围。</div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-top: 28px;">
+      <div>
+        <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">颜色</div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+          <sc-for list="{{ swatches }}" as="c" hint-placeholder-count="8">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="flex: none; width: 22px; height: 22px; border-radius: 6px; background: {{ c.v }}; box-shadow: var(--shadow-hairline);"></div>
+              <div style="min-width: 0;">
+                <div style="font-family: var(--mono); font-size: 11px; color: var(--fg);">{{ c.k }}</div>
+                <div style="font-family: var(--mono); font-size: 10.5px; color: var(--meta);">{{ c.hex }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">圆角</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{ radii }}" as="r" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="flex: none; width: 40px; height: 24px; border-radius: {{ r.v }}; background: var(--surface); box-shadow: var(--shadow-card);"></div>
+              <div style="font-family: var(--mono); font-size: 11px; color: var(--fg); width: 36px;">{{ r.px }}</div>
+              <div style="font-size: 12px; color: var(--fg-2);">{{ r.use }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">阴影</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <sc-for list="{{ shadows }}" as="s" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="flex: none; width: 56px; height: 28px; border-radius: 8px; background: var(--surface); box-shadow: {{ s.v }};"></div>
+              <div>
+                <div style="font-family: var(--mono); font-size: 11px;">{{ s.k }}</div>
+                <div style="font-size: 12px; color: var(--fg-2);">{{ s.use }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">动效</div>
+        <div style="display: flex; flex-direction: column; gap: 7px;">
+          <sc-for list="{{ motion }}" as="m" hint-placeholder-count="7">
+            <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 8px; font-size: 12px; line-height: 17px;">
+              <div style="font-family: var(--mono); font-size: 11px; color: var(--fg);">{{ m.k }}</div>
+              <div style="color: var(--fg-2);">{{ m.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">01</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">加载状态</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">像素点阵、闪光文字和已用时间，表示读取、搜索、生成或排队中。</div>
+      <div class="src-tag">Beautiful UI · Loading State</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>3×3 点阵（4dp 单元，间距 1.5dp，圆角 1dp）+ 13.5sp/500 文字 + 等宽 12sp 计时</dd>
+        <dt>动效</dt><dd>执行中用 Drive：650ms，延迟 (列 + |行−1|)×90ms；排队用 Orbit：950ms 沿外圈 110ms 递进，中心 0.07 静止。文字闪光 1.4s 线性循环</dd>
+        <dt>计时</dt><dd>每 100ms 更新，60s 内保留 1 位小数，之后显示「1m 3.4s」</dd>
+        <dt>用在</dt><dd>生成回答前、收起后的胶囊、等待执行的对话</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div class="demos">
+        <div class="demo">
+          <div class="demo-label">执行中 · Drive</div>
+          <div style="display: flex; flex-direction: column; gap: 14px; padding: 6px 0;">
+            <div role="status" style="display: flex; align-items: center; gap: 10px;">
+              <div class="px" style="color: var(--fg);"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <span class="shimmer" style="font-size: 13.5px; font-weight: 500;">正在读取第 2 页</span>
+              <span style="font-family: var(--mono); font-size: 12px; color: var(--meta); font-variant-numeric: tabular-nums;">{{ loadTime }}</span>
+            </div>
+            <div role="status" style="display: flex; align-items: center; gap: 10px;">
+              <div class="px" style="color: var(--fg);"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <span class="shimmer" style="font-size: 13.5px; font-weight: 500;">正在联网查找资料</span>
+              <span style="font-family: var(--mono); font-size: 12px; color: var(--meta); font-variant-numeric: tabular-nums;">{{ loadTime2 }}</span>
+            </div>
+            <div role="status" style="display: flex; align-items: center; gap: 10px;">
+              <div class="px" style="color: var(--fg);"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <span class="shimmer" style="font-size: 13.5px; font-weight: 500;">正在生成回答</span>
+              <span style="font-family: var(--mono); font-size: 12px; color: var(--meta); font-variant-numeric: tabular-nums;">{{ loadTime3 }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="demo">
+          <div class="demo-label">排队与收起 · Orbit</div>
+          <div style="display: flex; flex-direction: column; gap: 14px; padding: 6px 0;">
+            <div role="status" style="display: flex; align-items: center; gap: 10px;">
+              <div class="orbit" style="color: var(--fg);"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <span class="shimmer" style="font-size: 13.5px; font-weight: 500;">等待执行 · 前面还有 1 个对话</span>
+            </div>
+            <div style="display: flex; justify-content: center; padding-top: 6px;">
+              <div style="height: 48px; padding: 0 6px 0 16px; border-radius: 24px; background: var(--surface); box-shadow: var(--shadow-overlay); display: flex; align-items: center; gap: 10px;">
+                <div class="px" style="color: var(--fg);"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="shimmer" style="font-size: 13.5px; font-weight: 500; white-space: nowrap;">正在生成回答</div>
+                <div style="font-family: var(--mono); font-size: 12px; color: var(--meta);">{{ loadTime }}</div>
+                <div style="width: 36px; height: 36px; display: grid; place-items: center; color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 8.02 6 14.02 7.41 15.42 12 10.83 16.59 15.42 18 14.02 12 8.02Z"></path></svg></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">02</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">思考过程</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">可展开的过程记录：思考内容、读取步骤或搜索结果。</div>
+      <div class="src-tag">Beautiful UI · Thinking</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>标题按钮（星形 16dp · 13.5sp/500 · 箭头 16dp），展开区左侧 1dp 竖线，行高至少 28dp</dd>
+        <dt>时序</dt><dd>800ms 自动展开，1400ms 出现前两行，3200ms 标题变为完成并淡入 350ms，5800ms 自动收起。用户点过后不再自动开合</dd>
+        <dt>动效</dt><dd>展开 grid 行高 0fr→1fr + 透明度 400ms ease-out-strong；行 fade-up 320ms，每行延迟 120ms；箭头 180° 300ms</dd>
+        <dt>移动端</dt><dd>悬停底色改为按下底色；搜索结果行点按打开网页</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: inline-flex; padding: 2px; border-radius: 999px; background: var(--surface-2); box-shadow: var(--shadow-hairline);">
+          <sc-for list="{{ think.variants }}" as="v" hint-placeholder-count="3">
+            <div class="tap" onClick="{{ v.pick }}" style="padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; color: {{ v.fg }}; background: {{ v.bg }}; box-shadow: {{ v.sh }}; transition: background-color 150ms ease-out, color 150ms ease-out;">{{ v.label }}</div>
+          </sc-for>
+        </div>
+        <div class="btn btn-secondary tap" onClick="{{ think.replay }}" style="height: 28px; padding: 0 10px; font-size: 12px;"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 5.02V0.98L6.98 6L12 11.02V6.98C15.33 6.98 18 9.7 18 12.98C18 16.31 15.33 18.98 12 18.98C8.67 18.98 6 16.31 6 12.98H3.98C3.98 17.44 7.59 21 12 21C16.41 21 20.02 17.44 20.02 12.98C20.02 8.58 16.41 5.02 12 5.02Z"></path></svg>重播</div>
+      </div>
+      <div class="demos">
+        <div class="demo" style="min-height: 190px;">
+          <div class="tap rowpress" onClick="{{ think.toggle }}" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; margin: 0 -6px; padding: 6px; border-radius: 8px;">
+            <span style="color: {{ think.sparkFg }}; transition: color 200ms ease-out;"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg></span>
+            <sc-if value="{{ think.active }}" hint-placeholder-val="{{ true }}"><span class="shimmer" style="font-size: 13.5px; font-weight: 500;">{{ think.activeLabel }}</span></sc-if>
+            <sc-if value="{{ think.done }}" hint-placeholder-val="{{ false }}"><span style="font-size: 13.5px; font-weight: 500; color: var(--fg-2); animation: fade-in 350ms ease-out both;">{{ think.doneLabel }}</span></sc-if>
+            <span class="chev {{ think.chev }}" style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span>
+          </div>
+          <div class="collapse slow {{ think.open }}">
+            <div>
+              <div style="position: relative; margin: 2px 0 0 5px; padding-left: 16px;">
+                <div style="position: absolute; left: 3px; top: 0; bottom: 6px; width: 1px; background: var(--divider);"></div>
+                <div style="display: flex; flex-direction: column; gap: 4px; padding: 4px 0;">
+                  <sc-if value="{{ think.isSearch }}" hint-placeholder-val="{{ false }}">
+                    <div style="height: 24px; padding: 0 6px; display: flex; align-items: center; gap: 8px; animation: fade-up 300ms var(--ease-out-strong) both;"><span style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M15.52 14.02H14.72L14.44 13.73C15.42 12.61 15.98 11.11 15.98 9.52C15.98 5.91 13.08 3 9.52 3C5.91 3 3 5.91 3 9.52C3 13.08 5.91 15.98 9.52 15.98C11.11 15.98 12.61 15.42 13.73 14.44L14.02 14.72V15.52L18.98 20.48L20.48 18.98L15.52 14.02ZM9.52 14.02C7.03 14.02 5.02 12 5.02 9.52C5.02 7.03 7.03 5.02 9.52 5.02C12 5.02 14.02 7.03 14.02 9.52C14.02 12 12 14.02 9.52 14.02Z"></path></svg></span><span style="font-size: 12.5px; color: var(--fg-2);">社会消费品零售 月度数据</span></div>
+                  </sc-if>
+                  <sc-for list="{{ think.rows }}" as="r" hint-placeholder-count="2">
+                    <div class="{{ r.cls }}" style="min-height: 28px; padding: 2px 6px; border-radius: 6px; display: flex; align-items: {{ r.align }}; gap: 8px; animation: fade-up 320ms var(--ease-out-strong) both; animation-delay: {{ r.delay }};">
+                      <sc-if value="{{ r.hasLead }}" hint-placeholder-val="{{ false }}">
+                        <div style="flex: none; width: 14px; height: 14px; display: grid; place-items: center;">
+                          <sc-if value="{{ r.spin }}" hint-placeholder-val="{{ false }}"><div class="spinner"></div></sc-if>
+                          <sc-if value="{{ r.check }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--meta)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+                          <sc-if value="{{ r.fav }}" hint-placeholder-val="{{ false }}"><div style="width: 14px; height: 14px; border-radius: 7px; background: {{ r.favBg }}; color: #fff; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true"><path d="M12 2.02C6.47 2.02 2.02 6.47 2.02 12C2.02 17.53 6.47 21.98 12 21.98C17.53 21.98 21.98 17.53 21.98 12C21.98 6.47 17.53 2.02 12 2.02ZM18.94 8.02H15.98C15.66 6.75 15.19 5.53 14.58 4.45C16.45 5.06 17.95 6.33 18.94 8.02ZM12 4.03C12.84 5.25 13.5 6.56 13.92 8.02H10.08C10.5 6.56 11.16 5.25 12 4.03ZM4.27 14.02C4.08 13.36 3.98 12.7 3.98 12C3.98 11.3 4.08 10.64 4.27 9.98H7.64C7.55 10.64 7.5 11.3 7.5 12C7.5 12.7 7.55 13.36 7.64 14.02H4.27ZM5.06 15.98H8.02C8.34 17.25 8.81 18.47 9.42 19.55C7.55 18.94 6.05 17.67 5.06 15.98ZM8.02 8.02H5.06C6.05 6.33 7.55 5.06 9.42 4.45C8.81 5.53 8.34 6.75 8.02 8.02ZM12 19.97C11.16 18.75 10.5 17.44 10.08 15.98H13.92C13.5 17.44 12.84 18.75 12 19.97ZM14.34 14.02H9.66C9.56 13.36 9.52 12.7 9.52 12C9.52 11.3 9.56 10.64 9.66 9.98H14.34C14.44 10.64 14.48 11.3 14.48 12C14.48 12.7 14.44 13.36 14.34 14.02ZM14.58 19.55C15.19 18.47 15.66 17.25 15.98 15.98H18.94C17.95 17.67 16.45 18.94 14.58 19.55ZM16.36 14.02C16.45 13.36 16.5 12.7 16.5 12C16.5 11.3 16.45 10.64 16.36 9.98H19.73C19.92 10.64 20.02 11.3 20.02 12C20.02 12.7 19.92 13.36 19.73 14.02H16.36Z"></path></svg></div></sc-if>
+                        </div>
+                      </sc-if>
+                      <div style="flex: 1; min-width: 0; font-size: {{ r.size }}; font-weight: {{ r.weight }}; line-height: {{ r.lh }}; color: {{ r.fg }}; text-wrap: pretty;">{{ r.text }}</div>
+                      <sc-if value="{{ r.hasSub }}" hint-placeholder-val="{{ false }}"><div style="flex: none; font-size: 11.5px; color: var(--meta); font-family: {{ r.subFont }};">{{ r.sub }}</div></sc-if>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ think.more }}" hint-placeholder-val="{{ false }}"><div style="padding: 2px 6px; font-size: 12px; color: var(--meta); animation: fade-in 300ms ease-out both;">另有 7 条结果</div></sc-if>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">03</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">流式回答</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">逐步显示回答，行内来源标签，结束后出现操作、来源列表和后续问题。</div>
+      <div class="src-tag">Beautiful UI · Streaming Text</div>
+      <dl class="spec">
+        <dt>正文</dt><dd>15sp / 25sp。每 55ms 追加一个词元（中文按 2–3 字），光标 2×12dp 实心、不闪烁，淡入 150ms</dd>
+        <dt>来源标签</dt><dd>高 18dp、圆角 5dp、等宽 10.5sp、1dp 描边；12dp 图标：论坛为墨绿气泡，站外为地球。进入 pop-in 250ms。视觉外上下各扩 12dp 点击范围</dd>
+        <dt>完成后</dt><dd>光标移除；操作行与后续问题 400ms 淡入，后续问题每行延迟 90ms；来源列表只在完成后可展开，300ms</dd>
+        <dt>移动端</dt><dd>操作按钮 24dp → 36dp；不提供赞踩，改为显示本次估算费用</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="btn btn-secondary tap" onClick="{{ stream.replay }}" style="height: 28px; padding: 0 10px; font-size: 12px;"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 5.02V0.98L6.98 6L12 11.02V6.98C15.33 6.98 18 9.7 18 12.98C18 16.31 15.33 18.98 12 18.98C8.67 18.98 6 16.31 6 12.98H3.98C3.98 17.44 7.59 21 12 21C16.41 21 20.02 17.44 20.02 12.98C20.02 8.58 16.41 5.02 12 5.02Z"></path></svg>重播</div>
+        <div style="font-size: 12px; color: var(--meta);">完成后停留 3.4s 再重播</div>
+      </div>
+      <div class="demos">
+        <div class="demo" style="min-height: 250px;">
+          <div style="font-size: 15px; line-height: 25px; text-wrap: pretty;"><sc-for list="{{ stream.segs }}" as="g" hint-placeholder-count="1"><span>{{ g.text }}</span><sc-if value="{{ g.isCite }}" hint-placeholder-val="{{ false }}"><span class="src-pill"><span class="fav" style="background: {{ g.favBg }};"><svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor"><path d="{{ g.favIcon }}"></path></svg></span>{{ g.label }}</span></sc-if><sc-if value="{{ g.caret }}" hint-placeholder-val="{{ false }}"><span class="caret"></span></sc-if></sc-for></div>
+          <div style="opacity: {{ stream.footOp }}; pointer-events: {{ stream.footPe }}; transition: opacity 400ms var(--ease-tw);">
+            <div style="display: flex; align-items: center; gap: 2px; margin: 2px -6px 0 -8px;">
+              <div class="tap rowpress" style="width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M15.98 0.98H3.98C2.91 0.98 2.02 1.92 2.02 3V17.02H3.98V3H15.98V0.98ZM18.98 5.02H8.02C6.89 5.02 6 5.91 6 6.98V21C6 22.08 6.89 23.02 8.02 23.02H18.98C20.11 23.02 21 22.08 21 21V6.98C21 5.91 20.11 5.02 18.98 5.02ZM18.98 21H8.02V6.98H18.98V21Z"></path></svg></div>
+              <div class="tap rowpress" style="width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M17.67 6.33C16.22 4.92 14.2 3.98 12 3.98C7.59 3.98 4.03 7.59 4.03 12C4.03 16.41 7.59 20.02 12 20.02C15.75 20.02 18.84 17.44 19.73 14.02H17.67C16.83 16.31 14.62 18 12 18C8.67 18 6 15.33 6 12C6 8.67 8.67 6 12 6C13.64 6 15.14 6.7 16.22 7.78L12.98 11.02H20.02V3.98L17.67 6.33Z"></path></svg></div>
+              <div class="tap rowpress" onClick="{{ stream.toggleSrc }}" style="margin-left: 4px; height: 36px; padding: 0 8px 0 6px; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
+                <div style="display: flex; padding-right: 4px;">
+                  <div style="width: 16px; height: 16px; border-radius: 8px; margin-right: -4px; box-shadow: 0 0 0 1.5px var(--bg); background: #7E5A3E;"></div>
+                  <div style="width: 16px; height: 16px; border-radius: 8px; margin-right: -4px; box-shadow: 0 0 0 1.5px var(--bg); background: #5A6E3E;"></div>
+                  <div style="width: 16px; height: 16px; border-radius: 8px; margin-right: -4px; box-shadow: 0 0 0 1.5px var(--bg); background: #57534A; color: #fff; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M12 2.02C6.47 2.02 2.02 6.47 2.02 12C2.02 17.53 6.47 21.98 12 21.98C17.53 21.98 21.98 17.53 21.98 12C21.98 6.47 17.53 2.02 12 2.02ZM18.94 8.02H15.98C15.66 6.75 15.19 5.53 14.58 4.45C16.45 5.06 17.95 6.33 18.94 8.02ZM12 4.03C12.84 5.25 13.5 6.56 13.92 8.02H10.08C10.5 6.56 11.16 5.25 12 4.03ZM4.27 14.02C4.08 13.36 3.98 12.7 3.98 12C3.98 11.3 4.08 10.64 4.27 9.98H7.64C7.55 10.64 7.5 11.3 7.5 12C7.5 12.7 7.55 13.36 7.64 14.02H4.27ZM5.06 15.98H8.02C8.34 17.25 8.81 18.47 9.42 19.55C7.55 18.94 6.05 17.67 5.06 15.98ZM8.02 8.02H5.06C6.05 6.33 7.55 5.06 9.42 4.45C8.81 5.53 8.34 6.75 8.02 8.02ZM12 19.97C11.16 18.75 10.5 17.44 10.08 15.98H13.92C13.5 17.44 12.84 18.75 12 19.97ZM14.34 14.02H9.66C9.56 13.36 9.52 12.7 9.52 12C9.52 11.3 9.56 10.64 9.66 9.98H14.34C14.44 10.64 14.48 11.3 14.48 12C14.48 12.7 14.44 13.36 14.34 14.02ZM14.58 19.55C15.19 18.47 15.66 17.25 15.98 15.98H18.94C17.95 17.67 16.45 18.94 14.58 19.55ZM16.36 14.02C16.45 13.36 16.5 12.7 16.5 12C16.5 11.3 16.45 10.64 16.36 9.98H19.73C19.92 10.64 20.02 11.3 20.02 12C20.02 12.7 19.92 13.36 19.73 14.02H16.36Z"></path></svg></div>
+                </div>
+                <span style="font-size: 12.5px; color: var(--fg-2);">3 个来源</span>
+              </div>
+              <div style="margin-left: auto; font-size: 12px; color: var(--meta); padding: 0 6px;">≈ US$0.004</div>
+            </div>
+            <div class="collapse {{ stream.srcOpen }}">
+              <div>
+                <div style="margin-top: 6px; border-radius: 10px; background: var(--surface-2); box-shadow: var(--shadow-hairline); padding: 4px;">
+                  <sc-for list="{{ stream.sources }}" as="r" hint-placeholder-count="3">
+                    <div class="tap rowpress" style="min-height: 40px; padding: 4px 6px; border-radius: 6px; display: flex; align-items: center; gap: 8px;">
+                      <div style="flex: none; width: 16px; height: 16px; border-radius: 4px; background: {{ r.bg }}; color: #fff; display: grid; place-items: center;"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="{{ r.icon }}"></path></svg></div>
+                      <div style="flex: 1; min-width: 0; font-size: 13px; color: var(--fg-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.title }}</div>
+                      <div style="flex: none; font-family: {{ r.font }}; font-size: 11px; color: var(--meta);">{{ r.meta }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top: 10px;">
+              <div style="font-size: 12px; font-weight: 500; color: var(--fg-2);">继续问</div>
+              <sc-if value="{{ stream.done }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 2px; display: flex; flex-direction: column;">
+                  <div class="tap rowpress" style="display: flex; align-items: center; gap: 8px; min-height: 42px; margin: 0 -6px; padding: 6px; border-radius: 7px; border-bottom: 1px solid var(--divider); animation: fade-up 350ms var(--ease-out-strong) both;"><span style="color: var(--meta); transform: scaleX(-1);"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M9.98 9V5.02L3 12L9.98 18.98V14.91C15 14.91 18.52 16.5 21 20.02C20.02 15 17.02 9.98 9.98 9Z"></path></svg></span><span style="font-size: 14px;">2023 年下半年发生了什么变化</span></div>
+                  <div class="tap rowpress" style="display: flex; align-items: center; gap: 8px; min-height: 42px; margin: 0 -6px; padding: 6px; border-radius: 7px; border-bottom: 1px solid var(--divider); animation: fade-up 350ms var(--ease-out-strong) 90ms both;"><span style="color: var(--meta); transform: scaleX(-1);"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M9.98 9V5.02L3 12L9.98 18.98V14.91C15 14.91 18.52 16.5 21 20.02C20.02 15 17.02 9.98 9.98 9Z"></path></svg></span><span style="font-size: 14px;">外贸订单腰斩有公开数据吗</span></div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">04</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">工具调用</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">agent 发起的读取、搜索与网页读取，以紧凑的行与参数标签展示。</div>
+      <div class="src-tag">Beautiful UI · Tool Chips</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>标题「N 次工具调用」，箭头收起时 −90°。每行高 32dp：16dp 图标位 · 13sp/500 名称 · 参数标签（高 22dp、圆角 6dp、11.5sp，网址用等宽）</dd>
+        <dt>时序</dt><dd>每 700ms 出现一行，fade-up 300ms；进行中的行名称使用闪光文字。全部完成后出现已读网页标签，pop-in 250ms，每个延迟 80ms</dd>
+        <dt>展开</dt><dd>点行展开细节：左侧 1dp 竖线，12sp 行。展开后图标换成箭头（150ms）。标题区收起 300ms</dd>
+        <dt>失败</dt><dd>参数标签和图标改为红色，细节写明失败类别，例如「返回人机验证，不计为零结果」</dd>
+        <dt>移动端</dt><dd>原组件悬停弹出差异预览，这里改为点按网页标签打开来源预览；回答开始生成后自动收起，用户点过则保持</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="btn btn-secondary tap" onClick="{{ tools.replay }}" style="height: 28px; padding: 0 10px; font-size: 12px;"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 5.02V0.98L6.98 6L12 11.02V6.98C15.33 6.98 18 9.7 18 12.98C18 16.31 15.33 18.98 12 18.98C8.67 18.98 6 16.31 6 12.98H3.98C3.98 17.44 7.59 21 12 21C16.41 21 20.02 17.44 20.02 12.98C20.02 8.58 16.41 5.02 12 5.02Z"></path></svg>重播</div>
+      </div>
+      <div class="demos">
+        <div class="demo" style="min-height: 230px;">
+          <div class="tap rowpress" onClick="{{ tools.toggle }}" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin: 0 -6px; padding: 6px; border-radius: 8px; font-size: 13px; color: var(--fg-2); font-variant-numeric: tabular-nums;"><span class="chev-r {{ tools.chev }}" style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span>{{ tools.label }}</div>
+          <div class="collapse {{ tools.open }}" style="transition-timing-function: var(--ease-tw);">
+            <div>
+              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 2px;">
+                <sc-for list="{{ tools.rows }}" as="c" hint-placeholder-count="3">
+                  <div style="animation: fade-up 300ms var(--ease-out-strong) both;">
+                    <div class="tap rowpress" onClick="{{ c.toggle }}" style="height: 32px; margin: 0 -3px; padding: 0 3px; border-radius: 8px; display: flex; align-items: center; gap: 8px;">
+                      <div style="position: relative; flex: none; width: 16px; height: 16px; color: {{ c.iconFg }};">
+                        <div style="position: absolute; inset: 0; display: grid; place-items: center; opacity: {{ c.iconOp }}; transition: opacity 100ms ease-out;"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="{{ c.icon }}"></path></svg></div>
+                        <div class="chev-r {{ c.chev }}" style="position: absolute; inset: 0; display: grid; place-items: center; opacity: {{ c.chevOp }}; transition: opacity 150ms ease-out, transform 150ms var(--ease-tw);"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></div>
+                      </div>
+                      <div class="{{ c.labelCls }}" style="flex: none; font-size: 13px; font-weight: 500; white-space: nowrap;">{{ c.label }}</div>
+                      <div style="flex: 1; min-width: 0; height: 22px; border-radius: 6px; padding: 0 6px; font-size: 11.5px; line-height: 22px; font-family: {{ c.font }}; color: {{ c.chipFg }}; background: {{ c.chipBg }}; box-shadow: var(--shadow-hairline); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.arg }}</div>
+                    </div>
+                    <div class="collapse {{ c.open }}">
+                      <div>
+                        <div style="margin: 2px 0 4px 8px; border-left: 1px solid var(--divider); padding: 2px 0 2px 14px; display: flex; flex-direction: column; gap: 2px;">
+                          <sc-for list="{{ c.lines }}" as="l" hint-placeholder-count="1">
+                            <div style="font-size: 12px; line-height: 1.6; color: {{ c.lineFg }};">{{ l }}</div>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ tools.pages }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 6px; border-top: 1px solid var(--divider); padding-top: 10px; display: flex; flex-wrap: wrap; gap: 6px;">
+                  <div class="tap" style="height: 30px; border-radius: 6px; padding: 0 9px; display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11.5px; background: var(--surface); box-shadow: var(--shadow-btn); animation: pop-in 250ms var(--ease-out-strong) both;"><span class="fav" style="background: #57534A;"><svg class="ic" viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true"><path d="M12 2.02C6.47 2.02 2.02 6.47 2.02 12C2.02 17.53 6.47 21.98 12 21.98C17.53 21.98 21.98 17.53 21.98 12C21.98 6.47 17.53 2.02 12 2.02ZM18.94 8.02H15.98C15.66 6.75 15.19 5.53 14.58 4.45C16.45 5.06 17.95 6.33 18.94 8.02ZM12 4.03C12.84 5.25 13.5 6.56 13.92 8.02H10.08C10.5 6.56 11.16 5.25 12 4.03ZM4.27 14.02C4.08 13.36 3.98 12.7 3.98 12C3.98 11.3 4.08 10.64 4.27 9.98H7.64C7.55 10.64 7.5 11.3 7.5 12C7.5 12.7 7.55 13.36 7.64 14.02H4.27ZM5.06 15.98H8.02C8.34 17.25 8.81 18.47 9.42 19.55C7.55 18.94 6.05 17.67 5.06 15.98ZM8.02 8.02H5.06C6.05 6.33 7.55 5.06 9.42 4.45C8.81 5.53 8.34 6.75 8.02 8.02ZM12 19.97C11.16 18.75 10.5 17.44 10.08 15.98H13.92C13.5 17.44 12.84 18.75 12 19.97ZM14.34 14.02H9.66C9.56 13.36 9.52 12.7 9.52 12C9.52 11.3 9.56 10.64 9.66 9.98H14.34C14.44 10.64 14.48 11.3 14.48 12C14.48 12.7 14.44 13.36 14.34 14.02ZM14.58 19.55C15.19 18.47 15.66 17.25 15.98 15.98H18.94C17.95 17.67 16.45 18.94 14.58 19.55ZM16.36 14.02C16.45 13.36 16.5 12.7 16.5 12C16.5 11.3 16.45 10.64 16.36 9.98H19.73C19.92 10.64 20.02 11.3 20.02 12C20.02 12.7 19.92 13.36 19.73 14.02H16.36Z"></path></svg></span>stats.gov.cn<span style="font-family: var(--font); color: var(--meta);">已读正文</span></div>
+                  <div class="tap" style="height: 30px; border-radius: 6px; padding: 0 9px; display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11.5px; background: var(--surface); box-shadow: var(--shadow-btn); animation: pop-in 250ms var(--ease-out-strong) 80ms both;"><span class="fav" style="background: #57534A;"><svg class="ic" viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true"><path d="M12 2.02C6.47 2.02 2.02 6.47 2.02 12C2.02 17.53 6.47 21.98 12 21.98C17.53 21.98 21.98 17.53 21.98 12C21.98 6.47 17.53 2.02 12 2.02ZM18.94 8.02H15.98C15.66 6.75 15.19 5.53 14.58 4.45C16.45 5.06 17.95 6.33 18.94 8.02ZM12 4.03C12.84 5.25 13.5 6.56 13.92 8.02H10.08C10.5 6.56 11.16 5.25 12 4.03ZM4.27 14.02C4.08 13.36 3.98 12.7 3.98 12C3.98 11.3 4.08 10.64 4.27 9.98H7.64C7.55 10.64 7.5 11.3 7.5 12C7.5 12.7 7.55 13.36 7.64 14.02H4.27ZM5.06 15.98H8.02C8.34 17.25 8.81 18.47 9.42 19.55C7.55 18.94 6.05 17.67 5.06 15.98ZM8.02 8.02H5.06C6.05 6.33 7.55 5.06 9.42 4.45C8.81 5.53 8.34 6.75 8.02 8.02ZM12 19.97C11.16 18.75 10.5 17.44 10.08 15.98H13.92C13.5 17.44 12.84 18.75 12 19.97ZM14.34 14.02H9.66C9.56 13.36 9.52 12.7 9.52 12C9.52 11.3 9.56 10.64 9.66 9.98H14.34C14.44 10.64 14.48 11.3 14.48 12C14.48 12.7 14.44 13.36 14.34 14.02ZM14.58 19.55C15.19 18.47 15.66 17.25 15.98 15.98H18.94C17.95 17.67 16.45 18.94 14.58 19.55ZM16.36 14.02C16.45 13.36 16.5 12.7 16.5 12C16.5 11.3 16.45 10.64 16.36 9.98H19.73C19.92 10.64 20.02 11.3 20.02 12C20.02 12.7 19.92 13.36 19.73 14.02H16.36Z"></path></svg></span>customs.gov.cn<span style="font-family: var(--font); color: var(--meta);">仅摘要</span></div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">05</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">阅读范围</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">App 按入口规则读取默认上下文，逐项显示进行中、失败、完成和未计入。</div>
+      <div class="src-tag">Beautiful UI · Task Rows</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>行头高 44dp：24dp 状态位 · 13.5sp/500 名称 · 12.5sp 数量 · 状态标签（高 22dp，11.5sp/500）· 28dp 箭头位</dd>
+        <dt>状态</dt><dd>完成：22dp 绿色圆 + 白色对勾，pop-in 300ms；失败：红色圆 + 叉，标签内刷新图标 1.2s 旋转；进行中：24dp 圆环，28% 弧段 1.1s 旋转，中间显示序号；等待：仅灰环；未计入（NG2 补充）：灰色圆 + 横线</dd>
+        <dt>时序</dt><dd>600 / 1500 / 3900 / 5300ms 切换；进行中的行在 1500–3900ms 自动展开，用户点过后不再自动开合。行进入 fade-up 450ms，每行延迟 80ms；细节行延迟 120 + 100×i ms</dd>
+        <dt>变体</dt><dd>列表：一张卡片，行间 1dp 分隔。胶囊：每行独立卡片，圆角 22dp，展开后 14dp（300ms）</dd>
+        <dt>对话内</dt><dd>对话里用列表变体，完成的行不显示「完成」标签，只保留失败和未计入标签</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: inline-flex; padding: 2px; border-radius: 999px; background: var(--surface-2); box-shadow: var(--shadow-hairline);">
+          <sc-for list="{{ task.variants }}" as="v" hint-placeholder-count="2">
+            <div class="tap" onClick="{{ v.pick }}" style="padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; color: {{ v.fg }}; background: {{ v.bg }}; box-shadow: {{ v.sh }}; transition: background-color 150ms ease-out, color 150ms ease-out;">{{ v.label }}</div>
+          </sc-for>
+        </div>
+        <div class="btn btn-secondary tap" onClick="{{ task.replay }}" style="height: 28px; padding: 0 10px; font-size: 12px;"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 5.02V0.98L6.98 6L12 11.02V6.98C15.33 6.98 18 9.7 18 12.98C18 16.31 15.33 18.98 12 18.98C8.67 18.98 6 16.31 6 12.98H3.98C3.98 17.44 7.59 21 12 21C16.41 21 20.02 17.44 20.02 12.98C20.02 8.58 16.41 5.02 12 5.02Z"></path></svg>重播</div>
+      </div>
+      <div class="demos">
+        <div class="demo" style="min-height: 236px;">
+          <div style="display: flex; flex-direction: column; gap: {{ task.gap }}; border-radius: {{ task.wrapRadius }}; background: {{ task.wrapBg }}; box-shadow: {{ task.wrapShadow }}; overflow: hidden;">
+            <sc-for list="{{ task.rows }}" as="r" hint-placeholder-count="3">
+              <div style="overflow: hidden; border-radius: {{ r.radius }}; background: var(--surface); box-shadow: {{ r.shadow }}; border-bottom: 1px solid {{ r.line }}; transition: border-radius 300ms var(--ease-tw); animation: fade-up 450ms var(--ease-out-strong) both; animation-delay: {{ r.delay }};">
+                <div class="tap rowpress" onClick="{{ r.toggle }}" style="height: 44px; padding: 0 4px 0 10px; display: flex; align-items: center; gap: 10px;">
+                  <div style="flex: none; width: 24px; height: 24px; display: grid; place-items: center;">
+                    <sc-if value="{{ r.isDone }}" hint-placeholder-val="{{ true }}"><div style="width: 22px; height: 22px; border-radius: 11px; background: var(--green); display: grid; place-items: center; animation: pop-in 300ms var(--ease-out-strong) both;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div></sc-if>
+                    <sc-if value="{{ r.isFail }}" hint-placeholder-val="{{ false }}"><div style="width: 22px; height: 22px; border-radius: 11px; background: var(--danger); display: grid; place-items: center; animation: pop-in 300ms var(--ease-out-strong) both;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"></path></svg></div></sc-if>
+                    <sc-if value="{{ r.isRun }}" hint-placeholder-val="{{ false }}"><div style="position: relative; width: 24px; height: 24px;"><svg viewBox="0 0 24 24" width="24" height="24" style="position: absolute; inset: 0; animation: spin 1.1s linear infinite;"><circle cx="12" cy="12" r="11" fill="none" stroke="var(--divider)" stroke-width="2"></circle><circle cx="12" cy="12" r="11" fill="none" stroke="var(--meta)" stroke-width="2" stroke-linecap="round" stroke-dasharray="19.35 49.76"></circle></svg><div style="position: absolute; inset: 0; display: grid; place-items: center; font-size: 10.5px; font-weight: 600;">{{ r.n }}</div></div></sc-if>
+                    <sc-if value="{{ r.isPending }}" hint-placeholder-val="{{ false }}"><div style="position: relative; width: 24px; height: 24px;"><svg viewBox="0 0 24 24" width="24" height="24" style="position: absolute; inset: 0;"><circle cx="12" cy="12" r="11" fill="none" stroke="var(--divider)" stroke-width="2"></circle></svg><div style="position: absolute; inset: 0; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; color: var(--meta);">{{ r.n }}</div></div></sc-if>
+                  </div>
+                  <div style="flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.label }}</div>
+                  <div style="flex: none; font-size: 12.5px; color: var(--fg-2);">{{ r.amount }}</div>
+                  <sc-if value="{{ r.hasPill }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex: none; height: 22px; padding: 0 8px; border-radius: 11px; display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 500; color: {{ r.pillFg }}; background: {{ r.pillBg }}; animation: fade-in 200ms ease-out both;">{{ r.pill }}<sc-if value="{{ r.isFail }}" hint-placeholder-val="{{ false }}"><span style="display: grid; animation: spin 1.2s linear infinite;"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M17.67 6.33C16.22 4.92 14.2 3.98 12 3.98C7.59 3.98 4.03 7.59 4.03 12C4.03 16.41 7.59 20.02 12 20.02C15.75 20.02 18.84 17.44 19.73 14.02H17.67C16.83 16.31 14.62 18 12 18C8.67 18 6 15.33 6 12C6 8.67 8.67 6 12 6C13.64 6 15.14 6.7 16.22 7.78L12.98 11.02H20.02V3.98L17.67 6.33Z"></path></svg></span></sc-if></div>
+                  </sc-if>
+                  <div style="flex: none; width: 28px; height: 28px; display: grid; place-items: center; color: var(--meta);"><span class="chev {{ r.chev }}"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span></div>
+                </div>
+                <div class="collapse {{ r.open }}">
+                  <div>
+                    <div style="display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 0 12px 10px 10px;">
+                      <div style="display: flex; justify-content: center;"><div style="width: 1px; background: var(--divider);"></div></div>
+                      <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <sc-for list="{{ r.details }}" as="d" hint-placeholder-count="2">
+                          <div style="display: flex; justify-content: space-between; animation: fade-up 300ms var(--ease-out-strong) both; animation-delay: {{ d.delay }};"><span style="font-size: 12.5px; color: var(--fg-2);">{{ d.k }}</span><span style="font-family: var(--mono); font-size: 11.5px; color: var(--meta);">{{ d.v }}</span></div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">06</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">输入框与快捷操作</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">追问输入、「/」快捷操作菜单、发送与停止切换。</div>
+      <div class="src-tag">Beautiful UI · Prompt Bar · Chat</div>
+      <dl class="spec">
+        <dt>外壳</dt><dd>1dp 描边 + card 阴影，内边距 6dp，圆角 14dp，多行时 22dp（150ms）。获得焦点时描边加深</dd>
+        <dt>按钮</dt><dd>「/」与发送 36dp、圆角 8dp，按下缩放 0.94。发送：有内容为墨绿，无内容为 track 色；生成中换成停止（图标 pop-in 200ms）</dd>
+        <dt>菜单</dt><dd>输入框末尾匹配 /(^|\s)\/(\S*)$/ 时打开，按名称前缀筛选；向上弹出 pop-in 180ms，原点底部居中。行高 48dp。空结果显示「没有匹配「q」的快捷操作」，底部提示一行</dd>
+        <dt>键盘</dt><dd>↑↓ 移动高亮（首次按键后才显示高亮）· Enter/Tab 选择 · Esc 关闭且在文字变化前不再弹出 · Enter 发送 · Shift+Enter 换行 · 输入法组合中不发送</dd>
+        <dt>快捷操作</dt><dd>输入框上方横向滚动的胶囊按钮，高 32dp；生成中半透明且不可点</dd>
+        <dt>未采用</dt><dd>@ 来源、模型切换与扫光、语音输入：一期没有对应需求</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="btn btn-secondary tap" onClick="{{ pb.toggleBusy }}" style="height: 28px; padding: 0 10px; font-size: 12px;">{{ pb.busyLabel }}</div>
+        <div style="font-size: 12px; color: var(--meta);">可以直接输入「/」或点左侧按钮</div>
+      </div>
+      <div class="demos">
+        <div class="demo" style="padding-top: 250px; position: relative;">
+          <sc-if value="{{ pb.menuOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; left: 0; right: 0; bottom: calc(100% - 250px - 36px); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-raised); padding: 4px; transform-origin: 50% 100%; animation: pop-in 180ms var(--ease-out-strong) both;">
+              <sc-for list="{{ pb.items }}" as="a" hint-placeholder-count="3">
+                <div class="tap rowpress" onClick="{{ a.run }}" style="display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 4px 8px; border-radius: 8px; background: {{ a.bg }}; transition: background-color 150ms ease-out;">
+                  <div style="flex: none; width: 22px; height: 22px; display: grid; place-items: center; color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="{{ a.icon }}"></path></svg></div>
+                  <div style="flex: none; font-size: 14px; font-weight: 500;">{{ a.label }}</div>
+                  <div style="flex: 1; min-width: 0; font-size: 12px; color: var(--meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.desc }}</div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ pb.empty }}" hint-placeholder-val="{{ false }}">
+                <div style="height: 44px; padding: 0 8px; display: flex; align-items: center; font-size: 12.5px; color: var(--meta);">没有匹配「{{ pb.query }}」的快捷操作</div>
+              </sc-if>
+              <div style="margin-top: 4px; border-top: 1px solid var(--divider); padding: 6px 8px 4px; font-size: 11.5px; color: var(--meta);">输入文字筛选快捷操作</div>
+            </div>
+          </sc-if>
+          <div class="sc" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px;">
+            <sc-for list="{{ pb.quick }}" as="a" hint-placeholder-count="4">
+              <div class="btn tap {{ pb.quickCls }}" onClick="{{ a.run }}" style="flex: none; height: 32px; padding: 0 12px 0 9px; font-size: 13px; color: var(--fg); background: var(--surface); box-shadow: var(--shadow-btn);"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="color: var(--primary);"><path d="{{ a.icon }}"></path></svg>{{ a.label }}</div>
+            </sc-for>
+          </div>
+          <div class="shell" style="border: 1px solid var(--divider); border-radius: {{ pb.radius }}; background: var(--surface); box-shadow: var(--shadow-card); padding: 6px; display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: end; column-gap: 4px; transition: border-color 150ms ease-out, border-radius 150ms ease-out;">
+            <div class="tap press-sm" onClick="{{ pb.toggleMenu }}" style="width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; font-family: var(--mono); font-size: 17px; color: {{ pb.slashFg }}; background: {{ pb.slashBg }}; transition: background-color 150ms ease-out, transform 150ms ease-out;">/</div>
+            <textarea rows="1" value="{{ pb.draft }}" onInput="{{ pb.onInput }}" onKeyDown="{{ pb.onKey }}" placeholder="{{ pb.placeholder }}" style="display: block; width: 100%; height: {{ pb.taHeight }}; resize: none; border: 0; outline: 0; background: transparent; padding: 8px 4px; font-family: var(--font); font-size: 15px; line-height: 20px; color: var(--fg);"></textarea>
+            <div class="tap press-sm" onClick="{{ pb.send }}" style="width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: {{ pb.sendFg }}; background: {{ pb.sendBg }}; transition: background-color 200ms ease-out, color 200ms ease-out, transform 150ms ease-out;">
+              <sc-if value="{{ pb.busy }}" hint-placeholder-val="{{ false }}"><span style="animation: pop-in 200ms var(--ease-out-strong) both;"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M15.98 8.02V15.98H8.02V8.02H15.98ZM18 6H6V18H18V6Z"></path></svg></span></sc-if>
+              <sc-if value="{{ pb.idle }}" hint-placeholder-val="{{ true }}"><span style="animation: pop-in 200ms var(--ease-out-strong) both;"><svg class="ic" viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M3.98 12 5.39 13.41 11.02 7.83V20.02H12.98V7.83L18.56 13.41L20.02 12L12 3.98L3.98 12Z"></path></svg></span></sc-if>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: var(--meta); min-height: 18px;">{{ pb.log }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">07</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">确认卡片</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">需要用户决定才能继续的事项，例如达到本次额度。</div>
+      <div class="src-tag">Beautiful UI · Approval Card</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>卡片圆角 12dp、card 阴影、fade-up 380ms。问题 15sp/600，右上角 36dp 关闭。选项行高 48dp：18dp 单选圈（未选 1.5dp 描边，选中填充墨绿，内点 0→1 200ms）+ 14sp 名称 + 12sp 说明</dd>
+        <dt>底部</dt><dd>次要按钮（浅底）+ 主按钮。未选择时主按钮 50% 透明且不可点</dd>
+        <dt>与原组件的差异</dt><dd>原组件单选后 480ms 自动前进。涉及费用时改为必须点「确定」。只有一个问题时隐藏上下翻页</dd>
+        <dt>关闭</dt><dd>卡片收成「已达到本次额度 · 待确认」按钮（pop-in 200ms），点按恢复</dd>
+        <dt>提交后</dt><dd>绿色胶囊 + 18dp 对勾圆，pop-in 260ms</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="btn btn-secondary tap" onClick="{{ ap.reset }}" style="height: 28px; padding: 0 10px; font-size: 12px;"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 5.02V0.98L6.98 6L12 11.02V6.98C15.33 6.98 18 9.7 18 12.98C18 16.31 15.33 18.98 12 18.98C8.67 18.98 6 16.31 6 12.98H3.98C3.98 17.44 7.59 21 12 21C16.41 21 20.02 17.44 20.02 12.98C20.02 8.58 16.41 5.02 12 5.02Z"></path></svg>重新开始</div>
+      </div>
+      <div class="demos">
+        <div class="demo" style="min-height: 250px;">
+          <sc-if value="{{ ap.isOpen }}" hint-placeholder-val="{{ true }}">
+            <div style="position: relative; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-card); overflow: hidden; animation: fade-up 380ms var(--ease-out-strong) both;">
+              <div class="tap rowpress" onClick="{{ ap.dismiss }}" style="position: absolute; top: 6px; right: 6px; width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.98 6.42 17.58 5.02 12 10.59 6.42 5.02 5.02 6.42 10.59 12 5.02 17.58 6.42 18.98 12 13.41 17.58 18.98 18.98 17.58 13.41 12 18.98 6.42Z"></path></svg></div>
+              <div style="padding: 12px 12px 4px;">
+                <div style="padding-right: 34px; font-size: 15px; line-height: 21px; font-weight: 600;">已达到本次额度，要继续吗？</div>
+                <div style="margin-top: 4px; font-size: 13px; line-height: 20px; color: var(--fg-2);">已核查 2 条说法，第 3 条尚未开始。已有结果已保存。</div>
+                <div style="display: flex; flex-direction: column; gap: 2px; margin-top: 8px;">
+                  <sc-for list="{{ ap.options }}" as="o" hint-placeholder-count="2">
+                    <div class="tap rowpress" onClick="{{ o.pick }}" style="display: flex; align-items: center; gap: 10px; min-height: 48px; margin: 0 -4px; padding: 4px 8px 4px 6px; border-radius: 8px;">
+                      <div style="flex: none; width: 18px; height: 18px; border-radius: 9px; display: grid; place-items: center; background: {{ o.fill }}; box-shadow: inset 0 0 0 1.5px {{ o.ring }}; transition: background-color 200ms ease-out, box-shadow 200ms ease-out;"><div style="width: 7px; height: 7px; border-radius: 4px; background: var(--surface); transform: scale({{ o.dot }}); transition: transform 200ms ease-out;"></div></div>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 14px; line-height: 20px; color: {{ o.fg }}; transition: color 200ms ease-out;">{{ o.label }}</div>
+                        <div style="font-size: 12px; line-height: 17px; color: var(--meta);">{{ o.sub }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="padding: 10px; display: flex; justify-content: flex-end; gap: 6px;">
+                <div class="btn btn-ghost btn-s tap">查看用量</div>
+                <div class="btn btn-primary btn-s tap {{ ap.confirmCls }}" onClick="{{ ap.confirm }}">确定</div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ ap.isMin }}" hint-placeholder-val="{{ false }}">
+            <div class="btn btn-secondary tap" onClick="{{ ap.reopen }}" style="align-self: flex-start; height: 36px; padding: 0 12px; border-radius: 8px; font-size: 13px; animation: pop-in 200ms var(--ease-out-strong) both;"><span style="color: var(--accent);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M15 9.98C15 9.47 15.47 9 15.98 9C16.55 9 17.02 9.47 17.02 9.98C17.02 10.55 16.55 11.02 15.98 11.02C15.47 11.02 15 10.55 15 9.98ZM8.02 9H12.98V6.98H8.02V9ZM21.98 7.5V14.48L19.17 15.42L17.48 21H12V18.98H9.98V21H4.5C4.5 21 2.02 12.56 2.02 9.52C2.02 6.47 4.45 3.98 7.5 3.98H12.52C13.41 2.81 14.86 2.02 16.5 2.02C17.34 2.02 18 2.67 18 3.52C18 3.7 17.95 3.89 17.86 4.08C17.72 4.41 17.62 4.83 17.58 5.25L19.83 7.5H21.98ZM20.02 9.52H18.98L15.52 6C15.52 5.34 15.61 4.69 15.75 4.08C14.81 4.36 14.02 5.06 13.69 6H7.5C5.58 6 3.98 7.55 3.98 9.52C3.98 11.39 5.2 16.17 6 18.98H8.02V17.02H14.02V18.98H16.03L17.58 13.83L20.02 13.03V9.52Z"></path></svg></span>已达到本次额度 · 待确认</div>
+          </sc-if>
+          <sc-if value="{{ ap.isSent }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: center; gap: 12px; animation: pop-in 260ms var(--ease-out-strong) both;">
+              <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; background: var(--green-c); color: var(--green); font-size: 12.5px; font-weight: 500;"><span style="width: 18px; height: 18px; border-radius: 9px; background: var(--green); display: grid; place-items: center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>{{ ap.sentLabel }}</span>
+              <span class="tap" onClick="{{ ap.reset }}" style="font-size: 12px; font-weight: 500; color: var(--meta);">重新开始</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">08</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">来源预览</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">点来源标签后在底部面板预览原文，可跳到对应楼层或打开网页。返回后对话位置不变。</div>
+      <div class="src-tag">Beautiful UI · Context Cards</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>标题行 13.5sp/600 + 序号徽标（高 20dp、圆角 6dp）。卡片：顶栏（10/12dp 内边距、下分隔线、名称 13.5sp/500、字数 12sp）· 正文 14sp、行高 1.625 · 来源胶囊（高 28dp，16dp 类型徽标「楼」或「网」）</dd>
+        <dt>动效</dt><dd>标题淡入 400ms；卡片 fade-up 400ms；来源胶囊在 700ms 后从 0.95 缩放淡入（300ms）</dd>
+        <dt>读取</dt><dd>不保存论坛原文，每次打开时用当前账号重新读取。读不到时区分「已删除或不可访问」和「当前账号无法查看」，保留引用坐标</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: inline-flex; align-self: flex-start; padding: 2px; border-radius: 999px; background: var(--surface-2); box-shadow: var(--shadow-hairline);">
+        <sc-for list="{{ ctx.variants }}" as="v" hint-placeholder-count="4">
+          <div class="tap" onClick="{{ v.pick }}" style="padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; color: {{ v.fg }}; background: {{ v.bg }}; box-shadow: {{ v.sh }}; transition: background-color 150ms ease-out, color 150ms ease-out;">{{ v.label }}</div>
+        </sc-for>
+      </div>
+      <div class="demos">
+        <div class="demo">
+          <div style="border-radius: 20px 20px 0 0; background: var(--bg); box-shadow: 0 -1px 0 var(--divider), 0 -10px 32px rgba(40, 32, 12, .12); padding: 8px 16px 16px; margin: 0 -16px;">
+            <div style="width: 36px; height: 4px; border-radius: 2px; background: var(--track); margin: 0 auto 12px;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 0 2px 8px;">
+              <div style="font-size: 13.5px; font-weight: 600;">{{ ctx.heading }}</div>
+              <div style="height: 20px; padding: 0 6px; border-radius: 6px; display: grid; place-items: center; font-size: 11.5px; font-weight: 500; color: var(--fg-2); background: var(--surface-2); box-shadow: var(--shadow-hairline);">{{ ctx.badge }}</div>
+              <div style="margin-left: auto; font-size: 12px; color: {{ ctx.stateFg }};">{{ ctx.state }}</div>
+            </div>
+            <div style="border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-card); overflow: hidden;">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--divider);">
+                <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px;"><span style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M21 11.02H3V12.98H21V11.02ZM3 15.98H15V18H3V15.98ZM21 6H3V8.02H21V6Z"></path></svg></span><div style="font-size: 13.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ ctx.title }}</div></div>
+                <div style="flex: none; font-size: 12px; color: var(--meta);">{{ ctx.size }}</div>
+              </div>
+              <div style="padding: 8px 12px 4px; font-size: 14px; line-height: 1.625; color: {{ ctx.bodyFg }}; text-wrap: pretty;">{{ ctx.body }}</div>
+              <div style="padding: 10px 12px 12px;">
+                <sc-if value="{{ ctx.isFloor }}" hint-placeholder-val="{{ true }}">
+                  <div class="tap" style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 7px; border-radius: 999px; background: var(--surface-2); box-shadow: var(--shadow-btn); font-size: 12px; font-weight: 500; color: var(--fg-2); animation: pop-in 300ms var(--ease-out-strong) 700ms both;"><span style="width: 16px; height: 16px; border-radius: 4px; display: grid; place-items: center; font-size: 9px; font-weight: 700; color: #fff; background: var(--primary);">楼</span>体感消费不一直这样吗 · 第 1 页<span><svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M9 5.02V6.98H15.61L3.98 18.61L5.39 20.02L17.02 8.39V15H18.98V5.02H9Z"></path></svg></span></div>
+                </sc-if>
+                <sc-if value="{{ ctx.isWeb }}" hint-placeholder-val="{{ false }}">
+                  <div class="tap" style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 7px; border-radius: 999px; background: var(--surface-2); box-shadow: var(--shadow-btn); font-size: 12px; font-weight: 500; color: var(--fg-2); animation: pop-in 300ms var(--ease-out-strong) 700ms both;"><span style="width: 16px; height: 16px; border-radius: 4px; display: grid; place-items: center; font-size: 9px; font-weight: 700; color: #fff; background: #57534A;">网</span>stats.gov.cn<span><svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M9 5.02V6.98H15.61L3.98 18.61L5.39 20.02L17.02 8.39V15H18.98V5.02H9Z"></path></svg></span></div>
+                </sc-if>
+                <sc-if value="{{ ctx.isGone }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 7px; border-radius: 999px; background: var(--surface-2); box-shadow: var(--shadow-hairline); font-family: var(--mono); font-size: 11.5px; color: var(--meta); animation: pop-in 300ms var(--ease-out-strong) 700ms both;">{{ ctx.coord }}</div>
+                </sc-if>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+              <div class="btn btn-secondary tap" style="flex: 1; height: 44px; font-size: 14px;">返回对话</div>
+              <div class="btn btn-primary tap {{ ctx.actionCls }}" style="flex: 1.3; height: 44px; font-size: 14px;">{{ ctx.action }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">09</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">搜索</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">在对话历史中按标题、主题或用户实时筛选。</div>
+      <div class="src-tag">Beautiful UI · Search</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>面板圆角 12dp、raised 阴影。输入行高 44dp（原 40dp），放大镜 14dp，非空时出现 28dp 清除按钮（淡入 150ms）。结果行高 44dp、圆角 6dp，挂载淡入 200ms</dd>
+        <dt>行为</dt><dd>空查询显示前 5 条；每次输入都重新筛选，匹配部分加底色。点结果把标题写入输入框</dd>
+        <dt>空状态</dt><dd>原组件查询超过 2 个字符才显示。中文词更短，改为达到 2 个字符。32dp 图标块 + 13sp/500 标题 + 12sp 说明，淡入 250ms</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div class="demos">
+        <div class="demo" style="min-height: 300px;">
+          <div style="border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-raised); overflow: hidden;">
+            <div style="height: 44px; padding: 0 8px 0 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--divider);">
+              <span style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M15.52 14.02H14.72L14.44 13.73C15.42 12.61 15.98 11.11 15.98 9.52C15.98 5.91 13.08 3 9.52 3C5.91 3 3 5.91 3 9.52C3 13.08 5.91 15.98 9.52 15.98C11.11 15.98 12.61 15.42 13.73 14.44L14.02 14.72V15.52L18.98 20.48L20.48 18.98L15.52 14.02ZM9.52 14.02C7.03 14.02 5.02 12 5.02 9.52C5.02 7.03 7.03 5.02 9.52 5.02C12 5.02 14.02 7.03 14.02 9.52C14.02 12 12 14.02 9.52 14.02Z"></path></svg></span>
+              <input value="{{ search.q }}" onInput="{{ search.onInput }}" placeholder="搜索对话标题、主题或用户" style="flex: 1; min-width: 0; height: 40px; border: 0; outline: 0; background: transparent; font-family: var(--font); font-size: 14px; color: var(--fg);" />
+              <sc-if value="{{ search.hasQ }}" hint-placeholder-val="{{ false }}">
+                <div class="tap rowpress" onClick="{{ search.clear }}" style="width: 28px; height: 28px; border-radius: 14px; display: grid; place-items: center; color: var(--meta); animation: fade-in 150ms ease-out both;"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M18.98 6.42 17.58 5.02 12 10.59 6.42 5.02 5.02 6.42 10.59 12 5.02 17.58 6.42 18.98 12 13.41 17.58 18.98 18.98 17.58 13.41 12 18.98 6.42Z"></path></svg></div>
+              </sc-if>
+            </div>
+            <div style="padding: 4px;">
+              <sc-for list="{{ search.rows }}" as="r" hint-placeholder-count="5">
+                <div class="tap rowpress" onClick="{{ r.pick }}" style="height: 44px; padding: 0 8px; border-radius: 6px; display: flex; align-items: center; font-size: 14px; animation: fade-in 200ms ease-out both; overflow: hidden; white-space: nowrap;"><span>{{ r.a }}</span><span style="background: var(--accent-c); border-radius: 3px;">{{ r.m }}</span><span style="overflow: hidden; text-overflow: ellipsis;">{{ r.b }}</span></div>
+              </sc-for>
+              <sc-if value="{{ search.empty }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 32px 16px; animation: fade-in 250ms ease-out both;">
+                  <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-2); box-shadow: var(--shadow-hairline); color: var(--meta); display: grid; place-items: center; margin-bottom: 6px;"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M15.52 14.02H14.72L14.44 13.73C15.42 12.61 15.98 11.11 15.98 9.52C15.98 5.91 13.08 3 9.52 3C5.91 3 3 5.91 3 9.52C3 13.08 5.91 15.98 9.52 15.98C11.11 15.98 12.61 15.42 13.73 14.44L14.02 14.72V15.52L18.98 20.48L20.48 18.98L15.52 14.02ZM9.52 14.02C7.03 14.02 5.02 12 5.02 9.52C5.02 7.03 7.03 5.02 9.52 5.02C12 5.02 14.02 7.03 14.02 9.52C14.02 12 12 14.02 9.52 14.02Z"></path></svg></div>
+                  <div style="font-size: 13px; font-weight: 500;">没有找到相关对话</div>
+                  <div style="font-size: 12px; color: var(--meta);">换个关键词再试</div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">10</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">倾向卡片</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">个人分析中的一条倾向：出现频率、代表性发言和相反表述。</div>
+      <div class="src-tag">Beautiful UI · Recommendation Card</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>卡片内边距 12dp；标题 15sp/600；正文 13.5sp、行高 1.625，内嵌数量胶囊（高 20dp，12sp/500，同色 28% 描边）</dd>
+        <dt>信号</dt><dd>3 根 4×10dp 等高竖条，间距 2dp。反复出现：3 根绿色；多次出现：2 根琥珀色；偶尔提及：0 根。颜色 300ms 过渡</dd>
+        <dt>抽屉</dt><dd>「相反表述」「查看依据」切换同一个抽屉，grid 行高 300ms ease-link。原组件的「接受」改为查看依据，没有提交状态</dd>
+        <dt>内容规则</dt><dd>区分反复出现与偶尔表达，有相反表述时同时展示；敏感属性只整理本人明确表达</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: inline-flex; align-self: flex-start; padding: 2px; border-radius: 999px; background: var(--surface-2); box-shadow: var(--shadow-hairline);">
+        <sc-for list="{{ tend.variants }}" as="v" hint-placeholder-count="3">
+          <div class="tap" onClick="{{ v.pick }}" style="padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; color: {{ v.fg }}; background: {{ v.bg }}; box-shadow: {{ v.sh }}; transition: background-color 150ms ease-out, color 150ms ease-out;">{{ v.label }}</div>
+        </sc-for>
+      </div>
+      <div class="demos">
+        <div class="demo">
+          <div style="border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-card); overflow: hidden;">
+            <div style="padding: 12px;">
+              <div style="font-size: 15px; line-height: 21px; font-weight: 600;">对就业前景偏悲观</div>
+              <div style="margin-top: 6px; font-size: 13.5px; line-height: 1.625; color: var(--fg-2);">涉及找工作、裁员和进厂的发言有<span style="display: inline-flex; align-items: center; height: 20px; padding: 0 6px; margin: 0 2px; border-radius: 999px; font-size: 12px; font-weight: 500; color: {{ tend.fg }}; background: {{ tend.bg }}; box-shadow: {{ tend.ring }}; vertical-align: 1px;">{{ tend.count }}</span>，普遍认为机会在减少。</div>
+            </div>
+            <div class="collapse {{ tend.drawerOpen }}" style="transition-timing-function: var(--ease-link);">
+              <div>
+                <div style="border-top: 1px solid var(--divider); padding: 8px;">
+                  <div style="padding: 0 6px 4px; font-size: 11.5px; font-weight: 500; color: var(--meta);">{{ tend.drawerTitle }}</div>
+                  <div class="tap rowpress" style="display: flex; gap: 10px; padding: 8px 6px; border-radius: 8px;">
+                    <div style="flex: none; width: 3px; border-radius: 2px; background: {{ tend.bar }};"></div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 13.5px; line-height: 21px;">「{{ tend.quote }}」</div>
+                      <div style="margin-top: 3px; font-size: 11.5px; color: var(--meta);">{{ tend.quoteMeta }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px; padding-left: 2px;">
+                <div class="meter"><i style="background: {{ tend.b1 }};"></i><i style="background: {{ tend.b2 }};"></i><i style="background: {{ tend.b3 }};"></i></div>
+                <span style="font-size: 12.5px; font-weight: 500; color: var(--fg-2);">{{ tend.label }}</span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <div class="btn btn-secondary tap" onClick="{{ tend.toggleCounter }}" style="height: 32px; padding: 0 10px; font-size: 12.5px; background: {{ tend.counterBg }};">相反表述 1</div>
+                <div class="btn btn-primary tap" onClick="{{ tend.toggleEvidence }}" style="height: 32px; padding: 0 12px; font-size: 12.5px;">{{ tend.evidenceLabel }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">11</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">状态卡</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">由 App 渲染、不调用模型的异常与恢复状态，出现在对应对话里，不用短暂 Toast。</div>
+      <div class="src-tag">NG2 · 按开销与异常处理方案</div>
+      <dl class="spec">
+        <dt>结构</dt><dd>卡片圆角 12dp、card 阴影、fade-up 380ms。18dp 图标 + 13.5sp 说明，底部右对齐按钮（高 34dp）</dd>
+        <dt>写法</dt><dd>先说发生了什么，再说保留了什么、继续会怎样。不暴露堆栈、Key 或正文日志</dd>
+        <dt>颜色</dt><dd>需要处理的错误用 danger；额度与不确定状态用 accent；外部搜索不可用用 accent 底色通知条</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: grid; grid-template-columns: repeat(2, 358px); gap: 16px 28px;">
+        <sc-for list="{{ states }}" as="c" hint-placeholder-count="6">
+          <div style="border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-card);">
+            <div style="display: flex; gap: 9px; padding: 12px 12px 4px;">
+              <span style="color: {{ c.fg }}; margin-top: 1px;"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="{{ c.icon }}"></path></svg></span>
+              <div style="flex: 1;">
+                <div style="font-size: 14px; line-height: 20px; font-weight: 600;">{{ c.title }}</div>
+                <div style="margin-top: 2px; font-size: 13.5px; line-height: 21px; color: var(--fg-2); text-wrap: pretty;">{{ c.text }}</div>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 6px; padding: 10px;">
+              <sc-if value="{{ c.hasSecondary }}" hint-placeholder-val="{{ false }}"><div class="btn btn-ghost btn-s tap">{{ c.secondary }}</div></sc-if>
+              <div class="btn btn-primary btn-s tap">{{ c.primary }}</div>
+            </div>
+          </div>
+        </sc-for>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="padding: 10px 12px; border-radius: 12px; background: var(--accent-c); display: flex; gap: 9px;">
+            <span style="color: var(--accent); margin-top: 1px;"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 11.02 23.02 9C19.27 5.25 14.11 3.84 9.28 4.69L11.86 7.27C15.19 7.27 18.47 8.48 21 11.02ZM18.98 12.98C17.91 11.91 16.64 11.16 15.28 10.69L18.28 13.69L18.98 12.98ZM9 17.02 12 20.02 15 17.02C13.36 15.33 10.64 15.33 9 17.02ZM3.42 1.64 2.02 3.05 5.06 6.09C3.61 6.84 2.2 7.78 0.98 9L3 11.02C4.22 9.75 5.67 8.86 7.17 8.2L9.42 10.45C7.78 10.88 6.28 11.72 5.02 12.98L6.98 15C8.34 13.64 10.12 12.94 11.91 12.94L18.98 20.02L20.39 18.61L3.42 1.64Z"></path></svg></span>
+            <div style="flex: 1; font-size: 13.5px; line-height: 21px;">外部搜索暂时不可用。本次回答仅依据论坛中已读取的内容，外部事实核查尚未完成。</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="height: 22px; padding: 0 8px 0 6px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--fg-2); background: var(--surface-2);"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M15.98 8.02V15.98H8.02V8.02H15.98ZM18 6H6V18H18V6Z"></path></svg>已停止</span>
+            <span style="font-size: 12px; color: var(--meta);">已保留生成的文字，标记为未完成</span>
+            <div class="btn btn-quiet tap" style="margin-left: auto; height: 32px; padding: 0 10px; font-size: 13px; color: var(--primary); font-weight: 600;">重新生成</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">12</div>
+      <div style="font-size: 18px; font-weight: 600; margin-top: 4px;">半屏、全屏与收起</div>
+      <div style="font-size: 13px; line-height: 20px; color: var(--fg-2); margin-top: 6px;">从内容进入时先开半屏以便对照原文；从历史进入直接全屏。</div>
+      <div class="src-tag">NG2 · 按需求补充</div>
+      <dl class="spec">
+        <dt>吸附</dt><dd>半屏顶边 332dp（844dp 高度下约 39%），全屏 0。拖动松手：顶边小于 170dp 进全屏，大于 560dp 收起，其余回半屏。点把手在半屏与全屏间切换</dd>
+        <dt>动效</dt><dd>打开从底部滑入 380ms；吸附 top 与圆角 340ms ease-out-strong；拖动中无过渡。全屏时顶部圆角变为 0</dd>
+        <dt>收起</dt><dd>请求继续进行，底部显示 48dp 胶囊（rise 220ms）。点胶囊回到半屏。重新从内容入口发起时新建对话</dd>
+        <dt>标题栏</dt><dd>16dp 把手区 + 46dp 标题行：AI 助手 · 当前入口范围；历史、全屏切换、收起三个 40dp 按钮（圆角 10dp，图标切换 pop-in 200ms）</dd>
+      </dl>
+    </div>
+    <div class="stage">
+      <div style="display: flex; gap: 28px; align-items: flex-end;">
+        <sc-for list="{{ snaps }}" as="p" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+            <div style="position: relative; width: 180px; height: 390px; border-radius: 18px; overflow: hidden; background: var(--bg); box-shadow: var(--shadow-card);">
+              <div style="height: 34px; background: var(--topbar);"></div>
+              <div style="padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="height: 8px; width: 70%; border-radius: 4px; background: var(--track);"></div>
+                <div style="height: 8px; width: 90%; border-radius: 4px; background: var(--divider);"></div>
+                <div style="height: 8px; width: 80%; border-radius: 4px; background: var(--divider);"></div>
+                <div style="height: 8px; width: 60%; border-radius: 4px; background: var(--divider);"></div>
+              </div>
+              <sc-if value="{{ p.hasSheet }}" hint-placeholder-val="{{ true }}">
+                <div style="position: absolute; left: 0; right: 0; bottom: 0; top: {{ p.top }}; border-radius: {{ p.radius }}; background: var(--surface); box-shadow: 0 -1px 0 var(--divider), 0 -6px 16px rgba(40, 32, 12, .12); padding: 6px 10px;">
+                  <div style="width: 22px; height: 3px; border-radius: 2px; background: var(--track); margin: 0 auto 8px;"></div>
+                  <div style="height: 8px; width: 40%; border-radius: 4px; background: var(--primary-c);"></div>
+                  <div style="height: 30px; border-radius: 6px; background: var(--bg); box-shadow: var(--shadow-hairline); margin-top: 8px;"></div>
+                  <div style="position: absolute; left: 10px; right: 10px; bottom: 10px; height: 22px; border-radius: 7px; background: var(--bg); box-shadow: var(--shadow-hairline);"></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ p.hasPill }}" hint-placeholder-val="{{ false }}">
+                <div style="position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); height: 24px; padding: 0 10px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-overlay); display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                  <div class="px" style="color: var(--fg); transform: scale(.7);"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                  <span style="font-size: 10px;">正在生成回答</span>
+                </div>
+              </sc-if>
+            </div>
+            <div style="font-size: 12.5px; font-weight: 500;">{{ p.label }}</div>
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--meta);">{{ p.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 36px 48px 56px;">
+    <div style="font-size: 15px; font-weight: 600;">未采用的 Beautiful UI 组件</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 32px; margin-top: 12px; font-size: 13px; line-height: 20px;">
+      <sc-for list="{{ skipped }}" as="k" hint-placeholder-count="6">
+        <div style="display: flex; gap: 10px;"><span style="flex: none; font-family: var(--mono); font-size: 11.5px; color: var(--fg); width: 132px;">{{ k.name }}</span><span style="color: var(--fg-2);">{{ k.why }}</span></div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1280,"height":7200}}'>
+const IC = {"language":"M12 2.02C6.47 2.02 2.02 6.47 2.02 12C2.02 17.53 6.47 21.98 12 21.98C17.53 21.98 21.98 17.53 21.98 12C21.98 6.47 17.53 2.02 12 2.02ZM18.94 8.02H15.98C15.66 6.75 15.19 5.53 14.58 4.45C16.45 5.06 17.95 6.33 18.94 8.02ZM12 4.03C12.84 5.25 13.5 6.56 13.92 8.02H10.08C10.5 6.56 11.16 5.25 12 4.03ZM4.27 14.02C4.08 13.36 3.98 12.7 3.98 12C3.98 11.3 4.08 10.64 4.27 9.98H7.64C7.55 10.64 7.5 11.3 7.5 12C7.5 12.7 7.55 13.36 7.64 14.02H4.27ZM5.06 15.98H8.02C8.34 17.25 8.81 18.47 9.42 19.55C7.55 18.94 6.05 17.67 5.06 15.98ZM8.02 8.02H5.06C6.05 6.33 7.55 5.06 9.42 4.45C8.81 5.53 8.34 6.75 8.02 8.02ZM12 19.97C11.16 18.75 10.5 17.44 10.08 15.98H13.92C13.5 17.44 12.84 18.75 12 19.97ZM14.34 14.02H9.66C9.56 13.36 9.52 12.7 9.52 12C9.52 11.3 9.56 10.64 9.66 9.98H14.34C14.44 10.64 14.48 11.3 14.48 12C14.48 12.7 14.44 13.36 14.34 14.02ZM14.58 19.55C15.19 18.47 15.66 17.25 15.98 15.98H18.94C17.95 17.67 16.45 18.94 14.58 19.55ZM16.36 14.02C16.45 13.36 16.5 12.7 16.5 12C16.5 11.3 16.45 10.64 16.36 9.98H19.73C19.92 10.64 20.02 11.3 20.02 12C20.02 12.7 19.92 13.36 19.73 14.02H16.36Z","key":"M21 9.98H12.66C11.81 7.69 9.61 6 6.98 6C3.7 6 0.98 8.67 0.98 12C0.98 15.33 3.7 18 6.98 18C9.61 18 11.81 16.31 12.66 14.02H12.98L15 15.98L17.02 14.02L18.98 15.98L23.02 11.95L21 9.98ZM6.98 15C5.34 15 3.98 13.64 3.98 12C3.98 10.36 5.34 9 6.98 9C8.67 9 9.98 10.36 9.98 12C9.98 13.64 8.67 15 6.98 15Z","fact_check":"M20.02 3H3.98C2.91 3 2.02 3.89 2.02 5.02V18.98C2.02 20.11 2.91 21 3.98 21H20.02C21.09 21 21.98 20.11 21.98 18.98V5.02C21.98 3.89 21.09 3 20.02 3ZM20.02 18.98H3.98V5.02H20.02V18.98ZM19.41 10.41 18 9 14.81 12.19 13.41 10.73 12 12.14 14.81 15 19.41 10.41ZM5.02 6.98H9.98V9H5.02V6.98ZM5.02 11.02H9.98V12.98H5.02V11.02ZM5.02 15H9.98V17.02H5.02V15Z","psychology":"M15.8 7.22 14.81 7.64C14.62 7.45 14.39 7.31 14.16 7.22L14.02 6.19C13.97 6.05 13.92 6 13.78 6H12.19C12.09 6 12 6.05 12 6.19L11.86 7.22C11.62 7.31 11.39 7.45 11.2 7.64L10.17 7.22C10.08 7.17 9.98 7.22 9.94 7.31L9.14 8.67C9.09 8.77 9.14 8.91 9.19 8.95L10.03 9.61C10.03 9.75 9.98 9.89 9.98 9.98C9.98 10.12 10.03 10.27 10.03 10.41L9.19 11.06C9.09 11.11 9.09 11.2 9.14 11.3L9.94 12.7C9.98 12.8 10.08 12.8 10.17 12.8L11.2 12.38C11.39 12.56 11.62 12.66 11.86 12.75L12 13.83C12 13.92 12.09 14.02 12.19 14.02H13.78C13.92 14.02 13.97 13.92 14.02 13.83L14.16 12.75C14.39 12.66 14.62 12.56 14.81 12.38L15.8 12.8C15.89 12.8 16.03 12.8 16.03 12.7L16.83 11.3C16.92 11.2 16.88 11.11 16.78 11.06L15.98 10.41C15.98 10.27 15.98 10.12 15.98 9.98C15.98 9.84 15.98 9.75 15.98 9.61L16.83 8.95C16.92 8.91 16.92 8.77 16.88 8.67L16.08 7.31C16.03 7.22 15.89 7.17 15.8 7.22ZM12.98 11.44C12.19 11.44 11.58 10.78 11.58 9.98C11.58 9.19 12.19 8.58 12.98 8.58C13.78 8.58 14.44 9.19 14.44 9.98C14.44 10.78 13.78 11.44 12.98 11.44ZM19.92 9.05C19.5 5.81 16.69 3.19 13.41 3C13.27 3 13.12 3 12.98 3C9.47 3 6.56 5.62 6.09 9L4.17 12.47C3.75 13.12 4.22 14.02 5.02 14.02H6V15.98C6 17.11 6.89 18 8.02 18H9V21H15.98V16.31C18.61 15.05 20.34 12.23 19.92 9.05ZM14.91 14.62 14.02 15.05V18.98H11.02V15.98H8.02V12H6.7L8.02 9.66C8.2 7.08 10.36 5.02 12.98 5.02C15.75 5.02 18 7.22 18 9.98C18 12.09 16.69 13.88 14.91 14.62Z","travel_explore":"M19.31 16.92C19.69 16.22 20.02 15.42 20.02 14.48C20.02 12 18 9.98 15.52 9.98C12.98 9.98 11.02 12 11.02 14.48C11.02 17.02 12.98 18.98 15.52 18.98C16.41 18.98 17.2 18.7 17.91 18.28L21.09 21.52L22.5 20.11L19.31 16.92ZM15.52 17.02C14.11 17.02 12.98 15.89 12.98 14.48C12.98 13.08 14.11 12 15.52 12C16.92 12 18 13.08 18 14.48C18 15.89 16.92 17.02 15.52 17.02ZM12 20.02V21.98C6.47 21.98 2.02 17.53 2.02 12C2.02 6.47 6.47 2.02 12 2.02C16.83 2.02 20.86 5.44 21.8 9.98H19.73C19.08 7.55 17.34 5.53 15 4.59V5.02C15 6.09 14.11 6.98 12.98 6.98H11.02V9C11.02 9.56 10.55 9.98 9.98 9.98H8.02V12H9.98V15H9L4.22 10.22C4.08 10.78 3.98 11.39 3.98 12C3.98 16.41 7.59 20.02 12 20.02Z","search":"M15.52 14.02H14.72L14.44 13.73C15.42 12.61 15.98 11.11 15.98 9.52C15.98 5.91 13.08 3 9.52 3C5.91 3 3 5.91 3 9.52C3 13.08 5.91 15.98 9.52 15.98C11.11 15.98 12.61 15.42 13.73 14.44L14.02 14.72V15.52L18.98 20.48L20.48 18.98L15.52 14.02ZM9.52 14.02C7.03 14.02 5.02 12 5.02 9.52C5.02 7.03 7.03 5.02 9.52 5.02C12 5.02 14.02 7.03 14.02 9.52C14.02 12 12 14.02 9.52 14.02Z","article":"M18.98 5.02V18.98H5.02V5.02H18.98ZM18.98 3H5.02C3.89 3 3 3.89 3 5.02V18.98C3 20.11 3.89 21 5.02 21H18.98C20.11 21 21 20.11 21 18.98V5.02C21 3.89 20.11 3 18.98 3ZM14.02 17.02H6.98V15H14.02V17.02ZM17.02 12.98H6.98V11.02H17.02V12.98ZM17.02 9H6.98V6.98H17.02V9Z","link":"M17.02 6.98H12.98V9H17.02C18.66 9 20.02 10.36 20.02 12C20.02 13.64 18.66 15 17.02 15H12.98V17.02H17.02C19.78 17.02 21.98 14.77 21.98 12C21.98 9.23 19.78 6.98 17.02 6.98ZM11.02 15H6.98C5.34 15 3.98 13.64 3.98 12C3.98 10.36 5.34 9 6.98 9H11.02V6.98H6.98C4.22 6.98 2.02 9.23 2.02 12C2.02 14.77 4.22 17.02 6.98 17.02H11.02V15ZM8.02 11.02H15.98V12.98H8.02V11.02Z","savings":"M15 9.98C15 9.47 15.47 9 15.98 9C16.55 9 17.02 9.47 17.02 9.98C17.02 10.55 16.55 11.02 15.98 11.02C15.47 11.02 15 10.55 15 9.98ZM8.02 9H12.98V6.98H8.02V9ZM21.98 7.5V14.48L19.17 15.42L17.48 21H12V18.98H9.98V21H4.5C4.5 21 2.02 12.56 2.02 9.52C2.02 6.47 4.45 3.98 7.5 3.98H12.52C13.41 2.81 14.86 2.02 16.5 2.02C17.34 2.02 18 2.67 18 3.52C18 3.7 17.95 3.89 17.86 4.08C17.72 4.41 17.62 4.83 17.58 5.25L19.83 7.5H21.98ZM20.02 9.52H18.98L15.52 6C15.52 5.34 15.61 4.69 15.75 4.08C14.81 4.36 14.02 5.06 13.69 6H7.5C5.58 6 3.98 7.55 3.98 9.52C3.98 11.39 5.2 16.17 6 18.98H8.02V17.02H14.02V18.98H16.03L17.58 13.83L20.02 13.03V9.52Z","compare_arrows":"M9 14.02H2.02V15.98H9V18.98L12.98 15L9 11.02V14.02ZM15 12.98V9.98H21.98V8.02H15V5.02L11.02 9L15 12.98Z","sync_problem":"M3 12C3 14.2 3.89 16.22 5.34 17.62L3 20.02H9V14.02L6.75 16.22C5.67 15.14 5.02 13.64 5.02 12C5.02 9.38 6.66 7.17 9 6.33V4.27C5.53 5.16 3 8.25 3 12ZM11.02 17.02H12.98V15H11.02V17.02ZM21 3.98H15V9.98L17.25 7.78C18.33 8.86 18.98 10.36 18.98 12C18.98 14.62 17.34 16.83 15 17.67V19.73C18.47 18.84 21 15.75 21 12C21 9.8 20.11 7.78 18.66 6.38L21 3.98ZM11.02 12.98H12.98V6.98H11.02V12.98Z","pending":"M12 2.02C6.47 2.02 2.02 6.47 2.02 12C2.02 17.53 6.47 21.98 12 21.98C17.53 21.98 21.98 17.53 21.98 12C21.98 6.47 17.53 2.02 12 2.02ZM12 20.02C7.59 20.02 3.98 16.41 3.98 12C3.98 7.59 7.59 3.98 12 3.98C16.41 3.98 20.02 7.59 20.02 12C20.02 16.41 16.41 20.02 12 20.02ZM5.48 12C5.48 11.16 6.19 10.5 6.98 10.5C7.83 10.5 8.48 11.16 8.48 12C8.48 12.84 7.83 13.5 6.98 13.5C6.19 13.5 5.48 12.84 5.48 12ZM10.5 12C10.5 11.16 11.16 10.5 12 10.5C12.84 10.5 13.5 11.16 13.5 12C13.5 12.84 12.84 13.5 12 13.5C11.16 13.5 10.5 12.84 10.5 12ZM15.52 12C15.52 11.16 16.17 10.5 17.02 10.5C17.81 10.5 18.52 11.16 18.52 12C18.52 12.84 17.81 13.5 17.02 13.5C16.17 13.5 15.52 12.84 15.52 12Z","help_outline":"M11.02 18H12.98V15.98H11.02V18ZM12 2.02C6.47 2.02 2.02 6.47 2.02 12C2.02 17.53 6.47 21.98 12 21.98C17.53 21.98 21.98 17.53 21.98 12C21.98 6.47 17.53 2.02 12 2.02ZM12 20.02C7.59 20.02 3.98 16.41 3.98 12C3.98 7.59 7.59 3.98 12 3.98C16.41 3.98 20.02 7.59 20.02 12C20.02 16.41 16.41 20.02 12 20.02ZM12 6C9.8 6 8.02 7.78 8.02 9.98H9.98C9.98 8.91 10.92 8.02 12 8.02C13.08 8.02 14.02 8.91 14.02 9.98C14.02 12 11.02 11.77 11.02 15H12.98C12.98 12.75 15.98 12.52 15.98 9.98C15.98 7.78 14.2 6 12 6Z","save":"M17.02 3H5.02C3.89 3 3 3.89 3 5.02V18.98C3 20.11 3.89 21 5.02 21H18.98C20.11 21 21 20.11 21 18.98V6.98L17.02 3ZM18.98 18.98H5.02V5.02H16.17L18.98 7.83V18.98ZM12 12C10.36 12 9 13.36 9 15C9 16.64 10.36 18 12 18C13.64 18 15 16.64 15 15C15 13.36 13.64 12 12 12ZM6 6H15V9.98H6V6Z","restart_alt":"M6 12.98C6 11.34 6.66 9.84 7.78 8.77L6.33 7.36C4.92 8.81 3.98 10.78 3.98 12.98C3.98 17.06 7.03 20.44 11.02 20.95V18.89C8.16 18.42 6 15.98 6 12.98ZM20.02 12.98C20.02 8.58 16.41 5.02 12 5.02C11.95 5.02 11.86 5.02 11.81 5.02L12.89 3.94L11.48 2.48L8.02 6L11.48 9.52L12.89 8.11L11.81 7.03C11.91 7.03 11.95 6.98 12 6.98C15.33 6.98 18 9.7 18 12.98C18 15.98 15.84 18.42 12.98 18.89V20.95C16.97 20.44 20.02 17.06 20.02 12.98Z"};
+const BUBBLE = 'M4 4h16v12H9.5L4 20.5z';
+const T = (s) => ({ t: s });
+const C = (label, web) => ({ c: label, web });
+const STREAM = [T('楼中讨论集中在收入分层、客流和外贸订单三类看法'), C('1 楼'), T('，时间点多指向 2023 年下半年'), C('7 楼'), T('。官方月度零售数据可以核对这个时间点'), C('stats.gov.cn', true), T('，但体感还受收入和价格影响。')];
+const STREAM_LEN = STREAM.reduce((n, g) => n + (g.t ? g.t.length : 1), 0);
+const QUICK = [['fact', '事实核查', 'fact_check', '提取可核查的说法，查找来源并说明证据状态'], ['critical', '批判性思考', 'psychology', '检查前提、证据、推理和遗漏条件'], ['split', '梳理分歧', 'compare_arrows', '各方主张、共识，以及分歧的类型'], ['background', '补充背景', 'travel_explore', '联网查找讨论涉及的背景资料']];
+const HISTORY = ['消费体感变差从什么时候开始', '外贸订单腰斩的说法是否可靠', '通缩对谁有利：2 楼与 1 楼的分歧', '阴阳师妄想 的发言倾向', '网事杂谈最近在讨论什么', '显卡降价潮是否已经结束', '这条攻略里的掉率数据出处'];
+
+class Component extends DCLogic {
+  state = {
+    now: 0, loadT0: 0,
+    thinkT0: 0, thinkVar: 'think', thinkOpen: null,
+    streamT0: 0, srcOpen: false,
+    toolsT0: 0, toolsOpen: null, toolOpen: {},
+    taskT0: 0, taskVar: 'list', taskOpen: {},
+    draft: '', menu: false, menuIdx: 0, menuNav: false, supp: false, busy: false, log: '',
+    apChoice: null, apState: 'open',
+    ctxVar: 'floor',
+    q: '',
+    tendVar: 'high', drawer: 'counter'
+  };
+
+  componentDidMount() {
+    this.t0 = Date.now();
+    this.timer = setInterval(() => {
+      const now = Date.now() - this.t0;
+      const patch = { now };
+      const e = now - this.state.streamT0;
+      if (Math.floor(e / 55) * 2 >= STREAM_LEN && e - Math.ceil(STREAM_LEN / 2) * 55 > 3400) Object.assign(patch, { streamT0: now, srcOpen: false });
+      this.setState(patch);
+    }, 55);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  variants(list, cur, key) {
+    return list.map(([id, label]) => ({
+      label, fg: id === cur ? 'var(--fg)' : 'var(--meta)', bg: id === cur ? 'var(--surface)' : 'transparent', sh: id === cur ? 'var(--shadow-btn)' : 'none',
+      pick: () => this.setState({ [key]: id, ...(key === 'thinkVar' ? { thinkT0: this.state.now, thinkOpen: null } : {}), ...(key === 'taskVar' ? { taskOpen: {} } : {}) })
+    }));
+  }
+
+  fmt(ms) {
+    const s = ms / 1000;
+    return s < 60 ? s.toFixed(1) + 's' : Math.floor(s / 60) + 'm ' + (s % 60).toFixed(1) + 's';
+  }
+
+  renderThink() {
+    const s = this.state;
+    const e = s.now - s.thinkT0;
+    const m = e < 800 ? 0 : e < 1400 ? 1 : e < 3200 ? 2 : e < 5800 ? 3 : 4;
+    const active = m < 3;
+    const open = s.thinkOpen != null ? s.thinkOpen : m >= 1 && m < 4;
+    const v = s.thinkVar;
+    let rows = [];
+    if (v === 'think') rows = ['楼主问的是消费体感从何时开始变化。', '回复里有收入分层、客流和外贸订单三类依据，都是个人观察，没有数据。', '9 楼被屏蔽，回答里要说明未计入。'].map((text) => ({ text, hasLead: false, size: '13px', weight: 400, lh: 1.625, fg: 'var(--fg-2)', align: 'flex-start', hasSub: false }));
+    if (v === 'read') rows = [['读取主楼与第 1 页', '20 楼'], ['读取热门回复', '3 条'], ['带入图片', '3 楼 · 图 1'], ['整理引用关系', '5 处']].map(([text, sub]) => ({ text, sub, hasLead: true, check: true, size: '13px', weight: 500, lh: '19px', fg: 'var(--fg)', align: 'center', hasSub: true, subFont: 'var(--font)' }));
+    if (v === 'search') rows = [['月度社会消费品零售数据发布', 'stats.gov.cn', '#0F5D53'], ['居民消费价格指数说明', 'stats.gov.cn', '#7E5A3E'], ['海关统计数据在线查询', 'customs.gov.cn', '#3E5A7E']].map(([text, sub, favBg]) => ({ text, sub, favBg, hasLead: true, fav: true, size: '13px', weight: 500, lh: '19px', fg: 'var(--fg)', align: 'center', hasSub: true, subFont: 'var(--mono)', cls: 'rowpress tap' }));
+    const shown = m < 2 ? 0 : m < 3 ? 2 : rows.length;
+    rows = rows.slice(0, shown).map((r, i, arr) => ({ cls: '', spin: false, check: false, fav: false, ...r, delay: (120 * i) + 'ms' }));
+    if (v === 'read' && active && rows.length) { rows[rows.length - 1].spin = true; rows[rows.length - 1].check = false; }
+    const labels = { think: ['正在思考', '已思考 4 秒'], read: ['正在读取', '已读取 4 项'], search: ['正在搜索网页', '已搜索网页'] }[v];
+    return {
+      variants: this.variants([['think', '思考'], ['read', '读取'], ['search', '搜索']], v, 'thinkVar'),
+      replay: () => this.setState({ thinkT0: s.now, thinkOpen: null }),
+      active, done: !active, activeLabel: labels[0], doneLabel: labels[1],
+      sparkFg: active ? 'var(--fg-2)' : 'var(--meta)',
+      open: open ? 'open' : '', chev: open ? 'open' : '',
+      toggle: () => this.setState({ thinkOpen: !open }),
+      isSearch: v === 'search' && m >= 2, rows, more: v === 'search' && m >= 3
+    };
+  }
+
+  renderStream() {
+    const s = this.state;
+    const e = s.now - s.streamT0;
+    const chars = Math.min(STREAM_LEN, Math.floor(e / 55) * 2);
+    const done = chars >= STREAM_LEN;
+    const segs = [];
+    let left = chars;
+    for (const g of STREAM) {
+      if (left <= 0) break;
+      if (g.t) { const take = Math.min(g.t.length, left); left -= take; segs.push({ text: g.t.slice(0, take), isCite: false, caret: false }); }
+      else { left -= 1; segs.push({ text: '', isCite: true, caret: false, label: g.c, favBg: g.web ? '#57534A' : 'var(--primary)', favIcon: g.web ? IC.language : BUBBLE }); }
+    }
+    if (!done && segs.length) segs[segs.length - 1].caret = true;
+    return {
+      segs, done, footOp: done ? 1 : 0, footPe: done ? 'auto' : 'none',
+      replay: () => this.setState({ streamT0: s.now, srcOpen: false }),
+      srcOpen: done && s.srcOpen ? 'open' : '',
+      toggleSrc: () => this.setState({ srcOpen: !s.srcOpen }),
+      sources: [
+        { bg: '#7E5A3E', icon: BUBBLE, title: '1 楼 · Invisibl', meta: '08-06 22:25', font: 'var(--font)' },
+        { bg: '#5A6E3E', icon: BUBBLE, title: '7 楼 · 夜航船', meta: '08-06 23:02', font: 'var(--font)' },
+        { bg: '#57534A', icon: IC.language, title: '月度社会消费品零售数据发布', meta: 'stats.gov.cn', font: 'var(--mono)' }
+      ]
+    };
+  }
+
+  renderTools() {
+    const s = this.state;
+    const e = s.now - s.toolsT0;
+    const defs = [
+      ['article', '读取主题页', '第 2 页', false, false, ['20 楼，没有新的可核查说法']],
+      ['travel_explore', '搜索网页', '社会消费品零售 月度数据', false, false, ['月度社会消费品零售数据发布 · stats.gov.cn', '另有 9 条结果']],
+      ['language', '读取网页', 'stats.gov.cn', true, false, ['正文 3,420 字']],
+      ['travel_explore', '搜索网页', '出口 统计 月度', false, true, ['搜索页返回人机验证，不计为零结果', '未改用付费搜索服务']]
+    ];
+    const count = Math.min(defs.length, Math.floor(e / 700));
+    const settled = e >= 3500;
+    const open = s.toolsOpen != null ? s.toolsOpen : true;
+    return {
+      replay: () => this.setState({ toolsT0: s.now, toolsOpen: null, toolOpen: {} }),
+      label: count + ' 次工具调用' + (count === 4 && settled ? '，1 次失败' : ''),
+      open: open ? 'open' : '', chev: open ? 'open' : '',
+      toggle: () => this.setState({ toolsOpen: !open }),
+      rows: defs.slice(0, count).map(([icon, label, arg, mono, fail, lines], i) => {
+        const live = !settled && i === count - 1;
+        const rowOpen = !!s.toolOpen[i];
+        const bad = fail && !live;
+        return {
+          icon: IC[icon], label, arg, lines: live ? [] : lines,
+          font: mono ? 'var(--mono)' : 'var(--font)', labelCls: live ? 'shimmer' : '',
+          chipFg: bad ? 'var(--danger)' : 'var(--fg-2)', chipBg: bad ? 'var(--danger-c)' : 'var(--surface-2)',
+          iconFg: bad ? 'var(--danger)' : 'var(--meta)', lineFg: bad ? 'var(--danger)' : 'var(--fg-2)',
+          iconOp: rowOpen ? 0 : 1, chevOp: rowOpen ? 1 : 0, chev: rowOpen ? 'open' : '', open: rowOpen ? 'open' : '',
+          toggle: () => this.setState({ toolOpen: { ...s.toolOpen, [i]: !rowOpen } })
+        };
+      }),
+      pages: settled
+    };
+  }
+
+  renderTask() {
+    const s = this.state;
+    const e = s.now - s.taskT0;
+    const f = e < 600 ? 0 : e < 1500 ? 1 : e < 3900 ? 2 : e < 5300 ? 3 : e < 7700 ? 4 : 5;
+    const caps = s.taskVar === 'caps';
+    const st3 = f < 3 ? 'pending' : f === 3 ? 'fail' : 'done';
+    const defs = [
+      ['读取主楼与第 1 页', '20 楼', 'done', []],
+      ['读取回复链', '4 层', 'run', [['1 楼', '已读'], ['2 楼', '已读'], ['5 楼', '读取中']]],
+      ['读取图片', '1 张', st3, [['3 楼 · 图 1', st3 === 'done' ? '1.2 MB' : st3 === 'fail' ? '超时，重试中' : '等待']]]
+    ];
+    return {
+      variants: this.variants([['list', '列表'], ['caps', '胶囊']], s.taskVar, 'taskVar'),
+      replay: () => this.setState({ taskT0: s.now, taskOpen: {} }),
+      gap: caps ? '8px' : '0px',
+      wrapRadius: caps ? '0px' : '12px', wrapBg: caps ? 'transparent' : 'var(--surface)', wrapShadow: caps ? 'none' : 'var(--shadow-card)',
+      rows: defs.map(([label, amount, st, details], i) => {
+        const auto = i === 1 && f === 2;
+        const open = s.taskOpen[i] != null ? s.taskOpen[i] : auto;
+        const pill = st === 'done' ? '完成' : st === 'fail' ? '失败' : '';
+        return {
+          n: i + 1, label, amount,
+          isDone: st === 'done', isFail: st === 'fail', isRun: st === 'run', isPending: st === 'pending',
+          hasPill: !!pill, pill,
+          pillFg: st === 'fail' ? 'var(--danger)' : 'var(--green)', pillBg: st === 'fail' ? 'var(--danger-c)' : 'var(--green-c)',
+          radius: caps ? (open ? '14px' : '22px') : '0px',
+          shadow: caps ? 'var(--shadow-card)' : 'none',
+          line: !caps && i < defs.length - 1 ? 'var(--divider)' : 'transparent',
+          open: open ? 'open' : '', chev: open ? 'open' : '',
+          toggle: () => this.setState({ taskOpen: { ...s.taskOpen, [i]: !open } }),
+          details: details.map(([k, v], j) => ({ k, v, delay: (120 + 100 * j) + 'ms' })),
+          delay: (80 * i) + 'ms'
+        };
+      })
+    };
+  }
+
+  renderPrompt() {
+    const s = this.state;
+    const trig = s.draft.match(/(^|\s)\/(\S*)$/);
+    const query = trig ? trig[2] : '';
+    const filtered = QUICK.filter((q) => !query || q[1].startsWith(query));
+    const items = s.menu && !trig ? QUICK : filtered;
+    const menuOpen = !s.busy && ((s.menu && !trig) || (!!trig && !s.supp));
+    const idx = Math.min(s.menuIdx, Math.max(0, items.length - 1));
+    const lines = Math.min(4, Math.max(1, s.draft.split('\n').length + Math.floor(s.draft.length / 17)));
+    const run = (q) => () => this.setState({ draft: '', menu: false, supp: false, busy: true, log: '已发送快捷操作「' + q[1] + '」' });
+    return {
+      menuOpen, query, empty: items.length === 0,
+      items: items.map((q, i) => ({ label: q[1], desc: q[3], icon: IC[q[2]], run: run(q), bg: s.menuNav && i === idx ? 'var(--surface-2)' : 'transparent' })),
+      quick: QUICK.map((q) => ({ label: q[1], icon: IC[q[2]], run: run(q) })),
+      quickCls: s.busy ? 'disabled' : '',
+      toggleMenu: () => this.setState({ menu: !s.menu, menuIdx: 0, menuNav: false }),
+      slashFg: menuOpen ? 'var(--fg)' : 'var(--meta)', slashBg: menuOpen ? 'var(--surface-2)' : 'transparent',
+      radius: lines > 1 ? '22px' : '14px', taHeight: (20 * lines + 16) + 'px',
+      draft: s.draft, placeholder: s.busy ? '正在回答，可随时停止' : '继续追问，输入 / 使用快捷操作',
+      onInput: (ev) => this.setState({ draft: ev.target.value, menu: false, menuIdx: 0, supp: false }),
+      onKey: (ev) => {
+        if (menuOpen && items.length && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
+          ev.preventDefault();
+          this.setState({ menuIdx: (idx + (ev.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length, menuNav: true });
+          return;
+        }
+        if (menuOpen && items.length && ((ev.key === 'Enter' && !ev.shiftKey) || ev.key === 'Tab')) { ev.preventDefault(); run(QUICK.find((q) => q[1] === items[idx].label) || items[idx])(); return; }
+        if (ev.key === 'Escape') { this.setState({ menu: false, supp: true }); return; }
+        if (ev.key === 'Enter' && !ev.shiftKey && !(ev.nativeEvent && ev.nativeEvent.isComposing)) {
+          ev.preventDefault();
+          if (s.draft.trim() && !s.busy) this.setState({ draft: '', busy: true, log: '已发送：' + s.draft.trim() });
+        }
+      },
+      busy: s.busy, idle: !s.busy,
+      sendBg: s.busy ? 'var(--fg)' : s.draft.trim() ? 'var(--primary)' : 'var(--track)',
+      sendFg: s.busy ? 'var(--bg)' : s.draft.trim() ? '#FFFFFF' : 'var(--fg-2)',
+      send: () => {
+        if (s.busy) this.setState({ busy: false, log: '已停止，保留已生成的文字' });
+        else if (s.draft.trim() && !trig) this.setState({ draft: '', busy: true, log: '已发送：' + s.draft.trim() });
+      },
+      toggleBusy: () => this.setState({ busy: !s.busy, log: '' }),
+      busyLabel: s.busy ? '结束生成' : '模拟生成中',
+      log: s.log
+    };
+  }
+
+  renderApproval() {
+    const s = this.state;
+    return {
+      isOpen: s.apState === 'open', isMin: s.apState === 'min', isSent: s.apState === 'sent',
+      options: [['追加一段额度继续', '再用 US$0.05，计入本对话和今日用量'], ['到此为止', '保留已核查的 2 条，不再产生费用']].map(([label, sub], i) => {
+        const on = s.apChoice === i;
+        return { label, sub, dot: on ? 1 : 0, fill: on ? 'var(--primary)' : 'transparent', ring: on ? 'var(--primary)' : 'var(--track)', fg: on ? 'var(--fg)' : 'var(--fg-2)', pick: () => this.setState({ apChoice: i }) };
+      }),
+      confirmCls: s.apChoice == null ? 'disabled' : '',
+      confirm: () => this.setState({ apState: 'sent' }),
+      dismiss: () => this.setState({ apState: 'min' }),
+      reopen: () => this.setState({ apState: 'open' }),
+      reset: () => this.setState({ apState: 'open', apChoice: null }),
+      sentLabel: s.apChoice === 0 ? '已追加 US$0.05 额度' : '已到此为止，结果已保存'
+    };
+  }
+
+  renderCtx() {
+    const v = this.state.ctxVar;
+    const base = {
+      variants: this.variants([['floor', '论坛原文'], ['web', '站外网页'], ['gone', '已删除'], ['denied', '无权限']], v, 'ctxVar'),
+      isFloor: v === 'floor', isWeb: v === 'web', isGone: v === 'gone' || v === 'denied', actionCls: '', bodyFg: 'var(--fg-2)', stateFg: 'var(--meta)'
+    };
+    if (v === 'floor') return { ...base, heading: '论坛原文', badge: '4 / 6', state: '刚刚重新读取', title: '3 楼 · 留白，嗯', size: '42 字', body: '去年年底我还在做外贸，今年整个行业订单腰斩，这就是体感。附几张我们仓库现在的照片。', action: '跳到 3 楼' };
+    if (v === 'web') return { ...base, heading: '站外来源', badge: '5 / 6', state: '已读正文', title: '月度社会消费品零售数据发布', size: '3,420 字', body: '网页正文摘录：月度数据发布页，包含社会消费品零售总额及分类增速。', action: '打开网页' };
+    if (v === 'gone') return { ...base, heading: '论坛原文', badge: '2 / 6', state: '已删除或不可访问', stateFg: 'var(--danger)', title: '12 楼 · kaze', size: '—', body: '这条发言已被删除或无法访问。回答里的旧引用保持原样，需要引用原句时会重新读取。', bodyFg: 'var(--meta)', coord: 'tid 42800000 · pid 915533', action: '跳到 12 楼', actionCls: 'disabled' };
+    return { ...base, heading: '论坛原文', badge: '3 / 6', state: '当前账号无法查看', stateFg: 'var(--accent)', title: '7 楼 · 夜航船', size: '—', body: '当前账号没有权限查看这条发言。对话历史所有账号共用，切换到有权限的账号后可以预览。', bodyFg: 'var(--meta)', coord: 'tid 42800000 · pid 915210', action: '切换账号', actionCls: '' };
+  }
+
+  renderSearch() {
+    const s = this.state;
+    const q = s.q.trim();
+    const hits = q ? HISTORY.filter((h) => h.includes(q)) : HISTORY.slice(0, 5);
+    return {
+      q: s.q, hasQ: !!s.q,
+      onInput: (ev) => this.setState({ q: ev.target.value }),
+      clear: () => this.setState({ q: '' }),
+      rows: hits.map((h) => {
+        const at = q ? h.indexOf(q) : -1;
+        return { a: at < 0 ? h : h.slice(0, at), m: at < 0 ? '' : q, b: at < 0 ? '' : h.slice(at + q.length), pick: () => this.setState({ q: h }) };
+      }),
+      empty: q.length >= 2 && hits.length === 0
+    };
+  }
+
+  renderTend() {
+    const s = this.state;
+    const tone = {
+      high: { n: 3, c: 'var(--green)', label: '反复出现', count: '23 条', fg: 'var(--green)', bg: 'var(--green-c)', ring: '0 0 0 1px rgba(63, 143, 91, .28)' },
+      some: { n: 2, c: 'var(--accent)', label: '多次出现', count: '9 条', fg: 'var(--accent)', bg: 'var(--accent-c)', ring: '0 0 0 1px rgba(224, 154, 42, .28)' },
+      rare: { n: 0, c: 'var(--meta)', label: '偶尔提及', count: '2 条', fg: 'var(--fg-2)', bg: 'var(--surface-2)', ring: 'var(--shadow-hairline)' }
+    }[s.tendVar];
+    const counter = s.drawer === 'counter';
+    return {
+      variants: this.variants([['high', '反复出现'], ['some', '多次出现'], ['rare', '偶尔提及']], s.tendVar, 'tendVar'),
+      ...tone,
+      b1: tone.n >= 1 ? tone.c : 'var(--track)', b2: tone.n >= 2 ? tone.c : 'var(--track)', b3: tone.n >= 3 ? tone.c : 'var(--track)',
+      drawerOpen: s.drawer ? 'open' : '',
+      drawerTitle: counter ? '相反表述' : '代表性发言',
+      bar: counter ? 'var(--accent)' : 'var(--primary)',
+      quote: counter ? '今年厂里订单回来了，年底应该能涨点' : '现在进厂都要托关系了',
+      quoteMeta: counter ? '回复 · 网事杂谈 · 2026-03-02' : '回复 · 网事杂谈 · 2026-07-12',
+      counterBg: counter ? 'var(--surface-2)' : 'var(--surface)',
+      toggleCounter: () => this.setState({ drawer: counter ? null : 'counter' }),
+      evidenceLabel: s.drawer === 'evidence' ? '收起依据' : '查看依据',
+      toggleEvidence: () => this.setState({ drawer: s.drawer === 'evidence' ? null : 'evidence' })
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    return {
+      themeClass: this.props.dark ? 'dark' : '',
+      swatches: [
+        ['primary', '#14796B', 'var(--primary)'], ['primary-c', '#D8EAE5', 'var(--primary-c)'], ['bg', '#FCF4E1', 'var(--bg)'], ['surface', '#FFFBF0', 'var(--surface)'],
+        ['surface-2', '#F5F0E0', 'var(--surface-2)'], ['divider', '#EBE3CE', 'var(--divider)'], ['track', '#DCD4BE', 'var(--track)'], ['fg', '#1E1C19', 'var(--fg)'],
+        ['fg-2', '#57534A', 'var(--fg-2)'], ['meta', '#A39D8E', 'var(--meta)'], ['green · 补充', '#3F8F5B', 'var(--green)'], ['green-c · 补充', '#E1EFE3', 'var(--green-c)'],
+        ['accent', '#E09A2A', 'var(--accent)'], ['accent-c · 补充', '#F7E8C8', 'var(--accent-c)'], ['danger', '#DE3B2C', 'var(--danger)'], ['danger-c · 补充', '#F9E2DC', 'var(--danger-c)']
+      ].map(([k, hex, v]) => ({ k, hex, v })),
+      radii: [['5', '5px', '来源标签'], ['6', '6px', '参数标签、徽标'], ['8', '8px', '按钮、菜单行'], ['12', '12px', '卡片、菜单'], ['14', '14px', '输入框'], ['20', '20px', '底部面板'], ['full', '999px', '胶囊、主按钮']].map(([px, v, use]) => ({ px, v, use })),
+      shadows: [['hairline', 'var(--shadow-hairline)', '来源列表、徽标'], ['btn', 'var(--shadow-btn)', '次要按钮、胶囊'], ['card', 'var(--shadow-card)', '卡片、输入框'], ['raised', 'var(--shadow-raised)', '菜单、搜索面板'], ['overlay', 'var(--shadow-overlay)', '收起胶囊']].map(([k, v, use]) => ({ k, v, use })),
+      motion: [
+        ['out-strong', 'cubic-bezier(.23,1,.32,1) · 进入、展开'], ['in-out-strong', 'cubic-bezier(.77,0,.175,1)'], ['link', 'cubic-bezier(.16,1,.3,1) · 抽屉'],
+        ['tw', 'cubic-bezier(.4,0,.2,1) · 箭头、按下'], ['fade-up', '8dp 上移 + 淡入，300–450ms'], ['pop-in', '0.95 → 1 + 淡入，160–300ms'], ['collapse', '行高 0fr→1fr + 透明度，300/400ms'], ['press', '缩放 0.96，150ms']
+      ].map(([k, v]) => ({ k, v })),
+      loadTime: this.fmt(s.now), loadTime2: this.fmt(s.now * .62), loadTime3: this.fmt(s.now * .31),
+      think: this.renderThink(),
+      stream: this.renderStream(),
+      tools: this.renderTools(),
+      task: this.renderTask(),
+      pb: this.renderPrompt(),
+      ap: this.renderApproval(),
+      ctx: this.renderCtx(),
+      search: this.renderSearch(),
+      tend: this.renderTend(),
+      states: [
+        ['savings', 'var(--accent)', '已达到今日额度', '今日已用 US$0.50，已有结果已保存。普通「继续」不会绕过每日额度。', '', '修改额度'],
+        ['sync_problem', 'var(--danger)', '回答生成中断', '已保留文字和 4 条来源。本次用量统计不完整，继续可能产生新的费用。', '查看已有资料', '继续'],
+        ['help_outline', 'var(--accent)', '请求结果不明', '请求已发出但没有收到响应，服务端可能已经处理并计费。没有自动重试。', '查看用量', '重试'],
+        ['restart_alt', 'var(--fg-2)', '上次运行已中断', '应用在后台被系统结束，运行停在读取第 3 页。已读取的资料和部分文字已保留。', '', '继续'],
+        ['key', 'var(--danger)', 'API Key 无效', 'DeepSeek 返回认证失败。输入和已读取的资料已保留，修改后可在本对话继续。', '', '去设置'],
+        ['save', 'var(--danger)', '对话未能保存', '写入本机存储失败，已暂停后续请求。当前内容只在本次打开期间可见。', '', '重试保存']
+      ].map(([icon, fg, title, text, secondary, primary]) => ({ icon: IC[icon], fg, title, text, secondary, hasSecondary: !!secondary, primary })),
+      snaps: [
+        { label: '半屏', sub: 'top 332 / 844', top: '153px', radius: '12px 12px 0 0', hasSheet: true, hasPill: false },
+        { label: '全屏', sub: 'top 0 · 圆角 0', top: '0px', radius: '0px', hasSheet: true, hasPill: false },
+        { label: '收起', sub: '胶囊 48dp · 底部 22dp', top: '0px', radius: '0px', hasSheet: false, hasPill: true }
+      ],
+      skipped: [
+        ['Selection Actions', '一期没有选中文字发起分析的入口'], ['Insight Cards', '没有图表类回答'], ['Records / Filter / Diff Table', '没有表格数据编辑'],
+        ['Flowchart', '不采用固定业务流程'], ['Code Block', '回答不含代码'], ['Fine-tune Card', '没有属性调整场景'],
+        ['Agent Screen', '不展示 agent 屏幕'], ['Sidebar Nav', '移动端使用独立历史页'], ['Prompt Bar · @ / 模型 / 语音', '一期没有对应需求']
+      ].map(([name, why]) => ({ name, why }))
+    };
+  }
+}
+</script>
+</body>
+</html>

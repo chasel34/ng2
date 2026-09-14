@@ -8,8 +8,11 @@ plugins {
   alias(libs.plugins.baselineprofile)
 }
 
+val koogReleaseSmoke = providers.gradleProperty("testBuildType").orNull == "release"
+
 android {
   namespace = "com.chasel.ng2n"
+  testBuildType = providers.gradleProperty("testBuildType").getOrElse("debug")
   compileSdk = libs.versions.compileSdk.get().toInt()
 
   defaultConfig {
@@ -19,7 +22,11 @@ android {
     versionCode = 5
     versionName = "0.2.2"
 
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    testInstrumentationRunner = if (koogReleaseSmoke) {
+      "com.chasel.ng2n.ai.KoogSmokeInstrumentation"
+    } else {
+      "androidx.test.runner.AndroidJUnitRunner"
+    }
   }
 
   signingConfigs {
@@ -41,6 +48,8 @@ android {
       signingConfig = signingConfigs.getByName("debug")
       isMinifyEnabled = true
       isShrinkResources = true
+      testProguardFiles("proguard-test-rules.pro")
+      if (koogReleaseSmoke) proguardFiles("proguard-koog-smoke-rules.pro")
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
@@ -61,7 +70,20 @@ android {
     }
   }
 
-  sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
+  if (koogReleaseSmoke) {
+    sourceSets.getByName("main").kotlin.directories += "src/koogTest/kotlin"
+    sourceSets.getByName("release").manifest.srcFile("src/koogSmoke/AndroidManifest.xml")
+    sourceSets.getByName("release").res.directories += "src/koogSmoke/res"
+  }
+  sourceSets.getByName("test").kotlin.directories += "src/koogTest/kotlin"
+  sourceSets.getByName("androidTest") {
+    assets.directories += "$projectDir/schemas"
+    if (koogReleaseSmoke) {
+      kotlin.directories.clear()
+      java.directories.clear()
+      java.directories += "src/koogAndroidTest/java"
+    }
+  }
 }
 
 kotlin {
@@ -102,12 +124,22 @@ dependencies {
   ksp(libs.room.compiler)
   implementation(libs.datastore.preferences)
 
+  implementation(platform(libs.okhttp.bom))
   implementation(libs.okhttp)
+  implementation(libs.koog.core)
+  implementation(libs.koog.chat.memory)
+  implementation(libs.koog.persistence)
+  implementation(libs.koog.events)
+  implementation(libs.koog.skills)
+  implementation(libs.koog.file.tools)
+  implementation(libs.koog.deepseek)
+  implementation(libs.koog.http.okhttp)
   implementation(libs.okhttp.coroutines)
   implementation(libs.coil.compose)
   implementation(libs.coil.network.okhttp)
   implementation(libs.coil.gif)
 
+  implementation(libs.kotlin.reflect)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.kotlinx.collections.immutable)
@@ -118,7 +150,6 @@ dependencies {
   testImplementation(libs.kotlin.test.junit)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.mockwebserver3)
-  testImplementation(libs.kotlin.reflect)
 
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)
@@ -126,6 +157,12 @@ dependencies {
   androidTestImplementation(libs.compose.ui.test.junit4)
   androidTestImplementation(libs.kotlinx.coroutines.test)
   androidTestImplementation(libs.room.testing)
+
+  if (koogReleaseSmoke) {
+    implementation(libs.junit)
+    implementation(libs.mockwebserver3)
+    implementation(libs.kotlinx.coroutines.test)
+  }
 
   baselineProfile(project(":benchmark"))
 }

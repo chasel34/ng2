@@ -1,0 +1,95 @@
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "交互流程"
+    },
+    {
+      "id": "page-2",
+      "name": "组件参考"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "主题详情 · AI 助手",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1",
+      "is_interactive": true
+    },
+    {
+      "file": "History.dc.html",
+      "title": "AI 对话历史",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1",
+      "is_interactive": true
+    },
+    {
+      "file": "Settings.dc.html",
+      "title": "AI 助手设置",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1",
+      "is_interactive": true
+    },
+    {
+      "file": "Persona.dc.html",
+      "title": "个人分析 · 全屏",
+      "x": 1840,
+      "y": 0,
+      "w": 390,
+      "h": 2030,
+      "page": "page-1",
+      "is_interactive": true
+    },
+    {
+      "file": "Entries.dc.html",
+      "title": "入口与默认阅读范围",
+      "x": 0,
+      "y": 964,
+      "w": 1760,
+      "h": 1010,
+      "page": "page-1"
+    },
+    {
+      "file": "Components.dc.html",
+      "title": "组件参考",
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 6760,
+      "page": "page-2",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "note-1",
+      "x": -460,
+      "y": 0,
+      "w": 390,
+      "page": "page-1",
+      "text": "点顶栏或楼层下方的星形按钮打开 AI。可以拖动把手切换半屏、全屏或收起，点来源标签预览原文。\n画板上方的 scenario 可切换异常情况：「达到额度」「搜索不可用」在点「事实核查」后出现，「生成中断」在任意追问后出现。"
+    },
+    {
+      "id": "note-2",
+      "x": 1370,
+      "y": 0,
+      "w": 400,
+      "page": "page-2",
+      "text": "交互和时序参照 Beautiful UI，视觉沿用 NG2 token。green-c、accent-c、danger-c 和五级阴影是新增 token，实现时补进 Tokens.kt。金额、外部来源和核查结论都是示例内容。"
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-1"
+  }
+}

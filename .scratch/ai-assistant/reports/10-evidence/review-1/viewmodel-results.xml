@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" tests="26" skipped="0" failures="0" errors="0" timestamp="2026-09-13T17:50:31.642Z" hostname="ningmengkeledeMac-mini.local" time="0.201">
+  <properties/>
+  <testcase name="selectedFloorInAuthorFilteredFirstPageIsReadByPid" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.063"/>
+  <testcase name="historyContinuationUsesNewestRunAfterStopping" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.009"/>
+  <testcase name="correctedKeyContinuesOriginalAnalysis" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.01"/>
+  <testcase name="historyPreviewNeverReadsWorkingBodyAndPersistsDeletedBadgeWithoutChangingAnswer" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.005"/>
+  <testcase name="collapsingContinuesStoppingCancelsLateUpdatesAndRetryStartsFresh" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.004"/>
+  <testcase name="missingKeyListSnapshotIsSavedAndResumesAfterSettingsWithoutReadingTopicZero" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.008"/>
+  <testcase name="quickActionContinuesSameConversationAndDuplicateClickIsIgnored" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.005"/>
+  <testcase name="historyContinuationUsesNewestRunAfterAnotherDisconnection" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.003"/>
+  <testcase name="storageFailureKeepsDraftAndBlocksFurtherModelCallsUntilExplicitSave" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.005"/>
+  <testcase name="budgetRequiresConfirmationContinuesSameAnalysisAndStopKeepsSavedResult" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.011"/>
+  <testcase name="sameTopicCreatesSeparateConversationsAndOpeningHistoryDoesNotPay" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.007"/>
+  <testcase name="discardDuringDecisionSaveDoesNotRestoreConversation" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.004"/>
+  <testcase name="correctedDailyAllowanceContinuesOriginalAnalysis" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.008"/>
+  <testcase name="clearingViewModelReleasesUsageSubscriptionInSharedScope" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.002"/>
+  <testcase name="discardDuringAllowanceCommitDoesNotRestoreConversation" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.005"/>
+  <testcase name="listSnapshotAndChainRangeSurviveHistoryAndUseCorrectFilters" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.015"/>
+  <testcase name="stopDuringAllowanceCommitDoesNotResume" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.003"/>
+  <testcase name="stopDuringDecisionSaveDoesNotResume" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.004"/>
+  <testcase name="queuedListInterruptedBeforePreparationCannotResumeWithDisplayMetadata" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.003"/>
+  <testcase name="correctedBalanceContinuesOriginalAnalysis" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.006"/>
+  <testcase name="missingKeyDoesNotReadForumOrSendModelAndDraftRemainsVisible" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.002"/>
+  <testcase name="topicOverviewRetainsTheAuthorFilteredCurrentPage" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.007"/>
+  <testcase name="noteIdentityIsSavedAndRestoredWithoutWorkingBodyAndMissingNoteMarksHistoryDeleted" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.003"/>
+  <testcase name="missingSelectedFloorIsNotReportedReadAndDoesNotInvokeTheModel" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.005"/>
+  <testcase name="discardReleasesUsageSubscriptionWithoutCancellingSharedScope" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.001"/>
+  <testcase name="queuedChainInterruptedBeforePreparationCannotResumeWithDisplayMetadata" classname="com.chasel.ng2n.ui.ai.TopicAiViewModelTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

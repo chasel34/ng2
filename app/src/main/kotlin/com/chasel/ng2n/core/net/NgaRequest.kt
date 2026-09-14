@@ -51,6 +51,8 @@ class NgaRequest(
   val referer: String? = null,
 
   val refererPath: String? = null,
+
+  val allowTopicCache: Boolean = true,
 ) {
 
   val isWrite: Boolean get() = operation == Operation.WRITE

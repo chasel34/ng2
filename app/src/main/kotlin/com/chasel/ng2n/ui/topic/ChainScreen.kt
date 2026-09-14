@@ -18,6 +18,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -49,6 +53,9 @@ fun ChainScreen(key: ChainKey, nav: Navigator) {
   val vm = rememberChainViewModel(key)
   val colors = LocalNg2nColors.current
   val textScale = LocalTextScale.current
+  val aiSessions = com.chasel.ng2n.ui.ai.rememberAiSessions()
+  var ai by remember { mutableStateOf(aiSessions.create()) }
+  val aiState by ai.state.collectAsStateWithLifecycle()
 
   LaunchedEffect(colors, textScale, vm.settings.showSignature) {
     vm.applyStyle(
@@ -73,6 +80,12 @@ fun ChainScreen(key: ChainKey, nav: Navigator) {
         BackArrowIcon(tint = colors.onTopbar)
       }
       TopBarTitle(text = "回复链 · ${vm.chain.size} 层", modifier = Modifier.weight(1f))
+      TopBarButton(onClick = {
+        if (vm.chain.isNotEmpty()) {
+          if (ai.state.value.conversationId != null) ai = aiSessions.create()
+          ai.openChain(com.chasel.ng2n.data.topic.TopicPageParams(key.tid, 1, key.fav), vm.chain, vm.aiPages(), vm.startLou)
+        }
+      }, label = "AI 分析回复链") { Text("✦", color = colors.onTopbar) }
       TopBarButton(onClick = notAvailable, label = "回复") { ReplyIcon(tint = colors.onTopbar) }
     }
 
@@ -98,6 +111,7 @@ fun ChainScreen(key: ChainKey, nav: Navigator) {
       itemsIndexedChain(vm = vm, nav = nav)
     }
   }
+  com.chasel.ng2n.ui.ai.EntryAiSheet(aiState, ai, nav)
 }
 
 private fun androidx.compose.foundation.lazy.LazyListScope.itemsIndexedChain(

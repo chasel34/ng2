@@ -15,10 +15,12 @@ class StorageBootstrap @Inject constructor(
   private val history: HistoryRepository,
   private val topicCache: TopicCacheRepository,
   @IoScope private val scope: CoroutineScope,
+  private val skills: com.chasel.ng2n.data.ai.BuiltinSkills? = null,
 ) {
 
   fun start() {
     scope.launch {
+      launch { runCatching { skills?.prepare() } }
       open()
       launch { runCatching { history.warmUp() } }
       launch { runCatching { topicCache.warmUp() } }

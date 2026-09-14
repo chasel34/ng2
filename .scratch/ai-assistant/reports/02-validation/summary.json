@@ -1,0 +1,20 @@
+{
+  "unit_tests": {
+    "tests": 1127,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "checks": {
+    "raw_read_methods_unchanged": true,
+    "render_methods_unchanged": true,
+    "data_without_ui_imports": true,
+    "core_without_android_imports": true,
+    "room_cache_schema_policy_and_read_chain_unchanged": true
+  },
+  "gradle_tasks": [
+    ":app:assembleDebug",
+    ":app:testDebugUnitTest"
+  ],
+  "offline": true
+}

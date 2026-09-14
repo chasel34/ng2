@@ -1,0 +1,47 @@
+{
+  "date": "2026-09-13",
+  "baselineHead": "bf7ef94",
+  "apk": {
+    "debug": {
+      "beforeBytes": 43608531,
+      "afterBytes": 59381190,
+      "deltaBytes": 15772659,
+      "sha256": "874f26e1e964168739f70ee24fef21340cdbf8f59b4d9ddc421e819aae40a267"
+    },
+    "release": {
+      "beforeBytes": 5678527,
+      "afterBytes": 7674294,
+      "deltaBytes": 1995767,
+      "sha256": "1492ea2ec68082c68cff1713044c7eb2b84d99efe717f035e79492bda71e3fa4"
+    }
+  },
+  "jvm": {
+    "tests": 1122,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "koogJvm": {
+    "com.chasel.ng2n.data.ai.DeepSeekClientFactoryTest": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "com.chasel.ng2n.data.ai.KoogAgentFactoryTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "releaseSmoke": {
+    "device": "Pixel 8 AVD",
+    "api": 37,
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "ordinaryApksContainSmokeFixtures": false
+}

@@ -17,8 +17,8 @@ import com.chasel.ng2n.data.user.UserPostsRepository
 import com.chasel.ng2n.data.user.UserProfileRepository
 import com.chasel.ng2n.ui.topic.FakeSnapshotSink
 import com.chasel.ng2n.ui.topic.TopicFixtures
-import com.chasel.ng2n.ui.topic.TopicPageParams
-import com.chasel.ng2n.ui.topic.TopicRepository
+import com.chasel.ng2n.data.topic.TopicPageParams
+import com.chasel.ng2n.data.topic.TopicRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -133,7 +133,6 @@ class RepositoryDispatcherTest {
       client = probe.client { page },
       cachePayloads = FakeSnapshotSink(),
       scope = backgroundScope,
-      compute = Dispatchers.Unconfined,
       io = Dispatchers.IO,
     )
 

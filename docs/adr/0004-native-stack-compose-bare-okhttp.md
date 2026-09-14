@@ -6,6 +6,8 @@
 
 默认只使用 stable。当前 Baseline Profile **Gradle 插件**使用 `1.5.0-rc01`，以兼容 AGP 9 的 AndroidComponents API；运行时 benchmark 库仍为 stable。例外原因记录在版本目录，升级时复核兼容性。
 
+AI 模型与 agent 的框架依赖例外见 [ADR-0006](0006-koog-agent-runtime.md)；论坛网络仍遵循本决策。
+
 选择裸 OkHttp，是因为网络层需要自定义拦截器、独立连接池、字节级响应解码，以及按请求控制 CookieJar；这些都是 OkHttp 直接提供的能力。Retrofit 的 Converter 层对按参数编码、清洗非法 JSON 的协议适配没有必要收益。
 
 `core/net` 定义协议和策略，`data/net` 实现 OkHttp 与设备侧能力，Hilt 负责装配。正文使用原生 Compose 渲染，见 [ADR-0001](0001-native-bbcode-ast-rendering.md)。

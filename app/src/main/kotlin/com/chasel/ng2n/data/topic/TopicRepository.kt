@@ -1,16 +1,14 @@
-package com.chasel.ng2n.ui.topic
+package com.chasel.ng2n.data.topic
 
-import com.chasel.ng2n.core.api.AttachmentUrls
 import com.chasel.ng2n.core.api.TopicDetail
 import com.chasel.ng2n.core.api.fetchTopicDetail
 import com.chasel.ng2n.core.net.NgaClient
 import com.chasel.ng2n.core.api.TopicPageSnapshot
-import com.chasel.ng2n.data.net.TopicCachePayloadReader
+import com.chasel.ng2n.di.IoDispatcher
 import com.chasel.ng2n.di.IoScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,14 +17,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import javax.inject.Inject
-import javax.inject.Qualifier
 import javax.inject.Singleton
 
+@kotlinx.serialization.Serializable
 data class TopicPageParams(
   val tid: Long,
   val page: Int,
@@ -58,7 +52,6 @@ class TopicRepository @Inject constructor(
   private val client: NgaClient,
   private val cachePayloads: TopicSnapshotSink,
   @IoScope private val scope: CoroutineScope,
-  @ComputeDispatcher private val compute: CoroutineDispatcher,
   // 请求装配也需离开主线程；测试中与调用方共用虚拟时间调度器。
   @IoDispatcher private val io: CoroutineDispatcher,
 ) {
@@ -72,53 +65,6 @@ class TopicRepository @Inject constructor(
 
   private val downloadLock = Mutex()
   private var downloadCancelled = false
-
-  suspend fun loadPage(
-    params: TopicPageParams,
-    style: TopicRenderStyle,
-    urls: AttachmentUrls,
-    refresh: Boolean = false,
-    nowMs: Long = System.currentTimeMillis(),
-  ): PageRenderModel {
-    val detail = loadDetail(params, refresh, nowMs)
-    val sources = loadedPages(params.tid, params.favCode)
-    return withContext(compute) {
-      TopicPageBuilder.build(detail, params.tid, style, urls, sources)
-    }
-  }
-
-  suspend fun loadReplyPreviews(
-    params: TopicPageParams,
-    style: TopicRenderStyle,
-    urls: AttachmentUrls,
-  ): PageRenderModel? {
-    val detail = cachedDetail(params) ?: return null
-    val refs = withContext(compute) { replyHeaderRefs(detail) }
-      .filter { it.tid == null || it.tid == params.tid }
-    if (refs.isEmpty()) return null
-    val sources = (loadedPages(params.tid, params.favCode) + detail).toMutableList()
-    val attempted = HashSet<TopicPageParams>()
-    for (ref in refs) {
-      if (sources.any { source -> (source.floors + source.hotReplies).any { it.pid == ref.pid } }) continue
-      val request = TopicPageParams(
-        tid = params.tid,
-        page = ref.page?.takeIf { it in 1..Int.MAX_VALUE.toLong() }?.toInt() ?: 1,
-        favCode = params.favCode,
-        pid = if (ref.page == null) ref.pid else null,
-      )
-      if (!attempted.add(request)) continue
-      try {
-        sources.add(loadDetail(request))
-      } catch (cause: CancellationException) {
-        throw cause
-      } catch (_: Exception) {
-        // 原文预览失败不影响当前页正文及楼层链接。
-      }
-    }
-    return withContext(compute) {
-      TopicPageBuilder.build(detail, params.tid, style, urls, sources)
-    }
-  }
 
   suspend fun cachedDetail(
     params: TopicPageParams,
@@ -254,28 +200,3 @@ fun interface TopicSnapshotSink {
   suspend fun save(snapshot: TopicPageSnapshot)
 }
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class ComputeDispatcher
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class IoDispatcher
-
-@Module
-@InstallIn(SingletonComponent::class)
-object TopicRepositoryModule {
-
-  @Provides
-  @Singleton
-  fun provideTopicSnapshotSink(reader: TopicCachePayloadReader): TopicSnapshotSink =
-    TopicSnapshotSink { snapshot -> reader.save(snapshot) }
-
-  @Provides
-  @ComputeDispatcher
-  fun provideComputeDispatcher(): CoroutineDispatcher = Dispatchers.Default
-
-  @Provides
-  @IoDispatcher
-  fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
-}

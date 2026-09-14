@@ -84,6 +84,7 @@ fun ImageViewerScreen(
   key: ImageViewerKey,
   onBack: () -> Unit,
   modifier: Modifier = Modifier,
+  imageDescription: (Int) -> String? = { null },
 ) {
   val context = LocalContext.current
   val pipeline = rememberImagePipeline()
@@ -191,6 +192,7 @@ fun ImageViewerScreen(
         },
       ),
     )
+    imageDescription(index)?.let { Text(it, Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = colors.fg2, fontSize = 13.sp) }
     HorizontalPager(
       state = pagerState,
       beyondViewportPageCount = 1,

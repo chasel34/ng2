@@ -1,5 +1,7 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.data.topic.TopicSnapshotSink
+import com.chasel.ng2n.data.topic.TopicRepository
 import com.chasel.ng2n.core.api.AttachmentUrls
 import com.chasel.ng2n.core.api.DefaultAttachmentUrls
 import com.chasel.ng2n.core.api.TopicPageSnapshot
@@ -119,13 +121,11 @@ fun testRepository(
   client: NgaClient,
   scope: CoroutineScope,
   sink: TopicSnapshotSink = FakeSnapshotSink(),
-  compute: CoroutineDispatcher = Dispatchers.Unconfined,
   io: CoroutineDispatcher = scope.testDispatcher(),
 ) = TopicRepository(
   client = client,
   cachePayloads = sink,
   scope = scope,
-  compute = compute,
   io = io,
 )
 

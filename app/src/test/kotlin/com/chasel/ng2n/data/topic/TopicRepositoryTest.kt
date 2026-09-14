@@ -1,8 +1,10 @@
-package com.chasel.ng2n.ui.topic
+package com.chasel.ng2n.data.topic
 
+import com.chasel.ng2n.ui.topic.TopicFixtures
+import com.chasel.ng2n.ui.topic.FakeSnapshotSink
+import com.chasel.ng2n.ui.topic.testRepository
+import kotlin.test.assertSame
 import com.chasel.ng2n.core.net.blocked
-import com.chasel.ng2n.ui.bbcode.QuoteSegment
-import com.chasel.ng2n.ui.bbcode.TextSegment
 import com.chasel.ng2n.ui.topic.TopicFixtures.FloorSpec
 import com.chasel.ng2n.ui.topic.TopicFixtures.okJson
 import com.chasel.ng2n.ui.topic.TopicFixtures.pageEnvelope
@@ -35,74 +37,91 @@ class TopicRepositoryTest {
   )
 
   @Test
-  fun `原文预览在主页面之后加载 同页引用合并请求 不递归加载上游`() = runTest {
-    val replies = listOf(21L, 22L).map {
-      FloorSpec(it, it, 1, content = "[b]Reply to [pid=1,45150945,1]Reply[/pid][/b]回复$it")
+  fun `按 pid 读取保留定位楼层与 fav 参数且重复读取命中缓存`() = runTest {
+    val target = FloorSpec(800000099, 99, 42, content = "目标楼层")
+    val (client, transport) = TopicFixtures.client { _, uri ->
+      assertTrue(uri.rawQuery.contains("pid=800000099"))
+      assertTrue(uri.rawQuery.contains("fav=secret"))
+      okJson(pageEnvelope(page = 5, floors = listOf(target), rows = 100))
     }
-    val original = FloorSpec(1, 1, 1, content = "[b]Reply to [pid=99,45150945,9]Reply[/pid][/b]原文")
+    val repository = testRepository(client, appScope())
+    val params = TopicPageParams(45150945, 1, favCode = "secret", pid = target.pid)
+
+    val detail = repository.loadDetail(params)
+    assertEquals(target.pid, detail.floors.single().pid)
+    assertEquals(99L, detail.floors.single().lou)
+    assertEquals("目标楼层", detail.floors.single().content)
+    assertSame(detail, repository.loadDetail(params))
+    assertEquals(1, transport.requests.size)
+    assertTrue(repository.loadedPages(params.tid, params.favCode).isEmpty())
+  }
+
+  @Test
+  fun `已加载页按页码排序且与读取缓存共享原始对象`() = runTest {
     val (client, transport) = TopicFixtures.client { page, _ ->
-      okJson(pageEnvelope(page = page, floors = if (page == 2) replies else listOf(original)))
+      okJson(pageEnvelope(page = page, floors = defaultFloors))
     }
     val repository = testRepository(client, appScope())
-    val params = TopicPageParams(45150945, 2)
-    val initial = repository.loadPage(params, TopicFixtures.STYLE, TopicFixtures.URLS)
-    assertEquals(1, transport.requests.size)
-    assertNull((initial.floors.first().body.segments.first() as QuoteSegment).preview)
+    val second = repository.loadDetail(TopicPageParams(45150945, 2))
+    val first = repository.loadDetail(TopicPageParams(45150945, 1))
 
-    val hydrated = assertNotNull(repository.loadReplyPreviews(params, TopicFixtures.STYLE, TopicFixtures.URLS))
+    val pages = repository.loadedPages(45150945, null)
+    assertEquals(listOf(1, 2), pages.map { it.page })
+    assertSame(first, pages[0])
+    assertSame(second, pages[1])
+    assertSame(second, repository.loadDetail(TopicPageParams(45150945, 2)))
     assertEquals(2, transport.requests.size)
-    for (floor in hydrated.floors) {
-      val preview = assertNotNull((floor.body.segments.first() as QuoteSegment).preview)
-      assertEquals("原文", (preview.segments.single() as TextSegment).text.text)
-    }
-    repository.loadReplyPreviews(params, TopicFixtures.STYLE, TopicFixtures.URLS)
-    assertEquals(2, transport.requests.size, "后续预览复用已加载页")
   }
 
   @Test
-  fun `原文加载失败保留回复和楼层链接`() = runTest {
-    val reply = FloorSpec(21, 21, 1, content = "[b]Reply to [pid=1,45150945,1]Reply[/pid][/b]回复正文")
-    val (client, _) = TopicFixtures.client { page, _ ->
-      if (page == 2) okJson(pageEnvelope(page = page, floors = listOf(reply))) else blocked()
-    }
-    val repository = testRepository(client, appScope())
-    val params = TopicPageParams(45150945, 2)
-    repository.loadPage(params, TopicFixtures.STYLE, TopicFixtures.URLS)
-    val model = assertNotNull(repository.loadReplyPreviews(params, TopicFixtures.STYLE, TopicFixtures.URLS))
-    val header = model.floors.single().body.segments.first() as QuoteSegment
-    assertEquals(1L, header.chain?.pid)
-    assertNull(header.preview)
-    assertEquals("回复正文", (model.floors.single().body.segments.last() as TextSegment).text.text)
-  }
-
-  @Test
-  fun `页转换 —— 字节到渲染成品`() = runTest {
+  fun `热门回复随主楼读取并保留作者正文和楼层坐标`() = runTest {
+    val hot = FloorSpec(800000099, 99, 42, authorName = "热门作者", content = "热门正文", score = 77)
     val (client, transport) = TopicFixtures.client { _, _ ->
-      okJson(pageEnvelope(floors = defaultFloors, rows = 47, rowsPerPage = 20))
+      okJson(pageEnvelope(floors = defaultFloors, hotReplies = listOf(hot)))
     }
     val repository = testRepository(client, appScope())
+    val params = TopicPageParams(45150945, 1)
+    val detail = repository.loadDetail(params)
+    val floor = detail.hotReplies.single()
 
-    val model = repository.loadPage(
-      params = TopicPageParams(tid = 45150945, page = 1),
-      style = TopicFixtures.STYLE,
-      urls = TopicFixtures.URLS,
-    )
-
-    assertEquals(1, model.page)
-    assertEquals("测试主题", model.subject)
-    assertEquals("网事杂谈", model.boardName)
-    assertEquals(47, model.totalRows)
-    assertEquals(3, model.totalPages)
-    assertEquals(3, model.floors.size)
-    assertEquals(listOf(0L, 1L, 2L), model.floors.map { it.lou })
-    assertEquals(0L, model.floors[0].recommendPid)
-    assertEquals(800000001L, model.floors[1].recommendPid)
-    assertTrue(model.floors[0].isStarter)
-    assertEquals("楼主", model.floors[0].displayName)
-    assertTrue(model.floors[0].body.segments.isNotEmpty())
-    assertEquals("https://img.nga.cn/attachments", model.attachBase)
+    assertEquals(hot.pid, floor.pid)
+    assertEquals(hot.lou, floor.lou)
+    assertEquals(hot.content, floor.content)
+    assertEquals(hot.score, floor.score)
+    assertEquals(hot.authorName, detail.users[floor.authorKey]?.name)
+    assertSame(detail, repository.loadDetail(params))
+    assertSame(detail, repository.loadedPages(params.tid, null).single())
     assertEquals(1, transport.requests.size)
-    assertTrue(transport.requests.single().url.contains("read.php"))
+  }
+
+  @Test
+  fun `缓存最多保留四十条且读取命中不改变淘汰顺序`() = runTest {
+    val (client, _) = TopicFixtures.client { page, _ ->
+      okJson(pageEnvelope(page = page, floors = defaultFloors))
+    }
+    val repository = testRepository(client, appScope())
+    for (page in 1..40) repository.loadDetail(TopicPageParams(45150945, page), nowMs = 0)
+    repository.loadDetail(TopicPageParams(45150945, 1), nowMs = 1)
+    repository.loadDetail(TopicPageParams(45150945, 41), nowMs = 1)
+
+    assertNull(repository.cachedDetail(TopicPageParams(45150945, 1), nowMs = 1))
+    assertNotNull(repository.cachedDetail(TopicPageParams(45150945, 2), nowMs = 1))
+    assertEquals((2..41).toList(), repository.loadedPages(45150945, null).map { it.page })
+  }
+
+  @Test
+  fun `前台读取延迟保存快照且过滤视图不写整页缓存`() = runTest {
+    val (client, _) = TopicFixtures.client { page, _ ->
+      okJson(pageEnvelope(page = page, floors = defaultFloors))
+    }
+    val sink = FakeSnapshotSink()
+    val repository = testRepository(client, appScope(), sink)
+    repository.loadDetail(TopicPageParams(45150945, 1))
+    repository.loadDetail(TopicPageParams(45150945, 1, pid = 800000002))
+    repository.loadDetail(TopicPageParams(45150945, 1, authorId = 60423359))
+    assertTrue(sink.saved.isEmpty())
+    advanceUntilIdle()
+    assertEquals(listOf(1), sink.saved.map { it.page })
   }
 
   @Test
@@ -191,7 +210,7 @@ class TopicRepositoryTest {
     assertTrue(outcome is CacheDownloadOutcome.Done)
     assertEquals(3, (outcome as CacheDownloadOutcome.Done).cached)
     assertEquals(3, transport.requests.size)
-    assertEquals(3, sink.saved.size, "每页都要交出快照给票 14 存")
+    assertEquals(3, sink.saved.size, "每页都保存快照")
     assertEquals(listOf(1, 2, 3), sink.saved.map { it.page })
     assertEquals(listOf(0, 1, 2), progressAtRequest)
     assertNull(repository.cacheDownload.value.tid)

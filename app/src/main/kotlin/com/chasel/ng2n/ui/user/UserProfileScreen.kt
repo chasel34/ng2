@@ -57,6 +57,7 @@ import com.chasel.ng2n.core.bbcode.parseBBCode
 import com.chasel.ng2n.core.bbcode.unescapeNgaText
 import com.chasel.ng2n.core.local.formatMoney
 import com.chasel.ng2n.core.local.formatReputation
+import com.chasel.ng2n.core.ai.canAnalyzePersona
 import com.chasel.ng2n.data.user.UserProfileRepository
 import com.chasel.ng2n.ui.bbcode.BBCodeContent
 import com.chasel.ng2n.ui.bbcode.FloorRenderModel
@@ -74,6 +75,8 @@ import com.chasel.ng2n.ui.common.TopBarTitle
 import com.chasel.ng2n.ui.common.TopBarTitleVariant
 import com.chasel.ng2n.ui.common.failureText
 import com.chasel.ng2n.ui.common.showNotAvailable
+import com.chasel.ng2n.ui.ai.EntryAiSheet
+import com.chasel.ng2n.ui.ai.rememberAiSessions
 import com.chasel.ng2n.ui.home.initialOf
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
@@ -107,6 +110,9 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
   val colors = LocalNg2nColors.current
   val deps = rememberAppDeps()
   val scope = rememberCoroutineScope()
+  val aiSessions = rememberAiSessions()
+  val ai = remember(key.uid) { aiSessions.create() }
+  val aiState by ai.state.collectAsStateWithLifecycle()
 
   val all by deps.userProfiles.states.collectAsStateWithLifecycle()
   val state = all[key.uid] ?: UserProfileRepository.State()
@@ -153,6 +159,10 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
         avatarUrl = state.profile?.avatarUrl,
       )
 
+      val profile = state.profile
+      if (profile != null && canAnalyzePersona(key.uid)) {
+        PersonaEntryButton(onClick = { ai.openPersona(key.uid, profile.name) })
+      }
       when {
         state.profile == null && state.loading -> LoadingState(variant = StateVariant.INLINE)
         state.profile == null -> LoadFailedNotice(
@@ -166,6 +176,8 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
       }
     }
   }
+
+  EntryAiSheet(aiState, ai, nav)
 
   InputDialog(
     open = signOpen,
@@ -190,6 +202,29 @@ fun UserProfileScreen(key: UserKey, nav: Navigator, modifier: Modifier = Modifie
       }
     },
   )
+}
+
+@Composable
+private fun PersonaEntryButton(onClick: () -> Unit) {
+  val colors = LocalNg2nColors.current
+  val shape = RoundedCornerShape(Radius.md)
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(horizontal = Spacing.md, vertical = Spacing.md)
+      .height(44.dp)
+      .clip(shape)
+      .background(colors.primaryContainer)
+      .border(1.5.dp, colors.primary, shape)
+      .clickable(onClickLabel = "AI 分析发言", onClick = onClick),
+    horizontalArrangement = Arrangement.Center,
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text = "✦ AI 分析发言",
+      style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.primary),
+    )
+  }
 }
 
 @Composable

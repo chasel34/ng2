@@ -35,6 +35,10 @@ data class Ng2nColors(
   val fab: Color,
   val onFab: Color,
   val track: Color,
+  val green: Color = Color(0xFF3F8F5B),
+  val greenContainer: Color = Color(0xFFE1EFE3),
+  val accentContainer: Color = Color(0xFFF7E8C8),
+  val dangerContainer: Color = Color(0xFFF9E2DC),
 )
 
 val LightColors: Ng2nColors = Ng2nColors(
@@ -87,6 +91,10 @@ val DarkColors: Ng2nColors = Ng2nColors(
   fab = Color(0xFF1B8377),
   onFab = Color(0xFFFFFFFF),
   track = Color(0xFF3A3A36),
+  green = Color(0xFF5FB27C),
+  greenContainer = Color(0xFF213328),
+  accentContainer = Color(0xFF3A3020),
+  dangerContainer = Color(0xFF3A2522),
 )
 
 val PlainColors: Ng2nColors = LightColors.copy(

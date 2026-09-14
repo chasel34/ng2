@@ -1,0 +1,377 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root, .ng {
+      --primary: #14796B; --primary-d: #0F5D53; --primary-c: #D8EAE5; --on-primary: #FFFFFF;
+      --bg: #FCF4E1; --surface: #FFFBF0; --surface-2: #F5F0E0; --menu: #F7F4EE;
+      --fg: #1E1C19; --fg-2: #57534A; --meta: #A39D8E; --link: #3A5A7A; --tag: #B7B0A0;
+      --accent: #E09A2A; --danger: #DE3B2C; --divider: #EBE3CE; --quote: #F1EBD6;
+      --scrim: rgba(30, 26, 16, .42); --topbar: #14796B; --on-topbar: #FFFFFF; --track: #DCD4BE;
+      --green: #3F8F5B; --green-c: #E1EFE3; --danger-c: #F9E2DC; --accent-c: #F7E8C8;
+      --snack-bg: #33322C;
+      --shadow-hairline: 0 0 0 1px var(--divider);
+      --shadow-btn: 0 0 0 1px var(--track), 0 0 4px 0 rgba(70, 58, 24, .05);
+      --shadow-card: 0 0 0 1px var(--divider), 0 18px 47px rgba(70, 58, 24, .04), 0 7.5px 19px rgba(70, 58, 24, .025), 0 2.3px 5.8px rgba(70, 58, 24, .02), 0 .5px 1.3px rgba(70, 58, 24, .02);
+      --shadow-raised: 0 0 0 1px var(--divider), 0 17.5px 23.4px rgba(70, 58, 24, .07), 0 9.4px 12.5px rgba(70, 58, 24, .05), 0 5.25px 7px rgba(70, 58, 24, .03), 0 1.16px 1.5px rgba(70, 58, 24, .02);
+      --shadow-overlay: 0 0 0 1px var(--divider), 0 25px 50px rgba(70, 58, 24, .09), 0 12px 24px rgba(70, 58, 24, .06), 0 6px 12px rgba(70, 58, 24, .04), 0 1.5px 3px rgba(70, 58, 24, .03);
+      --ease-std: cubic-bezier(.25, .1, .25, 1);
+      --ease-tw: cubic-bezier(.4, 0, .2, 1);
+      --ease-out-strong: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out-strong: cubic-bezier(.77, 0, .175, 1);
+      --ease-link: cubic-bezier(.16, 1, .3, 1);
+      --font: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    }
+    .ng.dark {
+      --primary: #1E9384; --primary-d: #17766A; --primary-c: #1E3A35; --on-primary: #FFFFFF;
+      --bg: #1C1C1B; --surface: #232322; --surface-2: #292928; --menu: #2E2E2C;
+      --fg: #E9E7E2; --fg-2: #B0ACA3; --meta: #6F6C65; --link: #8AA6C8; --tag: #5F5C55;
+      --accent: #D6942E; --danger: #E2574C; --divider: #333330; --quote: #262625;
+      --scrim: rgba(0, 0, 0, .62); --topbar: #1C1C1B; --on-topbar: #F2F0EB; --track: #3A3A36;
+      --green: #5FB27C; --green-c: #213328; --danger-c: #3A2522; --accent-c: #3A3020;
+      --snack-bg: #3A3A36;
+      --shadow-btn: 0 0 0 1px rgba(255, 255, 255, .10), 0 1px 2px rgba(0, 0, 0, .3);
+      --shadow-card: 0 0 0 1px rgba(255, 255, 255, .08), 0 1px 2px rgba(0, 0, 0, .2), 0 2px 6px rgba(0, 0, 0, .2);
+      --shadow-raised: 0 0 0 1px rgba(255, 255, 255, .11), 0 2px 10px rgba(0, 0, 0, .3);
+      --shadow-overlay: 0 0 0 1px rgba(255, 255, 255, .13), 0 8px 28px rgba(0, 0, 0, .45);
+    }
+    body { margin: 0; -webkit-font-smoothing: antialiased; font-family: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif; }
+    a { color: #3A5A7A; text-decoration: none; }
+    a:hover { color: #14796B; }
+    .ng { font-family: var(--font); color: var(--fg); }
+    .ng * { box-sizing: border-box; }
+    .ic { display: block; flex: none; }
+    .sc { scrollbar-width: none; }
+    .sc::-webkit-scrollbar { display: none; }
+    .tap { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .press { transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .press:active { transform: scale(.96); }
+    .press-sm:active { transform: scale(.94); }
+    .rowpress { transition: background-color 100ms ease-out; }
+    .rowpress:active { background: var(--surface-2); }
+    .tb-btn:active { background: rgba(255, 255, 255, .22); }
+
+    @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pop-in { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+    @keyframes pop-94 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+    @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes shimmer-text { 0% { background-position: 150%; } 100% { background-position: -50%; } }
+    @keyframes pixel-on { 0%, 100% { opacity: .15; } 18%, 42% { opacity: 1; } 62% { opacity: .15; } }
+    @keyframes spin { to { transform: rotate(1turn); } }
+    @keyframes eq-bounce { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+
+    .shimmer {
+      color: transparent;
+      background-image: linear-gradient(90deg, var(--meta) 35%, var(--fg) 50%, var(--meta) 65%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      animation: shimmer-text 1.4s linear infinite;
+    }
+    .caret { display: inline-block; width: 2px; height: 12px; margin-left: 2px; border-radius: 999px; background: var(--fg); transform: translateY(2px); animation: fade-in 150ms ease-out both; }
+
+    .px { display: grid; grid-template-columns: repeat(3, 4px); gap: 1.5px; flex: none; }
+    .px i { display: block; width: 4px; height: 4px; border-radius: 1px; background: currentColor; opacity: .15; animation: pixel-on 650ms ease-in-out infinite; }
+    .px i:nth-child(1), .px i:nth-child(7), .px i:nth-child(5) { animation-delay: 90ms; }
+    .px i:nth-child(2), .px i:nth-child(8), .px i:nth-child(6) { animation-delay: 180ms; }
+    .px i:nth-child(3), .px i:nth-child(9) { animation-delay: 270ms; }
+    .px i:nth-child(4) { animation-delay: 0ms; }
+
+    .spinner { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--track); border-top-color: var(--fg-2); animation: spin 700ms linear infinite; flex: none; }
+
+    .collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 300ms var(--ease-out-strong), opacity 300ms var(--ease-out-strong); }
+    .collapse > div { min-height: 0; overflow: hidden; }
+    .collapse.open { grid-template-rows: 1fr; opacity: 1; }
+    .collapse.slow { transition-duration: 400ms; }
+    .chev { transition: transform 300ms var(--ease-tw); }
+    .chev.open { transform: rotate(180deg); }
+    .chev-r { transform: rotate(-90deg); transition: transform 200ms var(--ease-tw); }
+    .chev-r.open { transform: none; }
+
+    .src-pill { position: relative; display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 4px 0 3px; margin: 0 2px; border-radius: 5px; transform: translateY(-1px); background: var(--surface-2); box-shadow: var(--shadow-hairline); color: var(--fg-2); font-family: var(--mono); font-size: 10.5px; line-height: 18px; vertical-align: middle; white-space: nowrap; cursor: pointer; animation: pop-in 250ms var(--ease-out-strong) both; transition: background-color 150ms ease-out, color 150ms ease-out; }
+    .src-pill::after { content: ''; position: absolute; inset: -12px -3px; }
+    .src-pill:active { background: var(--primary-c); color: var(--fg); }
+    .fav { width: 12px; height: 12px; border-radius: 3px; display: grid; place-items: center; color: #fff; flex: none; box-shadow: 0 0 0 1px rgba(30, 28, 25, .1); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; font-weight: 500; white-space: nowrap; cursor: pointer; user-select: none; transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .btn:active { transform: scale(.96); }
+    .btn.disabled { opacity: .5; pointer-events: none; }
+    .btn-primary { background: var(--primary); color: var(--on-primary); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14); }
+    .btn-secondary { background: var(--surface); color: var(--fg); box-shadow: var(--shadow-btn); }
+    .btn-ghost { background: var(--surface-2); color: var(--fg); }
+    .btn-quiet { background: transparent; color: var(--fg-2); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-m { height: 40px; padding: 0 16px; font-size: 14px; }
+    .btn-s { height: 34px; padding: 0 14px; font-size: 13.5px; }
+
+    .meter { display: flex; align-items: flex-end; gap: 2px; }
+    .meter i { display: block; width: 4px; height: 10px; border-radius: 999px; transition: background-color 300ms ease-out; }
+  </style>
+</helmet>
+<div class="ng {{ themeClass }}" style="width: 390px; min-height: 1980px; background: var(--bg); display: flex; flex-direction: column;">
+  <div style="flex: none; position: sticky; top: 0; z-index: 2; background: var(--bg);">
+    <div style="height: 16px; display: grid; place-items: center;"><div style="width: 36px; height: 4px; border-radius: 2px; background: var(--track);"></div></div>
+    <div style="height: 46px; display: flex; align-items: center; gap: 10px; padding: 0 8px 2px 16px;">
+      <div style="flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 15px; line-height: 20px; font-weight: 600;"><span style="color: var(--primary);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg></span>AI 助手</div>
+        <div style="font-size: 11.5px; line-height: 16px; color: var(--meta);">个人分析 · 阴阳师妄想</div>
+      </div>
+      <div class="tap rowpress" style="width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12.98 3C8.02 3 3.98 7.03 3.98 12H0.98L4.88 15.89L4.97 16.03L9 12H6C6 8.11 9.14 5.02 12.98 5.02C16.88 5.02 20.02 8.11 20.02 12C20.02 15.89 16.88 18.98 12.98 18.98C11.06 18.98 9.33 18.19 8.06 16.92L6.66 18.38C8.25 19.97 10.5 21 12.98 21C17.95 21 21.98 16.97 21.98 12C21.98 7.03 17.95 3 12.98 3ZM12 8.02V12.98L16.27 15.52L17.02 14.25L13.5 12.14V8.02H12Z"></path></svg></div>
+      <div class="tap rowpress" style="width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" aria-hidden="true"><path d="M7.41 18.61 8.81 20.02 12 16.83 15.19 20.02 16.59 18.61 12 14.02 7.41 18.61ZM16.59 5.39 15.19 3.98 12 7.17 8.81 3.98 7.41 5.39 12 9.98 16.59 5.39Z"></path></svg></div>
+      <div class="tap rowpress" style="width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></div>
+    </div>
+    <div style="height: 1px; background: var(--divider);"></div>
+  </div>
+
+  <div style="flex: 1; padding: 12px 16px 8px;">
+    <div style="font-size: 12px; font-weight: 500; color: var(--fg-2); margin: 0 2px 6px;">阅读范围</div>
+    <div style="border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-card); overflow: hidden;">
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+        <div style="border-bottom: 1px solid {{ r.line }};">
+          <div class="tap rowpress" onClick="{{ r.toggle }}" style="height: 44px; padding: 0 4px 0 10px; display: flex; align-items: center; gap: 10px;">
+            <div style="flex: none; width: 22px; height: 22px; border-radius: 11px; background: {{ r.disc }}; display: grid; place-items: center;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{ r.glyph }}"></path></svg></div>
+            <div style="flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500;">{{ r.label }}</div>
+            <div style="flex: none; font-size: 12.5px; color: var(--fg-2); font-variant-numeric: tabular-nums;">{{ r.amount }}</div>
+            <sc-if value="{{ r.hasPill }}" hint-placeholder-val="{{ false }}">
+              <div style="flex: none; height: 22px; padding: 0 8px; border-radius: 11px; display: flex; align-items: center; font-size: 11.5px; font-weight: 500; color: var(--fg-2); background: var(--surface-2);">{{ r.pill }}</div>
+            </sc-if>
+            <div style="flex: none; width: 28px; height: 28px; display: grid; place-items: center; color: var(--meta);"><span class="chev {{ r.open }}"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span></div>
+          </div>
+          <div class="collapse {{ r.open }}">
+            <div>
+              <div style="display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 0 12px 10px 10px;">
+                <div style="display: flex; justify-content: center;"><div style="width: 1px; background: var(--divider);"></div></div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <sc-for list="{{ r.details }}" as="d" hint-placeholder-count="2">
+                    <div style="display: flex; justify-content: space-between; gap: 12px; animation: fade-up 300ms var(--ease-out-strong) both; animation-delay: {{ d.delay }};">
+                      <span style="font-size: 12.5px; color: var(--fg-2);">{{ d.k }}</span>
+                      <span style="font-family: var(--mono); font-size: 11.5px; color: var(--meta); text-align: right;">{{ d.v }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: flex-start; margin-top: 8px;">
+      <div style="display: inline-flex; align-items: center; gap: 8px; margin: 0 -6px; padding: 6px; border-radius: 8px;">
+        <span style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg></span>
+        <span style="font-size: 13.5px; font-weight: 500; color: var(--fg-2);">已思考 6 秒</span>
+        <span style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span>
+      </div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; margin: 0 -6px; padding: 6px; border-radius: 8px; font-size: 13px; color: var(--fg-2);">
+        <span class="chev-r" style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span>9 次工具调用
+      </div>
+    </div>
+
+    <div style="margin-top: 8px; font-size: 15px; line-height: 25px; text-wrap: pretty;">在最近 300 条发言里，<span style="display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px 1px 3px; border-radius: 999px; background: var(--surface-2); box-shadow: var(--shadow-hairline); vertical-align: 1px; line-height: 18px;"><span style="width: 16px; height: 16px; border-radius: 8px; background: #1F3B44; color: #fff; font-size: 9px; font-weight: 600; display: grid; place-items: center;">阴</span><span style="font-size: 12.5px; font-weight: 500;">阴阳师妄想</span></span> 的讨论集中在消费、就业和手游。以下只整理本人明确表达过的内容。</div>
+
+    <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="2">
+      <div style="margin-top: 18px;">
+        <div style="font-size: 16px; line-height: 24px; font-weight: 600; margin-bottom: 8px;">{{ sec.title }}</div>
+        <sc-for list="{{ sec.cards }}" as="c" hint-placeholder-count="2">
+          <div style="margin-bottom: 10px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-card); overflow: hidden;">
+            <div style="padding: 12px;">
+              <div style="font-size: 15px; line-height: 21px; font-weight: 600;">{{ c.title }}</div>
+              <div style="margin-top: 6px; font-size: 13.5px; line-height: 1.625; color: var(--fg-2); text-wrap: pretty;">{{ c.body }}<span style="display: inline-flex; align-items: center; height: 20px; padding: 0 6px; margin: 0 2px; border-radius: 999px; font-size: 12px; font-weight: 500; color: {{ c.pillFg }}; background: {{ c.pillBg }}; box-shadow: {{ c.pillRing }}; vertical-align: 1px;">{{ c.count }}</span>{{ c.body2 }}</div>
+            </div>
+            <div class="collapse {{ c.drawerOpen }}" style="transition-timing-function: var(--ease-link);">
+              <div>
+                <div style="border-top: 1px solid var(--divider); padding: 8px;">
+                  <div style="padding: 0 6px 4px; font-size: 11.5px; font-weight: 500; color: var(--meta);">{{ c.drawerTitle }}</div>
+                  <sc-for list="{{ c.drawerRows }}" as="q" hint-placeholder-count="2">
+                    <div class="tap rowpress" style="display: flex; gap: 10px; padding: 8px 6px; border-radius: 8px;">
+                      <div style="flex: none; width: 3px; border-radius: 2px; background: {{ q.bar }};"></div>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 13.5px; line-height: 21px; color: var(--fg);">「{{ q.text }}」</div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 11.5px; color: var(--meta);">
+                          <span class="src-pill" style="margin: 0; animation: none;"><span class="fav" style="background: var(--primary);"><svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor"><path d="M4 4h16v12H9.5L4 20.5z"></path></svg></span>{{ q.where }}</span>
+                          <span>{{ q.time }}</span>
+                          <span style="margin-left: auto;">{{ q.kind }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px; padding-left: 2px;">
+                <div class="meter"><i style="background: {{ c.b1 }};"></i><i style="background: {{ c.b2 }};"></i><i style="background: {{ c.b3 }};"></i></div>
+                <span style="font-size: 12.5px; font-weight: 500; color: var(--fg-2);">{{ c.signal }}</span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <sc-if value="{{ c.hasCounter }}" hint-placeholder-val="{{ false }}">
+                  <div class="btn btn-secondary tap" onClick="{{ c.toggleCounter }}" style="height: 32px; padding: 0 10px; font-size: 12.5px; background: {{ c.counterBg }};">相反表述 {{ c.counterN }}</div>
+                </sc-if>
+                <div class="btn btn-primary tap" onClick="{{ c.toggleEvidence }}" style="height: 32px; padding: 0 12px; font-size: 12.5px;">{{ c.evidenceLabel }}</div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+
+    <div style="margin-top: 18px;">
+      <div style="font-size: 16px; line-height: 24px; font-weight: 600; margin-bottom: 6px;">判断侧重</div>
+      <div style="font-size: 15px; line-height: 25px; text-wrap: pretty;">多用亲身经历作依据，较少引用数据或新闻<span class="src-pill" style="animation: none;"><span class="fav" style="background: var(--primary);"><svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor"><path d="M4 4h16v12H9.5L4 20.5z"></path></svg></span>主题 · 体感消费</span>。300 条里带外部链接的有 6 条，都是新闻截图的出处。</div>
+    </div>
+
+    <div style="margin-top: 18px;">
+      <div style="font-size: 16px; line-height: 24px; font-weight: 600; margin-bottom: 8px;">稳定性与变化</div>
+      <div style="position: relative; padding-left: 16px; margin-left: 5px;">
+        <div style="position: absolute; left: 3px; top: 8px; bottom: 8px; width: 1px; background: var(--divider);"></div>
+        <sc-for list="{{ timeline }}" as="e" hint-placeholder-count="3">
+          <div style="position: relative; padding: 2px 0 12px;">
+            <div style="position: absolute; left: -16px; top: 7px; width: 7px; height: 7px; border-radius: 4px; background: {{ e.dot }}; box-shadow: 0 0 0 3px var(--bg);"></div>
+            <div style="font-family: var(--mono); font-size: 11.5px; color: var(--meta);">{{ e.when }}</div>
+            <div style="margin-top: 2px; font-size: 14px; line-height: 22px; text-wrap: pretty;">{{ e.text }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="margin-top: 6px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); box-shadow: var(--shadow-hairline); display: flex; gap: 8px; font-size: 12.5px; line-height: 19px; color: var(--fg-2);">
+      <span style="color: var(--meta); margin-top: 1px;"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M11.02 6.98H12.98V9H11.02V6.98ZM11.02 11.02H12.98V17.02H11.02V11.02ZM12 2.02C6.47 2.02 2.02 6.47 2.02 12C2.02 17.53 6.47 21.98 12 21.98C17.53 21.98 21.98 17.53 21.98 12C21.98 6.47 17.53 2.02 12 2.02ZM12 20.02C7.59 20.02 3.98 16.41 3.98 12C3.98 7.59 7.59 3.98 12 3.98C16.41 3.98 20.02 7.59 20.02 12C20.02 16.41 16.41 20.02 12 20.02Z"></path></svg></span>
+      <span>没有推断政治、健康、性向、宗教、民族等本人未公开的身份或归属。样本为最近 300 条，更早的发言未读取；有 2 条引用他人观点后反驳的内容已按反驳计入。</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 2px; margin: 10px -6px 0 -8px;">
+      <div class="tap rowpress" style="width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M15.98 0.98H3.98C2.91 0.98 2.02 1.92 2.02 3V17.02H3.98V3H15.98V0.98ZM18.98 5.02H8.02C6.89 5.02 6 5.91 6 6.98V21C6 22.08 6.89 23.02 8.02 23.02H18.98C20.11 23.02 21 22.08 21 21V6.98C21 5.91 20.11 5.02 18.98 5.02ZM18.98 21H8.02V6.98H18.98V21Z"></path></svg></div>
+      <div class="tap rowpress" style="width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M17.67 6.33C16.22 4.92 14.2 3.98 12 3.98C7.59 3.98 4.03 7.59 4.03 12C4.03 16.41 7.59 20.02 12 20.02C15.75 20.02 18.84 17.44 19.73 14.02H17.67C16.83 16.31 14.62 18 12 18C8.67 18 6 15.33 6 12C6 8.67 8.67 6 12 6C13.64 6 15.14 6.7 16.22 7.78L12.98 11.02H20.02V3.98L17.67 6.33Z"></path></svg></div>
+      <div style="margin-left: 4px; height: 36px; padding: 0 8px 0 6px; display: flex; align-items: center; gap: 6px;">
+        <div style="display: flex; padding-right: 4px;">
+          <div style="width: 16px; height: 16px; border-radius: 8px; margin-right: -4px; box-shadow: 0 0 0 1.5px var(--bg); background: #1F3B44;"></div>
+          <div style="width: 16px; height: 16px; border-radius: 8px; margin-right: -4px; box-shadow: 0 0 0 1.5px var(--bg); background: #7E5A3E;"></div>
+          <div style="width: 16px; height: 16px; border-radius: 8px; margin-right: -4px; box-shadow: 0 0 0 1.5px var(--bg); background: #5A6E3E;"></div>
+        </div>
+        <span style="font-size: 12.5px; color: var(--fg-2);">14 个来源</span>
+      </div>
+      <div style="margin-left: auto; height: 36px; padding: 0 6px; display: flex; align-items: center; gap: 2px; font-size: 12px; color: var(--meta);">≈ US$0.021<span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span></div>
+    </div>
+
+    <div style="margin-top: 10px;">
+      <div style="font-size: 12px; font-weight: 500; color: var(--fg-2);">继续问</div>
+      <div style="margin-top: 2px; display: flex; flex-direction: column;">
+        <sc-for list="{{ follow }}" as="q" hint-placeholder-count="2">
+          <div class="tap rowpress" style="display: flex; align-items: center; gap: 8px; min-height: 42px; margin: 0 -6px; padding: 6px; border-radius: 7px; border-bottom: 1px solid var(--divider);">
+            <span style="color: var(--meta); transform: scaleX(-1);"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M9.98 9V5.02L3 12L9.98 18.98V14.91C15 14.91 18.52 16.5 21 20.02C20.02 15 17.02 9.98 9.98 9Z"></path></svg></span>
+            <div style="flex: 1; font-size: 14px; line-height: 20px;">{{ q }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex: none; position: sticky; bottom: 0; background: var(--bg); padding: 0 12px 12px;">
+    <div style="display: flex; gap: 6px; overflow: hidden; margin: 0 -12px; padding: 8px 12px;">
+      <sc-for list="{{ quick }}" as="a" hint-placeholder-count="3">
+        <div class="btn tap" style="flex: none; height: 32px; padding: 0 12px 0 9px; font-size: 13px; color: var(--fg); background: var(--surface); box-shadow: var(--shadow-btn);"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="color: var(--primary);"><path d="{{ a.icon }}"></path></svg>{{ a.label }}</div>
+      </sc-for>
+    </div>
+    <div style="border: 1px solid var(--divider); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-card); padding: 6px; display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center; column-gap: 4px;">
+      <div style="width: 36px; height: 36px; display: grid; place-items: center; font-family: var(--mono); font-size: 17px; color: var(--meta);">/</div>
+      <div style="padding: 0 4px; font-size: 15px; color: var(--meta);">继续追问，输入 / 使用快捷操作</div>
+      <div style="width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--fg-2); background: var(--track);"><svg class="ic" viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M3.98 12 5.39 13.41 11.02 7.83V20.02H12.98V7.83L18.56 13.41L20.02 12L12 3.98L3.98 12Z"></path></svg></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1980}}'>
+const IC = {"compare_arrows":"M9 14.02H2.02V15.98H9V18.98L12.98 15L9 11.02V14.02ZM15 12.98V9.98H21.98V8.02H15V5.02L11.02 9L15 12.98Z","insights":"M21 8.02C19.55 8.02 18.75 9.42 19.08 10.5L15.52 14.06C15.23 13.97 14.77 13.97 14.48 14.06L11.95 11.53C12.28 10.45 11.44 9 9.98 9C8.53 9 7.73 10.45 8.06 11.53L3.52 16.08C2.44 15.75 0.98 16.55 0.98 18C0.98 19.08 1.92 20.02 3 20.02C4.45 20.02 5.25 18.56 4.92 17.48L9.47 12.94C9.8 13.03 10.22 13.03 10.5 12.94L13.08 15.47C12.75 16.55 13.55 18 15 18C16.45 18 17.25 16.55 16.92 15.47L20.48 11.95C21.56 12.28 23.02 11.44 23.02 9.98C23.02 8.91 22.08 8.02 21 8.02ZM15 9 15.94 6.94 18 6 15.94 5.06 15 3 14.06 5.06 12 6 14.06 6.94 15 9ZM3.52 11.02 3.98 9 6 8.48 3.98 8.02 3.52 6 3 8.02 0.98 8.48 3 9 3.52 11.02Z","timeline":"M23.02 8.02C23.02 9.09 22.08 9.98 21 9.98C20.81 9.98 20.67 9.98 20.48 9.94L16.92 13.5C16.97 13.64 17.02 13.83 17.02 14.02C17.02 15.09 16.08 15.98 15 15.98C13.92 15.98 12.98 15.09 12.98 14.02C12.98 13.83 13.03 13.64 13.08 13.5L10.5 10.92C10.36 10.97 10.17 11.02 9.98 11.02C9.8 11.02 9.66 10.97 9.47 10.92L4.92 15.47C4.97 15.66 5.02 15.8 5.02 15.98C5.02 17.11 4.08 18 3 18C1.92 18 0.98 17.11 0.98 15.98C0.98 14.91 1.92 14.02 3 14.02C3.19 14.02 3.33 14.02 3.52 14.06L8.06 9.52C8.02 9.38 8.02 9.19 8.02 9C8.02 7.92 8.91 6.98 9.98 6.98C11.11 6.98 12 7.92 12 9C12 9.19 12 9.38 11.95 9.52L14.48 12.05C14.62 12 14.81 12 15 12C15.19 12 15.38 12 15.52 12.05L19.08 8.53C19.03 8.34 18.98 8.2 18.98 8.02C18.98 6.89 19.92 6 21 6C22.08 6 23.02 6.89 23.02 8.02Z"};
+const CHECK = 'M5 12.5l4.5 4.5L19 7.5';
+const DASH = 'M6.5 12h11';
+const TONES = {
+  high: { n: 3, color: 'var(--green)', label: '反复出现', fg: 'var(--green)', bg: 'var(--green-c)', ring: '0 0 0 1px rgba(63, 143, 91, .28)' },
+  some: { n: 2, color: 'var(--accent)', label: '多次出现', fg: 'var(--accent)', bg: 'var(--accent-c)', ring: '0 0 0 1px rgba(224, 154, 42, .28)' },
+  rare: { n: 0, color: 'var(--meta)', label: '偶尔提及', fg: 'var(--fg-2)', bg: 'var(--surface-2)', ring: 'var(--shadow-hairline)' }
+};
+const SECTIONS = [
+  { title: '兴趣与偏好', cards: [
+    { id: 'c1', tone: 'high', title: '长期关注物价与收入', body: '讨论物价、工资和消费降级的发言有', count: '41 条', body2: '，多以自己在厂里的收入为例，从 2024 年底一直持续到最近。',
+      evidence: [['这个月菜价又涨了，工资还是那样', '主题 · 体感消费', '2026-08-06', '主题标题'], ['厂里今年奖金减半，过年不回去了', '回复 · 网事杂谈', '2026-01-18', '回复']],
+      counter: [] },
+    { id: 'c2', tone: 'some', title: '手游偏好单机向', body: '提到手游的', count: '12 条', body2: '里，多次表示不喜欢强社交和抽卡，更愿意买断制。',
+      evidence: [['买断制的就是舒服，不用每天上线', '回复 · 手机游戏', '2026-05-30', '回复']],
+      counter: [['这个抽卡活动还挺良心的', '回复 · 手机游戏', '2025-11-02', '偶尔的正面评价']] }
+  ] },
+  { title: '议题立场', cards: [
+    { id: 'c3', tone: 'high', title: '对就业前景偏悲观', body: '涉及找工作、裁员和进厂的发言有', count: '23 条', body2: '，普遍认为机会在减少，但有 1 条相反表述。',
+      evidence: [['现在进厂都要托关系了', '回复 · 网事杂谈', '2026-07-12', '回复'], ['同学里还在找工作的越来越多', '回复 · 网事杂谈', '2026-04-03', '回复']],
+      counter: [['今年厂里订单回来了，年底应该能涨点', '回复 · 网事杂谈', '2026-03-02', '相反表述']] },
+    { id: 'c4', tone: 'rare', title: '反对超前消费', body: '明确表达这一立场的只有', count: '3 条', body2: '，另有 2 条是引用他人观点后反驳，已区分计入。',
+      evidence: [['花呗这种东西能不用就不用', '回复 · 网事杂谈', '2025-09-21', '回复']],
+      counter: [] }
+  ] }
+];
+
+class Component extends DCLogic {
+  state = { open: { 2: true }, drawer: { c3: 'counter' } };
+  renderVals() {
+    const s = this.state;
+    const rows = [
+      ['回复', '214 条', 'done', '', [['顺序', '从近到远'], ['正文', '随搜索结果带回']]],
+      ['主题', '86 个', 'done', '仅标题', [['首次读取', '标题'], ['补读主楼', '9 个，按问题需要']]],
+      ['合计', '300 条', 'done', '', [['去重', '按独立发言'], ['时间跨度', '2024-11 至 2026-08'], ['被屏蔽', '3 条未计入']]],
+      ['图片', '不读取', 'skip', '本期仅文本', []]
+    ];
+    return {
+      themeClass: this.props.dark ? 'dark' : '',
+      rows: rows.map(([label, amount, st, pill, details], i) => {
+        const open = !!s.open[i];
+        return {
+          label, amount, pill, hasPill: !!pill,
+          disc: st === 'skip' ? 'var(--tag)' : 'var(--green)', glyph: st === 'skip' ? DASH : CHECK,
+          open: open ? 'open' : '',
+          details: details.map(([k, v], j) => ({ k, v, delay: (120 + 100 * j) + 'ms' })),
+          line: i < rows.length - 1 ? 'var(--divider)' : 'transparent',
+          toggle: () => details.length && this.setState({ open: { ...s.open, [i]: !open } })
+        };
+      }),
+      sections: SECTIONS.map((sec) => ({
+        title: sec.title,
+        cards: sec.cards.map((c) => {
+          const t = TONES[c.tone];
+          const d = s.drawer[c.id];
+          const list = d === 'counter' ? c.counter : c.evidence;
+          return {
+            title: c.title, body: c.body, count: c.count, body2: c.body2,
+            pillFg: t.fg, pillBg: t.bg, pillRing: t.ring,
+            b1: t.n >= 1 ? t.color : 'var(--track)', b2: t.n >= 2 ? t.color : 'var(--track)', b3: t.n >= 3 ? t.color : 'var(--track)',
+            signal: t.label,
+            drawerOpen: d ? 'open' : '',
+            drawerTitle: d === 'counter' ? '相反表述' : '代表性发言',
+            drawerRows: list.map(([text, where, time, kind]) => ({ text, where, time, kind, bar: d === 'counter' ? 'var(--accent)' : 'var(--primary)' })),
+            hasCounter: c.counter.length > 0, counterN: c.counter.length,
+            counterBg: d === 'counter' ? 'var(--surface-2)' : 'var(--surface)',
+            toggleCounter: () => this.setState({ drawer: { ...s.drawer, [c.id]: d === 'counter' ? null : 'counter' } }),
+            evidenceLabel: d === 'evidence' ? '收起依据' : '查看依据',
+            toggleEvidence: () => this.setState({ drawer: { ...s.drawer, [c.id]: d === 'evidence' ? null : 'evidence' } })
+          };
+        })
+      })),
+      timeline: [
+        { when: '2024-11 至 2025-12', text: '以手游和日常吐槽为主，就业话题很少出现。', dot: 'var(--track)' },
+        { when: '2026-01 起', text: '讨论收入与奖金明显增多，语气转向悲观。', dot: 'var(--accent)' },
+        { when: '2026-03-02', text: '唯一一次对厂里订单表示乐观，之后没有再出现类似说法。', dot: 'var(--primary)' }
+      ],
+      follow: ['就业话题变多之前发生了什么', '他在手游版块的立场有变化吗'],
+      quick: [['查看倾向依据', 'insights'], ['查找相反表述', 'compare_arrows'], ['查看观点变化', 'timeline']].map(([label, icon]) => ({ label, icon: IC[icon] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

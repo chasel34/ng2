@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -115,6 +118,7 @@ fun TopicRow(
   onClick: (Topic) -> Unit,
   modifier: Modifier = Modifier,
   onLongClick: ((Topic) -> Unit)? = null,
+  onAi: ((Topic) -> Unit)? = null,
 ) {
   val colors = LocalNg2nColors.current
   Column(
@@ -133,10 +137,18 @@ fun TopicRow(
       .padding(horizontal = Spacing.lg),
   ) {
     val titleToken = if (model.simple) Typo.listTitle else Typo.topicTitle
+    Row(verticalAlignment = Alignment.CenterVertically) {
     Text(
+      modifier = Modifier.weight(1f),
       text = model.title,
       style = TextStyle(fontSize = titleToken.size, lineHeight = titleToken.lineHeight),
     )
+    if (onAi != null && !model.topic.denied && model.topic.shortcut == null && model.topic.jumpUrl == null) {
+      androidx.compose.material3.TextButton(onClick = { onAi(model.topic) }, modifier = Modifier.size(48.dp)) {
+        Text("✦", color = colors.meta, modifier = Modifier.semantics { contentDescription = "AI 分析主题" })
+      }
+    }
+    }
     Row(
       modifier = Modifier.fillMaxWidth().padding(top = 9.dp),
       verticalAlignment = Alignment.CenterVertically,

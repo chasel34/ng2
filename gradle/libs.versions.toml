@@ -12,6 +12,9 @@ nav3 = "1.1.6"
 hilt = "2.60.1"
 hiltNavigationCompose = "1.4.0"
 okhttp = "5.5.0"
+koog = "1.2.0"
+# DeepSeek、skills 与文件工具仅发布 beta；采用框架能力的例外见 ADR-0006。
+koogBeta = "1.2.0-beta"
 kotlinxSerialization = "1.11.0"
 kotlinxCoroutines = "1.11.0"
 kotlinxImmutable = "0.5.1"
@@ -33,6 +36,22 @@ targetSdk = "36"
 minSdk = "31"
 
 [libraries]
+# Agent 运行、chatAgentStrategy 通用循环与压缩节点。
+koog-core = { group = "ai.koog", name = "agents-core", version.ref = "koog" }
+# 跨运行 ChatMemory；不引入长期记忆存储。
+koog-chat-memory = { group = "ai.koog", name = "agents-features-memory", version.ref = "koog" }
+# Persistence 节点检查点及存储 provider。
+koog-persistence = { group = "ai.koog", name = "agents-features-snapshot", version.ref = "koog" }
+# EventHandler 运行、模型和工具事件。
+koog-events = { group = "ai.koog", name = "agents-features-event-handler", version.ref = "koog" }
+# 内置 skills 发现与目录 prompt；上游仅发布 beta。
+koog-skills = { group = "ai.koog", name = "skills", version.ref = "koogBeta" }
+# skills 按需读取所需的框架文件工具；上游仅发布 beta。
+koog-file-tools = { group = "ai.koog", name = "agents-ext", version.ref = "koogBeta" }
+# DeepSeek 协议客户端；上游仅发布 beta，避免自建协议。
+koog-deepseek = { group = "ai.koog", name = "prompt-executor-deepseek-client", version.ref = "koogBeta" }
+# 显式 OkHttp HTTP factory，独立于论坛客户端。
+koog-http-okhttp = { group = "ai.koog", name = "http-client-okhttp", version.ref = "koog" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
@@ -53,6 +72,8 @@ nav3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+# Koog 的 SSE 后端与论坛 OkHttp 使用同一版本，实例与连接池仍隔离。
+okhttp-bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version.ref = "okhttp" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-coroutines = { group = "com.squareup.okhttp3", name = "okhttp-coroutines", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
@@ -74,6 +95,7 @@ benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro
 uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
+# Koog 工具 schema 的反射能力与项目 Kotlin 版本对齐。
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }

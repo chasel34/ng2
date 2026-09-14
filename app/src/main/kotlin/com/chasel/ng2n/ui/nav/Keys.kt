@@ -32,6 +32,7 @@ data class TopicKey(
   val floor: Long? = null,
   /** 从书签页进入：不弹「上次读到」横幅。 */
   val fromBookmark: Boolean = false,
+  val highlightSource: Boolean = false,
 ) : NavKey
 
 @Serializable

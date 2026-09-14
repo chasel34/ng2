@@ -14,6 +14,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -91,6 +95,13 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   val titleColors = LocalNg2nTitleColors.current
   val deps = rememberAppDeps()
   val scope = rememberCoroutineScope()
+  val aiSessions = com.chasel.ng2n.ui.ai.rememberAiSessions()
+  var ai by remember { mutableStateOf(aiSessions.create()) }
+  val aiState by ai.state.collectAsStateWithLifecycle()
+  val onAiTopic: (Topic) -> Unit = { topic ->
+    if (ai.state.value.conversationId != null) ai = aiSessions.create()
+    ai.open(com.chasel.ng2n.data.topic.TopicPageParams(topic.tid, 1, topic.favCode), null, "主题 · ${topic.subject}")
+  }
 
   val hotKey = HotTopicsRepository.Key(boardId = key.id, kind = key.kind)
   val all by deps.hotTopics.states.collectAsStateWithLifecycle()
@@ -123,6 +134,10 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       )
       TopBarTitle(text = "24 小时热帖", variant = TopBarTitleVariant.SUB)
       Spacer(Modifier.weight(1f))
+      androidx.compose.material3.TextButton(onClick = {
+        if (ai.state.value.conversationId != null) ai = aiSessions.create()
+        ai.openList(state.topics, key.name ?: "版块 ${key.id}", subtitle.drop(1).joinToString(" · "), filterRules)
+      }) { Text("✦", color = colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
       TopBarButton(
         icon = Ng2nIcon.REFRESH,
         size = 22.dp,
@@ -164,7 +179,7 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
             key = { index -> rows[index].topic.tid },
             contentType = { "topic" },
           ) { index ->
-            TopicRow(rows[index], onClick = { topic: Topic ->
+            TopicRow(rows[index], onAi = onAiTopic, onClick = { topic: Topic ->
               nav.push(TopicKey(tid = topic.tid, title = topic.subject, fav = topic.favCode))
             })
           }
@@ -172,6 +187,7 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       }
     }
   }
+  com.chasel.ng2n.ui.ai.EntryAiSheet(aiState, ai, nav)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -181,6 +197,13 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
   val titleColors = LocalNg2nTitleColors.current
   val deps = rememberAppDeps()
   val scope = rememberCoroutineScope()
+  val aiSessions = com.chasel.ng2n.ui.ai.rememberAiSessions()
+  var ai by remember { mutableStateOf(aiSessions.create()) }
+  val aiState by ai.state.collectAsStateWithLifecycle()
+  val onAiTopic: (Topic) -> Unit = { topic ->
+    if (ai.state.value.conversationId != null) ai = aiSessions.create()
+    ai.open(com.chasel.ng2n.data.topic.TopicPageParams(topic.tid, 1, topic.favCode), null, "主题 · ${topic.subject}")
+  }
 
   val listKey = TopicListRepository.Key(
     boardId = key.id,
@@ -227,6 +250,10 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       )
       TopBarTitle(text = "精华区", variant = TopBarTitleVariant.SUB)
       Spacer(Modifier.weight(1f))
+      androidx.compose.material3.TextButton(onClick = {
+        if (ai.state.value.conversationId != null) ai = aiSessions.create()
+        ai.openList(state.topics, key.name ?: "版块 ${key.id}", subtitle.drop(1).joinToString(" · "), filterRules)
+      }) { Text("✦", color = colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
       TopBarButton(
         icon = Ng2nIcon.FILTER_ALT,
         size = 22.dp,
@@ -270,7 +297,7 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
             key = { index -> rows[index].topic.tid },
             contentType = { "topic" },
           ) { index ->
-            TopicRow(rows[index], onClick = { topic: Topic ->
+            TopicRow(rows[index], onAi = onAiTopic, onClick = { topic: Topic ->
               val shortcut = topic.shortcut
               val jumpUrl = topic.jumpUrl
               when {
@@ -307,4 +334,5 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       }
     }
   }
+  com.chasel.ng2n.ui.ai.EntryAiSheet(aiState, ai, nav)
 }

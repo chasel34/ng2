@@ -47,6 +47,7 @@ private val QUALITY_OPTIONS = listOf(
 internal object SettingsKeys {
   const val S_GENERAL = "s-general"
   const val HOST = "host"
+  const val AI = "ai-assistant"
   const val ACCOUNTS = "accounts"
   const val NIGHT = "night"
   const val NIGHT_SYSTEM = "night-system"
@@ -72,7 +73,7 @@ internal object SettingsKeys {
   const val RESET = "reset"
 
   val all: List<String> = listOf(
-    S_GENERAL, HOST, ACCOUNTS, NIGHT, NIGHT_SYSTEM, THEME_STYLE, LEFT_HANDED, SOLID_BG,
+    S_GENERAL, HOST, ACCOUNTS, AI, NIGHT, NIGHT_SYSTEM, THEME_STYLE, LEFT_HANDED, SOLID_BG,
     S_READING, AUTO_NEXT, WIFI_ONLY, IMAGE_QUALITY, SIGNATURE, KEEP_SCREEN_ON, FONT_SIZE,
     S_NOTICE, SPRAY, NOTICE_SOUND,
     S_STORAGE, FILTERS, HISTORY, CACHE,
@@ -88,6 +89,7 @@ fun SettingsScreen(
   onOpenFilters: () -> Unit,
   onOpenFontSize: () -> Unit,
   onOpenLab: () -> Unit,
+  onOpenAi: () -> Unit = {},
 ) {
   val deps = rememberAppDeps()
   val scope = rememberCoroutineScope()
@@ -210,7 +212,7 @@ fun SettingsScreen(
       ConfirmDialog(
         open = resetOpen,
         title = "恢复默认设置",
-        message = "全部开关、域名、字号与主题风格都会回到默认值。账号、收藏、缓存与屏蔽规则不受影响。",
+        message = "通用开关、域名、字号与主题风格都会回到默认值。AI 配置、账号、收藏、缓存与屏蔽规则不受影响。",
         confirmLabel = "恢复",
         destructive = true,
         onCancel = { resetOpen = false },
@@ -236,6 +238,9 @@ fun SettingsScreen(
         sub = if (count == 0) "还没有登录账号" else "已登录 $count 个账号",
         onClick = onOpenAccounts,
       )
+    }
+    item(SettingsKeys.AI) {
+      SettingsNavRow(label = "AI 助手", sub = "模型服务 · API Key · 开销控制", onClick = onOpenAi)
     }
     item(SettingsKeys.NIGHT) {
       SettingsSwitchRow(
@@ -375,7 +380,7 @@ fun SettingsScreen(
       SettingsNavRow(label = "实验室与诊断", sub = "网页兜底 · 请求组合 · 诊断日志", onClick = onOpenLab)
     }
     item(SettingsKeys.RESET) {
-      SettingsNavRow(label = "恢复默认设置", sub = "全部设置回默认值,不动账号与缓存") { resetOpen = true }
+      SettingsNavRow(label = "恢复默认设置", sub = "通用设置回默认值，不动 AI 配置、账号与缓存") { resetOpen = true }
     }
   }
 }

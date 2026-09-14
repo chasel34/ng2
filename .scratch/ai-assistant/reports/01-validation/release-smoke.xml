@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="3" failures="0" errors="0" skipped="0" time="10.503" timestamp="2026-09-13T12:06:17" hostname="localhost">
+  <testsuite name="com.chasel.ng2n.data.ai.KoogAgentFactoryTest" tests="1" failures="0" errors="0" skipped="0" time="0.073" timestamp="2026-09-13T12:06:17" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="modelToolResultAndFinalAnswerUseTheFrameworkLoop" classname="com.chasel.ng2n.data.ai.KoogAgentFactoryTest" time="0.073" />
+  </testsuite>
+  <testsuite name="com.chasel.ng2n.data.ai.DeepSeekClientFactoryTest" tests="2" failures="0" errors="0" skipped="0" time="0.087" timestamp="2026-09-13T12:06:17" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="deepSeekRequestsDoNotUseForumCookiesOrInterceptors" classname="com.chasel.ng2n.data.ai.DeepSeekClientFactoryTest" time="0.086" />
+    <testcase name="blankKeyIsRejectedBeforeCreatingAClient" classname="com.chasel.ng2n.data.ai.DeepSeekClientFactoryTest" time="0.001" />
+  </testsuite>
+</testsuites>

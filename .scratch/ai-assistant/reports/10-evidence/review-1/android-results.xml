@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="11" failures="0" errors="0" skipped="0" time="102.801" timestamp="2026-09-13T17:49:55" hostname="localhost">
+  <testsuite name="com.chasel.ng2n.ui.ai.AiEntryPanelsTest" tests="5" failures="0" errors="0" skipped="0" time="42.558" timestamp="2026-09-13T17:49:55" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="chainShowsUpstreamCurrentDownstreamAndArgumentAction" classname="com.chasel.ng2n.ui.ai.AiEntryPanelsTest" time="9.454" />
+    <testcase name="listShowsCountsExpandableDetailsAndItsOwnActions" classname="com.chasel.ng2n.ui.ai.AiEntryPanelsTest" time="10.217" />
+    <testcase name="entryPermissionPreviewNavigatesToAccountsAndKeepsConversation" classname="com.chasel.ng2n.ui.ai.AiEntryPanelsTest" time="8.728" />
+    <testcase name="topicRowAiButtonStartsAnalysisWithoutOpeningTopic" classname="com.chasel.ng2n.ui.ai.AiEntryPanelsTest" time="4.872" />
+    <testcase name="floorKeepsPriorContextActionAndTopicKeepsItsOwnActions" classname="com.chasel.ng2n.ui.ai.AiEntryPanelsTest" time="9.287" />
+  </testsuite>
+  <testsuite name="com.chasel.ng2n.ui.ai.TopicAiSheetTest" tests="4" failures="0" errors="0" skipped="0" time="37.448" timestamp="2026-09-13T17:49:55" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="streamingFollowsAgainAfterUserReturnsToBottom" classname="com.chasel.ng2n.ui.ai.TopicAiSheetTest" time="8.248" />
+    <testcase name="unsavedCardKeepsTextAndRequiresSavingBeforeContinuing" classname="com.chasel.ng2n.ui.ai.TopicAiSheetTest" time="7.897" />
+    <testcase name="missingKeyShowsSettingsAndNoBusyControl" classname="com.chasel.ng2n.ui.ai.TopicAiSheetTest" time="6.032" />
+    <testcase name="sheetPositionsStopFollowupCitationsAndDarkTheme" classname="com.chasel.ng2n.ui.ai.TopicAiSheetTest" time="15.271" />
+  </testsuite>
+  <testsuite name="com.chasel.ng2n.ui.ai.AiSourcePreviewSheetTest" tests="2" failures="0" errors="0" skipped="0" time="19.576" timestamp="2026-09-13T17:49:55" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="variantsImagesAndPersonalPolicy" classname="com.chasel.ng2n.ui.ai.AiSourcePreviewSheetTest" time="12.067" />
+    <testcase name="readerBackedNoteAndLegacyRangeShowDistinctBodies" classname="com.chasel.ng2n.ui.ai.AiSourcePreviewSheetTest" time="7.509" />
+  </testsuite>
+</testsuites>

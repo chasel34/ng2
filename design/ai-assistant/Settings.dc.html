@@ -1,0 +1,308 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root, .ng {
+      --primary: #14796B; --primary-d: #0F5D53; --primary-c: #D8EAE5; --on-primary: #FFFFFF;
+      --bg: #FCF4E1; --surface: #FFFBF0; --surface-2: #F5F0E0; --menu: #F7F4EE;
+      --fg: #1E1C19; --fg-2: #57534A; --meta: #A39D8E; --link: #3A5A7A; --tag: #B7B0A0;
+      --accent: #E09A2A; --danger: #DE3B2C; --divider: #EBE3CE; --quote: #F1EBD6;
+      --scrim: rgba(30, 26, 16, .42); --topbar: #14796B; --on-topbar: #FFFFFF; --track: #DCD4BE;
+      --green: #3F8F5B; --green-c: #E1EFE3; --danger-c: #F9E2DC; --accent-c: #F7E8C8;
+      --snack-bg: #33322C;
+      --shadow-hairline: 0 0 0 1px var(--divider);
+      --shadow-btn: 0 0 0 1px var(--track), 0 0 4px 0 rgba(70, 58, 24, .05);
+      --shadow-card: 0 0 0 1px var(--divider), 0 18px 47px rgba(70, 58, 24, .04), 0 7.5px 19px rgba(70, 58, 24, .025), 0 2.3px 5.8px rgba(70, 58, 24, .02), 0 .5px 1.3px rgba(70, 58, 24, .02);
+      --shadow-raised: 0 0 0 1px var(--divider), 0 17.5px 23.4px rgba(70, 58, 24, .07), 0 9.4px 12.5px rgba(70, 58, 24, .05), 0 5.25px 7px rgba(70, 58, 24, .03), 0 1.16px 1.5px rgba(70, 58, 24, .02);
+      --shadow-overlay: 0 0 0 1px var(--divider), 0 25px 50px rgba(70, 58, 24, .09), 0 12px 24px rgba(70, 58, 24, .06), 0 6px 12px rgba(70, 58, 24, .04), 0 1.5px 3px rgba(70, 58, 24, .03);
+      --ease-std: cubic-bezier(.25, .1, .25, 1);
+      --ease-tw: cubic-bezier(.4, 0, .2, 1);
+      --ease-out-strong: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out-strong: cubic-bezier(.77, 0, .175, 1);
+      --ease-link: cubic-bezier(.16, 1, .3, 1);
+      --font: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    }
+    .ng.dark {
+      --primary: #1E9384; --primary-d: #17766A; --primary-c: #1E3A35; --on-primary: #FFFFFF;
+      --bg: #1C1C1B; --surface: #232322; --surface-2: #292928; --menu: #2E2E2C;
+      --fg: #E9E7E2; --fg-2: #B0ACA3; --meta: #6F6C65; --link: #8AA6C8; --tag: #5F5C55;
+      --accent: #D6942E; --danger: #E2574C; --divider: #333330; --quote: #262625;
+      --scrim: rgba(0, 0, 0, .62); --topbar: #1C1C1B; --on-topbar: #F2F0EB; --track: #3A3A36;
+      --green: #5FB27C; --green-c: #213328; --danger-c: #3A2522; --accent-c: #3A3020;
+      --snack-bg: #3A3A36;
+      --shadow-btn: 0 0 0 1px rgba(255, 255, 255, .10), 0 1px 2px rgba(0, 0, 0, .3);
+      --shadow-card: 0 0 0 1px rgba(255, 255, 255, .08), 0 1px 2px rgba(0, 0, 0, .2), 0 2px 6px rgba(0, 0, 0, .2);
+      --shadow-raised: 0 0 0 1px rgba(255, 255, 255, .11), 0 2px 10px rgba(0, 0, 0, .3);
+      --shadow-overlay: 0 0 0 1px rgba(255, 255, 255, .13), 0 8px 28px rgba(0, 0, 0, .45);
+    }
+    body { margin: 0; -webkit-font-smoothing: antialiased; font-family: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif; }
+    a { color: #3A5A7A; text-decoration: none; }
+    a:hover { color: #14796B; }
+    .ng { font-family: var(--font); color: var(--fg); }
+    .ng * { box-sizing: border-box; }
+    .ic { display: block; flex: none; }
+    .sc { scrollbar-width: none; }
+    .sc::-webkit-scrollbar { display: none; }
+    .tap { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .press { transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .press:active { transform: scale(.96); }
+    .press-sm:active { transform: scale(.94); }
+    .rowpress { transition: background-color 100ms ease-out; }
+    .rowpress:active { background: var(--surface-2); }
+    .tb-btn:active { background: rgba(255, 255, 255, .22); }
+
+    @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pop-in { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+    @keyframes pop-94 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+    @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes shimmer-text { 0% { background-position: 150%; } 100% { background-position: -50%; } }
+    @keyframes pixel-on { 0%, 100% { opacity: .15; } 18%, 42% { opacity: 1; } 62% { opacity: .15; } }
+    @keyframes spin { to { transform: rotate(1turn); } }
+    @keyframes eq-bounce { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+
+    .shimmer {
+      color: transparent;
+      background-image: linear-gradient(90deg, var(--meta) 35%, var(--fg) 50%, var(--meta) 65%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      animation: shimmer-text 1.4s linear infinite;
+    }
+    .caret { display: inline-block; width: 2px; height: 12px; margin-left: 2px; border-radius: 999px; background: var(--fg); transform: translateY(2px); animation: fade-in 150ms ease-out both; }
+
+    .px { display: grid; grid-template-columns: repeat(3, 4px); gap: 1.5px; flex: none; }
+    .px i { display: block; width: 4px; height: 4px; border-radius: 1px; background: currentColor; opacity: .15; animation: pixel-on 650ms ease-in-out infinite; }
+    .px i:nth-child(1), .px i:nth-child(7), .px i:nth-child(5) { animation-delay: 90ms; }
+    .px i:nth-child(2), .px i:nth-child(8), .px i:nth-child(6) { animation-delay: 180ms; }
+    .px i:nth-child(3), .px i:nth-child(9) { animation-delay: 270ms; }
+    .px i:nth-child(4) { animation-delay: 0ms; }
+
+    .spinner { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--track); border-top-color: var(--fg-2); animation: spin 700ms linear infinite; flex: none; }
+
+    .collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 300ms var(--ease-out-strong), opacity 300ms var(--ease-out-strong); }
+    .collapse > div { min-height: 0; overflow: hidden; }
+    .collapse.open { grid-template-rows: 1fr; opacity: 1; }
+    .collapse.slow { transition-duration: 400ms; }
+    .chev { transition: transform 300ms var(--ease-tw); }
+    .chev.open { transform: rotate(180deg); }
+    .chev-r { transform: rotate(-90deg); transition: transform 200ms var(--ease-tw); }
+    .chev-r.open { transform: none; }
+
+    .src-pill { position: relative; display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 4px 0 3px; margin: 0 2px; border-radius: 5px; transform: translateY(-1px); background: var(--surface-2); box-shadow: var(--shadow-hairline); color: var(--fg-2); font-family: var(--mono); font-size: 10.5px; line-height: 18px; vertical-align: middle; white-space: nowrap; cursor: pointer; animation: pop-in 250ms var(--ease-out-strong) both; transition: background-color 150ms ease-out, color 150ms ease-out; }
+    .src-pill::after { content: ''; position: absolute; inset: -12px -3px; }
+    .src-pill:active { background: var(--primary-c); color: var(--fg); }
+    .fav { width: 12px; height: 12px; border-radius: 3px; display: grid; place-items: center; color: #fff; flex: none; box-shadow: 0 0 0 1px rgba(30, 28, 25, .1); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; font-weight: 500; white-space: nowrap; cursor: pointer; user-select: none; transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .btn:active { transform: scale(.96); }
+    .btn.disabled { opacity: .5; pointer-events: none; }
+    .btn-primary { background: var(--primary); color: var(--on-primary); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14); }
+    .btn-secondary { background: var(--surface); color: var(--fg); box-shadow: var(--shadow-btn); }
+    .btn-ghost { background: var(--surface-2); color: var(--fg); }
+    .btn-quiet { background: transparent; color: var(--fg-2); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-m { height: 40px; padding: 0 16px; font-size: 14px; }
+    .btn-s { height: 34px; padding: 0 14px; font-size: 13.5px; }
+
+  </style>
+</helmet>
+<div class="ng {{ themeClass }}" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--bg); display: flex; flex-direction: column;">
+  <div style="flex: none; height: 54px; background: var(--topbar); color: var(--on-topbar); display: flex; align-items: center; padding: 0 4px;">
+    <div class="tap tb-btn" style="width: 46px; height: 46px; border-radius: 23px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M20.02 11.02H7.83L13.41 5.39L12 3.98L3.98 12L12 20.02L13.41 18.61L7.83 12.98H20.02V11.02Z"></path></svg></div>
+    <div style="font-size: 17px; line-height: 24.65px; font-weight: 600;">AI 助手</div>
+  </div>
+
+  <div class="sc" style="flex: 1; min-height: 0; overflow-y: auto;">
+    <div style="padding: 18px 18px 8px; font-size: 12.5px; line-height: 18px; font-weight: 700; color: var(--primary);">模型服务</div>
+    <div class="tap rowpress" style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--divider);">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 15px; line-height: 21px;">服务商</div>
+        <div style="font-size: 12.5px; line-height: 18px; color: var(--meta); margin-top: 4px;">DeepSeek 官方 · 其他服务商后续提供</div>
+      </div>
+      <div style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M9.98 6 8.58 7.41 13.17 12 8.58 16.59 9.98 18 15.98 12 9.98 6Z"></path></svg></div>
+    </div>
+    <div class="tap rowpress" onClick="{{ openKey }}" style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--divider);">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 15px; line-height: 21px;">API Key</div>
+        <div style="font-size: 12.5px; line-height: 18px; color: var(--meta); margin-top: 4px; display: flex; align-items: center; gap: 6px;"><span style="font-family: var(--mono); font-size: 12px; color: var(--fg-2);">{{ keyMasked }}</span><span>· 加密保存在本机</span></div>
+      </div>
+      <div style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M9.98 6 8.58 7.41 13.17 12 8.58 16.59 9.98 18 15.98 12 9.98 6Z"></path></svg></div>
+    </div>
+    <div class="tap rowpress" style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--divider);">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 15px; line-height: 21px;">默认模型</div>
+        <div style="font-size: 12.5px; line-height: 18px; color: var(--meta); margin-top: 4px;">deepseek-flash · 图片、工具调用与思考</div>
+      </div>
+      <div style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M9.98 6 8.58 7.41 13.17 12 8.58 16.59 9.98 18 15.98 12 9.98 6Z"></path></svg></div>
+    </div>
+
+    <div style="padding: 18px 18px 8px; font-size: 12.5px; line-height: 18px; font-weight: 700; color: var(--primary);">开销控制</div>
+    <div class="tap rowpress" onClick="{{ openBudget }}" style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--divider);">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 15px; line-height: 21px;">单次分析额度</div>
+        <div style="font-size: 12.5px; line-height: 18px; color: var(--meta); margin-top: 4px;">概览和每次追问各算一次，调用、思考、图片、整理与重试共用</div>
+      </div>
+      <div style="font-size: 14px; font-weight: 600; color: var(--fg-2); font-variant-numeric: tabular-nums;">{{ budgetLabel }}</div>
+    </div>
+    <div class="tap rowpress" onClick="{{ toggleDaily }}" style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--divider);">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 15px; line-height: 21px;">每日额度</div>
+        <div style="font-size: 12.5px; line-height: 18px; color: var(--meta); margin-top: 4px;">只统计本机发起的请求，不含同一 Key 在其他设备的消费</div>
+      </div>
+      <div style="flex: none; width: 46px; height: 26px; border-radius: 13px; padding: 3px; background: {{ trackColor }}; transition: background-color 180ms var(--ease-std);">
+        <div style="width: 20px; height: 20px; border-radius: 10px; background: {{ knobColor }}; box-shadow: 0 1px 4px rgba(0, 0, 0, .22); transform: translateX({{ knobX }}); transition: transform 180ms var(--ease-std);"></div>
+      </div>
+    </div>
+    <sc-if value="{{ daily }}" hint-placeholder-val="{{ true }}">
+      <div class="anim-fade-up tap rowpress" style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--divider);">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 15px; line-height: 21px;">每日上限</div>
+          <div style="font-size: 12.5px; line-height: 18px; color: var(--meta); margin-top: 4px;">达到后需修改额度才能继续</div>
+        </div>
+        <div style="font-size: 14px; font-weight: 600; color: var(--fg-2); font-variant-numeric: tabular-nums;">US$0.50</div>
+      </div>
+    </sc-if>
+
+    <div style="margin: 14px 12px 0; padding: 14px 16px; border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-card);">
+      <div style="display: flex; align-items: baseline; gap: 8px;">
+        <div style="font-size: 14px; font-weight: 600;">今日用量</div>
+        <div style="font-size: 11.5px; color: var(--meta);">估算 · 峰时价</div>
+        <div class="tap" onClick="{{ toggleUsage }}" style="margin-left: auto; display: flex; align-items: center; gap: 2px; font-size: 12.5px; font-weight: 600; color: var(--primary);">明细<span class="chev {{ usageChev }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span></div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 10px; font-variant-numeric: tabular-nums;">
+        <div style="font-size: 24px; line-height: 28px; font-weight: 650;">US$0.12</div>
+        <div style="font-size: 12.5px; color: var(--meta);">{{ dailyOf }}</div>
+      </div>
+      <div style="height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; margin-top: 10px;">
+        <div style="height: 100%; width: 24%; border-radius: 3px; background: var(--primary);"></div>
+      </div>
+      <div class="collapse {{ usageOpen }}">
+        <div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; padding-top: 14px; font-size: 12.5px; line-height: 18px;">
+            <sc-for list="{{ usage }}" as="u" hint-placeholder-count="6">
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <div style="color: var(--meta);">{{ u.k }}</div>
+                <div style="color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums;">{{ u.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: 12px; padding: 10px 12px; border-radius: 9px; background: var(--accent-c); font-size: 12px; line-height: 18px; color: var(--fg-2);">1 次请求已发出但未收到完整用量，按保守值计入，待核实。</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding: 10px 18px 0; font-size: 12px; line-height: 18px; color: var(--meta); text-wrap: pretty;">金额为示例值，默认额度待样本测试后确定。费用按服务商返回的用量与 2026-09-13 核实的价格表估算，工作日北京时间 9–12、14–18 点按峰时价计。</div>
+
+    <div style="padding: 18px 18px 8px; font-size: 12.5px; line-height: 18px; font-weight: 700; color: var(--primary);">对话历史</div>
+    <div class="tap rowpress" style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--divider);">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 15px; line-height: 21px;">AI 对话历史</div>
+        <div style="font-size: 12.5px; line-height: 18px; color: var(--meta); margin-top: 4px;">23 条 · 保存在本机，所有账号共用，删除前一直保留</div>
+      </div>
+      <div style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M9.98 6 8.58 7.41 13.17 12 8.58 16.59 9.98 18 15.98 12 9.98 6Z"></path></svg></div>
+    </div>
+    <div class="tap rowpress" style="display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--divider);">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 15px; line-height: 21px; color: var(--danger);">清空全部对话</div>
+        <div style="font-size: 12.5px; line-height: 18px; color: var(--meta); margin-top: 4px;">不影响用量记录</div>
+      </div>
+    </div>
+    <div style="height: 30px;"></div>
+  </div>
+
+  <sc-if value="{{ dialogKey }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; display: grid; place-items: center; padding: 24px;">
+      <div class="tap" onClick="{{ closeDialog }}" style="position: absolute; inset: 0; background: var(--scrim); animation: fade-in 200ms var(--ease-std) both;"></div>
+      <div style="position: relative; width: 100%; border-radius: 24px; background: var(--menu); box-shadow: 0 12px 32px rgba(0, 0, 0, .22); padding: 22px 22px 14px; animation: pop-94 200ms var(--ease-std) both;">
+        <div style="font-size: 18px; line-height: 25px; font-weight: 600;">DeepSeek API Key</div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--divider);">
+          <div style="flex: 1; min-width: 0; font-size: 16px; font-family: var(--mono); color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ keyShown }}</div>
+          <div class="tap" onClick="{{ toggleReveal }}" style="width: 36px; height: 36px; margin: -8px -8px -8px 0; display: grid; place-items: center; border-radius: 18px; color: var(--meta); font-size: 12.5px; font-weight: 600;">{{ revealLabel }}</div>
+        </div>
+        <div style="margin-top: 10px; font-size: 12px; line-height: 17px; color: var(--meta);">在 platform.deepseek.com 创建。Key 只用于直连 DeepSeek，不随论坛请求发送，日志不记录。</div>
+        <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 14px;">
+          <div class="tap press" onClick="{{ closeDialog }}" style="height: 40px; padding: 0 16px; border-radius: 999px; display: grid; place-items: center; font-size: 14px; font-weight: 600; color: var(--fg-2);">取消</div>
+          <div class="tap press" onClick="{{ closeDialog }}" style="height: 40px; padding: 0 20px; border-radius: 999px; display: grid; place-items: center; font-size: 14px; font-weight: 600; color: var(--on-primary); background: var(--primary);">保存</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ dialogBudget }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; display: grid; place-items: center; padding: 24px;">
+      <div class="tap" onClick="{{ closeDialog }}" style="position: absolute; inset: 0; background: var(--scrim); animation: fade-in 200ms var(--ease-std) both;"></div>
+      <div style="position: relative; width: 100%; border-radius: 24px; background: var(--menu); box-shadow: 0 12px 32px rgba(0, 0, 0, .22); padding: 22px 0 14px; animation: pop-94 200ms var(--ease-std) both;">
+        <div style="padding: 0 22px; font-size: 18px; line-height: 25px; font-weight: 600;">单次分析额度</div>
+        <div style="margin-top: 8px;">
+          <sc-for list="{{ budgetOptions }}" as="o" hint-placeholder-count="4">
+            <div class="tap rowpress" onClick="{{ o.pick }}" style="height: 48px; padding: 0 22px; display: flex; align-items: center; gap: 13px;">
+              <div style="width: 21px; height: 21px; border-radius: 11px; border: 1.6px solid {{ o.ring }}; display: grid; place-items: center; transition: border-color 180ms var(--ease-std);">
+                <div style="width: 11px; height: 11px; border-radius: 6px; background: var(--primary); transform: scale({{ o.dot }}); transition: transform 200ms var(--ease-out-strong);"></div>
+              </div>
+              <div style="font-size: 15.5px; line-height: 22px; flex: 1;">{{ o.label }}</div>
+              <div style="font-size: 11.5px; color: var(--meta);">{{ o.sub }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding: 8px 22px 0; font-size: 12.5px; line-height: 18px; color: var(--meta);">达到额度时保留已有结果，由你决定是否追加一段额度继续。</div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { daily: true, usageOpen: false, dialog: null, reveal: false, budget: 1 };
+  renderVals() {
+    const s = this.state;
+    const KEY = 'sk-7c1e0b9a4d2f48e6a1b53f9a';
+    const OPTIONS = [['US$0.02', '短问答'], ['US$0.05', '默认'], ['US$0.10', '长楼与个人分析'], ['US$0.20', '']];
+    return {
+      themeClass: this.props.dark ? 'dark' : '',
+      keyMasked: 'sk-••••••••3f9a',
+      keyShown: s.reveal ? KEY : 'sk-••••••••••••••••••3f9a',
+      revealLabel: s.reveal ? '隐藏' : '显示',
+      toggleReveal: () => this.setState({ reveal: !s.reveal }),
+      openKey: () => this.setState({ dialog: 'key', reveal: false }),
+      openBudget: () => this.setState({ dialog: 'budget' }),
+      closeDialog: () => this.setState({ dialog: null }),
+      dialogKey: s.dialog === 'key',
+      dialogBudget: s.dialog === 'budget',
+      budgetLabel: OPTIONS[s.budget][0],
+      budgetOptions: OPTIONS.map(([label, sub], i) => ({
+        label, sub,
+        ring: i === s.budget ? 'var(--primary)' : 'var(--tag)',
+        dot: i === s.budget ? 1 : 0,
+        pick: () => { this.setState({ budget: i }); setTimeout(() => this.setState({ dialog: null }), 160); }
+      })),
+      daily: s.daily,
+      toggleDaily: () => this.setState({ daily: !s.daily }),
+      trackColor: s.daily ? 'var(--primary)' : 'var(--track)',
+      knobColor: s.daily ? '#FFFFFF' : 'var(--surface)',
+      knobX: s.daily ? '20px' : '0px',
+      dailyOf: s.daily ? '/ 每日 US$0.50' : '未设每日上限',
+      usageOpen: s.usageOpen ? 'open' : '',
+      usageChev: s.usageOpen ? 'open' : '',
+      toggleUsage: () => this.setState({ usageOpen: !s.usageOpen }),
+      usage: [
+        { k: '分析次数', v: '9 次' },
+        { k: '模型请求', v: '14 次（重试 1）' },
+        { k: '输入', v: '182k tokens · 缓存 61%' },
+        { k: '输出（含思考）', v: '9.4k tokens' },
+        { k: '图片', v: '3 张' },
+        { k: '待核实', v: '1 次请求' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

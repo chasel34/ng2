@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="2" failures="0" errors="0" skipped="0" time="12.364" timestamp="2026-09-13T12:40:22" hostname="localhost">
+  <testsuite name="com.chasel.ng2n.data.ai.settings.AiKeyKeystoreTest" tests="1" failures="0" errors="0" skipped="0" time="0.222" timestamp="2026-09-13T12:40:22" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="keySurvivesStoreRecreationAndMissingKeystoreKeyCanBeReplaced" classname="com.chasel.ng2n.data.ai.settings.AiKeyKeystoreTest" time="0.222" />
+  </testsuite>
+  <testsuite name="com.chasel.ng2n.ui.settings.AiSettingsScreenTest" tests="1" failures="0" errors="0" skipped="0" time="11.49" timestamp="2026-09-13T12:40:22" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_8(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="keyEditingBudgetAndDarkTheme" classname="com.chasel.ng2n.ui.settings.AiSettingsScreenTest" time="11.49" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.chasel.ng2n.data.ai.settings.AiSettingsStorageTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-13T12:40:05.618Z" hostname="ningmengkeledeMac-mini.local" time="0.057">
+  <properties/>
+  <testcase name="daily limit requires positive exact cents and preserves limit while disabled" classname="com.chasel.ng2n.data.ai.settings.AiSettingsStorageTest" time="0.003"/>
+  <testcase name="key and all ai setting values are redacted from diagnostics" classname="com.chasel.ng2n.data.ai.settings.AiSettingsStorageTest" time="0.001"/>
+  <testcase name="encrypted key and budget settings survive closing and reopening datastore" classname="com.chasel.ng2n.data.ai.settings.AiSettingsStorageTest" time="0.051"/>
+  <testcase name="unreadable ciphertext requests replacement and encryption failure preserves old key" classname="com.chasel.ng2n.data.ai.settings.AiSettingsStorageTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,6 +1,6 @@
 package com.chasel.ng2n.ui.topic
 
-import com.chasel.ng2n.ui.nav.TopicKey
+import com.chasel.ng2n.data.topic.TopicRepository
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -25,6 +25,7 @@ import javax.inject.Singleton
 class TopicDeps @Inject constructor(
   val client: NgaClient,
   val repository: TopicRepository,
+  val pageLoader: TopicPageLoader,
   val history: HistoryRepository,
   val bookmarks: BookmarkRepository,
   val topicCache: TopicCacheRepository,

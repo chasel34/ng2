@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -804,6 +806,38 @@ class TopicViewModelTest {
     assertEquals("第 1 楼", targets[1].title)
     assertEquals("先看这楼", targets[1].detail, "有备注用备注")
     assertEquals("摘要 2", targets[2].detail, "没备注用摘要")
+  }
+
+  @Test
+  fun `AI 来源跳楼在目标加载后高亮 缺失目标不高亮邻楼`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(twentyPerPage(page, missing = 25)) }
+    val vm = viewModel(TopicKey(tid = 45150945), FakeTopicDeps(client, appScope, dispatcher))
+    vm.applyStyle(TopicFixtures.STYLE)
+    advanceUntilIdle()
+    vm.jumpToAiSource(7)
+    assertEquals(7L, vm.aiHighlightedFloor)
+    advanceTimeBy(4000)
+    runCurrent()
+    assertNull(vm.aiHighlightedFloor)
+    vm.jumpToAiSource(74)
+    assertNull(vm.aiHighlightedFloor)
+    runCurrent()
+    assertEquals(74L, vm.aiHighlightedFloor)
+    assertEquals(4, vm.scrollTarget?.page)
+    vm.jumpToAiSource(25)
+    runCurrent()
+    assertNull(vm.aiHighlightedFloor)
+    assertEquals("第 25 楼已不存在,已跳到第 26 楼", vm.toast.value?.text)
+  }
+
+  @Test
+  fun `历史引用跳转在目标页加载后高亮`() = runTest(dispatcher) {
+    val (client, _) = TopicFixtures.client { page, _ -> okJson(twentyPerPage(page)) }
+    val vm = viewModel(TopicKey(tid = 45150945, floor = 74, highlightSource = true), FakeTopicDeps(client, appScope, dispatcher))
+    vm.applyStyle(TopicFixtures.STYLE)
+    runCurrent()
+    assertEquals(74L, vm.aiHighlightedFloor)
+    assertEquals(4, vm.scrollTarget?.page)
   }
 
   private fun twentyPerPage(page: Int, missing: Long? = null): String = pageEnvelope(

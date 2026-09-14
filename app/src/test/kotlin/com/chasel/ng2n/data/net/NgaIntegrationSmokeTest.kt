@@ -26,7 +26,7 @@ class NgaIntegrationSmokeTest {
     return Proxy(Proxy.Type.HTTP, InetSocketAddress(host, port.toInt()))
   }
 
-  private fun client(): NgaClient {
+  internal fun client(): NgaClient {
     val http: OkHttpClient = ngaHttpClientBuilder().proxy(proxy()).build()
     return NgaClient(
       transports = OkHttpTransportFactory(http),

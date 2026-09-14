@@ -1,0 +1,383 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root, .ng {
+      --primary: #14796B; --primary-d: #0F5D53; --primary-c: #D8EAE5; --on-primary: #FFFFFF;
+      --bg: #FCF4E1; --surface: #FFFBF0; --surface-2: #F5F0E0; --menu: #F7F4EE;
+      --fg: #1E1C19; --fg-2: #57534A; --meta: #A39D8E; --link: #3A5A7A; --tag: #B7B0A0;
+      --accent: #E09A2A; --danger: #DE3B2C; --divider: #EBE3CE; --quote: #F1EBD6;
+      --scrim: rgba(30, 26, 16, .42); --topbar: #14796B; --on-topbar: #FFFFFF; --track: #DCD4BE;
+      --green: #3F8F5B; --green-c: #E1EFE3; --danger-c: #F9E2DC; --accent-c: #F7E8C8;
+      --snack-bg: #33322C;
+      --shadow-hairline: 0 0 0 1px var(--divider);
+      --shadow-btn: 0 0 0 1px var(--track), 0 0 4px 0 rgba(70, 58, 24, .05);
+      --shadow-card: 0 0 0 1px var(--divider), 0 18px 47px rgba(70, 58, 24, .04), 0 7.5px 19px rgba(70, 58, 24, .025), 0 2.3px 5.8px rgba(70, 58, 24, .02), 0 .5px 1.3px rgba(70, 58, 24, .02);
+      --shadow-raised: 0 0 0 1px var(--divider), 0 17.5px 23.4px rgba(70, 58, 24, .07), 0 9.4px 12.5px rgba(70, 58, 24, .05), 0 5.25px 7px rgba(70, 58, 24, .03), 0 1.16px 1.5px rgba(70, 58, 24, .02);
+      --shadow-overlay: 0 0 0 1px var(--divider), 0 25px 50px rgba(70, 58, 24, .09), 0 12px 24px rgba(70, 58, 24, .06), 0 6px 12px rgba(70, 58, 24, .04), 0 1.5px 3px rgba(70, 58, 24, .03);
+      --ease-std: cubic-bezier(.25, .1, .25, 1);
+      --ease-tw: cubic-bezier(.4, 0, .2, 1);
+      --ease-out-strong: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out-strong: cubic-bezier(.77, 0, .175, 1);
+      --ease-link: cubic-bezier(.16, 1, .3, 1);
+      --font: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    }
+    .ng.dark {
+      --primary: #1E9384; --primary-d: #17766A; --primary-c: #1E3A35; --on-primary: #FFFFFF;
+      --bg: #1C1C1B; --surface: #232322; --surface-2: #292928; --menu: #2E2E2C;
+      --fg: #E9E7E2; --fg-2: #B0ACA3; --meta: #6F6C65; --link: #8AA6C8; --tag: #5F5C55;
+      --accent: #D6942E; --danger: #E2574C; --divider: #333330; --quote: #262625;
+      --scrim: rgba(0, 0, 0, .62); --topbar: #1C1C1B; --on-topbar: #F2F0EB; --track: #3A3A36;
+      --green: #5FB27C; --green-c: #213328; --danger-c: #3A2522; --accent-c: #3A3020;
+      --snack-bg: #3A3A36;
+      --shadow-btn: 0 0 0 1px rgba(255, 255, 255, .10), 0 1px 2px rgba(0, 0, 0, .3);
+      --shadow-card: 0 0 0 1px rgba(255, 255, 255, .08), 0 1px 2px rgba(0, 0, 0, .2), 0 2px 6px rgba(0, 0, 0, .2);
+      --shadow-raised: 0 0 0 1px rgba(255, 255, 255, .11), 0 2px 10px rgba(0, 0, 0, .3);
+      --shadow-overlay: 0 0 0 1px rgba(255, 255, 255, .13), 0 8px 28px rgba(0, 0, 0, .45);
+    }
+    body { margin: 0; -webkit-font-smoothing: antialiased; font-family: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif; }
+    a { color: #3A5A7A; text-decoration: none; }
+    a:hover { color: #14796B; }
+    .ng { font-family: var(--font); color: var(--fg); }
+    .ng * { box-sizing: border-box; }
+    .ic { display: block; flex: none; }
+    .sc { scrollbar-width: none; }
+    .sc::-webkit-scrollbar { display: none; }
+    .tap { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .press { transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .press:active { transform: scale(.96); }
+    .press-sm:active { transform: scale(.94); }
+    .rowpress { transition: background-color 100ms ease-out; }
+    .rowpress:active { background: var(--surface-2); }
+    .tb-btn:active { background: rgba(255, 255, 255, .22); }
+
+    @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pop-in { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+    @keyframes pop-94 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+    @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes shimmer-text { 0% { background-position: 150%; } 100% { background-position: -50%; } }
+    @keyframes pixel-on { 0%, 100% { opacity: .15; } 18%, 42% { opacity: 1; } 62% { opacity: .15; } }
+    @keyframes spin { to { transform: rotate(1turn); } }
+    @keyframes eq-bounce { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+
+    .shimmer {
+      color: transparent;
+      background-image: linear-gradient(90deg, var(--meta) 35%, var(--fg) 50%, var(--meta) 65%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      animation: shimmer-text 1.4s linear infinite;
+    }
+    .caret { display: inline-block; width: 2px; height: 12px; margin-left: 2px; border-radius: 999px; background: var(--fg); transform: translateY(2px); animation: fade-in 150ms ease-out both; }
+
+    .px { display: grid; grid-template-columns: repeat(3, 4px); gap: 1.5px; flex: none; }
+    .px i { display: block; width: 4px; height: 4px; border-radius: 1px; background: currentColor; opacity: .15; animation: pixel-on 650ms ease-in-out infinite; }
+    .px i:nth-child(1), .px i:nth-child(7), .px i:nth-child(5) { animation-delay: 90ms; }
+    .px i:nth-child(2), .px i:nth-child(8), .px i:nth-child(6) { animation-delay: 180ms; }
+    .px i:nth-child(3), .px i:nth-child(9) { animation-delay: 270ms; }
+    .px i:nth-child(4) { animation-delay: 0ms; }
+
+    .spinner { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--track); border-top-color: var(--fg-2); animation: spin 700ms linear infinite; flex: none; }
+
+    .collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 300ms var(--ease-out-strong), opacity 300ms var(--ease-out-strong); }
+    .collapse > div { min-height: 0; overflow: hidden; }
+    .collapse.open { grid-template-rows: 1fr; opacity: 1; }
+    .collapse.slow { transition-duration: 400ms; }
+    .chev { transition: transform 300ms var(--ease-tw); }
+    .chev.open { transform: rotate(180deg); }
+    .chev-r { transform: rotate(-90deg); transition: transform 200ms var(--ease-tw); }
+    .chev-r.open { transform: none; }
+
+    .src-pill { position: relative; display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 4px 0 3px; margin: 0 2px; border-radius: 5px; transform: translateY(-1px); background: var(--surface-2); box-shadow: var(--shadow-hairline); color: var(--fg-2); font-family: var(--mono); font-size: 10.5px; line-height: 18px; vertical-align: middle; white-space: nowrap; cursor: pointer; animation: pop-in 250ms var(--ease-out-strong) both; transition: background-color 150ms ease-out, color 150ms ease-out; }
+    .src-pill::after { content: ''; position: absolute; inset: -12px -3px; }
+    .src-pill:active { background: var(--primary-c); color: var(--fg); }
+    .fav { width: 12px; height: 12px; border-radius: 3px; display: grid; place-items: center; color: #fff; flex: none; box-shadow: 0 0 0 1px rgba(30, 28, 25, .1); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; font-weight: 500; white-space: nowrap; cursor: pointer; user-select: none; transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .btn:active { transform: scale(.96); }
+    .btn.disabled { opacity: .5; pointer-events: none; }
+    .btn-primary { background: var(--primary); color: var(--on-primary); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14); }
+    .btn-secondary { background: var(--surface); color: var(--fg); box-shadow: var(--shadow-btn); }
+    .btn-ghost { background: var(--surface-2); color: var(--fg); }
+    .btn-quiet { background: transparent; color: var(--fg-2); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-m { height: 40px; padding: 0 16px; font-size: 14px; }
+    .btn-s { height: 34px; padding: 0 14px; font-size: 13.5px; }
+
+  </style>
+</helmet>
+<div class="ng {{ themeClass }}" style="width: 1760px; min-height: 1010px; background: var(--surface-2); padding: 36px 40px 40px;">
+  <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px;">
+    <div style="font-size: 20px; font-weight: 600;">入口与默认阅读范围</div>
+    <div style="font-size: 13px; color: var(--fg-2);">从内容进入时先开半屏。入口只决定首次关注的范围，后续对话可以按问题继续读取。主题详情与单个楼层见「交互流程」画板。</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(4, 390px); gap: 40px;">
+    <sc-for list="{{ phones }}" as="p" hint-placeholder-count="4">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 4px; min-height: 58px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: var(--mono); font-size: 11px; color: var(--meta);">{{ p.no }}</span>
+            <span style="font-size: 15px; font-weight: 600;">{{ p.name }}</span>
+          </div>
+          <div style="font-size: 12.5px; line-height: 19px; color: var(--fg-2); text-wrap: pretty;">{{ p.rule }}</div>
+        </div>
+
+        <div style="position: relative; width: 390px; height: 844px; border-radius: 28px; overflow: hidden; background: var(--bg); box-shadow: var(--shadow-card);">
+          <sc-if value="{{ p.isList }}" hint-placeholder-val="{{ true }}">
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column;">
+              <div style="flex: none; background: var(--topbar); color: var(--on-topbar);">
+                <div style="display: flex; align-items: center; height: 54px; padding: 0 4px;">
+                  <div style="width: 46px; height: 46px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M20.02 11.02H7.83L13.41 5.39L12 3.98L3.98 12L12 20.02L13.41 18.61L7.83 12.98H20.02V11.02Z"></path></svg></div>
+                  <div style="flex: 1; margin-left: 4px; font-size: 17px; font-weight: 600;">网事杂谈</div>
+                  <div style="width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; background: {{ p.aiTopbarBg }};"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg></div>
+                  <div style="width: 44px; height: 44px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M15.52 14.02H14.72L14.44 13.73C15.42 12.61 15.98 11.11 15.98 9.52C15.98 5.91 13.08 3 9.52 3C5.91 3 3 5.91 3 9.52C3 13.08 5.91 15.98 9.52 15.98C11.11 15.98 12.61 15.42 13.73 14.44L14.02 14.72V15.52L18.98 20.48L20.48 18.98L15.52 14.02ZM9.52 14.02C7.03 14.02 5.02 12 5.02 9.52C5.02 7.03 7.03 5.02 9.52 5.02C12 5.02 14.02 7.03 14.02 9.52C14.02 12 12 14.02 9.52 14.02Z"></path></svg></div>
+                  <div style="width: 44px; height: 44px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 8.02C13.08 8.02 14.02 7.08 14.02 6C14.02 4.92 13.08 3.98 12 3.98C10.92 3.98 9.98 4.92 9.98 6C9.98 7.08 10.92 8.02 12 8.02ZM12 9.98C10.92 9.98 9.98 10.92 9.98 12C9.98 13.08 10.92 14.02 12 14.02C13.08 14.02 14.02 13.08 14.02 12C14.02 10.92 13.08 9.98 12 9.98ZM12 15.98C10.92 15.98 9.98 16.92 9.98 18C9.98 19.08 10.92 20.02 12 20.02C13.08 20.02 14.02 19.08 14.02 18C14.02 16.92 13.08 15.98 12 15.98Z"></path></svg></div>
+                </div>
+                <div style="display: flex; gap: 2px; padding: 0 6px;">
+                  <div style="padding: 0 16px; height: 44px; display: flex; align-items: center; font-size: 15px; font-weight: 600; box-shadow: inset 0 -3px 0 0 currentColor;">最新回复</div>
+                  <div style="padding: 0 16px; height: 44px; display: flex; align-items: center; font-size: 15px; font-weight: 600; opacity: .62;">最新发布</div>
+                  <div style="padding: 0 16px; height: 44px; display: flex; align-items: center; font-size: 15px; font-weight: 600; opacity: .62;">精华</div>
+                </div>
+              </div>
+              <sc-for list="{{ p.topics }}" as="r" hint-placeholder-count="4">
+                <div style="padding: 14px 16px 12px; border-bottom: 1px solid var(--divider); background: {{ r.bg }};">
+                  <div style="font-size: 17px; line-height: 24.65px; color: var(--fg);">{{ r.title }}</div>
+                  <div style="display: flex; align-items: center; gap: 6px; margin-top: 9px; font-size: 12.5px; line-height: 17px;">
+                    <span style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M12 6C13.08 6 14.02 6.89 14.02 8.02C14.02 9.09 13.08 9.98 12 9.98C10.92 9.98 9.98 9.09 9.98 8.02C9.98 6.89 10.92 6 12 6ZM12 15.98C14.72 15.98 17.81 17.3 18 18H6C6.23 17.3 9.33 15.98 12 15.98ZM12 3.98C9.8 3.98 8.02 5.81 8.02 8.02C8.02 10.22 9.8 12 12 12C14.2 12 15.98 10.22 15.98 8.02C15.98 5.81 14.2 3.98 12 3.98ZM12 14.02C9.33 14.02 3.98 15.33 3.98 18V20.02H20.02V18C20.02 15.33 14.67 14.02 12 14.02Z"></path></svg></span><span style="color: var(--link);">{{ r.author }}</span>
+                    <span style="flex: 1;"></span>
+                    <span style="color: var(--link);">{{ r.last }}</span>
+                    <span style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M20.02 2.02H3.98C2.91 2.02 2.02 2.91 2.02 3.98V21.98L6 18H20.02C21.09 18 21.98 17.11 21.98 15.98V3.98C21.98 2.91 21.09 2.02 20.02 2.02Z"></path></svg></span><span style="color: var(--link);">{{ r.replies }}</span>
+                    <sc-if value="{{ p.rowAi }}" hint-placeholder-val="{{ false }}">
+                      <span style="width: 32px; height: 28px; margin: -6px -8px -6px 2px; border-radius: 8px; display: grid; place-items: center; color: {{ r.aiFg }}; background: {{ r.aiBg }};"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg></span>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ p.isChain }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column;">
+              <div style="flex: none; display: flex; align-items: center; height: 54px; padding: 0 4px; background: var(--topbar); color: var(--on-topbar);">
+                <div style="width: 46px; height: 46px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M20.02 11.02H7.83L13.41 5.39L12 3.98L3.98 12L12 20.02L13.41 18.61L7.83 12.98H20.02V11.02Z"></path></svg></div>
+                <div style="flex: 1; margin-left: 4px; font-size: 17px; font-weight: 600;">回复链 · 4 层</div>
+                <div style="width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; background: rgba(255, 255, 255, .22);"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg></div>
+                <div style="width: 44px; height: 44px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M9.98 9V5.02L3 12L9.98 18.98V14.91C15 14.91 18.52 16.5 21 20.02C20.02 15 17.02 9.98 9.98 9Z"></path></svg></div>
+              </div>
+              <div style="padding: 14px 12px;">
+                <div style="font-size: 12px; color: var(--meta); padding: 0 4px 12px;">从第 2 楼展开：上游是它引用的楼层，下游是引用它的楼层。</div>
+                <sc-for list="{{ p.chain }}" as="c" hint-placeholder-count="3">
+                  <div style="margin-left: {{ c.indent }}; margin-bottom: 10px; padding: 13px 14px; border-radius: 14px; background: var(--surface); border: 1.5px solid {{ c.bd }};">
+                    <div style="display: flex; align-items: center; gap: 9px;">
+                      <div style="flex: none; width: 30px; height: 30px; border-radius: 10px; background: {{ c.av }}; display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700;">{{ c.ini }}</div>
+                      <div style="font-size: 13.5px; font-weight: 600; color: var(--primary);">{{ c.name }}</div>
+                      <div style="margin-left: auto; font-size: 11px; color: var(--meta);">[{{ c.no }} 楼]</div>
+                    </div>
+                    <div style="margin-top: 9px; font-size: 14px; line-height: 1.65; color: var(--fg);">{{ c.body }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ p.isPerson }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column;">
+              <div style="flex: none; display: flex; align-items: center; height: 54px; padding: 0 4px; background: var(--topbar); color: var(--on-topbar);">
+                <div style="width: 46px; height: 46px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M20.02 11.02H7.83L13.41 5.39L12 3.98L3.98 12L12 20.02L13.41 18.61L7.83 12.98H20.02V11.02Z"></path></svg></div>
+                <div style="flex: 1; margin-left: 4px; font-size: 17px; font-weight: 600;">用户资料</div>
+                <div style="width: 44px; height: 44px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M20.02 2.02H3.98C2.91 2.02 2.02 2.91 2.02 3.98V21.98L6 18H20.02C21.09 18 21.98 17.11 21.98 15.98V3.98C21.98 2.91 21.09 2.02 20.02 2.02ZM20.02 15.98H5.16L3.98 17.16V3.98H20.02V15.98ZM6.98 9H9V11.02H6.98V9ZM15 9H17.02V11.02H15V9ZM11.02 9H12.98V11.02H11.02V9Z"></path></svg></div>
+                <div style="width: 44px; height: 44px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 8.02C13.08 8.02 14.02 7.08 14.02 6C14.02 4.92 13.08 3.98 12 3.98C10.92 3.98 9.98 4.92 9.98 6C9.98 7.08 10.92 8.02 12 8.02ZM12 9.98C10.92 9.98 9.98 10.92 9.98 12C9.98 13.08 10.92 14.02 12 14.02C13.08 14.02 14.02 13.08 14.02 12C14.02 10.92 13.08 9.98 12 9.98ZM12 15.98C10.92 15.98 9.98 16.92 9.98 18C9.98 19.08 10.92 20.02 12 20.02C13.08 20.02 14.02 19.08 14.02 18C14.02 16.92 13.08 15.98 12 15.98Z"></path></svg></div>
+              </div>
+              <div style="height: 118px; background: repeating-linear-gradient(135deg, var(--primary-d) 0 12px, var(--primary) 12px 24px); display: flex; align-items: flex-end; gap: 14px; padding: 0 18px 14px;">
+                <div style="flex: none; width: 62px; height: 62px; border-radius: 31px; background: #1F3B44; border: 2px solid rgba(255, 255, 255, .75); display: grid; place-items: center; color: #fff; font-size: 20px; font-weight: 700;">阴</div>
+                <div style="flex: 1; min-width: 0; padding-bottom: 4px;">
+                  <div style="font-size: 20px; font-weight: 600; color: #fff;">阴阳师妄想</div>
+                  <div style="font-size: 13px; color: rgba(255, 255, 255, .85); margin-top: 4px;">用户 ID：62544191</div>
+                </div>
+              </div>
+              <div style="padding: 12px;">
+                <div style="display: flex; gap: 8px;">
+                  <div style="flex: 1; height: 44px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--fg);"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M15 3.98V11.02H5.16L3.98 12.19V3.98H15ZM15.98 2.02H3C2.44 2.02 2.02 2.44 2.02 3V17.02L6 12.98H15.98C16.55 12.98 17.02 12.56 17.02 12V3C17.02 2.44 16.55 2.02 15.98 2.02ZM21 6H18.98V15H6V17.02C6 17.53 6.47 18 6.98 18H18L21.98 21.98V6.98C21.98 6.47 21.56 6 21 6Z"></path></svg>发言记录</div>
+                  <div style="flex: 1; height: 44px; border-radius: 12px; background: var(--primary-c); box-shadow: 0 0 0 1.5px var(--primary); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--primary);"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg>AI 分析发言</div>
+                </div>
+                <div style="margin-top: 12px; background: var(--surface); border-radius: 14px; padding: 16px; box-shadow: var(--shadow-card);">
+                  <div style="font-size: 15.5px; font-weight: 600; color: var(--accent); margin-bottom: 10px;">:: 基础信息 ::</div>
+                  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px 12px; font-size: 13px; color: var(--fg-2);">
+                    <div>级别：学徒</div><div style="text-align: right;">威望：1.0</div><div>发帖：5075</div><div style="text-align: right;">注册：2019-03</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; top: 332px; border-radius: 20px 20px 0 0; background: var(--bg); box-shadow: 0 -1px 0 var(--divider), 0 -10px 32px rgba(40, 32, 12, .14); display: flex; flex-direction: column; overflow: hidden;">
+            <div style="flex: none;">
+              <div style="height: 16px; display: grid; place-items: center;"><div style="width: 36px; height: 4px; border-radius: 2px; background: var(--track);"></div></div>
+              <div style="height: 46px; display: flex; align-items: center; gap: 10px; padding: 0 8px 2px 16px;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 6px; font-size: 15px; line-height: 20px; font-weight: 600;"><span style="color: var(--primary);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg></span>AI 助手</div>
+                  <div style="font-size: 11.5px; line-height: 16px; color: var(--meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.scopeTitle }}</div>
+                </div>
+                <div style="width: 40px; height: 40px; display: grid; place-items: center; color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12.98 3C8.02 3 3.98 7.03 3.98 12H0.98L4.88 15.89L4.97 16.03L9 12H6C6 8.11 9.14 5.02 12.98 5.02C16.88 5.02 20.02 8.11 20.02 12C20.02 15.89 16.88 18.98 12.98 18.98C11.06 18.98 9.33 18.19 8.06 16.92L6.66 18.38C8.25 19.97 10.5 21 12.98 21C17.95 21 21.98 16.97 21.98 12C21.98 7.03 17.95 3 12.98 3ZM12 8.02V12.98L16.27 15.52L17.02 14.25L13.5 12.14V8.02H12Z"></path></svg></div>
+                <div style="width: 40px; height: 40px; display: grid; place-items: center; color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="21" height="21" fill="currentColor" aria-hidden="true"><path d="M12 5.81 15.19 9 16.59 7.59 12 3 7.41 7.59 8.81 9 12 5.81ZM12 18.19 8.81 15 7.41 16.41 12 21 16.59 16.41 15.19 15 12 18.19Z"></path></svg></div>
+                <div style="width: 40px; height: 40px; display: grid; place-items: center; color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></div>
+              </div>
+              <div style="height: 1px; background: var(--divider);"></div>
+            </div>
+            <div style="flex: 1; min-height: 0; overflow: hidden; padding: 12px 16px 0;">
+              <div style="font-size: 12px; font-weight: 500; color: var(--fg-2); margin: 0 2px 6px;">阅读范围</div>
+              <div style="border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-card); overflow: hidden;">
+                <sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="3">
+                  <div style="border-bottom: 1px solid {{ r.line }};">
+                    <div style="height: 44px; padding: 0 4px 0 10px; display: flex; align-items: center; gap: 10px;">
+                      <div style="flex: none; width: 22px; height: 22px; border-radius: 11px; background: {{ r.disc }}; display: grid; place-items: center;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{ r.glyph }}"></path></svg></div>
+                      <div style="flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.label }}</div>
+                      <div style="flex: none; font-size: 12.5px; color: var(--fg-2); font-variant-numeric: tabular-nums;">{{ r.amount }}</div>
+                      <sc-if value="{{ r.hasPill }}" hint-placeholder-val="{{ false }}">
+                        <div style="flex: none; height: 22px; padding: 0 8px; border-radius: 11px; display: flex; align-items: center; font-size: 11.5px; font-weight: 500; color: var(--fg-2); background: var(--surface-2);">{{ r.pill }}</div>
+                      </sc-if>
+                      <div style="flex: none; width: 28px; height: 28px; display: grid; place-items: center; color: var(--meta);"><span class="chev {{ r.open }}"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span></div>
+                    </div>
+                    <sc-if value="{{ r.isOpen }}" hint-placeholder-val="{{ false }}">
+                      <div style="display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 0 12px 10px 10px;">
+                        <div style="display: flex; justify-content: center;"><div style="width: 1px; background: var(--divider);"></div></div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                          <sc-for list="{{ r.details }}" as="d" hint-placeholder-count="2">
+                            <div style="display: flex; justify-content: space-between; gap: 12px;">
+                              <span style="font-size: 12.5px; color: var(--fg-2);">{{ d.k }}</span>
+                              <span style="font-family: var(--mono); font-size: 11.5px; color: var(--meta); text-align: right;">{{ d.v }}</span>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 8px; margin: 8px -6px 0; padding: 6px;">
+                <span style="color: var(--fg-2);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.98 9 20.25 6.23 23.02 5.02 20.25 3.75 18.98 0.98 17.77 3.75 15 5.02 17.77 6.23 18.98 9ZM18.98 15 17.77 17.77 15 18.98 17.77 20.25 18.98 23.02 20.25 20.25 23.02 18.98 20.25 17.77 18.98 15ZM11.48 9.52 9 3.98 6.52 9.52 0.98 12 6.52 14.48 9 20.02 11.48 14.48 17.02 12 11.48 9.52ZM9.98 12.98 9 15.19 8.02 12.98 5.81 12 8.02 11.02 9 8.81 9.98 11.02 12.19 12 9.98 12.98Z"></path></svg></span>
+                <span class="shimmer" style="font-size: 13.5px; font-weight: 500;">正在思考</span>
+                <span style="color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M16.59 8.58 12 13.17 7.41 8.58 6 9.98 12 15.98 18 9.98 16.59 8.58Z"></path></svg></span>
+              </div>
+              <sc-if value="{{ p.hasNote }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 4px; padding: 9px 12px; border-radius: 10px; background: var(--surface-2); box-shadow: var(--shadow-hairline); font-size: 12.5px; line-height: 19px; color: var(--fg-2);">{{ p.note }}</div>
+              </sc-if>
+            </div>
+            <div style="flex: none; padding: 0 12px 12px;">
+              <div style="display: flex; gap: 6px; overflow: hidden; margin: 0 -12px; padding: 8px 12px;">
+                <sc-for list="{{ p.quick }}" as="a" hint-placeholder-count="3">
+                  <div class="btn disabled" style="flex: none; height: 32px; padding: 0 12px 0 9px; font-size: 13px; color: var(--fg); background: var(--surface); box-shadow: var(--shadow-btn);"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="color: var(--primary);"><path d="{{ a.icon }}"></path></svg>{{ a.label }}</div>
+                </sc-for>
+              </div>
+              <div style="border: 1px solid var(--divider); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-card); padding: 6px; display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center; column-gap: 4px;">
+                <div style="width: 36px; height: 36px; display: grid; place-items: center; font-family: var(--mono); font-size: 17px; color: var(--meta);">/</div>
+                <div style="padding: 0 4px; font-size: 15px; color: var(--meta);">正在回答，可随时停止</div>
+                <div style="width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--bg); background: var(--fg);"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M15.98 8.02V15.98H8.02V8.02H15.98ZM18 6H6V18H18V6Z"></path></svg></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1760,"height":1010}}'>
+const IC = {"fact_check":"M20.02 3H3.98C2.91 3 2.02 3.89 2.02 5.02V18.98C2.02 20.11 2.91 21 3.98 21H20.02C21.09 21 21.98 20.11 21.98 18.98V5.02C21.98 3.89 21.09 3 20.02 3ZM20.02 18.98H3.98V5.02H20.02V18.98ZM19.41 10.41 18 9 14.81 12.19 13.41 10.73 12 12.14 14.81 15 19.41 10.41ZM5.02 6.98H9.98V9H5.02V6.98ZM5.02 11.02H9.98V12.98H5.02V11.02ZM5.02 15H9.98V17.02H5.02V15Z","psychology":"M15.8 7.22 14.81 7.64C14.62 7.45 14.39 7.31 14.16 7.22L14.02 6.19C13.97 6.05 13.92 6 13.78 6H12.19C12.09 6 12 6.05 12 6.19L11.86 7.22C11.62 7.31 11.39 7.45 11.2 7.64L10.17 7.22C10.08 7.17 9.98 7.22 9.94 7.31L9.14 8.67C9.09 8.77 9.14 8.91 9.19 8.95L10.03 9.61C10.03 9.75 9.98 9.89 9.98 9.98C9.98 10.12 10.03 10.27 10.03 10.41L9.19 11.06C9.09 11.11 9.09 11.2 9.14 11.3L9.94 12.7C9.98 12.8 10.08 12.8 10.17 12.8L11.2 12.38C11.39 12.56 11.62 12.66 11.86 12.75L12 13.83C12 13.92 12.09 14.02 12.19 14.02H13.78C13.92 14.02 13.97 13.92 14.02 13.83L14.16 12.75C14.39 12.66 14.62 12.56 14.81 12.38L15.8 12.8C15.89 12.8 16.03 12.8 16.03 12.7L16.83 11.3C16.92 11.2 16.88 11.11 16.78 11.06L15.98 10.41C15.98 10.27 15.98 10.12 15.98 9.98C15.98 9.84 15.98 9.75 15.98 9.61L16.83 8.95C16.92 8.91 16.92 8.77 16.88 8.67L16.08 7.31C16.03 7.22 15.89 7.17 15.8 7.22ZM12.98 11.44C12.19 11.44 11.58 10.78 11.58 9.98C11.58 9.19 12.19 8.58 12.98 8.58C13.78 8.58 14.44 9.19 14.44 9.98C14.44 10.78 13.78 11.44 12.98 11.44ZM19.92 9.05C19.5 5.81 16.69 3.19 13.41 3C13.27 3 13.12 3 12.98 3C9.47 3 6.56 5.62 6.09 9L4.17 12.47C3.75 13.12 4.22 14.02 5.02 14.02H6V15.98C6 17.11 6.89 18 8.02 18H9V21H15.98V16.31C18.61 15.05 20.34 12.23 19.92 9.05ZM14.91 14.62 14.02 15.05V18.98H11.02V15.98H8.02V12H6.7L8.02 9.66C8.2 7.08 10.36 5.02 12.98 5.02C15.75 5.02 18 7.22 18 9.98C18 12.09 16.69 13.88 14.91 14.62Z","travel_explore":"M19.31 16.92C19.69 16.22 20.02 15.42 20.02 14.48C20.02 12 18 9.98 15.52 9.98C12.98 9.98 11.02 12 11.02 14.48C11.02 17.02 12.98 18.98 15.52 18.98C16.41 18.98 17.2 18.7 17.91 18.28L21.09 21.52L22.5 20.11L19.31 16.92ZM15.52 17.02C14.11 17.02 12.98 15.89 12.98 14.48C12.98 13.08 14.11 12 15.52 12C16.92 12 18 13.08 18 14.48C18 15.89 16.92 17.02 15.52 17.02ZM12 20.02V21.98C6.47 21.98 2.02 17.53 2.02 12C2.02 6.47 6.47 2.02 12 2.02C16.83 2.02 20.86 5.44 21.8 9.98H19.73C19.08 7.55 17.34 5.53 15 4.59V5.02C15 6.09 14.11 6.98 12.98 6.98H11.02V9C11.02 9.56 10.55 9.98 9.98 9.98H8.02V12H9.98V15H9L4.22 10.22C4.08 10.78 3.98 11.39 3.98 12C3.98 16.41 7.59 20.02 12 20.02Z","compare_arrows":"M9 14.02H2.02V15.98H9V18.98L12.98 15L9 11.02V14.02ZM15 12.98V9.98H21.98V8.02H15V5.02L11.02 9L15 12.98Z","balance":"M12.98 7.83C13.83 7.55 14.53 6.84 14.81 6H18L15 12.98C15 14.67 16.55 15.98 18.52 15.98C20.44 15.98 21.98 14.67 21.98 12.98L18.98 6H21V3.98H14.81C14.44 2.81 13.31 2.02 12 2.02C10.69 2.02 9.56 2.81 9.19 3.98H3V6H5.02L2.02 12.98C2.02 14.67 3.56 15.98 5.48 15.98C7.45 15.98 9 14.67 9 12.98L6 6H9.19C9.47 6.84 10.17 7.55 11.02 7.83V18.98H2.02V21H21.98V18.98H12.98V7.83ZM20.39 12.98H16.64L18.52 8.62L20.39 12.98ZM7.36 12.98H3.61L5.48 8.62L7.36 12.98ZM12 6C11.44 6 11.02 5.53 11.02 5.02C11.02 4.45 11.44 3.98 12 3.98C12.56 3.98 12.98 4.45 12.98 5.02C12.98 5.53 12.56 6 12 6Z","manage_search":"M6.98 9H2.02V6.98H6.98V9ZM6.98 12H2.02V14.02H6.98V12ZM20.58 18.98 16.78 15.19C15.94 15.7 15 15.98 14.02 15.98C11.25 15.98 9 13.78 9 11.02C9 8.25 11.25 6 14.02 6C16.78 6 18.98 8.25 18.98 11.02C18.98 12 18.7 12.94 18.19 13.73L21.98 17.58L20.58 18.98ZM17.02 11.02C17.02 9.33 15.66 8.02 14.02 8.02C12.33 8.02 11.02 9.33 11.02 11.02C11.02 12.66 12.33 14.02 14.02 14.02C15.66 14.02 17.02 12.66 17.02 11.02ZM2.02 18.98H12V17.02H2.02V18.98Z","insights":"M21 8.02C19.55 8.02 18.75 9.42 19.08 10.5L15.52 14.06C15.23 13.97 14.77 13.97 14.48 14.06L11.95 11.53C12.28 10.45 11.44 9 9.98 9C8.53 9 7.73 10.45 8.06 11.53L3.52 16.08C2.44 15.75 0.98 16.55 0.98 18C0.98 19.08 1.92 20.02 3 20.02C4.45 20.02 5.25 18.56 4.92 17.48L9.47 12.94C9.8 13.03 10.22 13.03 10.5 12.94L13.08 15.47C12.75 16.55 13.55 18 15 18C16.45 18 17.25 16.55 16.92 15.47L20.48 11.95C21.56 12.28 23.02 11.44 23.02 9.98C23.02 8.91 22.08 8.02 21 8.02ZM15 9 15.94 6.94 18 6 15.94 5.06 15 3 14.06 5.06 12 6 14.06 6.94 15 9ZM3.52 11.02 3.98 9 6 8.48 3.98 8.02 3.52 6 3 8.02 0.98 8.48 3 9 3.52 11.02Z","timeline":"M23.02 8.02C23.02 9.09 22.08 9.98 21 9.98C20.81 9.98 20.67 9.98 20.48 9.94L16.92 13.5C16.97 13.64 17.02 13.83 17.02 14.02C17.02 15.09 16.08 15.98 15 15.98C13.92 15.98 12.98 15.09 12.98 14.02C12.98 13.83 13.03 13.64 13.08 13.5L10.5 10.92C10.36 10.97 10.17 11.02 9.98 11.02C9.8 11.02 9.66 10.97 9.47 10.92L4.92 15.47C4.97 15.66 5.02 15.8 5.02 15.98C5.02 17.11 4.08 18 3 18C1.92 18 0.98 17.11 0.98 15.98C0.98 14.91 1.92 14.02 3 14.02C3.19 14.02 3.33 14.02 3.52 14.06L8.06 9.52C8.02 9.38 8.02 9.19 8.02 9C8.02 7.92 8.91 6.98 9.98 6.98C11.11 6.98 12 7.92 12 9C12 9.19 12 9.38 11.95 9.52L14.48 12.05C14.62 12 14.81 12 15 12C15.19 12 15.38 12 15.52 12.05L19.08 8.53C19.03 8.34 18.98 8.2 18.98 8.02C18.98 6.89 19.92 6 21 6C22.08 6 23.02 6.89 23.02 8.02Z"};
+const AV = ['#3E6B7E', '#7E5A3E', '#5A6E3E', '#6E3E5A', '#3E5A7E', '#7E6B3E', '#4A4A6E'];
+const CHECK = 'M5 12.5l4.5 4.5L19 7.5';
+const DASH = 'M6.5 12h11';
+const TOPICS = [
+  { title: '体感消费不一直这样吗', author: '阴阳师妄想', last: '留白，嗯', replies: '86' },
+  { title: '[讨论] 暑期出行是不是比去年冷清', author: '北窗', last: 'kaze', replies: '142' },
+  { title: '现在找工作简历要写多少字才合适', author: '十二楼', last: '夜航船', replies: '37' },
+  { title: '[吐槽] 公司食堂又涨价了', author: 'Invisibl', last: '无知器', replies: '211' }
+];
+
+class Component extends DCLogic {
+  row(label, amount, st, pill, details, open, last) {
+    return {
+      label, amount, pill: pill || '', hasPill: !!pill,
+      disc: st === 'skip' ? 'var(--tag)' : 'var(--green)', glyph: st === 'skip' ? DASH : CHECK,
+      details: (details || []).map(([k, v]) => ({ k, v })),
+      isOpen: !!open, open: open ? 'open' : '', line: last ? 'transparent' : 'var(--divider)'
+    };
+  }
+  quick(list) { return list.map(([label, icon]) => ({ label, icon: IC[icon] })); }
+  renderVals() {
+    const topics = (hl) => TOPICS.map((t, i) => ({ ...t, bg: hl && i === 0 ? 'var(--primary-c)' : 'transparent', aiFg: hl && i === 0 ? 'var(--primary)' : 'var(--meta)', aiBg: hl && i === 0 ? 'var(--surface)' : 'transparent' }));
+    return {
+      themeClass: this.props.dark ? 'dark' : '',
+      phones: [
+        {
+          no: '01', name: '列表概览', isList: true, rowAi: false, aiTopbarBg: 'rgba(255, 255, 255, .22)',
+          rule: '保留当前排序与筛选，取已加载列表靠前的最多 300 个主题；首次只用标题、作者、时间和回复数。',
+          topics: topics(false),
+          scopeTitle: '列表概览 · 网事杂谈 · 最新回复',
+          rows: [
+            this.row('当前列表', '最新回复', 'done', '', [['已加载', '412 个主题'], ['计入', '靠前 300 个'], ['排序与筛选', '保持不变']], true),
+            this.row('主题摘要', '300 个', 'done', '', []),
+            this.row('屏蔽规则', '6 个', 'skip', '未计入', [], false, true)
+          ],
+          hasNote: true, note: '正文和楼层不默认读取，agent 按问题再读，受限速和额度约束。',
+          quick: this.quick([['深入某个话题', 'manage_search'], ['梳理讨论分歧', 'compare_arrows'], ['补充背景', 'travel_explore']])
+        },
+        {
+          no: '02', name: '列表单条主题', isList: true, rowAi: true, aiTopbarBg: 'transparent',
+          rule: '主题行右侧的 AI 按钮。读取该主题第一页，默认带入热门回复与最多 1 张图片。',
+          topics: topics(true),
+          scopeTitle: '主题 · 体感消费不一直这样吗',
+          rows: [
+            this.row('第 1 页', '20 楼', 'done', '', []),
+            this.row('热门回复', '3 条', 'done', '', []),
+            this.row('图片', '1 / 4 张', 'done', '', [['已带入', '主楼无图，取第 1 页第一张'], ['未读取', '3 张，需要时再读']], true, true)
+          ],
+          hasNote: false, note: '',
+          quick: this.quick([['事实核查', 'fact_check'], ['批判性思考', 'psychology'], ['梳理分歧', 'compare_arrows'], ['补充背景', 'travel_explore']])
+        },
+        {
+          no: '03', name: '回复链', isChain: true,
+          rule: '主楼正文加当前回复链的全部发言，不默认加入第一页的其他楼层。',
+          chain: [
+            { indent: '0px', bd: 'var(--divider)', av: AV[1], ini: 'In', name: 'Invisibl', no: 1, body: '短期来看通缩对于高收入人群的消费是有利的。' },
+            { indent: '16px', bd: 'var(--primary)', av: AV[2], ini: '无', name: '无知器', no: 2, body: '最简单的就是看商圈客流，三年前排队一小时的店现在随便进。' },
+            { indent: '32px', bd: 'var(--divider)', av: AV[4], ini: '北', name: '北窗', no: 5, body: '客流少不代表消费少，外卖和网购的比例一直在涨。' }
+          ],
+          scopeTitle: '回复链 · 4 层 · 从 2 楼展开',
+          rows: [
+            this.row('主楼正文', '1 楼', 'done', '', []),
+            this.row('回复链', '4 层', 'done', '', [['上游', '1 楼'], ['当前', '2 楼'], ['下游', '5、9 楼']], true),
+            this.row('图片', '0 张', 'done', '', [], false, true)
+          ],
+          hasNote: false, note: '',
+          quick: this.quick([['梳理分歧', 'compare_arrows'], ['检查各方论证', 'balance'], ['事实核查', 'fact_check']])
+        },
+        {
+          no: '04', name: '个人分析', isPerson: true,
+          rule: '按时间从近到远读取历史主题和回复，按发言去重后合计最多 300 条；本期仅文本。匿名作者不提供此入口。',
+          scopeTitle: '个人分析 · 阴阳师妄想',
+          rows: [
+            this.row('回复', '214 条', 'done', '', []),
+            this.row('主题', '86 个', 'done', '仅标题', []),
+            this.row('合计', '300 条', 'done', '', [['顺序', '从近到远'], ['去重', '按独立发言'], ['时间跨度', '2024-11 至 2026-08']], true),
+            this.row('图片', '不读取', 'skip', '本期仅文本', [], false, true)
+          ],
+          hasNote: false, note: '',
+          quick: this.quick([['查看倾向依据', 'insights'], ['查找相反表述', 'compare_arrows'], ['查看观点变化', 'timeline']])
+        }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

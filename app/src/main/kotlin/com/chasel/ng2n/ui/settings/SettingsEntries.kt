@@ -15,6 +15,9 @@ import kotlinx.serialization.Serializable
 data object FontSizeKey : NavKey
 
 @Serializable
+data object AiSettingsKey : NavKey
+
+@Serializable
 data object LabKey : NavKey
 
 fun EntryProviderScope<NavKey>.settingsEntries(
@@ -28,8 +31,16 @@ fun EntryProviderScope<NavKey>.settingsEntries(
       onOpenFilters = { nav.push(FiltersKey) },
       onOpenFontSize = { nav.push(FontSizeKey) },
       onOpenLab = { nav.push(LabKey) },
+      onOpenAi = { nav.push(AiSettingsKey) },
     )
   }
+
+  entry<AiSettingsKey> {
+    AiSettingsScreen(onBack = nav::pop, onHistory = { nav.push(com.chasel.ng2n.ui.ai.AiHistoryKey()) }, viewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel())
+  }
+
+  entry<com.chasel.ng2n.ui.ai.AiHistoryKey> { com.chasel.ng2n.ui.ai.AiHistoryScreen(it, nav) }
+  entry<com.chasel.ng2n.ui.ai.AiChatKey> { com.chasel.ng2n.ui.ai.AiChatScreen(it, nav) }
 
   entry<FontSizeKey> { FontSizeScreen(onBack = nav::pop) }
 

@@ -244,6 +244,7 @@ suspend fun fetchTopicDetail(
   authorId: Long? = null,
   onSnapshot: ((TopicPageSnapshot) -> Unit)? = null,
   deferSnapshot: ((() -> TopicPageSnapshot) -> Unit)? = null,
+  currentAccountFresh: Boolean = false,
 ): TopicDetail {
   val request = NgaRequest(
     path = "read.php",
@@ -257,6 +258,8 @@ suspend fun fetchTopicDetail(
       "v2" to 1,
     ),
     validate = ::rejectNonTopicDetail,
+    accountPolicy = if (currentAccountFresh) com.chasel.ng2n.core.net.AccountPolicy.PINNED else com.chasel.ng2n.core.net.AccountPolicy.FALLBACK,
+    allowTopicCache = !currentAccountFresh,
   )
   val result = client.execute(request)
 

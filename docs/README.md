@@ -26,6 +26,7 @@
 - [ADR-0003：原生 Android 重写](adr/0003-full-native-android-rewrite.md)
 - [ADR-0004：Compose 与裸 OkHttp](adr/0004-native-stack-compose-bare-okhttp.md)
 - [ADR-0005：Room 维护正式迁移](adr/0005-room-migrations-keep-user-data.md)
+- [ADR-0006：Koog 本机 agent 与独立模型 HTTP](adr/0006-koog-agent-runtime.md)
 
 ## 历史资料
 

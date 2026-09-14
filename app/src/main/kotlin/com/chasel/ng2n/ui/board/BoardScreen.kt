@@ -31,6 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -105,6 +107,10 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
   val deps = rememberAppDeps()
   val scope = rememberCoroutineScope()
 
+  val aiSessions = com.chasel.ng2n.ui.ai.rememberAiSessions()
+  var ai by remember { mutableStateOf(aiSessions.create()) }
+  val aiState by ai.state.collectAsStateWithLifecycle()
+
   var sort by rememberSaveable { mutableStateOf(TopicSort.LAST_POST) }
   var menuOpen by remember { mutableStateOf(false) }
 
@@ -157,6 +163,10 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
       )
       TopBarTitle(text = boardTitle, variant = TopBarTitleVariant.SUB, maxWidth = 150.dp)
       Spacer(Modifier.weight(1f))
+      androidx.compose.material3.TextButton(onClick = {
+        if (ai.state.value.conversationId != null) ai = aiSessions.create()
+        ai.openList(state.topics, boardTitle, if (sort == TopicSort.LAST_POST) "最新回复" else "发帖时间", filterRules)
+      }) { Text("✦", color = colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
       TopBarButton(
         icon = Ng2nIcon.STAR,
         size = 23.dp,
@@ -203,6 +213,10 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
         headTid = headTid,
         subBoards = subBoards,
         onOpenTopic = openTopic,
+        onAiTopic = { topic ->
+          if (ai.state.value.conversationId != null) ai = aiSessions.create()
+          ai.open(com.chasel.ng2n.data.topic.TopicPageParams(topic.tid, 1, topic.favCode), null, "主题 · ${topic.subject}")
+        },
         onOpenBoard = openBoard,
         onOpenHead = { nav.push(TopicKey(tid = it, title = "版头")) },
         onRefresh = { scope.launch { deps.topicLists.refresh(listKey) } },
@@ -233,6 +247,8 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
       }
     }
   }
+
+  com.chasel.ng2n.ui.ai.EntryAiSheet(aiState, ai, nav)
 
   OverflowMenu(
     open = menuOpen,
@@ -330,6 +346,7 @@ private fun TopicListBody(
   headTid: Long?,
   subBoards: List<SubBoard>,
   onOpenTopic: (Topic) -> Unit,
+  onAiTopic: (Topic) -> Unit,
   onOpenBoard: (Board) -> Unit,
   onOpenHead: (Long) -> Unit,
   onRefresh: () -> Unit,
@@ -424,7 +441,7 @@ private fun TopicListBody(
         key = { index -> rows[index].topic.tid },
         contentType = { "topic" },
       ) { index ->
-        TopicRow(rows[index], onOpenTopic)
+        TopicRow(rows[index], onOpenTopic, onAi = onAiTopic)
       }
       tailPlaceholders(placeholders)
       item(key = ListKeys.FOOTER, contentType = "footer") {

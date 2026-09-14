@@ -1,5 +1,6 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.data.topic.TopicRepository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
@@ -136,7 +137,6 @@ class FakeTopicDeps(
     client = client,
     cachePayloads = snapshotSink,
     scope = scope,
-    compute = compute,
     io = scope.testDispatcher(),
   )
   val history = HistoryRepository(dao = historyDao, bookmarks = bookmarkDao, scope = scope)
@@ -146,6 +146,7 @@ class FakeTopicDeps(
   val deps = TopicDeps(
     client = client,
     repository = repository,
+    pageLoader = TopicPageLoader(repository, compute),
     history = history,
     bookmarks = bookmarks,
     topicCache = topicCache,

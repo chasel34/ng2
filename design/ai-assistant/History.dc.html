@@ -1,0 +1,285 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root, .ng {
+      --primary: #14796B; --primary-d: #0F5D53; --primary-c: #D8EAE5; --on-primary: #FFFFFF;
+      --bg: #FCF4E1; --surface: #FFFBF0; --surface-2: #F5F0E0; --menu: #F7F4EE;
+      --fg: #1E1C19; --fg-2: #57534A; --meta: #A39D8E; --link: #3A5A7A; --tag: #B7B0A0;
+      --accent: #E09A2A; --danger: #DE3B2C; --divider: #EBE3CE; --quote: #F1EBD6;
+      --scrim: rgba(30, 26, 16, .42); --topbar: #14796B; --on-topbar: #FFFFFF; --track: #DCD4BE;
+      --green: #3F8F5B; --green-c: #E1EFE3; --danger-c: #F9E2DC; --accent-c: #F7E8C8;
+      --snack-bg: #33322C;
+      --shadow-hairline: 0 0 0 1px var(--divider);
+      --shadow-btn: 0 0 0 1px var(--track), 0 0 4px 0 rgba(70, 58, 24, .05);
+      --shadow-card: 0 0 0 1px var(--divider), 0 18px 47px rgba(70, 58, 24, .04), 0 7.5px 19px rgba(70, 58, 24, .025), 0 2.3px 5.8px rgba(70, 58, 24, .02), 0 .5px 1.3px rgba(70, 58, 24, .02);
+      --shadow-raised: 0 0 0 1px var(--divider), 0 17.5px 23.4px rgba(70, 58, 24, .07), 0 9.4px 12.5px rgba(70, 58, 24, .05), 0 5.25px 7px rgba(70, 58, 24, .03), 0 1.16px 1.5px rgba(70, 58, 24, .02);
+      --shadow-overlay: 0 0 0 1px var(--divider), 0 25px 50px rgba(70, 58, 24, .09), 0 12px 24px rgba(70, 58, 24, .06), 0 6px 12px rgba(70, 58, 24, .04), 0 1.5px 3px rgba(70, 58, 24, .03);
+      --ease-std: cubic-bezier(.25, .1, .25, 1);
+      --ease-tw: cubic-bezier(.4, 0, .2, 1);
+      --ease-out-strong: cubic-bezier(.23, 1, .32, 1);
+      --ease-in-out-strong: cubic-bezier(.77, 0, .175, 1);
+      --ease-link: cubic-bezier(.16, 1, .3, 1);
+      --font: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    }
+    .ng.dark {
+      --primary: #1E9384; --primary-d: #17766A; --primary-c: #1E3A35; --on-primary: #FFFFFF;
+      --bg: #1C1C1B; --surface: #232322; --surface-2: #292928; --menu: #2E2E2C;
+      --fg: #E9E7E2; --fg-2: #B0ACA3; --meta: #6F6C65; --link: #8AA6C8; --tag: #5F5C55;
+      --accent: #D6942E; --danger: #E2574C; --divider: #333330; --quote: #262625;
+      --scrim: rgba(0, 0, 0, .62); --topbar: #1C1C1B; --on-topbar: #F2F0EB; --track: #3A3A36;
+      --green: #5FB27C; --green-c: #213328; --danger-c: #3A2522; --accent-c: #3A3020;
+      --snack-bg: #3A3A36;
+      --shadow-btn: 0 0 0 1px rgba(255, 255, 255, .10), 0 1px 2px rgba(0, 0, 0, .3);
+      --shadow-card: 0 0 0 1px rgba(255, 255, 255, .08), 0 1px 2px rgba(0, 0, 0, .2), 0 2px 6px rgba(0, 0, 0, .2);
+      --shadow-raised: 0 0 0 1px rgba(255, 255, 255, .11), 0 2px 10px rgba(0, 0, 0, .3);
+      --shadow-overlay: 0 0 0 1px rgba(255, 255, 255, .13), 0 8px 28px rgba(0, 0, 0, .45);
+    }
+    body { margin: 0; -webkit-font-smoothing: antialiased; font-family: -apple-system, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif; }
+    a { color: #3A5A7A; text-decoration: none; }
+    a:hover { color: #14796B; }
+    .ng { font-family: var(--font); color: var(--fg); }
+    .ng * { box-sizing: border-box; }
+    .ic { display: block; flex: none; }
+    .sc { scrollbar-width: none; }
+    .sc::-webkit-scrollbar { display: none; }
+    .tap { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .press { transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .press:active { transform: scale(.96); }
+    .press-sm:active { transform: scale(.94); }
+    .rowpress { transition: background-color 100ms ease-out; }
+    .rowpress:active { background: var(--surface-2); }
+    .tb-btn:active { background: rgba(255, 255, 255, .22); }
+
+    @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pop-in { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+    @keyframes pop-94 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+    @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes shimmer-text { 0% { background-position: 150%; } 100% { background-position: -50%; } }
+    @keyframes pixel-on { 0%, 100% { opacity: .15; } 18%, 42% { opacity: 1; } 62% { opacity: .15; } }
+    @keyframes spin { to { transform: rotate(1turn); } }
+    @keyframes eq-bounce { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+
+    .shimmer {
+      color: transparent;
+      background-image: linear-gradient(90deg, var(--meta) 35%, var(--fg) 50%, var(--meta) 65%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      animation: shimmer-text 1.4s linear infinite;
+    }
+    .caret { display: inline-block; width: 2px; height: 12px; margin-left: 2px; border-radius: 999px; background: var(--fg); transform: translateY(2px); animation: fade-in 150ms ease-out both; }
+
+    .px { display: grid; grid-template-columns: repeat(3, 4px); gap: 1.5px; flex: none; }
+    .px i { display: block; width: 4px; height: 4px; border-radius: 1px; background: currentColor; opacity: .15; animation: pixel-on 650ms ease-in-out infinite; }
+    .px i:nth-child(1), .px i:nth-child(7), .px i:nth-child(5) { animation-delay: 90ms; }
+    .px i:nth-child(2), .px i:nth-child(8), .px i:nth-child(6) { animation-delay: 180ms; }
+    .px i:nth-child(3), .px i:nth-child(9) { animation-delay: 270ms; }
+    .px i:nth-child(4) { animation-delay: 0ms; }
+
+    .spinner { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--track); border-top-color: var(--fg-2); animation: spin 700ms linear infinite; flex: none; }
+
+    .collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 300ms var(--ease-out-strong), opacity 300ms var(--ease-out-strong); }
+    .collapse > div { min-height: 0; overflow: hidden; }
+    .collapse.open { grid-template-rows: 1fr; opacity: 1; }
+    .collapse.slow { transition-duration: 400ms; }
+    .chev { transition: transform 300ms var(--ease-tw); }
+    .chev.open { transform: rotate(180deg); }
+    .chev-r { transform: rotate(-90deg); transition: transform 200ms var(--ease-tw); }
+    .chev-r.open { transform: none; }
+
+    .src-pill { position: relative; display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 4px 0 3px; margin: 0 2px; border-radius: 5px; transform: translateY(-1px); background: var(--surface-2); box-shadow: var(--shadow-hairline); color: var(--fg-2); font-family: var(--mono); font-size: 10.5px; line-height: 18px; vertical-align: middle; white-space: nowrap; cursor: pointer; animation: pop-in 250ms var(--ease-out-strong) both; transition: background-color 150ms ease-out, color 150ms ease-out; }
+    .src-pill::after { content: ''; position: absolute; inset: -12px -3px; }
+    .src-pill:active { background: var(--primary-c); color: var(--fg); }
+    .fav { width: 12px; height: 12px; border-radius: 3px; display: grid; place-items: center; color: #fff; flex: none; box-shadow: 0 0 0 1px rgba(30, 28, 25, .1); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; font-weight: 500; white-space: nowrap; cursor: pointer; user-select: none; transition: transform 150ms ease-out, background-color 150ms ease-out, opacity 150ms ease-out; }
+    .btn:active { transform: scale(.96); }
+    .btn.disabled { opacity: .5; pointer-events: none; }
+    .btn-primary { background: var(--primary); color: var(--on-primary); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14); }
+    .btn-secondary { background: var(--surface); color: var(--fg); box-shadow: var(--shadow-btn); }
+    .btn-ghost { background: var(--surface-2); color: var(--fg); }
+    .btn-quiet { background: transparent; color: var(--fg-2); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-m { height: 40px; padding: 0 16px; font-size: 14px; }
+    .btn-s { height: 34px; padding: 0 14px; font-size: 13.5px; }
+
+    .hist-item { transition: opacity 180ms var(--ease-std), transform 220ms var(--ease-out-strong); }
+    .search-field { transition: width 260ms var(--ease-out-strong), opacity 160ms var(--ease-std); }
+    mark { background: var(--accent-c); color: inherit; border-radius: 3px; padding: 0; }
+  </style>
+</helmet>
+<div class="ng {{ themeClass }}" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--bg); display: flex; flex-direction: column;">
+  <div style="flex: none; height: 54px; background: var(--topbar); color: var(--on-topbar); display: flex; align-items: center; padding: 0 4px; gap: 2px;">
+    <div class="tap tb-btn" onClick="{{ backOrClose }}" style="width: 46px; height: 46px; border-radius: 23px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M20.02 11.02H7.83L13.41 5.39L12 3.98L3.98 12L12 20.02L13.41 18.61L7.83 12.98H20.02V11.02Z"></path></svg></div>
+    <sc-if value="{{ notSearching }}" hint-placeholder-val="{{ true }}">
+      <div style="flex: 1; font-size: 17px; line-height: 24.65px; font-weight: 600; animation: fade-in 160ms var(--ease-std) both;">AI 对话</div>
+      <div class="tap tb-btn" onClick="{{ openSearch }}" style="width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M15.52 14.02H14.72L14.44 13.73C15.42 12.61 15.98 11.11 15.98 9.52C15.98 5.91 13.08 3 9.52 3C5.91 3 3 5.91 3 9.52C3 13.08 5.91 15.98 9.52 15.98C11.11 15.98 12.61 15.42 13.73 14.44L14.02 14.72V15.52L18.98 20.48L20.48 18.98L15.52 14.02ZM9.52 14.02C7.03 14.02 5.02 12 5.02 9.52C5.02 7.03 7.03 5.02 9.52 5.02C12 5.02 14.02 7.03 14.02 9.52C14.02 12 12 14.02 9.52 14.02Z"></path></svg></div>
+    </sc-if>
+    <sc-if value="{{ searching }}" hint-placeholder-val="{{ false }}">
+      <div style="flex: 1; min-width: 0; height: 38px; margin-right: 8px; border-radius: 10px; background: rgba(255, 255, 255, .16); display: flex; align-items: center; gap: 6px; padding: 0 6px 0 10px; animation: fade-up 220ms var(--ease-out-strong) both;">
+        <div style="opacity: .8;"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M15.52 14.02H14.72L14.44 13.73C15.42 12.61 15.98 11.11 15.98 9.52C15.98 5.91 13.08 3 9.52 3C5.91 3 3 5.91 3 9.52C3 13.08 5.91 15.98 9.52 15.98C11.11 15.98 12.61 15.42 13.73 14.44L14.02 14.72V15.52L18.98 20.48L20.48 18.98L15.52 14.02ZM9.52 14.02C7.03 14.02 5.02 12 5.02 9.52C5.02 7.03 7.03 5.02 9.52 5.02C12 5.02 14.02 7.03 14.02 9.52C14.02 12 12 14.02 9.52 14.02Z"></path></svg></div>
+        <input value="{{ query }}" onInput="{{ onQuery }}" placeholder="搜索标题、主题或用户" style="flex: 1; min-width: 0; height: 36px; border: 0; outline: 0; background: transparent; color: var(--on-topbar); font-size: 15px; font-family: var(--font);" />
+        <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+          <div class="tap" onClick="{{ clearQuery }}" style="width: 28px; height: 28px; border-radius: 14px; display: grid; place-items: center; opacity: .8;"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.98 6.42 17.58 5.02 12 10.59 6.42 5.02 5.02 6.42 10.59 12 5.02 17.58 6.42 18.98 12 13.41 17.58 18.98 18.98 17.58 13.41 12 18.98 6.42Z"></path></svg></div>
+        </sc-if>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ notSearching }}" hint-placeholder-val="{{ true }}">
+    <div class="sc" style="flex: none; display: flex; gap: 6px; padding: 10px 12px 2px; overflow-x: auto;">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+        <div class="tap press" onClick="{{ f.pick }}" style="flex: none; height: 30px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: {{ f.fg }}; background: {{ f.bg }}; box-shadow: {{ f.ring }}; transition: background-color 160ms var(--ease-std), color 160ms var(--ease-std);">{{ f.label }}<span style="font-size: 11.5px; font-weight: 500; opacity: .7; font-variant-numeric: tabular-nums;">{{ f.count }}</span></div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <div class="sc" style="flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 24px;">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+      <div>
+        <div style="padding: 14px 18px 6px; font-size: 12.5px; line-height: 18px; font-weight: 700; color: var(--primary);">{{ g.label }}</div>
+        <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+          <div class="hist-item tap rowpress" onClick="{{ it.open }}" style="display: flex; gap: 12px; padding: 12px 8px 12px 16px; border-bottom: 1px solid var(--divider);">
+            <div style="flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--primary-c); color: var(--primary); display: grid; place-items: center;"><svg class="ic" viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="{{ it.icon }}"></path></svg></div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div style="flex: 1; min-width: 0; font-size: 15px; line-height: 21px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ it.titleA }}<mark>{{ it.titleM }}</mark>{{ it.titleB }}</div>
+                <div style="flex: none; font-size: 11.5px; color: var(--meta); font-variant-numeric: tabular-nums;">{{ it.time }}</div>
+              </div>
+              <div style="margin-top: 3px; font-size: 12.5px; line-height: 18px; color: var(--fg-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ it.source }}</div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11.5px; line-height: 16px; color: var(--meta);">
+                <sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}">
+                  <span style="height: 18px; padding: 0 6px; border-radius: 6px; display: inline-flex; align-items: center; font-weight: 600; color: {{ it.badgeFg }}; background: {{ it.badgeBg }};">{{ it.badge }}</span>
+                </sc-if>
+                <span>{{ it.meta }}</span>
+              </div>
+            </div>
+            <div class="tap" onClick="{{ it.menu }}" style="flex: none; width: 36px; height: 40px; margin-top: -2px; border-radius: 10px; display: grid; place-items: center; color: var(--meta);"><svg class="ic" viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M12 8.02C13.08 8.02 14.02 7.08 14.02 6C14.02 4.92 13.08 3.98 12 3.98C10.92 3.98 9.98 4.92 9.98 6C9.98 7.08 10.92 8.02 12 8.02ZM12 9.98C10.92 9.98 9.98 10.92 9.98 12C9.98 13.08 10.92 14.02 12 14.02C13.08 14.02 14.02 13.08 14.02 12C14.02 10.92 13.08 9.98 12 9.98ZM12 15.98C10.92 15.98 9.98 16.92 9.98 18C9.98 19.08 10.92 20.02 12 20.02C13.08 20.02 14.02 19.08 14.02 18C14.02 16.92 13.08 15.98 12 15.98Z"></path></svg></div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+
+    <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 96px 32px 0; text-align: center; animation: fade-in 250ms ease-out both;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-2); box-shadow: var(--shadow-hairline); color: var(--meta); display: grid; place-items: center; margin-bottom: 6px;"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M15.52 14.02H14.72L14.44 13.73C15.42 12.61 15.98 11.11 15.98 9.52C15.98 5.91 13.08 3 9.52 3C5.91 3 3 5.91 3 9.52C3 13.08 5.91 15.98 9.52 15.98C11.11 15.98 12.61 15.42 13.73 14.44L14.02 14.72V15.52L18.98 20.48L20.48 18.98L15.52 14.02ZM9.52 14.02C7.03 14.02 5.02 12 5.02 9.52C5.02 7.03 7.03 5.02 9.52 5.02C12 5.02 14.02 7.03 14.02 9.52C14.02 12 12 14.02 9.52 14.02Z"></path></svg></div>
+        <div style="font-size: 14px; font-weight: 500;">没有找到相关对话</div>
+        <div style="font-size: 12.5px; color: var(--meta);">「{{ query }}」没有匹配的标题、主题或用户</div>
+        <div class="btn btn-secondary tap" onClick="{{ clearQuery }}" style="margin-top: 14px; height: 36px; padding: 0 14px; font-size: 13px;">清除搜索</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0;">
+      <div class="tap" onClick="{{ closeMenu }}" style="position: absolute; inset: 0; background: var(--scrim); animation: fade-in 200ms var(--ease-std) both;"></div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 0; border-radius: 20px 20px 0 0; background: var(--menu); padding: 8px 0 22px; animation: sheet-up 260ms var(--ease-out-strong) both;">
+        <div style="width: 36px; height: 4px; border-radius: 2px; background: var(--track); margin: 0 auto 8px;"></div>
+        <div style="padding: 6px 20px 10px; font-size: 13px; line-height: 19px; color: var(--meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ menuTitle }}</div>
+        <div class="tap rowpress" onClick="{{ closeMenu }}" style="height: 52px; padding: 0 20px; display: flex; align-items: center; gap: 14px; font-size: 15.5px;"><span style="color: var(--primary);"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M15 3.98V11.02H5.16L3.98 12.19V3.98H15ZM15.98 2.02H3C2.44 2.02 2.02 2.44 2.02 3V17.02L6 12.98H15.98C16.55 12.98 17.02 12.56 17.02 12V3C17.02 2.44 16.55 2.02 15.98 2.02ZM21 6H18.98V15H6V17.02C6 17.53 6.47 18 6.98 18H18L21.98 21.98V6.98C21.98 6.47 21.56 6 21 6Z"></path></svg></span>继续聊天</div>
+        <div class="tap rowpress" onClick="{{ closeMenu }}" style="height: 52px; padding: 0 20px; display: flex; align-items: center; gap: 14px; font-size: 15.5px;"><span style="color: var(--primary);"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M18.98 5.02V18.98H5.02V5.02H18.98ZM18.98 3H5.02C3.89 3 3 3.89 3 5.02V18.98C3 20.11 3.89 21 5.02 21H18.98C20.11 21 21 20.11 21 18.98V5.02C21 3.89 20.11 3 18.98 3ZM14.02 17.02H6.98V15H14.02V17.02ZM17.02 12.98H6.98V11.02H17.02V12.98ZM17.02 9H6.98V6.98H17.02V9Z"></path></svg></span>打开来源主题</div>
+        <div class="tap rowpress" onClick="{{ deleteItem }}" style="height: 52px; padding: 0 20px; display: flex; align-items: center; gap: 14px; font-size: 15.5px; color: var(--danger);"><span><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M15.98 9V18.98H8.02V9H15.98ZM14.48 3H9.52L8.48 3.98H5.02V6H18.98V3.98H15.52L14.48 3ZM18 6.98H6V18.98C6 20.11 6.89 21 8.02 21H15.98C17.11 21 18 20.11 18 18.98V6.98Z"></path></svg></span>删除对话</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ snack }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 16px; right: 16px; bottom: 28px; border-radius: 14px; background: var(--snack-bg); color: #F4F1E8; display: flex; align-items: center; gap: 12px; padding: 14px 16px; box-shadow: 0 12px 28px rgba(0, 0, 0, .25); animation: rise 220ms var(--ease-std) both;">
+      <div style="flex: 1; font-size: 13.5px; line-height: 18.9px;">已删除对话，用量记录保留</div>
+      <div class="tap" onClick="{{ undo }}" style="font-size: 13px; font-weight: 700; color: #8FD8C9; padding: 4px 6px;">撤销</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {"person":"M12 6C13.08 6 14.02 6.89 14.02 8.02C14.02 9.09 13.08 9.98 12 9.98C10.92 9.98 9.98 9.09 9.98 8.02C9.98 6.89 10.92 6 12 6ZM12 15.98C14.72 15.98 17.81 17.3 18 18H6C6.23 17.3 9.33 15.98 12 15.98ZM12 3.98C9.8 3.98 8.02 5.81 8.02 8.02C8.02 10.22 9.8 12 12 12C14.2 12 15.98 10.22 15.98 8.02C15.98 5.81 14.2 3.98 12 3.98ZM12 14.02C9.33 14.02 3.98 15.33 3.98 18V20.02H20.02V18C20.02 15.33 14.67 14.02 12 14.02Z","forum":"M15 3.98V11.02H5.16L3.98 12.19V3.98H15ZM15.98 2.02H3C2.44 2.02 2.02 2.44 2.02 3V17.02L6 12.98H15.98C16.55 12.98 17.02 12.56 17.02 12V3C17.02 2.44 16.55 2.02 15.98 2.02ZM21 6H18.98V15H6V17.02C6 17.53 6.47 18 6.98 18H18L21.98 21.98V6.98C21.98 6.47 21.56 6 21 6Z","account_tree":"M21.98 11.02V3H15V6H9V3H2.02V11.02H9V8.02H11.02V18H15V21H21.98V12.98H15V15.98H12.98V8.02H15V11.02H21.98ZM6.98 9H3.98V5.02H6.98V9ZM17.02 15H20.02V18.98H17.02V15ZM17.02 5.02H20.02V9H17.02V5.02Z","article":"M18.98 5.02V18.98H5.02V5.02H18.98ZM18.98 3H5.02C3.89 3 3 3.89 3 5.02V18.98C3 20.11 3.89 21 5.02 21H18.98C20.11 21 21 20.11 21 18.98V5.02C21 3.89 20.11 3 18.98 3ZM14.02 17.02H6.98V15H14.02V17.02ZM17.02 12.98H6.98V11.02H17.02V12.98ZM17.02 9H6.98V6.98H17.02V9Z","reply":"M9.98 9V5.02L3 12L9.98 18.98V14.91C15 14.91 18.52 16.5 21 20.02C20.02 15 17.02 9.98 9.98 9Z"};
+const ITEMS = [
+  { id: 1, g: '今天', kind: 'topic', title: '消费体感变差从什么时候开始', source: '网事杂谈 · 体感消费不一直这样吗', time: '22:48', meta: '主题 · 第 1 页 · 热门回复 3 · 图片 1', badge: '生成中', tone: 'run' },
+  { id: 2, g: '今天', kind: 'floor', title: '外贸订单腰斩的说法是否可靠', source: '网事杂谈 · 体感消费不一直这样吗 · 3 楼', time: '22:31', meta: '单个楼层 · 事实核查 · 外部来源 4' },
+  { id: 3, g: '今天', kind: 'chain', title: '通缩对谁有利：2 楼与 1 楼的分歧', source: '网事杂谈 · 体感消费不一直这样吗 · 回复链 4 层', time: '21:02', meta: '回复链 · 4 楼', badge: '已达额度', tone: 'warn' },
+  { id: 4, g: '昨天', kind: 'person', title: '阴阳师妄想 的发言倾向', source: '个人分析 · 回复 214 条、主题 86 个', time: '23:15', meta: '2024-11 至 2026-08 · 仅文本' },
+  { id: 5, g: '昨天', kind: 'list', title: '网事杂谈最近在讨论什么', source: '网事杂谈 · 最新回复排序 · 前 300 个主题', time: '12:40', meta: '列表概览 · 300 个主题', badge: '已中断', tone: 'warn' },
+  { id: 6, g: '更早', kind: 'topic', title: '显卡降价潮是否已经结束', source: '硬件讨论 · [讨论] 50 系显卡价格走势', time: '09-08', meta: '主题 · 第 1、6 页 · 热门回复 5' },
+  { id: 7, g: '更早', kind: 'floor', title: '这条攻略里的掉率数据出处', source: '魔兽世界 · 怀旧服 P3 金团收入整理 · 27 楼', time: '09-02', meta: '单个楼层 · 引用主题已不可访问', badge: '来源已删除', tone: 'mute' }
+];
+const KIND_ICON = { topic: 'article', floor: 'reply', chain: 'account_tree', person: 'person', list: 'forum' };
+const FILTERS = [['all', '全部'], ['topic', '主题'], ['floor', '楼层'], ['chain', '回复链'], ['person', '个人'], ['list', '列表']];
+
+class Component extends DCLogic {
+  state = { searching: false, query: '', filter: 'all', menu: null, deleted: [], snack: false };
+  renderVals() {
+    const s = this.state;
+    const q = s.query.trim();
+    const alive = ITEMS.filter((it) => !s.deleted.includes(it.id));
+    const hit = alive.filter((it) => (s.searching || s.filter === 'all' || it.kind === s.filter)
+      && (!q || it.title.includes(q) || it.source.includes(q)));
+    const groups = ['今天', '昨天', '更早'].map((label) => ({
+      label,
+      items: hit.filter((it) => it.g === label).map((it) => {
+        const at = q ? it.title.indexOf(q) : -1;
+        const tone = {
+          run: ['var(--primary)', 'var(--primary-c)'],
+          warn: ['var(--accent)', 'var(--accent-c)'],
+          mute: ['var(--meta)', 'var(--surface-2)']
+        }[it.tone] || ['', ''];
+        return {
+          icon: IC[KIND_ICON[it.kind]],
+          titleA: at < 0 ? it.title : it.title.slice(0, at),
+          titleM: at < 0 ? '' : q,
+          titleB: at < 0 ? '' : it.title.slice(at + q.length),
+          source: it.source, time: it.time, meta: it.meta,
+          hasBadge: !!it.badge, badge: it.badge, badgeFg: tone[0], badgeBg: tone[1],
+          open: () => {},
+          menu: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ menu: it.id }); }
+        };
+      })
+    })).filter((g) => g.items.length);
+    const menuItem = ITEMS.find((it) => it.id === s.menu);
+    return {
+      themeClass: this.props.dark ? 'dark' : '',
+      searching: s.searching, notSearching: !s.searching,
+      openSearch: () => this.setState({ searching: true }),
+      backOrClose: () => this.setState({ searching: false, query: '' }),
+      query: s.query, hasQuery: !!s.query,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      clearQuery: () => this.setState({ query: '' }),
+      filters: FILTERS.map(([key, label]) => {
+        const on = s.filter === key;
+        return {
+          label,
+          count: key === 'all' ? alive.length : alive.filter((it) => it.kind === key).length,
+          fg: on ? 'var(--on-primary)' : 'var(--fg-2)',
+          bg: on ? 'var(--primary)' : 'var(--surface)',
+          ring: on ? 'none' : 'inset 0 0 0 1px var(--divider)',
+          pick: () => this.setState({ filter: key })
+        };
+      }),
+      groups,
+      empty: groups.length === 0 && q.length >= 2,
+      menuOpen: !!menuItem,
+      menuTitle: menuItem ? menuItem.title : '',
+      closeMenu: () => this.setState({ menu: null }),
+      deleteItem: () => {
+        this.setState({ deleted: [...s.deleted, s.menu], menu: null, snack: true });
+        clearTimeout(this.snackTimer);
+        this.snackTimer = setTimeout(() => this.setState({ snack: false }), 4000);
+      },
+      snack: s.snack,
+      undo: () => this.setState({ deleted: s.deleted.slice(0, -1), snack: false })
+    };
+  }
+  componentWillUnmount() { clearTimeout(this.snackTimer); }
+}
+</script>
+</body>
+</html>
