@@ -1,5 +1,7 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -332,7 +334,8 @@ private fun FloorActionRow(
     }
     actions.onAi?.let { open ->
       androidx.compose.material3.TextButton(onClick = { open(floor) }) {
-        Text("✦ AI", color = colors.primary, fontSize = 12.sp)
+        AppIcon(Ng2nIcon.AUTO_AWESOME, colors.primary, 14.dp)
+        Text("AI", Modifier.padding(start = 4.dp), color = colors.primary, fontSize = 12.sp)
       }
     }
     IconAction(label = "回复", width = 38.dp) {

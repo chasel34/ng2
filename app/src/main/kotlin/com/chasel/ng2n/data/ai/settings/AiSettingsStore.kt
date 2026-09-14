@@ -22,15 +22,15 @@ enum class AnalysisAllowance(val wire: String, val label: String) {
 data class AiSettings(
   val allowance: AnalysisAllowance = AnalysisAllowance.DEFAULT,
   val dailyEnabled: Boolean = false,
-  val dailyLimitCents: Long? = null,
+  val dailyLimitFen: Long? = null,
 )
 
-fun parseDailyLimitCents(text: String): Long? = runCatching {
+fun parseDailyLimitFen(text: String): Long? = runCatching {
   require(Regex("[0-9]{1,9}(\\.[0-9]{1,2})?").matches(text.trim()))
   BigDecimal(text.trim()).movePointRight(2).longValueExact().also { require(it > 0) }
 }.getOrNull()
 
-fun formatUsd(cents: Long): String = "US$" + BigDecimal.valueOf(cents, 2).toPlainString()
+fun formatCny(fen: Long): String = "¥" + BigDecimal.valueOf(fen, 2).toPlainString()
 
 @Singleton
 class AiSettingsStore @Inject constructor(
@@ -39,16 +39,16 @@ class AiSettingsStore @Inject constructor(
   object Keys {
     val ALLOWANCE = stringPreferencesKey("ai.analysisAllowance.v1")
     val DAILY_ENABLED = booleanPreferencesKey("ai.dailyEnabled.v1")
-    val DAILY_LIMIT_CENTS = longPreferencesKey("ai.dailyLimitUsdCents.v1")
+    val DAILY_LIMIT_FEN = longPreferencesKey("ai.dailyLimitFen.v1")
   }
 
   val settings = dataStore.data.map { prefs ->
-    val limit = prefs[Keys.DAILY_LIMIT_CENTS]?.takeIf { it > 0 }
+    val limit = prefs[Keys.DAILY_LIMIT_FEN]?.takeIf { it > 0 }
     AiSettings(
       allowance = AnalysisAllowance.entries.find { it.wire == prefs[Keys.ALLOWANCE] }
         ?: AnalysisAllowance.DEFAULT,
       dailyEnabled = prefs[Keys.DAILY_ENABLED] == true && limit != null,
-      dailyLimitCents = limit,
+      dailyLimitFen = limit,
     )
   }
 
@@ -58,15 +58,15 @@ class AiSettingsStore @Inject constructor(
 
   suspend fun setDailyEnabled(enabled: Boolean) {
     dataStore.edit {
-      require(!enabled || (it[Keys.DAILY_LIMIT_CENTS] ?: 0) > 0)
+      require(!enabled || (it[Keys.DAILY_LIMIT_FEN] ?: 0) > 0)
       it[Keys.DAILY_ENABLED] = enabled
     }
   }
 
-  suspend fun setDailyLimit(cents: Long) {
-    require(cents > 0)
+  suspend fun setDailyLimit(fen: Long) {
+    require(fen > 0)
     dataStore.edit {
-      it[Keys.DAILY_LIMIT_CENTS] = cents
+      it[Keys.DAILY_LIMIT_FEN] = fen
       it[Keys.DAILY_ENABLED] = true
     }
   }

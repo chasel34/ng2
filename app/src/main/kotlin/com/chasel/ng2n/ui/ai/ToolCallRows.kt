@@ -1,6 +1,11 @@
 package com.chasel.ng2n.ui.ai
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.material3.CircularProgressIndicator
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.*
@@ -40,15 +45,18 @@ fun ToolCallRows(rows: List<ToolCallRow>, answering: Boolean, pages: List<AiSour
   val colors = LocalNg2nColors.current
   var choice by remember { mutableStateOf<Boolean?>(null) }
   val open = choice ?: !answering
+  // 开始回答时的自动收起不做动画：流式期间高度渐变会让贴底跟随的内容来回抖动。
+  var animate by remember { mutableStateOf(false) }
   val settled = rows.none { it.status == "running" }
   val failures = rows.count { it.status !in listOf("running", "ok", "cancelled") }
   Column(Modifier.fillMaxWidth().testTag("ai-tool-calls")) {
     val rotation by animateFloatAsState(if (open) 0f else -90f, tween(150), label = "tool-chevron")
-    Row(Modifier.clickable { choice = !open }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-      Text("⌄", Modifier.graphicsLayer { rotationZ = rotation }.padding(end = 6.dp), color = colors.meta, fontSize = 13.sp)
+    Row(Modifier.clickable { animate = true; choice = !open }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+      AppIcon(Ng2nIcon.EXPAND_MORE, colors.meta, 16.dp, Modifier.padding(end = 6.dp).graphicsLayer { rotationZ = rotation })
       Text("${rows.size} 次工具调用${if (settled && failures > 0) "，$failures 次失败" else ""}", color = colors.fg2, fontSize = 13.sp)
     }
-    AnimatedVisibility(open, enter = expandVertically(tween(300)), exit = shrinkVertically(tween(300))) {
+    AnimatedVisibility(open, enter = if (animate) expandVertically(tween(300)) else EnterTransition.None,
+      exit = if (animate) shrinkVertically(tween(300)) else ExitTransition.None) {
       Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         rows.forEach { row -> key(row.id) {
           var expanded by remember { mutableStateOf(false) }
@@ -60,7 +68,10 @@ fun ToolCallRows(rows: List<ToolCallRow>, answering: Boolean, pages: List<AiSour
           Column {
             Row(Modifier.fillMaxWidth().heightIn(min = 32.dp).clickable { expanded = !expanded; choice = true },
               verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-              Text(if (expanded) "⌄" else if (failed) "!" else if (row.status == "running") "○" else "✓", Modifier.width(16.dp), color = foreground)
+              Box(Modifier.size(16.dp), contentAlignment = Alignment.Center) {
+                if (row.status == "running" && !expanded) CircularProgressIndicator(Modifier.size(12.dp), color = foreground, strokeWidth = 1.5.dp)
+                else AppIcon(if (expanded) Ng2nIcon.EXPAND_MORE else if (failed) Ng2nIcon.ERROR_OUTLINE else Ng2nIcon.CHECK, foreground, 16.dp)
+              }
               val label = when (row.name) {
                 "__read_file__" -> "读取技能文档"
                 "__list_directory__" -> "查看技能目录"

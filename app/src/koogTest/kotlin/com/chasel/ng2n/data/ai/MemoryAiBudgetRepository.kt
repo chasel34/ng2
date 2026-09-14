@@ -11,14 +11,14 @@ class MemoryAiBudgetRepository : AiBudgetRepository {
   private val lock = Mutex()
   override suspend fun change(update: (AiBudgetBook) -> AiBudgetBook) { lock.withLock { books.value = update(books.value) } }
   override suspend fun initialize() = Unit
-  override suspend fun allowance() = 50_000L
+  override suspend fun allowance() = 500_000L
   override suspend fun begin(conversation: String, previous: String?): String {
     if (previous != null) return previous
     val id = UUID.randomUUID().toString()
     change { it.copy(analyses = it.analyses + AiBudgetAnalysis(id, conversation, allowanceValue)) }
     return id
   }
-  var allowanceValue = 50_000L
+  var allowanceValue = 500_000L
   var limitsValue = AiRunLimits()
   override suspend fun limits(entry: String) = limitsValue
   override suspend fun decide(id: String, more: Boolean, amount: Long) = change { book -> book.copy(analyses = book.analyses.map {

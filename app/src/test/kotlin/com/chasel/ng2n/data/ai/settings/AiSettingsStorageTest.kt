@@ -133,10 +133,10 @@ class AiSettingsStorageTest {
 
   @Test fun `daily limit requires positive exact cents and preserves limit while disabled`() = runTest {
     listOf("", "0", "-1", "NaN", "Infinity", "1e3", "0.001", "99999999999999999999").forEach {
-      assertEquals(null, parseDailyLimitCents(it))
+      assertEquals(null, parseDailyLimitFen(it))
     }
-    assertEquals(1L, parseDailyLimitCents("0.01"))
-    assertEquals(123L, parseDailyLimitCents("1.23"))
+    assertEquals(1L, parseDailyLimitFen("0.01"))
+    assertEquals(123L, parseDailyLimitFen("1.23"))
     val store = AiSettingsStore(FakePreferencesDataStore())
     assertFailsWith<IllegalArgumentException> { store.setDailyEnabled(true) }
     assertFailsWith<IllegalArgumentException> { store.setDailyLimit(0) }
@@ -153,7 +153,7 @@ class AiSettingsStorageTest {
       "Authorization" to "Bearer private-value",
       AiSettingsStore.Keys.ALLOWANCE.name to "long-value",
       AiSettingsStore.Keys.DAILY_ENABLED.name to "enabled-value",
-      AiSettingsStore.Keys.DAILY_LIMIT_CENTS.name to "1234567",
+      AiSettingsStore.Keys.DAILY_LIMIT_FEN.name to "1234567",
     )
     val record = DiagnosticRecord(0, "ai-settings", params, "配置更新")
     val output = formatDiagnostic(record) + diagnosticSummary(record)

@@ -491,7 +491,7 @@ class TopicAiViewModelTest {
     vm.decideBudget(true)
     vm.state.first { !it.busy && it.turns.lastOrNull()?.status == "已完成" }
     assertEquals(analysis, vm.state.value.turns.last().analysisId)
-    assertEquals(100_000L, budgets.books.value.analyses.single().limit)
+    assertEquals(1_000_000L, budgets.books.value.analyses.single().limit)
     assertEquals(2, budgets.books.value.requests.size)
     assertEquals(2, calls)
     vm.send("新追问")

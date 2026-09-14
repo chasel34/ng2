@@ -417,8 +417,8 @@ class TopicAiViewModel(private val deps: TopicDeps, private val keys: AiKeyStore
             buildTopicContext(first, current, selectedPid, local + official, deps.attachmentUrls, currentScope).let { built ->
               val visible = built.sources.filter { it.part == "floor" }.map { it.pid }.toSet()
               built.copy(entryKind = conversationKind, ranges = if (selectedPid != null) listOf(
-                AiReadingRow("主楼正文", if (built.sources.any { it.floor == 0L }) "1 楼" else "未计入"),
-                AiReadingRow("选中楼层", if (built.sources.any { it.pid == selectedPid }) "1 楼" else "未计入"),
+                AiReadingRow("主楼正文", if (built.sources.any { it.floor == 0L }) "1 条" else "未计入"),
+                AiReadingRow("选中楼层", if (built.sources.any { it.pid == selectedPid }) "1 条" else "未计入"),
                 imageReadingRow(built.sources, built.image, "从选中发言选取")) else listOf(
                 AiReadingRow("第 1 页", "${first.floors.count { it.pid in visible }} 楼"),
                 AiReadingRow("热门回复", "${first.hotReplies.count { it.pid in visible }} 条")) +

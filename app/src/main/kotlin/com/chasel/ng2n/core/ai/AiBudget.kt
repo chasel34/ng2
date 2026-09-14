@@ -6,9 +6,9 @@ import java.time.ZoneOffset
 import java.math.BigDecimal
 
 @Serializable
-data class AiPrice(val version: String = "deepseek-flash-2026-09-14", val verified: String = "2026-09-14",
-  val hit: Long = 6, val miss: Long = 300, val output: Long = 1200) {
-  // 价格单位为每百万 token 的千分之一美元；费用向上取整到微美元。
+data class AiPrice(val version: String = AI_PRICE_VERSION, val verified: String = "2026-09-14",
+  val hit: Long = 40, val miss: Long = 2000, val output: Long = 8000) {
+  // 价格单位为每百万 token 的千分之一人民币；费用向上取整到微元。
   fun cost(input: Long, completion: Long, cached: Long = 0): Long {
     require(input >= 0 && completion >= 0 && cached in 0..input)
     return (cached * hit + (input - cached) * miss + completion * output + 999) / 1000
@@ -17,11 +17,29 @@ data class AiPrice(val version: String = "deepseek-flash-2026-09-14", val verifi
     fun at(time: Long, certain: Boolean = false): AiPrice {
       val utc = Instant.ofEpochMilli(time).atZone(ZoneOffset.UTC)
       val peak = utc.dayOfWeek.value <= 5 && (utc.hour in 1..3 || utc.hour in 6..9)
-      return if (!certain || peak) AiPrice() else AiPrice(hit = 3, miss = 150, output = 600)
+      return if (!certain || peak) AiPrice() else AiPrice(hit = 20, miss = 1000, output = 4000)
     }
   }
 }
-fun aiMoney(micros: Long): String = "US$" + BigDecimal.valueOf(micros, 6).setScale(4, java.math.RoundingMode.UP).toPlainString()
+const val AI_PRICE_VERSION = "deepseek-flash-cny-2026-09-14"
+const val AI_CURRENCY = "CNY"
+// 早期账本以美元记账且序列化时省略默认字段：旧记录的默认价会被读成人民币价表，只有非默认的谷时价保留美元数值。
+// 官方人民币价与美元价的比例固定为 20:3，按此换算金额，已结算的请求按 token 用人民币价表重算。
+fun AiBudgetBook.convertLegacyUsd(): AiBudgetBook {
+  if (currency == AI_CURRENCY) return this
+  fun cny(micros: Long): Long = (micros * 20 + 2) / 3
+  return copy(
+    currency = AI_CURRENCY,
+    analyses = analyses.map { it.copy(limit = cny(it.limit)) },
+    requests = requests.map { request ->
+      val usdScale = request.price.miss < AiPrice().miss / 2
+      val price = if (usdScale) request.price.copy(hit = cny(request.price.hit), miss = cny(request.price.miss), output = cny(request.price.output)) else request.price
+      request.copy(price = price.copy(version = AI_PRICE_VERSION), reserved = cny(request.reserved),
+        cost = request.cost?.let { if (it == 0L) 0L else price.cost(request.input, request.output, request.cached) })
+    },
+  )
+}
+fun aiMoney(micros: Long): String = "¥" + BigDecimal.valueOf(micros, 6).setScale(3, java.math.RoundingMode.UP).toPlainString()
 fun aiDay(time: Long): String = Instant.ofEpochMilli(time).atOffset(ZoneOffset.ofHours(8)).toLocalDate().toString()
 
 val AI_WEB_TOOLS = listOf("search_web", "read_webpage")
@@ -67,7 +85,8 @@ data class AiBudgetRequest(val id: String, val analysis: String, val conversatio
   val charged: Long get() = cost ?: reserved
 }
 @Serializable
-data class AiBudgetBook(val analyses: List<AiBudgetAnalysis> = emptyList(), val requests: List<AiBudgetRequest> = emptyList()) {
+data class AiBudgetBook(val analyses: List<AiBudgetAnalysis> = emptyList(), val requests: List<AiBudgetRequest> = emptyList(),
+  val currency: String = "USD") {
   fun reserve(request: AiBudgetRequest, dailyLimit: Long?): AiBudgetBook {
     if (requests.any { it.id == request.id }) return this
     val analysis = analyses.single { it.id == request.analysis }

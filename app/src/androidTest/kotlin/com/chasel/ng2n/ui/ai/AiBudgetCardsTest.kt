@@ -19,19 +19,19 @@ class AiBudgetCardsTest {
     val dark = mutableStateOf(false)
     var choice: Boolean? = null
     compose.setContent { Ng2nTheme(darkTheme = dark.value) {
-      AiBudgetCard(turn.value, 4, { more -> choice = more; turn.value = turn.value.copy(card = null, decision = if (more) "已追加 US$0.0500 额度" else "已到此为止，结果已保存") }, {})
+      AiBudgetCard(turn.value, 4, { more -> choice = more; turn.value = turn.value.copy(card = null, decision = if (more) "已追加 ¥0.050 额度" else "已到此为止，结果已保存") }, {})
     } }
     compose.onNodeWithText("确定").assertIsNotEnabled()
     compose.onNodeWithText("关闭").performClick()
     compose.onNodeWithText("已达到本次额度 · 待确认").performClick()
-    compose.onNodeWithText("追加 US$0.0500 额度继续").performClick()
+    compose.onNodeWithText("追加 ¥0.050 额度继续").performClick()
     compose.runOnIdle { assertNull(choice) }
     screenshot("budget-light")
     compose.runOnIdle { dark.value = true }
     screenshot("budget-dark")
     compose.onNodeWithText("确定").performClick()
     compose.runOnIdle { assertEquals(true, choice) }
-    compose.onNodeWithText("✓ 已追加 US$0.0500 额度").assertIsDisplayed()
+    compose.onNodeWithText("已追加 ¥0.050 额度").assertIsDisplayed()
   }
   @Test fun dailyCardRequiresSettings() {
     var settings = false
@@ -43,10 +43,10 @@ class AiBudgetCardsTest {
   @Test fun usageShowsPendingReservationAndExpandableTokenDetails() {
     val request = com.chasel.ng2n.core.ai.AiBudgetRequest("request", "analysis", "conversation", "2026-09-14", 10_000, com.chasel.ng2n.core.ai.AiPrice(), status = "pending_verification")
     compose.setContent { Ng2nTheme { AiUsageDetails(listOf(request), "今日用量", dailyLimit = 50_000) } }
-    compose.onNodeWithText("今日用量 · ≈ US$0.0100").performClick()
+    compose.onNodeWithText("今日用量 · ≈ ¥0.010").performClick()
     compose.onNodeWithText("模型请求").assertIsDisplayed()
     compose.onNodeWithText("缓存命中输入").assertIsDisplayed()
-    compose.onNodeWithText("每日 US$0.0500 · 20%（含未结预留）").assertIsDisplayed()
+    compose.onNodeWithText("每日 ¥0.050 · 20%（含未结预留）").assertIsDisplayed()
     compose.onNodeWithText("1 次请求用量待核实", substring = true).assertIsDisplayed()
     screenshot("usage-pending")
   }

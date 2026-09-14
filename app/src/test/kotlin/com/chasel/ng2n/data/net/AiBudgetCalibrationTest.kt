@@ -54,7 +54,7 @@ class AiBudgetCalibrationTest {
                 put("kind", kind); put("tid", tid); put("sources", context.sources.size); put("images", if (context.image == null) 0 else 1)
                 put("status", if (input != null && output != null) "usage_received" else "pending_verification")
                 input?.let { put("input", it) }; output?.let { put("output", it) }
-                if (input != null && output != null) put("estimated_usd_micros_peak_cache_unknown", AiPrice().cost(input.toLong(), output.toLong()))
+                if (input != null && output != null) put("estimated_cny_micros_peak_cache_unknown", AiPrice().cost(input.toLong(), output.toLong()))
               }
             } finally { executor.close() }
           } catch (e: Exception) {

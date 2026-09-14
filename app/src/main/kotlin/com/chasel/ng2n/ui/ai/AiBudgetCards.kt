@@ -14,6 +14,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chasel.ng2n.core.ai.*
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.theme.*
 
 @Composable
@@ -21,7 +23,12 @@ fun AiBudgetCard(turn: AiTurn, sourceCount: Int, onDecide: (Boolean) -> Unit, on
   val colors = LocalNg2nColors.current
   var hidden by remember(turn.analysisId) { mutableStateOf(false) }
   var choice by remember(turn.analysisId) { mutableStateOf<Boolean?>(null) }
-  turn.decision?.let { Text("✓ $it", Modifier.background(colors.greenContainer, RoundedCornerShape(20.dp)).padding(12.dp), color = colors.green, fontSize = 13.sp) }
+  turn.decision?.let {
+    Row(Modifier.background(colors.greenContainer, RoundedCornerShape(20.dp)).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+      AppIcon(Ng2nIcon.CHECK, colors.green, 14.dp)
+      Text(it, color = colors.green, fontSize = 13.sp)
+    }
+  }
   if (turn.card == null) return
   if (turn.card == "budget" && hidden) {
     TextButton(onClick = { hidden = false }) { Text("已达到本次额度 · 待确认", color = colors.accent) }
@@ -85,7 +92,8 @@ fun AiUsageDetails(requests: List<AiBudgetRequest>, title: String = "估算费�
   Column(Modifier.fillMaxWidth().background(colors.surface, RoundedCornerShape(12.dp)).padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
     Row(Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
       Text("$title · ≈ ${aiMoney(amount)}", Modifier.weight(1f), color = colors.fg2, fontSize = 13.sp)
-      Text(if (expanded) "收起 ⌃" else "明细 ⌄", color = colors.primary, fontSize = 12.sp)
+      Text(if (expanded) "收起" else "明细", color = colors.primary, fontSize = 12.sp)
+      AppIcon(if (expanded) Ng2nIcon.EXPAND_LESS else Ng2nIcon.EXPAND_MORE, colors.primary, 14.dp, Modifier.padding(start = 2.dp))
     }
     analysisLimit?.let { Text("本次剩余额度 ${aiMoney((it - amount).coerceAtLeast(0))}", color = colors.meta, fontSize = 12.sp) }
     dailyLimit?.let {

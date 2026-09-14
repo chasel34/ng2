@@ -57,12 +57,13 @@ interface AiBudgetRepository {
 class AiBudgetStore @Inject constructor(private val db: Ng2nDatabase, private val settings: AiSettingsStore) : AiBudgetRepository {
   private val initialization = Mutex()
   private var initialized = false
-  override val books = db.aiBudgetDao().observe().map { it?.let { Json.decodeFromString<AiBudgetBook>(it) } ?: AiBudgetBook() }
+  // 旧账以美元记账，读取时即换算，任何一次写入都会把换算结果落盘。
+  private fun decode(payload: String?): AiBudgetBook = (payload?.let { Json.decodeFromString<AiBudgetBook>(it) } ?: AiBudgetBook(currency = AI_CURRENCY)).convertLegacyUsd()
+  override val books = db.aiBudgetDao().observe().map(::decode)
   override suspend fun change(update: (AiBudgetBook) -> AiBudgetBook) {
     try {
       db.withTransaction {
-        val book = db.aiBudgetDao().read()?.let { Json.decodeFromString<AiBudgetBook>(it) } ?: AiBudgetBook()
-        db.aiBudgetDao().put(AiBudgetEntity(payload = Json.encodeToString(update(book))))
+        db.aiBudgetDao().put(AiBudgetEntity(payload = Json.encodeToString(update(decode(db.aiBudgetDao().read())))))
       }
     } catch (e: CancellationException) { throw e }
     catch (e: AiBudgetExceeded) { throw e }
@@ -83,7 +84,7 @@ class AiBudgetStore @Inject constructor(private val db: Ng2nDatabase, private va
     }
   }
   override suspend fun allowance(): Long = when (settings.settings.first().allowance.wire) {
-    "short" -> 20_000; "long" -> 100_000; "higher" -> 200_000; else -> 50_000
+    "short" -> 200_000; "long" -> 1_000_000; "higher" -> 2_000_000; else -> 500_000
   }
   override suspend fun limits(entry: String): AiRunLimits = runLimitsFor(settings.settings.first().allowance.wire, entry)
   override suspend fun begin(conversation: String, previous: String?): String {
@@ -105,7 +106,7 @@ class AiBudgetStore @Inject constructor(private val db: Ng2nDatabase, private va
     val ceiling = output ?: runLimitsFor(prefs.allowance.wire).maxTokens.toLong()
     change { book -> book.reserve(AiBudgetRequest(id, analysis, book.analyses.single { it.id == analysis }.conversation,
       aiDay(time), price.cost(input, ceiling), price, images = images, retry = retry),
-      if (prefs.dailyEnabled) prefs.dailyLimitCents?.times(10_000) else null) }
+      if (prefs.dailyEnabled) prefs.dailyLimitFen?.times(10_000) else null) }
     return id
   }
 }

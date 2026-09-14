@@ -104,6 +104,11 @@ enum class Ng2nIcon {
   TUNE,
   UPDATE,
   WIFI,
+
+  AUTO_AWESOME,
+  CHECK,
+  EXPAND_LESS,
+  ERROR_OUTLINE,
   ;
 
   val glyphName: String get() = name.lowercase()

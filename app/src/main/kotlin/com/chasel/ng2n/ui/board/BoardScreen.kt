@@ -166,7 +166,7 @@ fun BoardScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier) {
       androidx.compose.material3.TextButton(onClick = {
         if (ai.state.value.conversationId != null) ai = aiSessions.create()
         ai.openList(state.topics, boardTitle, if (sort == TopicSort.LAST_POST) "最新回复" else "发帖时间", filterRules)
-      }) { Text("✦", color = colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
+      }) { AppIcon(Ng2nIcon.AUTO_AWESOME, colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
       TopBarButton(
         icon = Ng2nIcon.STAR,
         size = 23.dp,

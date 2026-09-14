@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chasel.ng2n.data.ai.settings.AiKeyState
 import com.chasel.ng2n.data.ai.settings.AnalysisAllowance
-import com.chasel.ng2n.data.ai.settings.formatUsd
-import com.chasel.ng2n.data.ai.settings.parseDailyLimitCents
+import com.chasel.ng2n.data.ai.settings.formatCny
+import com.chasel.ng2n.data.ai.settings.parseDailyLimitFen
 import com.chasel.ng2n.ui.icons.AppIcon
 import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.common.DialogShell
@@ -95,7 +95,7 @@ internal fun AiSettingsContent(
     }
   }
   fun openDaily() {
-    input = settings.dailyLimitCents?.let { BigDecimal.valueOf(it, 2).toPlainString() }.orEmpty()
+    input = settings.dailyLimitFen?.let { BigDecimal.valueOf(it, 2).toPlainString() }.orEmpty()
     dialog = "daily"
   }
 
@@ -105,17 +105,17 @@ internal fun AiSettingsContent(
       title = "单次分析额度",
       options = AnalysisAllowance.entries.map { SettingsOption(it, it.label) },
       value = settings.allowance,
-      hint = state.error ?: "达到额度时保留已有结果，由你决定是否追加额度继续。暂定额度：短问答 US$0.02、默认 US$0.05、长楼 US$0.10、更高 US$0.20；仍待真实样本校准。",
+      hint = state.error ?: "达到额度时保留已有结果，由你决定是否追加额度继续。暂定额度：短问答 ¥0.2、默认 ¥0.5、长楼 ¥1、更高 ¥2；仍待真实样本校准。",
       onCancel = ::close,
       onConfirm = { if (!state.saving) setAllowance(it) { dialog = null } },
     )
     DialogShell(open = dialog == "key" || dialog == "daily", onDismiss = ::close) {
       val isKey = dialog == "key"
-      val cents = if (isKey) null else parseDailyLimitCents(input)
+      val fen = if (isKey) null else parseDailyLimitFen(input)
       val valid = if (isKey) input.trim().isNotEmpty() &&
-        input.trim().none { it.isWhitespace() || it.isISOControl() } else cents != null
+        input.trim().none { it.isWhitespace() || it.isISOControl() } else fen != null
       Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(if (isKey) "DeepSeek API Key" else "每日上限（US$）", color = colors.fg, fontSize = 18.sp)
+        Text(if (isKey) "DeepSeek API Key" else "每日上限（¥）", color = colors.fg, fontSize = 18.sp)
         TextField(
           value = input,
           onValueChange = { input = it },
@@ -138,7 +138,7 @@ internal fun AiSettingsContent(
         )
         Text(
           if (isKey) "在 platform.deepseek.com 创建。Key 只用于直连 DeepSeek，不随论坛请求发送，日志不记录。留空或取消会保留原 Key。"
-          else "只统计本机发起的请求。达到后需修改额度才能继续。请输入大于 0 的美元金额。",
+          else "只统计本机发起的请求。达到后需修改额度才能继续。请输入大于 0 的人民币金额。",
           color = colors.fg2, fontSize = 12.sp,
         )
         state.error?.let { Text(it, color = colors.danger, fontSize = 13.sp) }
@@ -149,7 +149,7 @@ internal fun AiSettingsContent(
             disabledContainerColor = colors.track, disabledContentColor = colors.meta,
           ), onClick = {
             val saved = { dialog = null; input = ""; revealed = false }
-            if (isKey) saveKey(input, saved) else setDailyLimit(requireNotNull(cents), saved)
+            if (isKey) saveKey(input, saved) else setDailyLimit(requireNotNull(fen), saved)
           }) { Text(if (state.saving) "保存中…" else "保存") }
         }
       }
@@ -175,12 +175,12 @@ internal fun AiSettingsContent(
       SettingsSwitchRow("每日额度", settings.dailyEnabled,
         "只统计本机发起的请求，不含同一 Key 在其他设备的消费") { enabled ->
         if (state.loaded && !state.saving) {
-          if (enabled && settings.dailyLimitCents == null) openDaily() else setDailyEnabled(enabled)
+          if (enabled && settings.dailyLimitFen == null) openDaily() else setDailyEnabled(enabled)
         }
       }
     }
     if (settings.dailyEnabled) item("limit") {
-      AiInfoRow("每日上限 · ${formatUsd(requireNotNull(settings.dailyLimitCents))}", "达到后需修改额度才能继续") {
+      AiInfoRow("每日上限 · ${formatCny(requireNotNull(settings.dailyLimitFen))}", "达到后需修改额度才能继续") {
         if (!state.saving) openDaily()
       }
     }
@@ -188,7 +188,7 @@ internal fun AiSettingsContent(
       if (!settings.dailyEnabled) Text("未设每日上限", Modifier.padding(horizontal = Spacing.page), color = colors.meta, fontSize = 12.sp)
       com.chasel.ng2n.ui.ai.AiUsageDetails(state.usage.requests.filter {
         it.day == com.chasel.ng2n.core.ai.aiDay(System.currentTimeMillis()) || it.cost == null
-      }, "今日用量", if (settings.dailyEnabled) settings.dailyLimitCents?.times(10_000) else null)
+      }, "今日用量", if (settings.dailyEnabled) settings.dailyLimitFen?.times(10_000) else null)
     }
     item("history-section") { SettingsSection("对话历史") }
     item("history") { AiInfoRow("AI 对话历史", "$historyCount 条对话 · 本机保存 · 全账号共享", onHistory) }

@@ -1,5 +1,6 @@
 package com.chasel.ng2n.ui.board
 
+import com.chasel.ng2n.ui.icons.AppIcon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -137,7 +138,7 @@ fun HotTopicsScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       androidx.compose.material3.TextButton(onClick = {
         if (ai.state.value.conversationId != null) ai = aiSessions.create()
         ai.openList(state.topics, key.name ?: "版块 ${key.id}", subtitle.drop(1).joinToString(" · "), filterRules)
-      }) { Text("✦", color = colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
+      }) { AppIcon(Ng2nIcon.AUTO_AWESOME, colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
       TopBarButton(
         icon = Ng2nIcon.REFRESH,
         size = 22.dp,
@@ -253,7 +254,7 @@ fun RecommendScreen(key: BoardKey, nav: Navigator, modifier: Modifier = Modifier
       androidx.compose.material3.TextButton(onClick = {
         if (ai.state.value.conversationId != null) ai = aiSessions.create()
         ai.openList(state.topics, key.name ?: "版块 ${key.id}", subtitle.drop(1).joinToString(" · "), filterRules)
-      }) { Text("✦", color = colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
+      }) { AppIcon(Ng2nIcon.AUTO_AWESOME, colors.onTopbar, modifier = Modifier.semantics { contentDescription = "AI 列表概览" }) }
       TopBarButton(
         icon = Ng2nIcon.FILTER_ALT,
         size = 22.dp,

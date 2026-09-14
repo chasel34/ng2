@@ -1,5 +1,7 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.common.Motion
 import com.chasel.ng2n.ui.nav.TopicKey
@@ -231,7 +233,7 @@ fun TopicScreen(key: TopicKey, nav: Navigator) {
         GlobeIcon(tint = colors.onTopbar)
       }
       TopBarButton(onClick = { openAi(null) }, label = "AI 分析主题") {
-        Text("✦", color = colors.onTopbar)
+        AppIcon(Ng2nIcon.AUTO_AWESOME, colors.onTopbar)
       }
       TopBarButton(onClick = { menuOpen = true }, label = "更多") {
         OverflowIcon(tint = colors.onTopbar)

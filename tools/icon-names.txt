@@ -84,3 +84,7 @@ warning
 wifi
 workspace_premium
 bookmark_added
+auto_awesome
+check
+expand_less
+error_outline

@@ -41,7 +41,7 @@ class AiSettingsScreenTest {
         }, { enabled ->
           state.value = state.value.copy(settings = state.value.settings.copy(dailyEnabled = enabled))
         }, { cents, done ->
-          state.value = state.value.copy(settings = state.value.settings.copy(dailyEnabled = true, dailyLimitCents = cents))
+          state.value = state.value.copy(settings = state.value.settings.copy(dailyEnabled = true, dailyLimitFen = cents))
           done()
         })
       }
@@ -64,7 +64,7 @@ class AiSettingsScreenTest {
     compose.onNodeWithText("每日额度").performScrollTo().performClick()
     compose.onNodeWithText("金额，最多两位小数").performTextInput("1.23")
     compose.onNodeWithText("保存").performClick()
-    compose.onNodeWithText("每日上限 · US$1.23").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("每日上限 · ¥1.23").performScrollTo().assertIsDisplayed()
     compose.onNodeWithText("每日额度").performClick()
     compose.onNodeWithText("未设每日上限").performScrollTo().assertIsDisplayed()
     compose.runOnIdle { state.value = state.value.copy(settings = AiSettings()) }

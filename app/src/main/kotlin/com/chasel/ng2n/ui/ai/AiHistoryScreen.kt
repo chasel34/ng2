@@ -1,5 +1,7 @@
 package com.chasel.ng2n.ui.ai
 
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -103,7 +105,7 @@ fun AiHistoryScreen(key: AiHistoryKey, nav: Navigator) {
           item("group:$group") { Text(group, Modifier.padding(start = 18.dp, top = 14.dp, bottom = 6.dp), color = colors.primary, fontWeight = FontWeight.Bold, fontSize = 12.sp) }
           items(items, key = { it.id }) { item ->
             Row(Modifier.fillMaxWidth().combinedClickable(onClick = { open(item) }, onLongClick = { menu = item }).padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-              Box(Modifier.size(36.dp).background(colors.primaryContainer, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) { Text("✦", color = colors.primary) }
+              Box(Modifier.size(36.dp).background(colors.primaryContainer, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) { AppIcon(Ng2nIcon.AUTO_AWESOME, colors.primary, 18.dp) }
               Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Text(highlight(item.title, query, colors.accentContainer), Modifier.weight(1f), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)

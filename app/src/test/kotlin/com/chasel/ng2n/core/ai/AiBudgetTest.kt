@@ -51,14 +51,32 @@ class AiBudgetTest {
     assertTrue(runCatching { stopped.reserve(request("next"), null) }.exceptionOrNull() is AiBudgetExceeded)
   }
 
+  @Test fun legacyUsdBooksConvertOnceIntoCny() {
+    // 旧账本省略了默认价字段，只有谷时价带数值；金额按 20:3 换算，已结算请求按 token 重算。
+    val payload = """{"analyses":[{"id":"a","conversation":"c","limit":50000}],"requests":[
+      {"id":"r1","analysis":"a","conversation":"c","day":"2026-09-14","reserved":9000,"price":{},"status":"settled","input":1000,"output":100,"cost":420},
+      {"id":"r2","analysis":"a","conversation":"c","day":"2026-09-14","reserved":3000,"price":{"hit":3,"miss":150,"output":600},"status":"pending_verification"}]}"""
+    val converted = kotlinx.serialization.json.Json.decodeFromString<AiBudgetBook>(payload).convertLegacyUsd()
+    assertEquals(AI_CURRENCY, converted.currency)
+    assertEquals(333_334L, converted.analyses.single().limit)
+    val settled = converted.requests.first()
+    assertEquals(AiPrice().cost(1000, 100), settled.cost)
+    assertEquals(60_000L, settled.reserved)
+    val pending = converted.requests.last()
+    assertEquals(AiPrice(hit = 20, miss = 1000, output = 4000), pending.price)
+    assertEquals(20_000L, pending.reserved)
+    assertEquals(null, pending.cost)
+    assertEquals(converted, converted.convertLegacyUsd())
+  }
+
   @Test fun peakPriceAndUncertainTimeAreConservative() {
     val peak = Instant.parse("2026-09-14T01:00:00Z").toEpochMilli()
     val valley = Instant.parse("2026-09-14T04:00:00Z").toEpochMilli()
-    assertEquals(300L, AiPrice.at(peak, true).miss)
-    assertEquals(150L, AiPrice.at(valley, true).miss)
-    assertEquals(300L, AiPrice.at(valley).miss)
+    assertEquals(2000L, AiPrice.at(peak, true).miss)
+    assertEquals(1000L, AiPrice.at(valley, true).miss)
+    assertEquals(2000L, AiPrice.at(valley).miss)
     assertEquals("2026-09-14", aiDay(peak))
-    assertEquals(1_206_000L, AiPrice().cost(1_000_000, 1_000_000, 1_000_000))
+    assertEquals(8_040_000L, AiPrice().cost(1_000_000, 1_000_000, 1_000_000))
   }
 
   @Test fun failureCategoriesKeepUnknownRequestsOutOfAutomaticRetries() {

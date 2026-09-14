@@ -220,8 +220,10 @@ private fun PersonaEntryButton(onClick: () -> Unit) {
     horizontalArrangement = Arrangement.Center,
     verticalAlignment = Alignment.CenterVertically,
   ) {
+    AppIcon(Ng2nIcon.AUTO_AWESOME, colors.primary, 16.dp)
     Text(
-      text = "✦ AI 分析发言",
+      text = "AI 分析发言",
+      modifier = Modifier.padding(start = 6.dp),
       style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.primary),
     )
   }

@@ -1,5 +1,7 @@
 package com.chasel.ng2n.ui.topic
 
+import com.chasel.ng2n.ui.icons.AppIcon
+import com.chasel.ng2n.ui.icons.Ng2nIcon
 import com.chasel.ng2n.ui.common.ListKeys
 import com.chasel.ng2n.ui.nav.ChainKey
 import androidx.compose.foundation.background
@@ -85,7 +87,7 @@ fun ChainScreen(key: ChainKey, nav: Navigator) {
           if (ai.state.value.conversationId != null) ai = aiSessions.create()
           ai.openChain(com.chasel.ng2n.data.topic.TopicPageParams(key.tid, 1, key.fav), vm.chain, vm.aiPages(), vm.startLou)
         }
-      }, label = "AI 分析回复链") { Text("✦", color = colors.onTopbar) }
+      }, label = "AI 分析回复链") { AppIcon(Ng2nIcon.AUTO_AWESOME, colors.onTopbar) }
       TopBarButton(onClick = notAvailable, label = "回复") { ReplyIcon(tint = colors.onTopbar) }
     }
 

@@ -188,14 +188,14 @@ class AgentRunLimitsTest {
   }
 
   @Test fun shortAllowanceStartsAFirstOverviewInsteadOfExceedingItsOwnReservation() = runTest {
-    // 一页中文楼层的实际规模：按 UTF-8 字节估算时首个请求的保守预留就超过 US$0.02。
+    // 一页中文楼层的实际规模：按 UTF-8 字节估算时首个请求的保守预留就超过 ¥0.2。
     val page = com.chasel.ng2n.core.api.TopicDetail(tid = 42, subject = "主题标题", attachBase = "",
       floors = (0L..19L).map { com.chasel.ng2n.core.api.Floor(pid = it, lou = it, authorKey = "1", content = "讨论正文内容".repeat(100)) })
     val context = buildTopicContext(page, page)
     assertTrue(context.material().length > 10_000)
     val tools = ForumToolSession(context, { page }, { emptyList() }, limiter = ForumReadLimiter(0))
     val ledger = MemoryAiBudgetRepository().apply {
-      allowanceValue = 20_000
+      allowanceValue = 200_000
       limitsValue = runLimitsFor("short")
     }
     val executor = Executor { flow { emit(StreamFrame.TextComplete("短概览")); emit(StreamFrame.End("stop")) } }
@@ -203,7 +203,7 @@ class AgentRunLimitsTest {
     val result = withContext(budget) { runtime.runWith(executor, context, emptyList(), "概览", {}, {}, tools) }
     assertEquals("短概览", result.textContent())
     val reserved = ledger.books.value.requests.single().reserved
-    assertTrue("短问答档首个请求预留 $reserved 超过额度", reserved < 20_000)
+    assertTrue("短问答档首个请求预留 $reserved 超过额度", reserved < 200_000)
   }
 
   @Test fun personaFirstRoundFinishesSkillHistoryAndFloorReadsWithinTheAllowanceLimits() = runTest {

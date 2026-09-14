@@ -1,5 +1,6 @@
 package com.chasel.ng2n.ui.topic
 
+import kotlinx.collections.immutable.toImmutableList
 import com.chasel.ng2n.data.topic.CacheDownloadState
 import com.chasel.ng2n.data.topic.CacheDownloadOutcome
 import com.chasel.ng2n.data.topic.TopicPageParams
@@ -231,12 +232,13 @@ class TopicViewModel(
     val params = paramsFor(target)
     viewModelScope.launch {
       try {
-        val model = deps.pageLoader.loadPage(
+        val loaded = deps.pageLoader.loadPage(
           params = params,
           style = style,
           urls = deps.attachmentUrls,
           refresh = refresh,
         )
+        val model = withKnownFloor(loaded)
         pages[target] = PageState.Loaded(model)
         onPageLoaded(target, model)
         hydrateReplyPreviews(target, model, params, style)
@@ -250,6 +252,14 @@ class TopicViewModel(
     }
   }
 
+  // 按 pid 单楼读取时 NGA 不返回真实楼层号，只看模式沿用进入时已知的楼层。
+  private fun withKnownFloor(model: PageRenderModel): PageRenderModel {
+    val pid = onlyPid ?: return model
+    val floor = key.floor?.takeIf { it > 0 } ?: return model
+    if (model.floors.none { it.pid == pid && it.lou == 0L }) return model
+    return model.copy(floors = model.floors.map { if (it.pid == pid && it.lou == 0L) it.copy(lou = floor) else it }.toImmutableList())
+  }
+
   private fun hydrateReplyPreviews(
     target: Int,
     model: PageRenderModel,
@@ -261,7 +271,7 @@ class TopicViewModel(
       if (withPreviews != null && (pages[target] as? PageState.Loaded)?.model === model &&
         paramsFor(target) == params && this@TopicViewModel.style == style
       ) {
-        pages[target] = PageState.Loaded(withPreviews)
+        pages[target] = PageState.Loaded(withKnownFloor(withPreviews))
       }
     }
   }

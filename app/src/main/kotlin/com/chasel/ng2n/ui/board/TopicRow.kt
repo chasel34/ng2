@@ -145,7 +145,7 @@ fun TopicRow(
     )
     if (onAi != null && !model.topic.denied && model.topic.shortcut == null && model.topic.jumpUrl == null) {
       androidx.compose.material3.TextButton(onClick = { onAi(model.topic) }, modifier = Modifier.size(48.dp)) {
-        Text("✦", color = colors.meta, modifier = Modifier.semantics { contentDescription = "AI 分析主题" })
+        AppIcon(Ng2nIcon.AUTO_AWESOME, colors.meta, 20.dp, Modifier.semantics { contentDescription = "AI 分析主题" })
       }
     }
     }
