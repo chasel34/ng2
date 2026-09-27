@@ -2,6 +2,10 @@
 
 基于 Kotlin / Jetpack Compose 的 NGA Android 客户端，支持多账号、收藏、搜索、通知、内容屏蔽与离线缓存。
 
+<a href="assets/promo/ng2-promo.mp4"><img src="assets/promo/ng2-promo.webp" alt="NG2 宣传视频" width="100%"></a>
+
+点击预览观看带声音的[完整视频](assets/promo/ng2-promo.mp4)。
+
 ## 构建
 
 需要 JDK 17 和 Android SDK，支持 Android 12 及以上版本。在仓库根目录执行：
