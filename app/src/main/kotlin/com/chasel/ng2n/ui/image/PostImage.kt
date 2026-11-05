@@ -40,7 +40,6 @@ import com.chasel.ng2n.core.local.ImageSize
 import com.chasel.ng2n.core.local.SMALL_IMAGE_WIDTH
 import com.chasel.ng2n.di.ImageModule
 import kotlin.math.max
-import kotlinx.coroutines.flow.combine
 
 @Composable
 fun PostImage(
@@ -53,13 +52,8 @@ fun PostImage(
   val context = LocalContext.current
   val shape = RoundedCornerShape(10.dp)
 
-  val gateFlow = remember(pipeline) {
-    pipeline.settings.combine(pipeline.metered) { settings, metered -> settings to metered }
-  }
-  val gate by gateFlow.collectAsStateWithLifecycle(
-    initialValue = pipeline.settings.value to pipeline.metered.value,
-  )
-  val (settings, metered) = gate
+  val settings by pipeline.settings.collectAsStateWithLifecycle()
+  val metered by pipeline.metered.collectAsStateWithLifecycle()
 
   var loaded by remember { mutableStateOf<Pair<String, ImageSize>?>(null) }
   var failedUrl by remember { mutableStateOf<String?>(null) }

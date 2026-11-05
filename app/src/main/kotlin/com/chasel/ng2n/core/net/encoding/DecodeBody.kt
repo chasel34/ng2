@@ -1,5 +1,8 @@
 package com.chasel.ng2n.core.net.encoding
 
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
+
 private val GBK_CHARSETS = setOf("gbk", "gb18030", "gb2312", "x-gbk", "csgb2312", "gb_2312-80")
 private val UTF8_CHARSETS = setOf("utf-8", "utf8", "unicode-1-1-utf-8")
 
@@ -13,6 +16,12 @@ fun parseCharset(contentType: String?): String? {
 
 private fun decodeUtf8(bytes: ByteArray): String = stripBom(String(bytes, Charsets.UTF_8))
 
+private fun decodeValidUtf8(bytes: ByteArray): String? = try {
+  stripBom(Charsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes)).toString())
+} catch (_: CharacterCodingException) {
+  null
+}
+
 private fun stripBom(text: String): String = if (text.isNotEmpty() && text[0] == '\uFEFF') text.substring(1) else text
 
 private fun countReplacements(text: String): Int = text.count { it == REPLACEMENT_CHAR }
@@ -20,7 +29,9 @@ private fun countReplacements(text: String): Int = text.count { it == REPLACEMEN
 fun decodeResponseBody(bytes: ByteArray, contentType: String? = null): String {
   val charset = parseCharset(contentType)
   if (charset != null && charset in GBK_CHARSETS) return stripBom(decodeGb18030(bytes))
-  if (charset != null && charset in UTF8_CHARSETS) return stripBom(decodeUtf8(bytes))
+  if (charset != null && charset in UTF8_CHARSETS) {
+    decodeValidUtf8(bytes)?.let { return it }
+  }
 
   val utf8 = decodeUtf8(bytes)
   if (!utf8.contains(REPLACEMENT_CHAR)) return stripBom(utf8)
