@@ -31,6 +31,19 @@ class NgaClientResponseTest {
   }
 
   @Test
+  fun `真实 GBK 主题列表被误声明 UTF-8 时不把乱码当成功结果`() = runTest {
+    val transport = RecordingTransport {
+      FakeResponse(contentType = "text/html; charset=UTF-8", body = NetFixture.THREAD_LIST.bytes())
+    }
+    val result = testClient(transport).execute(readRequest("thread.php", queryOf("fid" to 650)))
+
+    val data = result.data as JsonObject
+    assertEquals("原神", data.getValue("__F").jsonObject.getValue("name").jsonPrimitive.content)
+    assertTrue(!data.toString().contains('�'))
+    assertEquals(1, transport.requests.size)
+  }
+
+  @Test
   fun `HTTP 非 2xx 时先解析 body,body 有错误信息就报服务端错误`() = runTest {
     val transport = RecordingTransport { NetFixture.READ_THREAD_NOT_FOUND.response(status = 403) }
     val client = testClient(transport)

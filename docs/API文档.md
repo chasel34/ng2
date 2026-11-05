@@ -98,7 +98,7 @@ MNGA 同时设置三个 header：`User-Agent`、`X-User-Agent`、`Referer`（Ref
 
 ### 0.5 编码（第一大坑）
 
-- **NG2 响应解码**：已知 charset 优先；GBK 家族按 GB18030 解码。无声明或不认识时先试 UTF-8，无替换字符则直接采用；否则与 GB18030 比较替换字符数量，较少者胜，平手保留 UTF-8。实现见 `core/net/encoding/DecodeBody.kt`。
+- **NG2 响应解码**：GBK 家族按 GB18030 解码。声明 UTF-8 时先严格校验字节，合法文本直接采用（包括原文中的替换字符）；非法字节不能只凭响应头强制解码。无声明、不认识或 UTF-8 声明与字节不符时，先试 UTF-8，无替换字符则直接采用；否则与 GB18030 比较替换字符数量，较少者胜，平手保留 UTF-8。实现见 `core/net/encoding/DecodeBody.kt`。
 - **NG2 出站编码**：默认 UTF-8，指定参数用 `gbk()` 包装。query 出现 GBK 参数则撤掉 `__inchst=UTF8`；form 出现 GBK 参数则使用 `application/x-www-form-urlencoded;charset=GBK`。两处独立判断，见 `core/net/OutboundCharset.kt`。
 - **参数编码不统一，必须逐接口对照**：`thread.php` 的 `key` 是 **UTF-8** urlencode，但同一接口的 `author` 是 **GBK**；`forum.php` 的 `key` 是 GBK；登录接口 `__inchst=UTF-8`。
 - **提交正文的转义**（MNGA `escape_for_submit`，不做会被拒或乱码）：以下字符必须转成 **UTF-16 码元的十进制 HTML 实体** `&#NNNNN;`：

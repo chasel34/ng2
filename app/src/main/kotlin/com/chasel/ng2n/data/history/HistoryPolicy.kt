@@ -1,7 +1,6 @@
 package com.chasel.ng2n.data.history
 
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -120,7 +119,7 @@ fun formatHistoryTime(
   if (elapsed < HOUR) return "${elapsed / MINUTE} 分钟前"
 
   val time = LocalDateTime.ofInstant(Instant.ofEpochSecond(updatedAt), zone)
-  val today = LocalDate.ofInstant(Instant.ofEpochSecond(now), zone)
+  val today = LocalDateTime.ofInstant(Instant.ofEpochSecond(now), zone).toLocalDate()
   val dayDiff = ChronoUnit.DAYS.between(time.toLocalDate(), today)
   return when {
     dayDiff <= 0L -> "今天 ${clockOf(time)}"
